@@ -35,7 +35,7 @@ WITH payments_pdf as (
          (SELECT payment_status FROM billing.get_payment_totals(bp.id)) AS status,
          CASE WHEN payer_type = 'patient' THEN  pp.full_name
               WHEN payer_type = 'insurance' THEN pip.insurance_name
-              WHEN payer_type = 'ordering_facility' THEN ppg.group_name
+              WHEN payer_type = 'ordering_facility' THEN pof.name
               WHEN payer_type = 'ordering_provider' THEN ppr.full_name
          END payer_name,
          pf.facility_name,
@@ -48,7 +48,7 @@ WITH payments_pdf as (
     INNER JOIN public.users pu ON pu.id = bp.created_by
     LEFT JOIN public.patients pp ON pp.id = bp.patient_id
     LEFT JOIN public.insurance_providers pip ON pip.id = bp.insurance_provider_id
-    LEFT JOIN public.provider_groups ppg ON ppg.id = bp.provider_group_id
+    LEFT JOIN public.ordering_facilities pof ON pof.id = bp.ordering_facility_id
     LEFT JOIN public.provider_contacts ppc ON ppc.id = bp.provider_contact_id
     LEFT JOIN public.providers ppr ON ppr.id = ppc.provider_id
     LEFT JOIN public.facilities pf ON pf.id = bp.facility_id
@@ -74,13 +74,13 @@ WITH payments_pdf as (
         AND  (
             CASE '<%= payerType %>'
                 WHEN 'insurance' THEN pip.insurance_name
-                WHEN 'ordering_facility' THEN ppg.group_name
+                WHEN 'ordering_facility' THEN pof.name
                 WHEN 'ordering_provider' THEN ppr.full_name
                 WHEN 'patient' THEN  pp.full_name
             END)  ILIKE '%<%= payerName %>%'
       <% } else { %>
         AND ( pip.insurance_name  ILIKE '%<%= payerName %>%'
-        OR ppg.group_name  ILIKE '%<%= payerName %>%'
+        OR pof.name  ILIKE '%<%= payerName %>%'
         OR ppr.full_name  ILIKE '%<%= payerName %>%'
         OR pp.full_name ILIKE '%<%= payerName %>%' )
       <% } %>
@@ -204,11 +204,14 @@ const api = {
      */
     transformReportData: (rawReportData) => {
         return new Promise((resolve, reject) => {
+            const columns = rawReportData.dataSets[0].columns;
             const rowIndexes = {
-                paymentAmount: _.findIndex(rawReportData.dataSets[0].columns, ['name', 'Payment'])
+                paymentAmount: _.findIndex(columns, ['name', 'Payment']),
+                note: _.findIndex(columns, ['name', 'Note'])
             }
 
-            rawReportData.dataSets[0].columns[rowIndexes.paymentAmount].cssClass = 'text-right';
+            columns[rowIndexes.paymentAmount].cssClass = 'text-right';
+            columns[rowIndexes.note].cssClass = 'text-break';
             return resolve(rawReportData);
         });
     },

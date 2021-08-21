@@ -16,14 +16,14 @@ module.exports = {
     "rules": {
         "indent": [
             "error",
-            4, { 
-                "SwitchCase": 1 
+            4, {
+                "SwitchCase": 1
             }
         ],
-        "linebreak-style": [
-            "error",
-            "windows"
-        ],
+        // "linebreak-style": [
+        //     "error",
+        //     "windows"
+        // ],
         "quotes": [
             "warn",
             "single"

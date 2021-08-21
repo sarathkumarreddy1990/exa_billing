@@ -37,7 +37,7 @@ WITH claim_data as(
          WHEN bp.payer_type = 'insurance' THEN
                pip.insurance_name
          WHEN bp.payer_type = 'ordering_facility' THEN
-               pg.group_name
+               pof.name
          WHEN bp.payer_type = 'ordering_provider' THEN
                p.full_name
     END as comments,
@@ -60,7 +60,7 @@ WITH claim_data as(
     inner join users u  on u.id = bp.created_by
     LEFT JOIN public.patients pp on pp.id = bp.patient_id
     LEFT JOIN public.insurance_providers pip on pip.id = bp.insurance_provider_id
-    LEFT JOIN public.provider_groups  pg on pg.id = bp.provider_group_id
+    LEFT JOIN public.ordering_facilities pof ON pof.id = bp.ordering_facility_id
     LEFT JOIN public.provider_contacts  pc on pc.id = bp.provider_contact_id
     LEFT JOIN public.providers p on p.id = pc.provider_id
     WHERE 1=1 

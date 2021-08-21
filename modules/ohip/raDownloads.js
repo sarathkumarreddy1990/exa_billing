@@ -3,19 +3,18 @@ const cronJob = require('cron').CronJob;
 const ohip = require('./index');
 const shared = require('../../server/shared');
 
-const SERVICE_NAME = process.env.SERVICE_NAME || `OHIP Response Files`;
-
-class AckDownloads {
+const SERVICE_NAME = process.env.SERVICE_NAME || `OHIP Remittance Advice Files`;
+class RaDownloads {
 
     constructor(config) {
         config = config || {};
-        this.cronExpression = config.cron || '*/2 * * * *';
+        this.cronExpression = config.cron || '00 */10 * * * *';
         this.inProgress = false;
         this.restartInterval = config.interval || 60000; /// in milliseconds
     }
 
     async start() {
-        logger.info(`Initialized ${SERVICE_NAME} service`);
+        logger.info(` Initialized ${process.env.SERVICE_NAME} service`);
 
         let company_id = await shared.getCompanyId();
 
@@ -27,7 +26,7 @@ class AckDownloads {
         new cronJob(this.cronExpression, async () => {
             if (this.inProgress) {
 
-                logger.logInfo(`${SERVICE_NAME} still running for downloading response files of old batch of providers!`);
+                logger.logInfo(`${SERVICE_NAME} still running for downloading RA files for old batch of providers!`);
                 return;
             }
 
@@ -44,21 +43,24 @@ class AckDownloads {
             }
 
             try {
-                await ohip.downloadSubmittedFiles(providerNumbersList, (err, res) => {
+                await ohip.downloadRemittanceFiles(providerNumbersList, (err, res) => {
+
                     if (err) {
-                        logger.error(`Error in downloading ack files ${err}`);
+                        logger.error(`Error in downloading remittance advice files ${err}`);
                     }
 
-                    logger.logInfo(`${process.env.SERVICE_NAME} service completed downloading response files`);
+                    logger.logInfo(`${process.env.SERVICE_NAME} service completed downloading remittance advice files`);
                     this.inProgress = false;
                 });
-            } catch (e) {
-                logger.error(`Error occured in downloading ack files ${e}`);
+
+            } catch (error) {
+                logger.logError(`Error occured in downloading ack files ${JSON.stringify(error)}`);
                 this.inProgress = false;
+                return false;
             }
 
         }, null, true);
     }
 }
 
-module.exports = AckDownloads;
+module.exports = RaDownloads;

@@ -202,8 +202,7 @@ const colModel = [
     },
     {
         name: 'as_authorization',
-        searchColumns: ['auth.as_authorization'],
-        searchFlag: '%'
+        searchFlag: 'authStatus'
     },
     {
         name: 'mu_last_updated',
@@ -503,7 +502,6 @@ const api = {
             case 'account_no': return 'patients.account_no';
             case 'modality_room_id': return 'orders.modality_room_id';
             case 'institution': return 'studies.institution';
-            case 'as_authorization': return 'auth.as_authorization';
             case 'facility_name': return 'facilities.facility_name';
             case 'tat_level': return 'tat.level';
             case 'patient_room': return `orders.order_info->'patientRoom'`; //***For EXA-7148 -- Add Room Number colum to Facility Portal***//
@@ -511,7 +509,7 @@ const api = {
             case 'billed_status': return `(SELECT  CASE WHEN (SELECT 1 FROM billing.charges_studies inner JOIN billing.charges ON charges.id=
                                                 charges_studies.charge_id  WHERE study_id = studies.id LIMIT 1) >0 THEN 'billed'
                                                 ELSE 'unbilled' END)`;
-            case 'study_cpt_id': return 'study_cpt.study_cpt_id';
+            case 'study_cpt_id': return 'study_cpt.study_cpt_id'; // @TODO remove if not needed - looks like it isnt
             case 'ins_provider_type': return 'insurance_providers.provider_types';
             case "eligibility_verified": return `(COALESCE(eligibility.verified, false) OR COALESCE(orders.order_info->'manually_verified', 'false')::BOOLEAN)`;
             case 'icd_description': return `icd_codes.description`;
@@ -573,7 +571,7 @@ const api = {
     },
     getWLQueryJoin: function (columns) {
         let tables = columns instanceof Object && columns || api.getTables(columns);
-        let imp_orders = tables.vehicles || tables.users || tables.providers || tables.auth || tables.eligibility || tables.icd_codes;
+        let imp_orders = tables.vehicles || tables.users || tables.providers || tables.auth || tables.eligibility || tables.icd_codes || tables.auth;
         let imp_provider_contacts = tables.imagedelivery || tables.providers_ref;
         let imp_facilities = tables.tat;
         let r = '';
@@ -614,18 +612,30 @@ const api = {
 
         if (tables.cpt_codes) {r += ' LEFT JOIN cpt_codes ON studies.procedure_id = cpt_codes.id ';}
 
-        if (tables.auth){
+        if ( tables.auth ) {
             r += `
                 LEFT JOIN LATERAL (
-                    SELECT get_authorization(studies.id,studies.facility_id,studies.modality_id,studies.patient_id,(ARRAY[coalesce(orders.primary_patient_insurance_id,0), coalesce(orders.secondary_patient_insurance_id,0), coalesce(orders.tertiary_patient_insurance_id,0)]),studies.study_dt)::text AS as_authorization
-                ) AS auth ON true
-                `;
+                    SELECT
+                        get_authorization(
+                            studies.id,
+                            studies.facility_id,
+                            studies.modality_id,
+                            ARRAY [
+                                orders.primary_patient_insurance_id,
+                                orders.secondary_patient_insurance_id,
+                                orders.tertiary_patient_insurance_id
+                            ]
+                        ) AS as_authorization
+                ) auth ON TRUE
+            `;
         }
 
         if(tables.study_cpt){
-            r += `   LEFT JOIN LATERAL (
-                SELECT study_cpt.id as study_cpt_id FROM study_cpt INNER JOIN cpt_codes cpt ON  cpt.id=study_cpt.cpt_code_id    WHERE study_id = studies.id AND NOT study_cpt.has_deleted   AND NOT cpt.has_deleted   LIMIT 1
-            ) AS study_cpt ON true `;
+            r += `
+                LEFT JOIN LATERAL (
+                    SELECT study_cpt.id as study_cpt_id FROM study_cpt INNER JOIN cpt_codes cpt ON  cpt.id=study_cpt.cpt_code_id    WHERE study_id = studies.id AND study_cpt.deleted_dt IS NULL  AND NOT cpt.has_deleted   LIMIT 1
+                ) AS study_cpt ON true
+            `;
         }
 
 
@@ -759,6 +769,28 @@ const api = {
         if (tables.ordering_facilities || tables.ordering_facility_contacts || tables.billing_type) {
             r += ` LEFT JOIN public.ordering_facility_contacts ON ordering_facility_contacts.id = studies.ordering_facility_contact_id
                    LEFT JOIN public.ordering_facilities ON ordering_facilities.id = ordering_facility_contacts.ordering_facility_id`;
+        }
+
+        if (tables.primary_insurance) {
+            r += ` 
+                    LEFT JOIN LATERAL(
+                        SELECT  
+                            ipd.is_split_claim_enabled
+                        FROM public.patient_insurances pi
+                        INNER JOIN public.insurance_providers ip ON ip.id= pi.insurance_provider_id
+                        LEFT JOIN billing.insurance_provider_details ipd on ipd.insurance_provider_id = ip.id
+                        WHERE
+                            pi.patient_id = studies.patient_id 
+                            AND ((studies.study_dt IS NOT NULL
+                                    AND valid_to_date >= studies.study_dt)
+                                OR (studies.study_dt IS NULL
+                                    AND valid_to_date >= now())
+                                OR valid_to_date IS NULL)
+                            AND pi.coverage_level = 'primary'
+                        ORDER BY pi.valid_to_date ASC
+                        LIMIT 1
+                    ) AS primary_insurance ON TRUE
+            `;
         }
 
         return r;
@@ -895,8 +927,7 @@ const api = {
             'approving_provider_ref.full_name AS approving_provider',
             `imagedelivery.image_delivery
                 AS image_delivery`,
-            `auth.as_authorization
-                AS as_authorization`,
+            `auth.as_authorization AS as_authorization`,
             'report_delivery.report_queue_status',
             `has_empty_notes(studies.id, patients.id, orders.id)
                 AS empty_notes_flag`,
@@ -911,7 +942,8 @@ const api = {
             `patient_alt_accounts.pid_alt_account`,
             `patient_alt_accounts.phn_alt_account`,
             `claim_sequence_numbers.can_bc_claim_sequence_numbers`,
-            'ordering_facility_contacts.billing_type'
+            'ordering_facility_contacts.billing_type',
+            'primary_insurance.is_split_claim_enabled'
         ];
 
         return stdcolumns.concat(

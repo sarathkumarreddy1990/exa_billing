@@ -794,7 +794,7 @@ define('grid', [
                 var rowId = $checkedInputs[r].parentNode.parentNode.id;
                 var gridData = $(gridID).jqGrid('getRowData', rowId);
 
-                if (gridData.billing_type === 'census') {
+                if (app.isMobileBillingEnabled && gridData.billing_type === 'census') {
                     commonjs.showWarning("messages.warning.validBillingType");
                     return false;
                 }
@@ -808,6 +808,14 @@ define('grid', [
                     commonjs.showWarning("messages.warning.claims.selectUnbilledRecordForBatchClaim");
                     return false;
                 }
+
+                if (app.isMobileBillingEnabled
+                    && (gridData.hidden_is_split_enabled_primary_insurance === 'true' || gridData.billing_type === 'split')
+                    && gridData.hidden_ordering_facility === 'null') {
+                    commonjs.showWarning(commonjs.geti18NString("messages.confirm.batchSplitClaim").replace('$ACCESSION_NO$', gridData.accession_no));
+                    return false;
+                }
+
 
                 batchClaimArray.push({
                     patient_id: gridData.hidden_patient_id,
@@ -848,7 +856,8 @@ define('grid', [
                         studyDetails: selectedIds,
                         company_id: app.companyID,
                         isAllStudies: false,
-                        isAllCensus: false
+                        isAllCensus: false,
+                        isMobileBillingEnabled: app.isMobileBillingEnabled
                     }
                 }
                     $.ajax({
@@ -965,11 +974,11 @@ define('grid', [
             var icon_width = 24;
             colName = colName.concat([
                 ('<input type="checkbox" i18nt="billing.payments.selectAllStudies" id="chkStudyHeader_' + filterID + '" class="chkheader" onclick="commonjs.checkMultiple(event)" />'),
-                '','','', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', 'Assigned To', '', ''
+                '','','','','', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', 'Assigned To', '', ''
             ]);
 
             i18nName = i18nName.concat([
-                '','','', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '','', 'billing.claims.assignedTo', '', ''
+                '','','','','', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '','', '', 'billing.claims.assignedTo', '', ''
             ]);
 
             colModel = colModel.concat([
@@ -981,7 +990,9 @@ define('grid', [
                     search: false,
                     isIconCol: true,
                     formatter: function (cellvalue, option, rowObject) {
-                        if (['ABRT', 'CAN', 'NOS'].indexOf(rowObject.study_status) > -1 || rowObject.has_deleted || (!options.isClaimGrid && app.isMobileBillingEnabled && rowObject.billing_type === 'census')) {
+                        if (['ABRT', 'CAN', 'NOS'].indexOf(rowObject.study_status) > -1 || rowObject.has_deleted ||
+                            (!options.isClaimGrid && app.isMobileBillingEnabled && rowObject.billing_type === 'census'
+                                && rowObject.billed_status === 'unbilled')) {
                             return "";
                         }
                         else {
@@ -1289,6 +1300,32 @@ define('grid', [
                     }
                 },
                 {
+                    name: 'as_claim_submission_status',
+                    width: 40,
+                    sortable: false,
+                    resizable: false,
+                    search: false,
+                    hidden: app.country_alpha_3_code !== 'can',
+                    isIconCol: true,
+                    formatter: function (cellvalue, options, rowObject) {
+                        return rowObject.error_data && rowObject.error_data.length && "<i class='icon-ic-warning' i18nt='billing.claims.claimError'></i>" || '';
+
+                    },
+                    customAction: function (rowID, e, that) {
+                        var gridData = getData(rowID, studyStore, gridID);
+                        var errorContent = '<div style="width:100%;height:100%" id="divError"><textarea style="width:100%;height:100%" id="txtAreaErrorData">' + JSON.stringify(gridData.error_data, undefined, 4) + '</textarea></div>';
+
+                        commonjs.showDialog({
+                            header: 'OHIP  Submission Error',
+                            i18nHeader: 'shared.moduleheader.ohipClaims',
+                            width: '50%',
+                            height: '50%',
+                            html: errorContent
+                        });
+
+                    }
+                },
+                {
                     name: 'hidden_study_id',
                     width: 20,
                     sortable: false,
@@ -1431,6 +1468,30 @@ define('grid', [
                     isIconCol: true,
                     formatter: function (cellvalue, options, rowObject) {
                         return rowObject.study_cpt_id || "";
+                    }
+                },
+                {
+                    name: 'hidden_ordering_facility',
+                    width: 20,
+                    sortable: false,
+                    resizable: false,
+                    search: false,
+                    hidden: true,
+                    isIconCol: true,
+                    formatter: function (cellvalue, options, rowObject) {
+                        return rowObject.ordering_facility || null;
+                    }
+                },
+                {
+                    name: 'hidden_is_split_enabled_primary_insurance',
+                    width: 20,
+                    sortable: false,
+                    resizable: false,
+                    search: false,
+                    hidden: true,
+                    isIconCol: true,
+                    formatter: function (cellvalue, options, rowObject) {
+                        return rowObject.is_split_claim_enabled || "";
                     }
                 },
                 {
@@ -1702,8 +1763,11 @@ define('grid', [
                 multiselect: true,
                 ondblClickRow: function (rowID, irow, icol, event) {
                     var gridData = getData(rowID, studyStore, gridID);
-                    if (screenCode.indexOf('ECLM') > -1 || (!options.isClaimGrid && app.isMobileBillingEnabled && gridData.billing_type === 'census'))
+                    if (screenCode.indexOf('ECLM') > -1 ||
+                        (!options.isClaimGrid && app.isMobileBillingEnabled && gridData.billing_type === 'census'
+                            && gridData.billed_status === 'unbilled')) {
                         return false;
+                    }
                     var study_id = 0;
                     var order_id = 0;
                     var orderIds = [];
@@ -1789,7 +1853,9 @@ define('grid', [
 
                 onRightClickRow: function (rowID, iRow, iCell, event, options) {
                     var gridData = $('#' + event.currentTarget.id).jqGrid('getRowData', rowID);
-                    if (['Aborted', 'Cancelled', 'Canceled', 'No Shows'].indexOf(gridData.study_status) > -1 || gridData.has_deleted == "Yes" || (!options.isClaimGrid && app.isMobileBillingEnabled && gridData.billing_type === 'census')) {
+                    if (['Aborted', 'Cancelled', 'Canceled', 'No Shows'].indexOf(gridData.study_status) > -1 || gridData.has_deleted == "Yes" ||
+                        (!options.isClaimGrid && app.isMobileBillingEnabled && gridData.billing_type === 'census'
+                            && gridData.billed_status === 'unbilled')) {
                         event.stopPropagation();
                     } else if (disableRightClick()) {
                         var _selectEle = $(event.currentTarget).find('#' + rowID).find('input:checkbox');
@@ -1980,7 +2046,9 @@ define('grid', [
                         return isClaimGrid && e.claim_resubmission_flag;
                     }).length;
 
-                    if (['APP', 'AOP', 'PIF'].indexOf(gridData.hidden_claim_status_code) !== -1 || resubmissionFlag) {
+                    var validClaimStatusArray = ['APP', 'AOP', 'PIF', 'R', 'D', 'BR', 'AD', 'ADP', 'ARP', 'OH', 'PA', 'PS', 'PP'];
+
+                    if (validClaimStatusArray.indexOf(gridData.hidden_claim_status_code) !== -1 || resubmissionFlag) {
                         $('#li_ul_change_claim_status').show();
                     }
                 }

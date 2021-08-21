@@ -178,7 +178,9 @@ patient_payment AS(
 )
 SELECT
     provider_type  AS "Ins Class"
-    , COALESCE(agg_claim.facility_name, '')  AS "Service Facility"
+    , CASE WHEN agg_claim.claim_id > 0 OR agg_claim.facility_id > 0 THEN agg_claim.facility_name
+           ELSE ' ─ Total ─ '
+      END AS "Service Facility"
     , SUM(charge_details.total_bill_fee) AS "Charges"
     , SUM(COALESCE(pri_ins_payment.pri_adjustment,0::money)) AS "Adjustments"
     , SUM(agg_claim.claim_balance) AS "Balance"
@@ -199,10 +201,10 @@ LEFT JOIN total_credit ON agg_claim.claim_id = total_credit.claim_id
 LEFT JOIN charge_details ON agg_claim.claim_id = charge_details.claim_id
 LEFT JOIN patient_payment ON agg_claim.claim_id = patient_payment.claim_id
 GROUP BY GROUPING SETS(
-    <% if (groupByField == 'InsuranceClass') { %> 
-        ("Ins Class"), ("Ins Class", agg_claim.facility_name)
+    <% if (groupByField == 'InsuranceClass') { %>
+        ("Ins Class"), ("Ins Class", agg_claim.facility_name, agg_claim.claim_id, agg_claim.facility_id)
     <% } else { %>
-        (agg_claim.facility_name), (agg_claim.facility_name, "Ins Class")
+        (agg_claim.facility_name), (agg_claim.facility_name, "Ins Class", agg_claim.claim_id, agg_claim.facility_id)
     <% } %>
     )
     UNION ALL
@@ -287,10 +289,10 @@ const api = {
 
         // Facility Filter
         if (params.allFacilities && params.facilityIds)
-            filtersUsed.push({ name: 'facilities', label: 'Facilities', value: 'All' });
+            filtersUsed.push({ name: 'serviceFacilities', label: 'Service Facilities', value: 'All' });
         else {
-            const facilityNames = _(lookups.facilities).filter(f => params.facilityIds && params.facilityIds.map(Number).indexOf(parseInt(f.id, 10)) > -1).map(f => f.name).value();
-            filtersUsed.push({ name: 'facilities', label: 'Facilities', value: facilityNames });
+            const facilityNames = _(lookups.servicefacilities).filter(f => params.facilityIds && params.facilityIds.map(Number).indexOf(parseInt(f.id, 10)) > -1).map(f => f.name).value();
+            filtersUsed.push({ name: 'serviceFacilities', label: 'Service Facilities', value: facilityNames });
         }
         // Billing provider Filter
         if (params.allBillingProvider == 'true')

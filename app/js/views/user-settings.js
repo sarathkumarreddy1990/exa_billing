@@ -209,8 +209,7 @@ define([
                         if (self.gridFilterName == 'studies')
                             self.billingDisplayFields = result.study_fields;
                         if (app.country_alpha_3_code === "can") {
-                            self.billingDisplayFields = _.reject(self.billingDisplayFields, function (field) { return (field && (field.field_code == "clearing_house" ||
-                            field.field_code == "patient_ssn" || field.field_code == "place_of_service" )) }) || [];
+                            self.billingDisplayFields = _.reject(self.billingDisplayFields, function (field) { return (field && (['clearing_house', 'patient_ssn', 'place_of_service'].indexOf(field.field_code) > -1)) }) || [];
                         } else {
                             self.billingDisplayFields = _.reject(self.billingDisplayFields, function (field) { return (field && field.field_code == "payment_id" || field.field_code == "phn_alt_account" || field.field_code == "pid_alt_account" ) }) || [];
                         }
@@ -229,6 +228,10 @@ define([
 
                         if (['can_AB', 'can_BC', 'can_MB'].indexOf(app.billingRegionCode) == -1) {
                             self.billingDisplayFields = _.reject(self.billingDisplayFields, function (field) { return (field && (field.field_code == "phn_alt_account")) }) || [];
+                        }
+
+                        if (!app.isMobileBillingEnabled || app.country_alpha_3_code === "can") {
+                            self.billingDisplayFields = _.reject(self.billingDisplayFields, function (field) { return (field && (['billing_type'].indexOf(field.field_code) > -1)) }) || [];
                         }
 
                         var result_data = data && data.length && data[1] && data[1].rows && data[1].rows.length ? data[1].rows[0] : {};

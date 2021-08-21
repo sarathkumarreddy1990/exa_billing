@@ -592,14 +592,17 @@ module.exports = {
             const studyData = await(params.isAllCensus === 'true' ?  censusController.getData(params) : studiesController.getData(params));
             let studyDetails = [];
 
-            if (params.isMobileBillingEnabled) {
+            if (params.isMobileBillingEnabled  === 'true') {
                 _.map(studyData.rows, (study) => {
-                    studyDetails.push({
-                        patient_id: study.patient_id,
-                        study_id: study.study_id,
-                        order_id: study.order_id,
-                        billing_type: study.billing_type
-                    });
+
+                    if (study.billing_type !== 'census') {
+                        studyDetails.push({
+                            patient_id: study.patient_id,
+                            study_id: study.study_id,
+                            order_id: study.order_id,
+                            billing_type: study.billing_type || 'global'
+                        });
+                    }
                 });
             } else {
                 _.map(studyData.rows, (study) => {

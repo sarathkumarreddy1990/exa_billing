@@ -773,7 +773,7 @@ function formatSingleClaim(claimData, servicelineList) {
     if (pos === "12") {
         patientDet.fullName = "PRIVATE HOME" ;
         ServiceFacDet = getAddressDetails(patientDet);
-    } else if (billType.toString().toUpperCase() === "SPLIT") {
+    } else if (billType.toString().toUpperCase() === "SPLIT_P") {
         renderingProv.fullName = renderingProv.lastName+', '+renderingProv.firstName;
         ServiceFacDet = getAddressDetails(renderingProv);
         serviceFacNPI = renderingProv && renderingProv.NPINO || "";
@@ -1772,8 +1772,8 @@ function formatSingleClaim(claimData, servicelineList) {
                                 widths:[ 30, 35, 60, 45 ],
                                 body: [
                                     [
-                                        {image: getImage((claimDet.outSideLab && claimDet.outSideLab.toString().toUpperCase() === "TRUE") || (billType.toString().toUpperCase() === "SPLIT")), fit: [8, 8]},
-                                        {image: getImage((claimDet.outSideLab && claimDet.outSideLab.toString().toUpperCase() === "FALSE") && (billType.toString().toUpperCase() !== "SPLIT")), fit: [8, 8]},
+                                        {image: getImage( claimDet.outSideLab || (billType.toString().toUpperCase() === "SPLIT_P")), fit: [8, 8]},
+                                        {image: getImage((claimDet.outSideLab != null) && !claimDet.outSideLab && (billType.toString().toUpperCase() !== "SPLIT_P")), fit: [8, 8]},
                                         { text:"", alignment:"center"},
                                         { text:"" , alignment:"center"}
                                     ]

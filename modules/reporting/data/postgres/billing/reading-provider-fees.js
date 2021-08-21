@@ -21,7 +21,7 @@ const readingProviderFeesDataSetQueryTemplate = _.template(`
                 WHEN 'patient' THEN get_full_name(pp.last_name, pp.first_name, pp.middle_name,pp.prefix_name, pp.suffix_name)
                 WHEN 'insurance' THEN pip.insurance_name
                 WHEN 'ordering_provider' THEN ppr.full_name
-                WHEN 'ordering_facility' THEN ppg.group_name END AS payer_name
+                WHEN 'ordering_facility' THEN pof.name END AS payer_name
             , render_provider.group_name
             , COALESCE(pplc.reading_provider_percent_level,0) AS reading_provider_percent_level
             , to_char(bc.claim_dt, '<%= dateFormat %>') as claim_dt
@@ -34,9 +34,9 @@ const readingProviderFeesDataSetQueryTemplate = _.template(`
         LEFT JOIN public.insurance_providers pip ON pip.id = bp.insurance_provider_id
         LEFT JOIN public.provider_contacts ppc ON ppc.id = bp.provider_contact_id
         LEFT JOIN public.providers ppr ON ppr.id = ppc.provider_id
-        LEFT JOIN public.provider_groups ppg ON ppg.id = bp.provider_group_id
+        LEFT JOIN public.ordering_facilities pof ON pof.id = bp.ordering_facility_id
         LEFT JOIN public.provider_contacts as rendering_pro_contact ON rendering_pro_contact.id=bc.rendering_provider_contact_id
-        LEFT JOIN public.provider_groups render_provider ON rendering_pro_contact.provider_group_id = render_provider.id
+        LEFT JOIN public.provider_groups render_provider ON render_provider.id = rendering_pro_contact.provider_group_id
         LEFT JOIN public.cpt_code_provider_level_codes pccplc ON pccplc.cpt_code_id = pcc.id
         LEFT JOIN public.provider_level_codes pplc ON pplc.id = pccplc.provider_level_code_id
         INNER JOIN facilities f on f.id = bc.facility_id

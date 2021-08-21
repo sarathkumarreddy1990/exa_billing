@@ -154,7 +154,7 @@ const getClaimSubmissionFilename = (args) => {
     if (claim_type == 'technical') {
         fileName = `${groupNumber}`;
     }
-    else if (claim_type == 'professional') {
+    else if (['professional_facility', 'professional_provider'].indexOf(claim_type) > -1) {
         if (['27', '76', '85', '90'].includes(providerSpeciality))
             fileName = `${providerNumber}`;
         else
@@ -207,7 +207,8 @@ const submitClaims = async (callback) => {
             providerSpeciality,
             professionalGroupNumber,
             claim_type,
-            batchSequenceNumber
+            batchSequenceNumber,
+            derivedMOHId
         } = groupSubmissions
 
         try {
@@ -225,7 +226,9 @@ const submitClaims = async (callback) => {
                 providerNumber: providerNumber,
                 fileSequenceOffset: index,
                 ...groupSubmissions,
-                errorData: {} //claimSubmissionFailures
+                errorData: {}, //claimSubmissionFailures
+                derivedGroupNumber,
+                derivedMOHId
             };
         }
         catch (e) {
@@ -301,7 +304,7 @@ const submitClaims = async (callback) => {
                         auditInfo,
                     } = uploadResponse;
 
-                    let uploadFiles = auditInfo.length && auditInfo[0].eventDetail && auditInfo[0].eventDetail.upload && auditInfo[0].eventDetail.upload.uploads || [];
+                    let uploadFiles = auditInfo.length && auditInfo[0] && auditInfo[0].eventDetail && auditInfo[0].eventDetail.upload && auditInfo[0].eventDetail.upload.uploads || [];
 
                     ohipData.auditTransaction(auditInfo);
 
@@ -401,7 +404,21 @@ const submitClaims = async (callback) => {
                         const separatedSubmitResults = separateResults(submitResponse, EDT_SUBMIT, responseCodes.SUCCESS);
                         const successfulSubmitResults = separatedSubmitResults[responseCodes.SUCCESS];
                         if (submitErr) {
-                           return reject(submitErr, allSubmitClaimResults);
+
+                            await ohipData.updateFileStatus({
+                                files: uploadFiles,
+                                errors: submitErr || [],
+                                status: 'failure'
+                            });
+
+                            await ohipData.updateClaimStatus({
+                                claimIds: claimIds,
+                                claimStatusCode: 'SUBF',
+                                claimNote: 'Submission failed in MCEDT file Submit',
+                                userId: 1,
+                            });
+
+                            return reject(submitErr, allSubmitClaimResults);
                         }
 
 
@@ -418,6 +435,14 @@ const submitClaims = async (callback) => {
                         storedFiles.forEach(async (storedFile) => {
                             const claimStatusCode = storedFile.resource_id > 0 && ohipConfig.pendAckCode || 'SUBF';
                             const claimNote = storedFile.resource_id > 0 && 'Electronically submitted in MCEDT-EBS file submission' || 'Electronically submission failed in MCEDT-EBS file submission';
+
+                            if (claimStatusCode === 'SUBF') {
+                                await ohipData.updateFileStatus({
+                                    files: [storedFile],
+                                    errors: [{'error': 'Resource number not available'}],
+                                    status: 'failure'
+                                });
+                            }
 
                             await ohipData.updateClaimStatus({
                                 claimIds: storedFile.claimIds,

@@ -575,11 +575,13 @@ define(['jquery',
                 var data = {};
                 var gridElement = $(filter.options.gridelementid, parent.document).find('input[name=chkStudy]:checked');
 
+                billingMethod = self.getGridCellData(filter, rowId, 'hidden_billing_method');
+
                 if (!gridElement.length) {
                     return commonjs.showWarning('messages.status.pleaseSelectClaimsWithSameTypeOfBillingMethod');
                 }
 
-                if (isCheckedAll && billingMethodFormat === 'electronic_billing') {
+                if (isCheckedAll && billingMethodFormat === 'electronic_billing' && billingMethod === 'electronic_billing') {
                     var filterData = JSON.stringify(filter.pager.get('FilterData'));
                     var filterCol = JSON.stringify(filter.pager.get('FilterCol'));
 

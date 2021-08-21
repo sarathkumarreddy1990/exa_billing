@@ -95,6 +95,7 @@ function customGrid ( datastore, gridID ) {
             sortorder: options.sortorder,
             gridview: true,
             altRows: true,
+            autoencode: true,
             subGrid: this.options.subGrid,
             pgbuttons: false,
             viewrecords: !options.disablepaging,
@@ -1231,6 +1232,10 @@ function customGrid ( datastore, gridID ) {
         } else {
             this.pager.set("PageSize", 100);
             this.pager.set('PageNo', 1);
+
+            if (typeof this.options.beforeSearch === 'function') {
+                this.options.beforeSearch();
+            }
             this.fetchGrid(callback);
         }
     };

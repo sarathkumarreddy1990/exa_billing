@@ -345,8 +345,8 @@ function formatRedForm(claimData, servicelineList, pageBrk) {
 
     if (pos === "12") {
         patientDet.fullName = "PRIVATE HOME" ;
-        serviceFacDet = getAddressDetails(patientDet); 
-    } else if (billType.toString().toUpperCase() === "SPLIT") {
+        serviceFacDet = getAddressDetails(patientDet);
+    } else if (billType.toString().toUpperCase() === "SPLIT_P") {
         renderingProv.fullName = renderingProv.lastName+', '+renderingProv.firstName;
         serviceFacDet = getAddressDetails(renderingProv);
         serviceFacNPI = renderingProv && renderingProv.NPINO || "";
@@ -765,10 +765,10 @@ function formatRedForm(claimData, servicelineList, pageBrk) {
                         { text: '', colSpan: 9 },
                         {}, {}, {}, {}, {}, {}, {}, {},
                         {
-                            text: ((claimDet.outSideLab && claimDet.outSideLab.toString().toUpperCase() === 'TRUE') || (billType.toString().toUpperCase() === "SPLIT")) ? '√' : ' ', alignment: 'center', margin:[-3,0,0,0]
+                            text: (claimDet.outSideLab || (billType.toString().toUpperCase() === "SPLIT_P")) ? '√' : ' ', alignment: 'center', margin:[-3,0,0,0]
                         }, {},
                         {
-                            text: ((claimDet.outSideLab && claimDet.outSideLab.toString().toUpperCase() === 'FALSE') && (billType.toString().toUpperCase() !== "SPLIT")) ? '√' : ' ', alignment: 'center', margin:[-12,0,0,0] },
+                            text: ((claimDet.outSideLab != null) && !claimDet.outSideLab && (billType.toString().toUpperCase() !== "SPLIT_P")) ? '√' : ' ', alignment: 'center', margin:[-12,0,0,0] },
                         { text: '', colSpan: 3, alignment: 'right' }, {}, {},
                         { text: '', alignment: 'left', colSpan: 2 }, {}
                     ],

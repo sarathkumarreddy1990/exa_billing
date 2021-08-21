@@ -4,7 +4,7 @@ const {
 } = require('../index');
 
 const claimsData = require('../../data/claim/index');
-
+const config = require('../../config');
 const COMPANY_ID = 1;
 const WILDCARD_ID = "0";
 const RADMIN_USER_ID = 1;
@@ -15,7 +15,8 @@ const DEFAULT_BILLING_CLASS_ID = null;
 const DEFAULT_BILLING_CODE_ID = null;
 const DEFAULT_BILLING_NOTES = "";
 const DEFAULT_CLAIM_NOTES = "";
-const DEFAILT_PAYER_TYPE = 'primary_insurance';
+const DEFAULT_PAYER_TYPE = 'patient';
+const DEFAULT_BILLING_TYPE = 'global';
 const CLIENT_IP = '127.0.0.1';
 
 let _settings = null;
@@ -52,14 +53,16 @@ const getSaveClaimParams = async (params) => {
     } = params;
     params.claim_date = params.claim_dt;
 
-    const patientInsurances = (await claimsData.getPatientInsurances(params)).rows;
-    const lineItems = (await claimsData.getLineItemsDetails(params)).rows;
-
     const settings = await getSettings();
 
     const isCanadaBilling = settings.country_alpha_3_code === 'can';
     const isAlbertaBilling = isCanadaBilling && settings.province_alpha_2_code === 'AB';
     const isOhipBilling = isCanadaBilling && settings.province_alpha_2_code === 'ON';
+    const isMobileBillingEnabled = settings.country_alpha_3_code === 'usa' && config.get('enableMobileBilling');
+    params.isMobileBillingEnabled = isMobileBillingEnabled;
+
+    const patientInsurances = (await claimsData.getPatientInsurances(params)).rows;
+    const lineItems = (await claimsData.getLineItemsDetails(params)).rows;
 
     const problems = lineItems[0].problems;
     const claim_details = lineItems[0].claim_details[0];
@@ -93,6 +96,7 @@ const getSaveClaimParams = async (params) => {
         return charge;
     });
 
+    let payer_type = DEFAULT_PAYER_TYPE;
     let insurances = Object.keys(patBeneficiaryInsurances).map((val) => {
         let insurance = val.length ? patBeneficiaryInsurances[val].sort((data) => { return data.id - data.id; })[0] : {};
         insurance.claim_patient_insurance_id = insurance.id;
@@ -102,12 +106,21 @@ const getSaveClaimParams = async (params) => {
     });
 
     const primary_insurance = insurances.find((val)=> {return val.coverage_level === 'primary';});
+    const billing_type = (config.get('enableMobileBilling') && !isCanadaBilling  && claim_details.billing_type) || DEFAULT_BILLING_TYPE;
+
+    if (billing_type == 'facility') {
+        payer_type = 'ordering_facility';
+    }
+    else if (primary_insurance) {
+        payer_type = 'primary_insurance';
+    }
+
     const saveClaimParams = {
         removed_charges: [],
 
         is_alberta_billing: isAlbertaBilling,
         is_ohip_billing: isOhipBilling,
-
+        isMobileBillingEnabled,
         claims: {
             company_id: companyId,
             billing_class_id: DEFAULT_BILLING_CLASS_ID,
@@ -119,7 +132,7 @@ const getSaveClaimParams = async (params) => {
             claim_notes: DEFAULT_CLAIM_NOTES,
             claim_status_id: params.claim_status_id,
             created_by: userId,
-            payer_type: primary_insurance ? DEFAILT_PAYER_TYPE : 'patient',
+            payer_type,
             patient_id,
             place_of_service_id: isCanadaBilling ? null : claim_details.fac_place_of_service_id,
             claim_charges: charge_details,
@@ -129,28 +142,10 @@ const getSaveClaimParams = async (params) => {
             ordering_facility_id: parseInt(claim_details.ordering_facility_id) || null,
             can_confidential: false,
             can_wcb_rejected: false,
-            billing_type: claim_details.billing_type || 'global'
+            billing_type
         },
 
         insurances,
-
-        charges: lineItems[0].charges.map((charge) => {
-            charge.allowed_amount = charge.allowed_fee;
-            charge.modifier1_id = charge.m1;
-            charge.modifier2_id = charge.m2;
-            charge.modifier3_id = charge.m3;
-            charge.modifier4_id = charge.m4;
-            charge.charge_dt = charge.study_dt;
-            charge.created_by = userId;
-            charge.pointer1 = getPointer(problems[0]);
-            charge.pointer2 = getPointer(problems[1]);
-            charge.pointer3 = getPointer(problems[2]);
-            charge.pointer4 = getPointer(problems[3]);
-            charge.is_excluded = CHARGE_IS_EXCLUDED;
-            charge.is_canada_billing = isCanadaBilling;
-            charge.is_custom_bill_fee = false;
-            return charge;
-        }),
 
         claim_icds: problems.map((problem) => {
             return {
@@ -275,7 +270,7 @@ module.exports = {
                         ELSE false
                         END                                         is_active
                     , array_agg(DISTINCT study_status_code)       AS study_status_codes
-                    , abssr.excludes                              AS exclude_study_status
+                    , abssr.excludes                              AS exclude_study_statuses
                     , array_agg(facility_id)                      AS facility_ids
                     , abfr.excludes                               AS exclude_facilities
                     , array_agg(abofr.ordering_facility_id)       AS ordering_facility_ids
@@ -319,7 +314,7 @@ module.exports = {
                       SELECT DISTINCT ON (status_code) id, status_desc, status_code
                       FROM study_status INNER JOIN base ON study_status.status_code = ANY(base.study_status_codes)
                  ) tmp) as study_statuses
-                 , exclude_study_status
+                 , exclude_study_statuses
                  , (SELECT array_to_json(array_agg(tmp)) FROM (
                       SELECT id, facility_name, facility_code
                       FROM facilities INNER JOIN base ON facilities.id = ANY(base.facility_ids)
@@ -651,7 +646,7 @@ module.exports = {
                 , inactivated_dt = ${inactive ? "now()": null}
             WHERE
                 id = ${id}
-            RETURNING ${id}
+            RETURNING id
         `;
 
         return await query(sql);
@@ -686,7 +681,8 @@ module.exports = {
                 SELECT
                     abr.id
                     , claim_status_id
-                    , abssr.excludes                                AS exclude_study_status
+                    , array_agg(abssr.study_status_code)            AS study_status_codes
+                    , abssr.excludes                                AS exclude_study_statuses
                     , array_agg(facility_id)                        AS facility_ids
                     , abfr.excludes                                 AS exclude_facilities
                     , array_agg(abofr.ordering_facility_id)         AS ordering_facility_ids
@@ -710,8 +706,7 @@ module.exports = {
                     LEFT JOIN billing.autobilling_insurance_provider_payer_type_rules abipptr   ON abr.id = abipptr.autobilling_rule_id
                     LEFT JOIN billing.autobilling_insurance_provider_rules abipr                ON abr.id = abipr.autobilling_rule_id
                 WHERE
-                    study_status_code = ${studyStatus}
-                    AND inactivated_dt IS NULL
+                    inactivated_dt IS NULL
                     AND deleted_dt IS NULL
                 GROUP BY
                     abr.id
@@ -765,6 +760,8 @@ module.exports = {
             FROM
             cteAutoBillingRules
             INNER JOIN context ON
+                (NOT exclude_study_statuses = (${studyStatus} = ANY(study_status_codes)))
+                AND
                 (exclude_facilities IS null OR NOT exclude_facilities = (context.facility_id = ANY(facility_ids)))
                 AND
                 (exclude_ordering_facilities IS NULL OR NOT exclude_ordering_facilities = (context.ordering_facility_id = ANY(cteAutoBillingRules.ordering_facility_ids)))
@@ -800,7 +797,84 @@ module.exports = {
             };
 
             const saveClaimParams = await getSaveClaimParams(baseParams);
-            await claimsData.save(saveClaimParams);
+            let filteredClaims = [];
+            let claims = saveClaimParams.claims || [];
+
+            claims.forEach((claim) => {
+
+                if (claim.billing_type === 'split' && claim.ordering_facility_contact_id) {
+                    filteredClaims.push({
+                        ...claim,
+                        billing_type: DEFAULT_BILLING_TYPE
+                    });
+                }
+                else if (['census', 'split'].indexOf(claim.billing_type) === -1) {
+                    filteredClaims.push(claim);
+                }
+            });
+
+            if (filteredClaims.length) {
+                saveClaimParams.claims = filteredClaims;
+                let claim = filteredClaims[0];
+
+                if(claim.is_split_claim) {
+                    let {professional_modifier_id, technical_modifier_id} = (await claimsData.getTechnicalAndProfessionalModifier()).pop();
+                    saveClaimParams.claims = [];
+
+                    saveClaimParams.claims.push({
+                        ...claim, 
+                        claim_charges: claim.claim_charges,
+                        billing_type: 'split_p'
+                    });
+        
+                    // creating a technical claim since it is split claim 
+                    let newCharges = [];
+                    
+                    await Promise.all(claim.claim_charges.map(async (charge, index) => {
+                       
+                        let modifier1 = charge.modifier1_id == professional_modifier_id ? technical_modifier_id : charge.modifier1_id;
+                        let modifier2 = charge.modifier2_id == professional_modifier_id ? technical_modifier_id : charge.modifier2_id;
+                        let modifier3 = charge.modifier3_id == professional_modifier_id ? technical_modifier_id : charge.modifier3_id;
+                        let modifier4 = charge.modifier4_id == professional_modifier_id ? technical_modifier_id : charge.modifier4_id;
+        
+                        // recalculate bill fee allowed amount again only if charges contains professional modifier
+                        let { bill_fee, allowed_amount } = await claimsData.getTechnicalBillFeeAmounts({
+                            cpt_id: charge.cpt_id,
+                            modifier1,
+                            modifier2,
+                            modifier3,
+                            modifier4,
+                            beneficiary_id: claim.beneficiary_id,
+                            facility_id: claim.facility_id,
+                            order_id: claim.order_id
+                        });
+        
+                        newCharges.push({
+                            ...claim.claim_charges[index],
+                            modifier1_id: modifier1,
+                            modifier2_id: modifier2,
+                            modifier3_id: modifier3,
+                            modifier4_id: modifier4,
+                            bill_fee,
+                            allowed_amount
+                        });
+                    }));
+        
+                    // EXA-22773 | For technical claim responsible must be ordering facility 
+                    saveClaimParams.claims.push({
+                        ...claim,
+                        billing_method: 'direct_billing',
+                        payer_type: 'ordering_facility',
+                        claim_charges: newCharges,
+                        billing_type: 'split_t'
+                    });
+        
+                } else {
+                    saveClaimParams.claims = filteredClaims;
+                }
+
+                await claimsData.save(saveClaimParams);
+            }
         }
 
         return rows;

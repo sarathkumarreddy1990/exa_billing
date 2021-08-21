@@ -137,9 +137,17 @@ define(['jquery',
                 $('#chkAllCensus').prop('checked', false);
             },
 
-            showCensusGrid: function (orderingFacilityId) {
+            setCustomArgs: function () {
+                var self = this;
+                $('#tblGridCensus').jqGrid("setGridParam", {customargs: {
+                    orderingFacilityId: $('#ddlOrdFacility').val()
+                }});
+            },
+
+            showCensusGrid: function () {
                 var self = this;
                 var censusTypeSelect = "";
+                var gridIDPrefix = '#jqgh_tblGridCensus';
 
                 // Defaulting billing type options
                 self.censusType.map(function (data) {
@@ -220,10 +228,22 @@ define(['jquery',
                     disableadd: true,
                     disablereload: true,
                     delayedPagerUpdate: true,
+                    customizeSort: true,
+                    sortable: {
+                        exclude: [
+                            ',',
+                            gridIDPrefix,
+                            '_as_chk'
+
+                        ].join('')
+                    },
                     pagerApiUrl: '/exa_modules/billing/census/count',
                     pager: '#gridPager_census',
                     customargs: {
-                        orderingFacilityId: orderingFacilityId
+                        orderingFacilityId: $('#ddlOrdFacility').val(),
+                    },
+                    beforeSearch: function () {
+                        self.setCustomArgs();
                     },
                     beforeSelectRow: function (id, e) {
                         var targetElement = $(e.target || e.srcElement);
@@ -302,7 +322,7 @@ define(['jquery',
                                 var editor = tinymce.get('txtNotesEditor');
                                 editor.setContent((response.result[0] && response.result[0].note) || '');
                                 editor.setDirty(false);
-                                self.showCensusGrid(orderingFacilityId);
+                                self.censusTable.refresh();
                             } else {
                                 editor.setContent('');
                             }
@@ -384,7 +404,7 @@ define(['jquery',
                         commonjs.hideLoading();
                         if (data && data.length && (data[0].create_claim_charge)) {
                             commonjs.showStatus("messages.status.successfullyCompleted");
-                            self.showCensusGrid($('#ddlOrdFacility').val());
+                            self.showCensusGrid();
                         }
                     },
                     error: function (err, response) {

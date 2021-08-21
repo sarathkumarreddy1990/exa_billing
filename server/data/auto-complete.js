@@ -512,7 +512,10 @@ module.exports = {
         let whereQuery = '';
 
         if (q) {
-            whereQuery += ` AND (pofc.location ILIKE '%${q}%') `;
+            whereQuery = SQL` AND (
+                pofc.location ILIKE '%' || ${q} || '%' OR
+                pof.name ILIKE '%' || ${q} || '%'
+            ) `;
         }
 
         const sql = SQL`
@@ -522,6 +525,7 @@ module.exports = {
                 FROM public.ordering_facility_contacts pofc
                 INNER JOIN public.ordering_facilities pof ON pof.id = pofc.ordering_facility_id AND pof.deleted_dt IS NULL
                 WHERE pofc.inactivated_dt IS NULL
+                    AND pof.inactivated_dt IS NULL
                     AND pof.company_id = ${company_id}`
             .append(whereQuery)
             .append(`
@@ -538,8 +542,9 @@ module.exports = {
             INNER JOIN public.ordering_facilities pof ON pof.id = pofc.ordering_facility_id AND pof.deleted_dt IS NULL
             INNER JOIN get_ordering_facility_contacts_count gofc ON TRUE
             WHERE pofc.inactivated_dt IS NULL
-                AND pof.company_id = ${company_id}
-                ${whereQuery}`);
+                AND pof.inactivated_dt IS NULL
+                AND pof.company_id = ${company_id}`)
+            .append(whereQuery);
 
         sql.append(`
                     ORDER BY

@@ -68,13 +68,13 @@ claim_details AS(
                     'phone_no',pp.patient_info->'c1HomePhone')
             WHEN payer_type = 'ordering_facility' THEN
                 json_build_object(
-                    'name',ppg.group_name,
-                    'address',ppg.group_info->'AddressLine1',
-                    'address2',ppg.group_info->'AddressLine2',
-                    'city',ppg.group_info->'City',
-                    'state',ppg.group_info->'State',
-                    'zip_code',ppg.group_info->'Zip',
-                    'phone_no',ppg.group_info->'Phone')
+                    'name',pof.name,
+                    'address',pof.address_line_1,
+                    'address2',pof.address_line_2,
+                    'city',pof.city,
+                    'state',pof.state,
+                    'zip_code',pof.zip_code,
+                    'phone_no',pof.phone_number)
         END AS responsible_party_address,
         json_build_object(
             'name', bp.name,
@@ -104,7 +104,8 @@ claim_details AS(
                             WHEN payer_type = 'tertiary_insurance' THEN tertiary_patient_insurance_id
                           END
     LEFT JOIN public.insurance_providers pip ON pip.id = ppi.insurance_provider_id
-    LEFT JOIN public.provider_groups ppg ON ppg.id = bc.ordering_facility_id
+    LEFT JOIN public.ordering_facility_contacts ofc ON ofc.id = bc.ordering_facility_contact_id
+    LEFT JOIN public.ordering_facilities pof ON pof.id = ofc.ordering_facility_id
     LEFT JOIN public.provider_contacts ppc ON ppc.id = bc.referring_provider_contact_id
     LEFT JOIN public.providers ppr ON ppr.id = ppc.provider_id
     WHERE
@@ -254,9 +255,10 @@ const api = {
         filters.browserDateFormat = commonIndex.getLocaleFormat(reportParams.browserLocale);
         switch (payerType) {
             case 'ordering_facility':
-                filters.selectDetails = ' bc.ordering_facility_id AS ordering_facility_id, bc.payer_type ';
-                filters.joinCondition = 'INNER JOIN public.provider_groups ppg ON ppg.id = bc.ordering_facility_id';
-                filters.joinQuery = 'INNER JOIN get_payer_details gpd ON gpd.ordering_facility_id = bc.ordering_facility_id AND gpd.payer_type = bc.payer_type';
+                filters.selectDetails = ' pof.id AS ordering_facility_id, bc.payer_type ';
+                filters.joinCondition = ' INNER JOIN public.ordering_facility_contacts ofc ON ofc.id = bc.ordering_facility_contact_id  INNER JOIN public.ordering_facilities pof ON pof.id = ofc.ordering_facility_id ';
+                filters.joinQuery = `INNER JOIN public.ordering_facility_contacts ofc ON ofc.id = bc.ordering_facility_contact_id
+                                     INNER JOIN get_payer_details gpd ON gpd.ordering_facility_id = ofc.ordering_facility_id AND gpd.payer_type = bc.payer_type`;
                 break;
             case 'primary_insurance':
                 filters.selectDetails = ' ppi.insurance_provider_id AS insurance_provider_id, bc.payer_type ';

@@ -52,7 +52,7 @@ module.exports = {
             }
         ];
 
-        let defaultWhere = " ps.study_status = 'APP' AND pofc.billing_type = 'census' AND billed_status.id IS NULL ";
+        let defaultWhere = " ps.study_status = 'APP' AND ps.deleted_dt IS NULL AND  pofc.billing_type = 'census' AND billed_status.id IS NULL ";
 
         if (orderingFacilityId) {
             defaultWhere += ` AND pof.id = ${orderingFacilityId} `;

@@ -115,7 +115,19 @@ const ClaimHeader1Encoder = function (options) {
         // conditional
         // field length: 4
         // format: alphanumeric or spaces
-        return util.formatAlphanumeric(claimData.place_of_service, 4, ' ', true);
+        let isProfessionalClaim = claimData.claim_type && claimData.claim_type !== 'technical';
+        let isProfSLI = false;
+
+        let cptCodes = claimData.items && claimData.items.map((obj) => {
+            isProfSLI = isProfessionalClaim && constants.ohipProfProcedureCodes.indexOf(obj.serviceCode) > -1;
+            return obj.serviceCode;
+        }) || [];
+
+        let serviceLocationIndicator = isProfessionalClaim
+                ? isProfSLI && claimData.professional_sli || ''
+                : claimData.claim_type === 'technical' && claimData.place_of_service || '';
+
+        return util.formatAlphanumeric(serviceLocationIndicator, 4, ' ', true);
     };
 
     const getReservedForOOC = () => {

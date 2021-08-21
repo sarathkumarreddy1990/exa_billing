@@ -219,7 +219,7 @@ AS (
             , patient_last_name AS "Patient Last Name"
             , patient_first_name AS "Patient First Name"
             , patient_dob AS "DOB"
-            , (total_charges - (total_adjustments + total_payments))  AS "Account Balance"
+            , patient_current_balance AS "Account Balance"
             , claim_date AS "Service Date"
             FROM
                 collections)

@@ -14,6 +14,7 @@ module.exports = {
     getLineItemsDetails: async function (params) {
 
         const studyIds = params.study_ids.split(',').map(Number);
+        const isAlbertaBilling = params.billingRegionCode === 'can_AB';
 
         const firstStudyId = studyIds.length > 0 ? studyIds[0] : null;
 
@@ -116,6 +117,7 @@ module.exports = {
                                         is_split_claim_enabled
                                     FROM insurances
                                     WHERE coverage_level = 'primary' AND is_split_claim_enabled IS TRUE)
+                                    AND (SELECT billing_type from get_study_date) != 'facility'
                                 ) THEN ARRAY_AGG(ARRAY['insurance'])
                                 WHEN (${params.isMobileBillingEnabled} = 'true' AND  (SELECT billing_type from get_study_date) = 'split') THEN ARRAY_AGG(ARRAY['insurance']) ELSE NULL END) AS split_types
                         ),
@@ -143,7 +145,7 @@ module.exports = {
                                     billing.get_computed_bill_fee(null,cpt_codes.id,modifiers.modifier1_id,modifiers.modifier2_id,modifiers.modifier3_id,modifiers.modifier4_id,'allowed','patient',${params.patient_id},o.facility_id)::NUMERIC
                                   END) as allowed_fee
                                 , COALESCE(sc.units,'1')::NUMERIC AS units
-                                , COALESCE ( NULLIF(sc.authorization_info->'Primary', '')::json->'authorization_no', 'null') AS authorization_no
+                                , sca.authorization_no AS authorization_no
                                 , display_description
                                 , additional_info
                                 , sc.cpt_code_id AS cpt_id
@@ -153,6 +155,10 @@ module.exports = {
                             INNER JOIN public.cpt_codes on sc.cpt_code_id = cpt_codes.id
                             INNER JOIN public.orders o on o.id = s.order_id
                             LEFT JOIN public.study_cpt_ndc scn ON scn.study_cpt_id = sc.id
+                            LEFT JOIN public.study_cpt_authorizations sca ON (
+                                sca.study_cpt_id = sc.id
+                                AND sca.authorization_type = 'primary'
+                            )
 			                LEFT JOIN professional_modifier ON TRUE
                             LEFT JOIN LATERAL (
                                 SELECT UNNEST(census_fee_charges_details.split_types) AS split_type FROM census_fee_charges_details
@@ -194,7 +200,7 @@ module.exports = {
                                         NULLIF(order_info->'hFrom','')::DATE AS hospitalization_from_date,
                                         COALESCE(NULLIF(order_info->'outsideLab',''), 'false')::boolean AS service_by_outside_lab,
                                         order_info->'original_ref' AS original_reference,
-                                        order_info->'authorization_no' AS authorization_no,
+                                        studies_details.authorization_no AS authorization_no,
                                         order_info->'frequency_code' AS frequency,
                                         COALESCE(NULLIF(order_info->'oa',''), 'false')::boolean AS is_other_accident,
                                         COALESCE(NULLIF(order_info->'aa',''), 'false')::boolean AS is_auto_accident,
@@ -204,22 +210,29 @@ module.exports = {
                                         referring_provider.referring_provider_contact_id,
                                         referring_provider.specialities,
                                         referring_provider.referring_prov_npi_no,
+                                        ordering_provider.ord_prov_full_name,
+                                        ordering_provider.ordering_provider_contact_id,
+                                        ordering_provider.specialities,
+                                        ordering_provider.ordering_prov_npi_no,
                                         studies_details.referring_pro_study_desc,
                                         studies_details.rendering_provider_contact_id,
                                         studies_details.reading_phy_full_name,
+                                        studies_details.rendering_prov_npi_no,
                                         providers.id as fac_rendering_provider_contact_id,
                                         providers.full_name as fac_reading_phy_full_name,
-                                        providers.rendering_prov_npi_no,
+                                        providers.fac_rendering_prov_npi_no,
                                         facility_info->'service_facility_id' as service_facility_id,
                                         facility_info->'service_facility_name' as service_facility_name,
+                                        ofc.id AS service_facility_contact_id,
                                         ordering_facility.ordering_facility_contact_id,
                                         ordering_facility.id AS ordering_facility_id,
                                         ordering_facility.ordering_facility_name,
                                         ordering_facility.location,
-                                        (CASE 
-                                            WHEN (SELECT split_types IS NOT NULL FROM census_fee_charges_details) 
-                                            THEN 'split' 
-                                            ELSE ordering_facility.billing_type 
+                                        ordering_facility.place_of_service_id AS ord_fac_place_of_service,
+                                        (CASE
+                                            WHEN (SELECT split_types IS NOT NULL FROM census_fee_charges_details)
+                                            THEN 'split'
+                                            ELSE ordering_facility.billing_type
                                         END) AS billing_type,
                                         bfs.default_provider_id AS fac_billing_provider_id,
                                         orders.order_status AS order_status,
@@ -248,16 +261,22 @@ module.exports = {
                                                 ofc.location,
                                                 ofc.billing_type,
                                                 of.name AS ordering_facility_name,
-                                                of.id
+                                                of.id,
+                                                ofc.place_of_service_id
                                             FROM studies
                                             INNER JOIN ordering_facility_contacts ofc ON ofc.id = studies.ordering_facility_contact_id
                                             INNER JOIN ordering_facilities of ON of.id = ofc.ordering_facility_id
                                             WHERE studies.id = ${firstStudyId}
                                         ) ordering_facility  ON TRUE
                                         LEFT JOIN LATERAL (
-                                            SELECT pc.id, p.full_name, p.provider_info->'NPI' AS rendering_prov_npi_no FROM provider_contacts pc
-                                                INNER JOIN providers p ON p.id = pc.provider_id
-                                            WHERE	pc.id = nullif(facility_info->'rendering_provider_id', '')::integer limit 1
+                                            SELECT
+                                                pc.id,
+                                                p.full_name,
+                                                p.provider_info->'NPI' AS fac_rendering_prov_npi_no
+                                            FROM provider_contacts pc
+                                            INNER JOIN providers p ON p.id = pc.provider_id
+                                            WHERE pc.id = NULLIF(facility_info->'rendering_provider_id', '')::INT
+                                            LIMIT 1
                                         ) providers ON true
                                         LEFT JOIN LATERAL (
                                             SELECT
@@ -275,22 +294,55 @@ module.exports = {
                                             AND pc.deleted_dt IS NULL
                                             AND p.provider_type = 'RF'
                                         ) referring_provider ON true
+                                        LEFT JOIN LATERAL (
+                                            SELECT
+                                                pc.id AS ordering_provider_contact_id,
+                                                p.full_name AS ord_prov_full_name,
+                                                p.specialities,
+                                                p.provider_info->'NPI' AS ordering_prov_npi_no
+                                            FROM
+                                                providers p
+                                            INNER JOIN provider_contacts pc ON pc.provider_id = p.id
+                                            INNER JOIN studies s ON s.order_id = orders.id
+                                            WHERE s.id = ${firstStudyId}
+                                            AND pc.id = s.ordering_provider_contact_id
+                                            AND p.deleted_dt IS NULL
+                                            AND pc.deleted_dt IS NULL
+                                            AND p.provider_type = 'RF'
+                                        ) ordering_provider ON true
                                         JOIN LATERAL (
                                             SELECT
                                                 p.full_name AS reading_phy_full_name,
+                                                p.provider_info->'NPI' AS rendering_prov_npi_no,
                                                 pc.id AS rendering_provider_contact_id,
                                                 pc.can_locum_arrangement AS can_ahs_locum_arrangement_provider,
                                                 nature_of_injury_code_id,
                                                 area_of_injury_code_id,
+                                                sca.authorization_no,
                                                 s.study_info->'refDescription' AS referring_pro_study_desc
                                             FROM
                                                 public.studies s
+                                                LEFT JOIN public.study_transcriptions st ON st.study_id = s.id
                                                 LEFT JOIN public.study_cpt cpt ON cpt.study_id = s.id
-                                                LEFT JOIN provider_contacts pc ON pc.id = s.reading_physician_id
+                                                LEFT JOIN public.study_cpt_authorizations sca ON (
+                                                    sca.study_cpt_id = cpt.id
+                                                    AND sca.authorization_type = 'primary'
+                                                )
+                                                LEFT JOIN provider_contacts pc ON pc.id = (CASE
+                                                                                                WHEN ${isAlbertaBilling}
+                                                                                                THEN st.approving_provider_id
+                                                                                                ELSE s.reading_physician_id
+                                                                                            END)
                                                 LEFT JOIN providers p ON p.id = pc.provider_id
                                                 WHERE s.id = ${firstStudyId}
-                                                ORDER BY cpt.id ASC LIMIT 1
+                                                ORDER BY
+                                                    cpt.id ASC
+                                                LIMIT 1
                                         ) as studies_details ON TRUE
+                                        LEFT JOIN ordering_facility_contacts ofc ON (
+                                            ofc.ordering_facility_id = NULLIF((facilities.facility_info->'service_facility_id'), '')::BIGINT
+                                            AND ofc.is_primary
+                                        )
                             )
                             ,claim_problems AS (
                                         SELECT
@@ -906,26 +958,6 @@ module.exports = {
                             ORDER BY p.id ASC
                         ) payment_details
                     ) AS payment_details
-                    , ( SELECT
-                        json_agg(row_to_json(orderPhyDetail)) "ordering_physician"
-                        FROM (
-                            SELECT
-                                pc.id AS ordering_provider_contact_id
-                                , p.full_name AS ord_prov_full_name
-                                , p.provider_code AS ord_prov_code
-                            FROM
-                                billing.charges ch
-                            LEFT JOIN
-                                billing.charges_studies chs ON chs.charge_id = ch.id
-                            LEFT JOIN
-                                studies s ON s.id = chs.study_id
-                            LEFT JOIN
-                                provider_contacts pc ON pc.id = s.ordering_provider_contact_id
-                            LEFT JOIN
-                                providers p ON pc.provider_id = p.id
-                            WHERE
-                                ch.claim_id = ${id}
-                        ) AS orderPhyDetail) ordering_physician
                     , c.area_of_injury_code_id
                     , c.nature_of_injury_code_id
                     FROM
@@ -1059,7 +1091,7 @@ module.exports = {
                             patients p
                         INNER JOIN patient_facilities pfc ON pfc.patient_id = p.id
                         INNER JOIN facilities f ON f.id = pfc.facility_id AND pfc.is_default
-                        LEFT JOIN public.ordering_facilities pof ON pof.id = p.default_ordering_facility_id
+                        LEFT JOIN public.ordering_facilities pof ON pof.id = NULLIF(f.facility_info->'service_facility_id', '')::BIGINT
                         LEFT JOIN public.ordering_facility_contacts pofc ON pofc.ordering_facility_id = pof.id AND pofc.is_primary IS TRUE
                         LEFT JOIN provider_contacts fac_prov_cont ON f.facility_info->'rendering_provider_id'::text = fac_prov_cont.id::text
                         LEFT JOIN providers fac_prov ON fac_prov.id = fac_prov_cont.provider_id

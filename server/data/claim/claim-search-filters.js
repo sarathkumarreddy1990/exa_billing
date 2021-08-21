@@ -245,7 +245,7 @@ const colModel = [
     },
     {
         name: 'billing_type',
-        searchColumns: ['ordering_facility_contacts.billing_type'],
+        searchColumns: ['claims.billing_type'],
         searchFlag: '%'
     }
 ];
@@ -345,6 +345,7 @@ const api = {
             case 'pid_alt_account': return 'patient_alt_accounts.pid_alt_account';
             case 'phn_alt_account': return 'patient_alt_accounts.phn_alt_account';
             case 'can_bc_claim_sequence_numbers': return 'billing.can_bc_get_claim_sequence_numbers(claims.id)';
+            case 'billing_type': return 'claims.billing_type';
         }
 
         return args;
@@ -367,11 +368,11 @@ const api = {
                 billing.claims
                 INNER JOIN facilities ON facilities.id=claims.facility_id
             ${permissionQuery}
-            ${api.getWLQueryJoin(tables, true, args.customArgs.filter_id, args.user_id, args.isCount) + args.filterQuery}
+            ${api.getWLQueryJoin(tables, true, args.customArgs.filter_id, args.user_id, args.isCount, args) + args.filterQuery}
             `;
         return query;
     },
-    getWLQueryJoin: function (columns, isInnerQuery, filterID, userID, isCount) {
+    getWLQueryJoin: function (columns, isInnerQuery, filterID, userID, isCount, args) {
         let tables = isInnerQuery ? columns : api.getTables(columns);
 
         let r = '';
@@ -536,6 +537,19 @@ const api = {
                 ) AS claim_icds ON TRUE `;
         }
 
+        if (args && args.billingRegionCode == 'can_ON') {
+            r += `
+                LEFT JOIN LATERAL (
+                    SELECT
+                        ef.error_data
+                    FROM billing.edi_files ef
+                    INNER JOIN billing.edi_file_claims efc ON ef.id = efc.edi_file_id                    
+                    WHERE efc.claim_id = claims.id
+                    ORDER BY efc.id DESC LIMIT 1
+                ) AS claim_errors ON TRUE
+            `
+        }
+
         return r;
     },
 
@@ -623,7 +637,7 @@ const api = {
             `patient_alt_accounts.phn_alt_account`,
             `billing.can_bc_get_claim_sequence_numbers(claims.id) AS can_bc_claim_sequence_numbers`,
             `AGE(CURRENT_DATE, submitted_dt) >= '3 days'::INTERVAL AND claim_status.code = 'PA' AS claim_resubmission_flag`,
-            'ordering_facility_contacts.billing_type'
+            'claims.billing_type'
         ];
 
         if(args.customArgs.filter_id=='Follow_up_queue'){
@@ -640,6 +654,10 @@ const api = {
             stdcolumns.push( ' users.id as assigned_id ');
             stdcolumns.push( ` users.username||'('||get_full_name(users.first_name,users.last_name)||')' as assigned_to `);
 
+        }
+
+        if (['can_ON'].indexOf(args.billingRegionCode) > -1) {
+            stdcolumns.push('claim_errors.error_data');
         }
 
         return stdcolumns;
@@ -709,7 +727,7 @@ const api = {
             FROM (${innerQuery}) as FinalClaims
             INNER JOIN billing.claims ON FinalClaims.claim_id = claims.id
             INNER JOIN facilities ON facilities.id = claims.facility_id
-            ${api.getWLQueryJoin(columns, '', args.customArgs.filter_id, args.user_id, args.isCount)}
+            ${api.getWLQueryJoin(columns, '', args.customArgs.filter_id, args.user_id, args.isCount, args)}
             ORDER BY FinalClaims.number
             `
             ;

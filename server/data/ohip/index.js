@@ -18,6 +18,7 @@ const logger = require('../../../logger');
 const config = require('../../config');
 const errorDescriptionsByCode = require('../../resx/ohip/errorReport/error');
 const explanatoryDescriptionsByCode = require('../../resx/ohip/errorReport/explanatory');
+const eraData = require('../../data/era');
 
 const {
     encoding,
@@ -120,9 +121,9 @@ const getFileStore = async (args) => {
     `;
 
     if (description) {
-        sql = sql.append(SQL`
-            OR (file_store_name = ${description} AND NOT has_deleted)
-        `); //file_stores.has_deleted
+        sql = sql.append(`
+            OR (file_store_name = '${description}' AND NOT has_deleted)
+        `);
     }
 
     const dbResults = (await query(sql.text, sql.values)).rows;
@@ -162,7 +163,8 @@ const storeFile = async (args) => {
 
     let {
         filename: originalFilename,
-        file_data,
+        file_data = [],
+        data,
         isTransient,
         appendFileSequence,
         fileSequenceOffset,
@@ -171,24 +173,26 @@ const storeFile = async (args) => {
         providerNumber,
         providerSpeciality,
         batchSequenceNumber,
-        derivedGroupNumber
+        derivedGroupNumber,
+        derivedMOHId
     } = args;
 
-    let data = file_data.length && file_data[0].data || '';
+    data = data || (file_data.length && file_data[0].data) || '';
     const exaFileType = getFileType(args);
 
 
     // 20120331 - OHIP Conformance Testing Batch Edit sample batch date, seq: 0005
     // accounting number: "CST-PRIM" from Conformance Testing Error Report sample
 
-    const filestore = await getFileStore(args);
+    const filestore = await getFileStore(args) || {};
     const filePath = path.join((filestore.is_default ? 'OHIP' : ''), getDatePath());
-    const dirPath = path.join(filestore.root_directory, filePath);
+    const dirPath = path.join(filestore.root_directory || '', filePath);
 
     // Create dir if missing
     mkdirp.sync(dirPath);
 
     let filename = originalFilename;
+
     if (appendFileSequence) {
         try {
             const filenames = await readDirAsync(dirPath);
@@ -206,24 +210,37 @@ const storeFile = async (args) => {
 
     const fileInfo = {
         file_store_id: filestore.id,
-        absolutePath: path.join(dirPath, filename),
+        absolutePath: path.join(dirPath || '', filename || ''),
     };
-
-    await writeFileAsync(fileInfo.absolutePath, data, { encoding });
 
     if (isTransient || !exaFileType) {
         // if we don't care about storing the file or the database
         // will freak out if we try, then our work is done, here
-
+        fileInfo.edi_file_id = 0;
         return fileInfo;
     }
 
-    const stats = fs.statSync(fileInfo.absolutePath);
+    try {
 
-    const md5Hash = crypto.createHash('MD5').update(data, 'utf8').digest('hex');
+        const md5Hash = crypto.createHash('MD5').update(data, 'utf8').digest('hex');
 
-    // inserting the data into edi files table
-    const sql = SQL`
+        const { rows = [] } = await eraData.isProcessed(md5Hash, 1);
+
+        if (rows.length && rows[0] && rows[0].file_exists && rows[0].file_exists[0]) {
+            logger.debug(`File name ${filename} already downloaded into EXA`);
+            fileInfo.edi_file_id = 0;
+            return fileInfo;
+        }
+
+        logger.debug(`Writing file ${filename} into filestore...`);
+        await writeFileAsync(fileInfo.absolutePath, data, { encoding });
+
+        const stats = fs.statSync(fileInfo.absolutePath);
+
+        logger.debug(`Storing file ${filename} into database...`);
+
+        // inserting the data into edi files table
+        const sql = SQL`
                         WITH files AS (
                             INSERT INTO billing.edi_files (
                                 company_id,
@@ -235,7 +252,8 @@ const storeFile = async (args) => {
                                 file_size,
                                 file_md5,
                                 uploaded_file_name,
-                                resource_no
+                                resource_no,
+                                can_ohip_moh_id
                             )
                             VALUES(
                                 1
@@ -248,10 +266,12 @@ const storeFile = async (args) => {
                                 ,${md5Hash}::TEXT
                                 ,${filename}::TEXT
                                 ,nullif(${resource_id}, 'undefined')
+                                ,${derivedMOHId}
                             )
+                            ON CONFLICT (resource_no) WHERE resource_no IS NOT NULL
+                            DO NOTHING
                             RETURNING id
-                            )
-
+                        ), insert_batch_files_cte AS (
                             INSERT INTO billing.edi_file_batches  (
                                 edi_file_id,
                                 provider_number,
@@ -267,15 +287,26 @@ const storeFile = async (args) => {
                                 , ${providerSpeciality}
                                 , '{}'::JSONB
                             FROM files
-                            RETURNING id, edi_file_id
-                        `;
+                            WHERE ${exaFileType}::TEXT = 'can_ohip_h'
+                            RETURNING id
+                        )
+                        SELECT
+                            files.id AS edi_file_id
+                            , insert_batch_files_cte.id
+                        FROM files
+                        LEFT JOIN insert_batch_files_cte ON TRUE
+                    `;
 
-    const dbResults = (await query(sql.text, sql.values)).rows;
+        const dbResults = (await query(sql.text, sql.values)).rows || [];
 
-    fileInfo.edi_file_id = dbResults[0].edi_file_id;
-    fileInfo.edi_file_batch_id = dbResults[0].id;
-    return fileInfo;
+        fileInfo.edi_file_id = dbResults.length && dbResults[0].edi_file_id || null;
+        fileInfo.edi_file_batch_id = dbResults.length && dbResults[0].id || null;
 
+        return fileInfo;
+    }
+    catch (e) {
+        logger.error(`Error storing file ${filename} into database.. ${e}`);
+    }
 };
 
 const getResourceIDs = async (args) => {
@@ -289,9 +320,10 @@ const getResourceIDs = async (args) => {
         WHERE file_type=${getFileType(args)}
     `;
 
-    return (await query(sql.text, sql.values)).rows.map((edi_file) => {
+    let resourceIDs = (await query(sql.text, sql.values)).rows || [];
+    return resourceIDs.map((edi_file) => {
         return edi_file.resource_no;
-    });
+    }) || [];
 };
 
 
@@ -319,6 +351,7 @@ const loadFile = async (args) => {
         SELECT
             fs.id as file_store_id,
             fs.root_directory as root_directory,
+            fs.company_id,
             ef.file_path as file_path,
             ef.id as file_id,
             ef.resource_no as resource_id,
@@ -410,13 +443,15 @@ const updateClaimStatus = async (args) => {
                 , created_by
                 , created_dt
             )
-            VALUES (
+            SELECT
                   ${claimNote}
                 , 'auto'
-                , UNNEST(${claimIds}::int[])
+                , claims.id
                 , ${userId}
                 , now()
-            ) RETURNING *
+            FROM billing.claims
+            WHERE claims.id = ANY(${claimIds}::int[])
+            RETURNING *
         )
 
         UPDATE billing.claims claims
@@ -484,7 +519,7 @@ const applyRejectMessage = async (args) => {
         parsedResponseFile,
     } = args;
 
-    const {
+    let {
         rejectMessageRecord1: {
             messageType,
             messageReason,
@@ -505,6 +540,9 @@ const applyRejectMessage = async (args) => {
 
     const rejectStatus = CLAIM_STATUS_REJECTED_DEFAULT;
 
+    mailFileDate = moment(mailFileDate, 'YYYYMMDD').format('YYYY-MM-DD');
+    processDate = moment(processDate, 'YYYYMMDD').format('YYYY-MM-DD');
+
     const sql = SQL`
         WITH original_file AS (
 
@@ -517,7 +555,7 @@ const applyRejectMessage = async (args) => {
             WHERE
                 file_type = 'can_ohip_h'
                 AND status = 'success'
-                AND created_dt::date = ${moment(mailFileDate, 'YYYYMMDD').format('YYYY-MM-DD')}::date
+                AND created_dt::date = NULLIF(${mailFileDate}, 'Invalid date')::DATE
                 AND uploaded_file_name = ${providerFileName}
         ), reject_file AS (
 
@@ -527,7 +565,7 @@ const applyRejectMessage = async (args) => {
                 billing.edi_files
             SET
                 status = 'success',
-                processed_dt = ${moment(processDate, 'YYYYMMDD').format('YYYY-MM-DD')}
+                processed_dt = NULLIF(${processDate}, 'Invalid date')::DATE
             WHERE
                 id = ${responseFileId}
             RETURNING
@@ -573,7 +611,7 @@ const applyRejectMessage = async (args) => {
             id;
     `;
 
-    await query(sql.text, sql.values);
+    return responseFileId && await query(sql.text, sql.values) || { rows: [] };
 };
 
 
@@ -613,7 +651,7 @@ const applyBatchEditReport = async (args) => {
             WHERE
                 ef.file_type = 'can_ohip_h'
                 AND ef.status = 'success'
-                AND ef.created_dt::date = ${createdDate}
+                AND ef.created_dt::date = NULLIF(${createdDate}, 'Invalid date')::DATE
                 AND efb.sequence_number = ${batchSequenceNumber}
                 AND efb.provider_number = ${providerNumber}
                 AND efb.group_number = ${groupNumber}
@@ -632,13 +670,30 @@ const applyBatchEditReport = async (args) => {
             LIMIT 1
             RETURNING
                 submission_file_id
+        ),
+        update_status AS (
+            -- status of 'success' just means file was obtained
+            UPDATE
+                billing.edi_files
+            SET
+                status = 'success',
+                processed_dt = now()
+            WHERE
+                id = ${responseFileId}
+                AND EXISTS (
+                        SELECT
+                            1
+                        FROM related_submission_files
+                    )
+            RETURNING
+                *
         )
         SELECT *
         FROM insert_related_file_cte
         INNER JOIN billing.edi_file_claims efc ON efc.edi_file_id = insert_related_file_cte.submission_file_id
     `;
 
-    const dbResults = (await query(sql.text, sql.values)).rows;
+    const dbResults = responseFileId && (await query(sql.text, sql.values)).rows || { rows: [] };
 
     if (dbResults && dbResults.length) {
         await updateClaimStatus({
@@ -675,22 +730,32 @@ const applyErrorReport = async (args) => {
 
     const claimIds = parsedResponseFile.reduce((prfResults, prf) => {
         return prf.claims.reduce((claimResults, claim) => {
-            claimResults.push(claim.accountingNumber);
+            if (!isNaN(claim.accountingNumber)) {
+                claimResults.push(claim.accountingNumber);
+            }
+
             return claimResults;
         }, prfResults);
     }, []);
 
     const billingNotesByClaimId = parsedResponseFile.reduce((prfResults, prf) => {
         return prf.claims.reduce((claimResults, claim) => {
-            claimResults[claim.accountingNumber] = claim.items.reduce((billingNotes, item) => {
-                if (item.explanatoryCode) {
-                    billingNotes.push(`${item.explanatoryCode} - ${explanatoryDescriptionsByCode[item.explanatoryCode]}`);
-                }
-                return billingNotes.concat(toBillingNotes(item));
-            }, toBillingNotes(claim)).join('\n');
+            if (!isNaN(claim.accountingNumber)) {
+                claimResults[claim.accountingNumber] = claim.items.reduce((billingNotes, item) => {
+                    if (item.explanatoryCode) {
+                        billingNotes.push(`${item.explanatoryCode} - ${explanatoryDescriptionsByCode[item.explanatoryCode]}`);
+                    }
+
+                    return billingNotes.concat(toBillingNotes(item));
+                }, toBillingNotes(claim)).join('\n');
+            }
+
             return claimResults;
         }, prfResults);
     }, {});
+
+    const fileStatus = (parsedResponseFile[0].claims.length === claimIds.length) ? 'success' : 'partial';
+    const processedDate = moment(processDate, 'YYYYMMDD').format('YYYY-MM-DD');
 
     const sql = SQL`
         WITH claim AS (
@@ -743,8 +808,8 @@ const applyErrorReport = async (args) => {
             UPDATE
                 billing.edi_files
             SET
-                status = 'success',
-                processed_dt = ${moment(processDate, 'YYYYMMDD').format('YYYY-MM-DD')}
+                status = ${fileStatus},
+                processed_dt = NULLIF(${processedDate}, 'Invalid date')::DATE
             WHERE
                 id = ${responseFileId}
             RETURNING
@@ -758,9 +823,15 @@ const applyErrorReport = async (args) => {
             )
             SELECT
                 ( SELECT original_file.id FROM original_file ),
-                ( SELECT id FROM error_file ),
+                id,
                 null
-            RETURNING
+            FROM
+                error_file
+            WHERE
+                error_file.status = 'success'
+            ON CONFLICT ON CONSTRAINT edi_related_files_submission_file_id_response_file_id_uc
+            DO NOTHING
+			RETURNING
                 *
         ), update_process AS (
             -- update process status to check whether the claim processed or not
@@ -769,11 +840,18 @@ const applyErrorReport = async (args) => {
             SET
                 did_not_process = true
             WHERE
-                efc.edi_file_id = ${responseFileId}
-            AND
                 efc.claim_id = ANY(SELECT id FROM claim)
             AND
                 NOT efc.did_not_process
+            AND
+                efc.id = (
+                    SELECT
+                        MAX(id)
+                    FROM
+                        billing.edi_file_claims
+                    WHERE claim_id = efc.claim_id
+                    GROUP BY claim_id
+                )
             RETURNING
                 id
         )
@@ -786,10 +864,11 @@ const applyErrorReport = async (args) => {
     `;
 
 
-    const dbResults = (await query(sql.text, sql.values));
+    const dbResults = responseFileId && (await query(sql.text, sql.values)) || { rows: [] };
 
     if (dbResults.rows && dbResults.rows.length) {
-        console.log('updating claim status for IDs: ', claimIds);
+        logger.info('updating claim status for IDs: ', claimIds);
+
         await updateClaimStatus({
             claimStatusCode: deniedStatus,  // Pending Payment
             claimIds,
@@ -1026,6 +1105,7 @@ const OHIPDataAPI = {
                 '' AS "masterNumber",
                 get_full_name(pp.last_name,pp.first_name) AS "patientName",
                 'IHF' AS "serviceLocationIndicator",
+                pspos.code AS "professional_sli",
                 ppos.code AS place_of_service
             FROM billing.claims bc
             INNER JOIN billing.claim_status bcs ON bcs.id = bc.claim_status_id
@@ -1049,6 +1129,7 @@ const OHIPDataAPI = {
                 WHERE bch.claim_id = bc.id AND NOT bch.is_excluded
                 ORDER BY bch.id DESC LIMIT 1
             ) claim_types ON TRUE
+            LEFT JOIN public.places_of_service pspos ON ppos.id = NULLIF((pf.facility_info->'ohipProfSLI'), '')::BIGINT
             WHERE`.append(whereQuery)
             .append(SQL` ORDER BY bc.id DESC `)
             .append(limitQuery);
@@ -1286,7 +1367,329 @@ const OHIPDataAPI = {
         `;
 
         return await query(sql.text, sql.values);
-    }
+    },
+
+    createPaymentApplication: async function (params, paymentDetails) {
+
+        let {
+            lineItems
+            , claimComments
+            , audit_details
+        } = params;
+
+        const sql = SQL` WITH
+                        application_details AS (
+                            SELECT
+                                *
+                            FROM json_to_recordset(${JSON.stringify(lineItems)}) AS (
+                                claim_number text
+                                ,charge_id bigint
+                                ,payment money
+                                ,adjustment money
+                                ,cpt_code text
+                                ,patient_fname text
+                                ,patient_lname text
+                                ,patient_mname text
+                                ,patient_prefix text
+                                ,patient_suffix text
+                                ,original_reference text
+                                ,cas_details jsonb
+                                ,claim_status_code bigint
+                                ,service_date date
+                                ,index integer
+                                ,duplicate boolean
+                                ,code text
+                                ,is_debit boolean
+                                ,claim_index bigint
+                                ,claim_status text
+                            )
+                        )
+                        ,insert_unmatched_charges AS (
+                            INSERT INTO billing.charges
+                                ( claim_id
+                                , cpt_id
+                                , bill_fee
+                                , units
+                                , created_by
+                                , charge_dt
+                                , is_excluded
+                                , is_custom_bill_fee
+                                )
+                            SELECT
+                                claims.id,
+                                cpt.cpt_id,
+                                application_details.payment,
+                                1,
+                                ${paymentDetails.created_by},
+                                now(),
+                                false,
+                                true
+                            FROM
+                                application_details
+                            INNER JOIN LATERAL (
+                                SELECT
+                                    bc.id,
+                                    bc.invoice_no
+                                FROM billing.claims bc
+                                WHERE (bc.id::TEXT = application_details.claim_number OR bc.invoice_no = application_details.claim_number)
+                                ORDER BY bc.id DESC LIMIT 1
+                            ) claims ON TRUE
+                            INNER JOIN LATERAL (
+                                SELECT cc.id AS cpt_id
+                                FROM public.cpt_codes cc
+                                WHERE cc.display_code = application_details.cpt_code
+                                ORDER BY cc.id ASC LIMIT 1
+                            ) cpt ON true
+                            WHERE
+                                claims.invoice_no IS NOT NULL
+                                AND application_details.cpt_code NOT IN (
+                                    SELECT
+                                        cc.display_code
+                                    FROM billing.charges bc
+                                    INNER JOIN LATERAL (
+                                        SELECT
+                                            bc.id,
+                                            bc.invoice_no
+                                        FROM billing.claims bc
+                                        WHERE (bc.id::TEXT = application_details.claim_number OR bc.invoice_no = application_details.claim_number)
+                                        ORDER BY bc.id DESC LIMIT 1
+                                    ) claims ON claims.id = bc.claim_id
+                                    INNER JOIN public.cpt_codes cc ON cc.id = bc.cpt_id
+                                    WHERE cc.display_code = application_details.cpt_code
+                                )
+                        )
+                        ,final_claim_charges AS (
+                            SELECT
+                                claims.id AS claim_id,
+                                application_details.cpt_code,
+                                application_details.duplicate,
+                                application_details.index,
+                                application_details.claim_status_code,
+                                application_details.original_reference,
+                                application_details.service_date,
+                                application_details.code,
+                                application_details.payment,
+                                application_details.adjustment,
+                                application_details.cas_details,
+                                application_details.is_debit,
+                                application_details.patient_fname,
+                                application_details.patient_lname,
+                                application_details.patient_mname,
+                                application_details.patient_prefix,
+                                application_details.patient_suffix,
+                                application_details.claim_index,
+                                application_details.claim_status,
+                                claims.claim_status_id,
+                                claims.patient_id,
+                                cs.code AS claim_payment_status,
+                                charges.charge_id
+                            FROM
+                                application_details
+                            INNER JOIN LATERAL (
+                                    SELECT
+                                        bc.id,
+                                        bc.claim_status_id,
+                                        bc.patient_id,
+                                        bc.invoice_no
+                                    FROM billing.claims bc
+                                    WHERE (bc.id::TEXT = application_details.claim_number OR bc.invoice_no = application_details.claim_number)
+                                    ORDER BY bc.id ASC LIMIT 1
+                            ) claims ON TRUE
+                            INNER JOIN billing.claim_status cs ON cs.id = claims.claim_status_id
+                            LEFT JOIN LATERAL (
+								SELECT
+									bch.id AS charge_id
+								FROM billing.charges bch
+								INNER JOIN public.cpt_codes pcc ON pcc.id = bch.cpt_id
+								LEFT JOIN billing.payment_applications bpa ON bpa.charge_id = bch.id
+								WHERE bch.claim_id = claims.id AND NOT bch.is_excluded
+								ORDER BY bpa.id DESC NULLS FIRST LIMIT 1
+            				) charges ON TRUE
+							WHERE
+							  charges.charge_id IS NOT NULL
+                        )
+                        ,matched_claims AS (
+                            SELECT
+                                fcc.claim_id,
+                                fcc.claim_status_code,
+                                fcc.payment,
+                                fcc.original_reference,
+                                fcc.service_date,
+                                fcc.code,
+                                fcc.claim_status,
+                                fcc.claim_status_id,
+                                json_build_object(
+                                    'payment'       ,fcc.payment,
+                                    'charge_id'     ,fcc.charge_id,
+                                    'adjustment'    ,fcc.adjustment,
+                                    'cas_details'   ,fcc.cas_details,
+                                    'applied_dt'    ,CASE WHEN fcc.is_debit
+                                    THEN now() + INTERVAL '0.02' SECOND * fcc.claim_index
+                                    ELSE now() + INTERVAL '0.01' SECOND * fcc.claim_index
+                                    END
+                                )
+                            FROM
+                                final_claim_charges fcc
+                        ),
+                        insert_payment_adjustment AS (
+                            SELECT
+                                matched_claims.claim_id
+                                ,matched_claims.claim_status_code
+                                ,billing.create_payment_applications(
+                                    ${paymentDetails.payment_id || paymentDetails.id}
+                                    ,( SELECT id FROM billing.adjustment_codes WHERE code = matched_claims.code ORDER BY id ASC LIMIT 1 )
+                                    ,${paymentDetails.created_by}
+                                    ,json_build_array(matched_claims.json_build_object)::jsonb
+                                    ,(${JSON.stringify(audit_details)})::jsonb
+                                )
+                            FROM
+                                matched_claims
+                        )
+                        ,update_payment AS (
+                           UPDATE billing.payments
+                            SET
+                                amount = ( SELECT COALESCE(sum(payment),'0')::numeric FROM matched_claims ),
+                                notes =  notes || E'\n' || 'Amount received for matching orders : ' || ( SELECT COALESCE(sum(payment),'0')::numeric FROM matched_claims ) || E'\n\n' || ${paymentDetails.messageText.replace(/'/g, "''")}
+                            WHERE id = ${paymentDetails.payment_id || paymentDetails.id}
+                        )
+                        ,insert_claim_comments AS (
+                            INSERT INTO billing.claim_comments
+                            (
+                                claim_id
+                                ,note
+                                ,type
+                                ,created_by
+                                ,created_dt
+                            )
+                            SELECT
+                                claim_number
+                                ,note
+                                ,type
+                                ,${paymentDetails.created_by}
+                                ,'now()'
+                            FROM
+                                json_to_recordset(${JSON.stringify(claimComments)}) AS claim_notes
+                                (
+                                    claim_number bigint
+                                    ,note text
+                                    ,type text
+                                )
+                            WHERE EXISTS ( SELECT claim_id FROM matched_claims WHERE claim_id = claim_notes.claim_number LIMIT 1 )
+                            RETURNING id AS claim_comment_id
+                        )
+                        ------------------------------------------------------------
+                        -- This query triggred only for OHIP process
+                        ------------------------------------------------------------
+                        ,update_claim_status AS (
+                            UPDATE billing.claims
+                                SET
+                                claim_status_id =
+                                (
+                                    CASE
+                                        WHEN claim_details.claim_balance_total = 0::money
+                                            THEN ( SELECT COALESCE(id, mc.claim_status_id ) FROM billing.claim_status WHERE company_id = ${paymentDetails.company_id} AND code = 'PIF' AND inactivated_dt IS NULL )
+                                        WHEN claim_details.claim_balance_total < 0::money
+                                            THEN ( SELECT COALESCE(id, mc.claim_status_id ) FROM billing.claim_status WHERE company_id = ${paymentDetails.company_id} AND code = 'OP' AND inactivated_dt IS NULL )
+                                        WHEN '0'::MONEY IN (SELECT payment FROM matched_claims mc WHERE mc.claim_id = billing.claims.id)
+                                            THEN (SELECT COALESCE(id, mc.claim_status_id) FROM billing.claim_status WHERE company_id = ${paymentDetails.company_id} AND code = 'D' AND inactivated_dt IS NULL)
+                                        WHEN claim_details.claim_balance_total > 0::money
+                                            THEN ( SELECT COALESCE(id, mc.claim_status_id ) FROM billing.claim_status WHERE company_id = ${paymentDetails.company_id} AND code = 'PAP' AND inactivated_dt IS NULL )
+                                        WHEN claim_details.claim_balance_total > claim_details.charges_bill_fee_total
+                                            THEN (SELECT COALESCE(id, mc.claim_status_id) FROM billing.claim_status WHERE company_id = ${paymentDetails.company_id} AND code = 'CA' AND inactivated_dt IS NULL)
+                                        ELSE
+				                        mc.claim_status_id
+                                    END
+                                )
+                            FROM matched_claims mc
+                            INNER JOIN billing.get_claim_totals(mc.claim_id) claim_details ON TRUE
+                            WHERE billing.claims.id = mc.claim_id
+                            RETURNING id as claim_id
+                        )
+                        SELECT
+                        ( SELECT json_agg(row_to_json(insert_payment_adjustment)) insert_payment_adjustment
+                                    FROM (
+                                            SELECT
+                                                    *
+                                            FROM
+                                                insert_payment_adjustment
+
+                                        ) AS insert_payment_adjustment
+                        ) AS insert_payment_adjustment
+                        ,(
+                            SELECT
+                                array_agg(claim_id)
+                            FROM
+                                update_claim_status
+                        )  AS update_claim_status
+                        `;
+        return await query(sql);
+    },
+
+    applyPaymentApplication: async function (audit_details, params) {
+        let {
+            file_id,
+            created_by,
+            code
+        } = params;
+
+        const sql = SQL`
+                    WITH claim_payment AS (
+                            SELECT
+                                 ch.claim_id
+                                ,efp.payment_id
+                                ,pa.applied_dt
+                            FROM
+                                billing.charges AS ch
+                            INNER JOIN billing.payment_applications AS pa ON pa.charge_id = ch.id
+                            INNER JOIN billing.payments AS p ON pa.payment_id  = p.id
+                            INNER JOIN billing.edi_file_payments AS efp ON pa.payment_id = efp.payment_id
+                            WHERE efp.edi_file_id = ${file_id}  AND mode = 'eft'
+                            GROUP BY ch.claim_id, efp.payment_id, pa.applied_dt
+                            ORDER BY pa.applied_dt DESC
+                    )
+                    ,unapplied_charges AS (
+                        SELECT cp.payment_id,
+                            json_build_object('charge_id',ch.id,'payment',0,'adjustment',0,'cas_details','[]'::jsonb,'applied_dt',cp.applied_dt)
+                        FROM
+                            billing.charges ch
+                        INNER JOIN billing.claims AS c ON ch.claim_id = c.id
+                        INNER JOIN claim_payment AS cp ON cp.claim_id = c.id
+                        WHERE ch.id NOT IN ( SELECT charge_id FROM  billing.payment_applications pa WHERE pa.charge_id = ch.id AND pa.payment_id = cp.payment_id AND pa.applied_dt = cp.applied_dt )
+                    ),insert_payment_adjustment AS (
+                        SELECT
+                            billing.create_payment_applications(
+                                uc.payment_id
+                                ,( SELECT id FROM billing.adjustment_codes WHERE code = ${code} ORDER BY id ASC LIMIT 1 )
+                                ,${created_by}
+                                ,json_build_array(uc.json_build_object)::jsonb
+                                ,('{"screen_name":"applyRemittanceAdvice","module_name":"ohip","entity_name":"applyRemittanceAdvice","client_ip":"127.0.0.1","company_id":1,"user_id":1}')::jsonb
+                            )
+                        FROM
+                            unapplied_charges uc
+                    )
+                    SELECT * FROM insert_payment_adjustment `;
+
+        return await query(sql);
+    },
+
+    updateERAFileStatus: async function (params) {
+
+        const sql = SQL` UPDATE billing.edi_files
+                        SET
+                            status = (
+                                CASE
+                                    WHEN EXISTS ( SELECT 1 FROM billing.edi_file_payments WHERE edi_file_id = ${params.file_id} ) THEN 'success'
+                                    WHEN NOT EXISTS ( SELECT 1 FROM billing.edi_file_payments WHERE edi_file_id = ${params.file_id} ) THEN 'failure'
+                                    ELSE
+                                        'in_progress'
+                                END
+                            )
+                        WHERE id = ${params.file_id} `;
+
+        return await query(sql);
+
+    },
+
 
 };
 

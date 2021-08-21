@@ -7,7 +7,7 @@ const fs = require('fs');
 
 const logDir = path.join(__dirname, '../../../log');
 
-const logFileName = process.env.LOG_FILE_NAME || 'exa-billing.log';
+const logFileName = process.env.LOG_FILE_NAME || 'billing.log';
 
 if (!fs.existsSync(logDir)) {
     fs.mkdirSync(logDir);
