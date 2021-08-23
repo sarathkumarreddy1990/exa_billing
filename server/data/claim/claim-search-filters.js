@@ -109,7 +109,7 @@ const colModel = [
     },
     {
         name: 'policy_number',
-        searchFlag: '%',
+        searchFlag: 'leftCharacter%',
         searchColumns: ['patient_insurances.policy_number']
     },
     {
