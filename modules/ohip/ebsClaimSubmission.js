@@ -78,7 +78,7 @@ const fetchErrors = (claimData) => {
         } else {
             validationsResult.validClaims.push(claim);
         }
-            
+
     });
 
     return validationsResult;
@@ -406,7 +406,7 @@ const submitClaims = async (callback) => {
 
                         // OHIP data error getting in response , so finding that using Eror codes
                         let err_matches = filter(
-                            ['EEDTS0061'],
+                            ['EEDTS0061', 'EEDTS0003', 'EEDTS0010', 'EEDTS0012', 'EEDTS0050', 'EEDTS0051', 'EEDTS0052', 'EEDTS0053', 'EEDTS0054', 'EEDTS0055', 'EEDTS0056', 'EEDTS0057', 'EEDTS0058', 'EEDTS0059', 'EEDTS0060'],
                             (s) => { return JSON.stringify(allSubmitClaimResults).indexOf(s) > -1; }
                         );
 
