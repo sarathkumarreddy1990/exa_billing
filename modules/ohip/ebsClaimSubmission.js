@@ -38,6 +38,23 @@ const ClaimsEncoder = require('./encoder/claims');
 const ohipData = require('../../server/data/ohip');
 
 const submissionLimit = 100;
+const submissionErrorCodes = [
+    'EEDTS0061',
+    'EEDTS0003',
+    'EEDTS0010',
+    'EEDTS0012',
+    'EEDTS0050',
+    'EEDTS0051',
+    'EEDTS0052',
+    'EEDTS0053',
+    'EEDTS0054',
+    'EEDTS0055',
+    'EEDTS0056',
+    'EEDTS0057',
+    'EEDTS0058',
+    'EEDTS0059',
+    'EEDTS0060'
+];
 const {
     getResourceFilename,
     getMonthCode,
@@ -403,12 +420,10 @@ const submitClaims = async (callback) => {
 
                         const separatedSubmitResults = separateResults(submitResponse, EDT_SUBMIT, responseCodes.SUCCESS);
                         const successfulSubmitResults = separatedSubmitResults[responseCodes.SUCCESS];
+                        const submissionResult = JSON.stringify(allSubmitClaimResults);
 
                         // OHIP data error getting in response , so finding that using Eror codes
-                        let err_matches = filter(
-                            ['EEDTS0061', 'EEDTS0003', 'EEDTS0010', 'EEDTS0012', 'EEDTS0050', 'EEDTS0051', 'EEDTS0052', 'EEDTS0053', 'EEDTS0054', 'EEDTS0055', 'EEDTS0056', 'EEDTS0057', 'EEDTS0058', 'EEDTS0059', 'EEDTS0060'],
-                            (s) => { return JSON.stringify(allSubmitClaimResults).indexOf(s) > -1; }
-                        );
+                        let err_matches = filter(submissionErrorCodes, (s) => submissionResult.indexOf(s) > -1);
 
                         if (submitErr || (allSubmitClaimResults.faults && allSubmitClaimResults.faults.length) || err_matches.length || !successfulSubmitResults) {
 
