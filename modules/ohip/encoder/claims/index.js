@@ -200,7 +200,9 @@ module.exports = function (options) {
 
                             if (claim_type == 'technical') {
                                 derivedGroupNumber = groupNumber;
-                                derivedMOHId = providerNumber;
+                                derivedMOHId = ['27', '76', '85', '90'].includes(providerSpeciality)
+                                    ? groupNumber
+                                    : providerNumber;
                             }
                             else if (claim_type == 'professional_provider') {
                                 if (['27', '76', '85', '90'].includes(providerSpeciality)) {
