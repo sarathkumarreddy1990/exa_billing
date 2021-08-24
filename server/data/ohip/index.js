@@ -1127,7 +1127,7 @@ const OHIPDataAPI = {
                 WHERE bch.claim_id = bc.id AND NOT bch.is_excluded
                 ORDER BY bch.id DESC LIMIT 1
             ) claim_types ON TRUE
-            LEFT JOIN public.places_of_service pspos ON ppos.id = NULLIF((pf.facility_info->'ohipProfSLI'), '')::BIGINT
+            LEFT JOIN public.places_of_service pspos ON pspos.id = NULLIF((pf.facility_info->'ohipProfSLI'), '')::BIGINT
             WHERE`.append(whereQuery)
             .append(SQL` ORDER BY bc.id DESC `)
             .append(limitQuery);
