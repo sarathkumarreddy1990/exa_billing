@@ -101,7 +101,7 @@ const ahsmodule = {
             return validationMessages;
         }
 
-        
+
         let invalidClaims = claimData.filter((data) => ((data.oop_referral_indicator === '' && !data.provider_prid) || !data.service_provider_prid) && data.claim_id) || [];
 
         if (invalidClaims.length) {
@@ -215,12 +215,12 @@ const ahsmodule = {
                             || (payment_entry_count == 0 && ['R', 'BR'].indexOf(claimStatusCode) !== -1)
                             || (pending_transaction_count == 0 && payment_entry_count == 0);
 
-        if (!allowDelete && claim_applied !== 0 && claim_adjustment !== 0) {
+        if (!allowDelete && claimStatusCode === 'AD' && claim_applied !== 0 && claim_adjustment !== 0) {
             return {
                 message: 'Claim has payment, Please unapply before delete'
             };
         }
-        
+
         if (allowDelete) {
             const claimDeletedResult = await ahs.purgeClaim(args);
             const {
