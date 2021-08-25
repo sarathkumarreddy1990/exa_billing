@@ -77,7 +77,7 @@ const fetchErrors = (claimData) => {
             });
         }
 
-        if (!claim.groupNumber) {
+        if (claim.claim_type === 'technical' && !claim.groupNumber) {
             validations.push({
                 error: `Group number not available in facility for Claim ${claim.claim_id} `
             });
