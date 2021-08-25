@@ -23,8 +23,8 @@ const BATCH_SEQUENCE_NUMBER_START_DEFAULT = 0;
 
 const staticSpecialties = ['27', '76', '85', '90'];
 const specilityMapping = {
-    991000: 90,
-    599993: 27
+    991000: '90',
+    599993: '27'
 };
 
 const getOption = (value, defaultValue, maxValue) => {
