@@ -21,6 +21,7 @@ const BATCHES_PER_FILE_DEFAULT = 1;
 const BATCHES_PER_FILE_MAX = 10000;
 const BATCH_SEQUENCE_NUMBER_START_DEFAULT = 0;
 
+const staticSpecialties = ['27', '76', '85', '90'];
 const specilityMapping = {
     991000: 90,
     599993: 27
@@ -182,6 +183,7 @@ module.exports = function (options) {
 
                         let providerNumber = providerClaims && providerClaims[0].providerNumber;
                         let providerSpeciality = specilityMapping[providerNumber] || providerClaims[0].defaultSpecialtyCode;
+                        let isStaticSpecialty = staticSpecialties.includes(providerSpeciality);
 
                         await reduce(groupBy(providerClaims, 'claim_facility_id'), async (facilityResult, facilityClaims, claim_facility_id) => {
 
@@ -200,12 +202,12 @@ module.exports = function (options) {
 
                             if (claim_type == 'technical') {
                                 derivedGroupNumber = groupNumber;
-                                derivedMOHId = ['27', '76', '85', '90'].includes(providerSpeciality)
+                                derivedMOHId = isStaticSpecialty
                                     ? groupNumber
                                     : providerNumber;
                             }
                             else if (claim_type == 'professional_provider') {
-                                if (['27', '76', '85', '90'].includes(providerSpeciality)) {
+                                if (isStaticSpecialty) {
                                     derivedGroupNumber = '0000' || groupNumber;
                                     derivedMOHId = professionalGroupNumber;
                                 }
@@ -215,7 +217,7 @@ module.exports = function (options) {
                                 }
                             }
                             else if (claim_type == 'professional_facility') {
-                                if (['27', '76', '85', '90'].includes(providerSpeciality)) {
+                                if (isStaticSpecialty) {
                                     derivedGroupNumber = '0000' || groupNumber;
                                     derivedMOHId = professionalGroupNumber;
                                 }
