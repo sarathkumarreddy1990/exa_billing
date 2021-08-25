@@ -707,7 +707,8 @@ module.exports = {
 											(SELECT
 												insurance_provider_id
 											FROM public.patient_insurances
-											WHERE id = ANY(ARRAY[claims.tertiary_patient_insurance_id,claims.secondary_patient_insurance_id]))
+											WHERE id = ANY(ARRAY[claims.tertiary_patient_insurance_id,claims.secondary_patient_insurance_id])
+											AND insurance_provider_id <> payments.insurance_provider_id)
 											 ) AS CAS )
 											FROM  billing.cas_payment_application_details
 											INNER JOIN billing.cas_group_codes ON cas_group_codes.id = cas_group_code_id
@@ -723,7 +724,8 @@ module.exports = {
                                         AND payments.insurance_provider_id NOT IN
                                         (SELECT insurance_provider_id
 						FROM public.patient_insurances
-                                        WHERE id = ANY(ARRAY[claims.tertiary_patient_insurance_id,claims.secondary_patient_insurance_id]))
+										WHERE id = ANY(ARRAY[claims.tertiary_patient_insurance_id,claims.secondary_patient_insurance_id])
+										AND insurance_provider_id <> payments.insurance_provider_id)
                                         ) AS lineAdjudication)
 					FROM billing.charges
 					INNER JOIN cpt_codes ON cpt_codes.id=cpt_id
