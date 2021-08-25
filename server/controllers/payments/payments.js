@@ -307,6 +307,7 @@ module.exports = {
             }
         });
 
+        params.from = params.flag === 'is_tos_payment' ? 'is_tos_payment' : 'tos_payment' ;
         params.lineItems = lineItems;
         params.claimComments = [];
         params.audit_details = auditDetails;
