@@ -205,7 +205,7 @@ WITH claim_data AS(
     sum_statement_credit_cte AS (
           SELECT
             pid
-            , sum(enc_total_amount) FILTER (WHERE age > 0 and age <= 30) AS current_amount
+            , sum(enc_total_amount) FILTER (WHERE age >= 0 and age <= 30) AS current_amount
             , sum(enc_total_amount) FILTER (WHERE age > 30 and age <= 60) AS over30_amount
             , sum(enc_total_amount) FILTER (WHERE age > 60 and age <= 90) AS over60_amount
             , sum(enc_total_amount) FILTER (WHERE age > 90 and age <= 120) AS over90_amount
