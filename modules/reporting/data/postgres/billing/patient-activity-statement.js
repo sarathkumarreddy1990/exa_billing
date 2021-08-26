@@ -195,7 +195,7 @@ WITH claim_data AS(
     SELECT
             pid
           , enc_id
-          , max(enc_date::date) AS bucket_date
+          , max(<%= sDate %> - enc_date::date) AS age
           , sum(amount)         AS enc_total_amount
           FROM detail_cte
           GROUP BY
@@ -205,12 +205,12 @@ WITH claim_data AS(
     sum_statement_credit_cte AS (
           SELECT
             pid
-          , sum(enc_total_amount) FILTER (WHERE bucket_date between <%= sDate %> - interval '30 days' and  <%= sDate %>) as current_amount
-          , sum(enc_total_amount) FILTER (WHERE bucket_date between <%= sDate %> - interval '60 days' and  <%= sDate %>- interval '31 days') as over30_amount
-          , sum(enc_total_amount) FILTER (WHERE bucket_date between <%= sDate %> - interval '90 days' and  <%= sDate %>- interval '61 days') as over60_amount
-          , sum(enc_total_amount) FILTER (WHERE bucket_date between <%= sDate %> - interval '120 days' and <%= sDate %> - interval '91 days') as over90_amount
-          , sum(enc_total_amount) FILTER (WHERE bucket_date <= <%= sDate %> - interval '121 days') as over120_amount
-          , sum(enc_total_amount) AS statement_total_amount
+            , sum(enc_total_amount) FILTER (WHERE age >= 0 and age <= 30) AS current_amount
+            , sum(enc_total_amount) FILTER (WHERE age > 30 and age <= 60) AS over30_amount
+            , sum(enc_total_amount) FILTER (WHERE age > 60 and age <= 90) AS over60_amount
+            , sum(enc_total_amount) FILTER (WHERE age > 90 and age <= 120) AS over90_amount
+            , sum(enc_total_amount) FILTER (WHERE age > 120) AS over120_amount
+            , sum(enc_total_amount) AS statement_total_amount
 
           FROM sum_encounter_cte
           GROUP BY pid
@@ -389,7 +389,7 @@ WITH claim_data AS(
               , null
               , null
               , null
-              , coalesce(statement_total_amount::text, '0.00')
+              , coalesce(statement_total_amount::text, '$0.00')
               , null
               , null
               , null
@@ -544,7 +544,7 @@ WITH claim_data AS(
           , null
           , null
           , 'Encounter Total'
-          , coalesce(enc_total_amount::text,'0.00')
+          , coalesce(enc_total_amount::text,'$0.00')
           , null
           , null
           , null
@@ -595,15 +595,15 @@ WITH claim_data AS(
           , null
           , null
           , 'Total'
-          , coalesce(statement_total_amount::text, '0.00')
+          , coalesce(statement_total_amount::text, '$0.00')
           , null
           , null
           , null
-          , coalesce(current_amount::text, '0.00')
-          , coalesce(over30_amount::text, '0.00')
-          , coalesce(over60_amount::text, '0.00')
-          , coalesce(over90_amount::text, '0.00')
-          , coalesce(over120_amount::text, '0.00')
+          , coalesce(current_amount::text, '$0.00')
+          , coalesce(over30_amount::text, '$0.00')
+          , coalesce(over60_amount::text, '$0.00')
+          , coalesce(over90_amount::text, '$0.00')
+          , coalesce(over120_amount::text, '$0.00')
           , billing_msg
           , null
           , null
