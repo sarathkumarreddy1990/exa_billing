@@ -298,18 +298,15 @@ const submitClaims = async (callback) => {
 
         const ebs = new EBSConnector(ohipConfig.ebsConfig);
 
-        const groupByMOHIdUploads = groupBy(uploads, 'derivedMOHId');
+        let promises = uploads.map(obj => {
 
-        let promises = Object.entries(groupByMOHIdUploads).map(([MOHId, groupUploads], index) => {
+            let MOHId = obj.derivedMOHId;
+            let groupUploads = obj;
+            let claimIds = obj.claimIds;
 
             return new Promise((reject, resolve) => {
+
                 ebs[EDT_UPLOAD]({ uploads: groupUploads, MOHId }, async (uploadErr, uploadResponse) => {
-
-                    let claimIds = groupUploads.map((claimDetails, index) => {
-                        return claimDetails.claimIds;
-                    });
-
-                    claimIds = flatten(claimIds) || [];
 
                     allSubmitClaimResults.faults = allSubmitClaimResults.faults.concat(uploadResponse.faults);
                     allSubmitClaimResults.auditInfo = allSubmitClaimResults.auditInfo.concat(uploadResponse.auditInfo);
