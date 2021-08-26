@@ -384,9 +384,10 @@ module.exports = {
                                 ,billing.update_claim_responsible_party(claim_id, claim_status_code, ${paymentDetails.company_id}, original_reference, 0, false, ${paymentDetails.id})
                             FROM
                                 matched_claims
+                            INNER JOIN billing.get_claim_totals(matched_claims.claim_id) bgct ON TRUE
                             WHERE
                                 ${paymentDetails.from} NOT IN ('TOS_PAYMENT', 'OHIP_EOB')
-                                AND ('patient' != ${paymentDetails.payer_type} OR claim_status NOT IN ('PV','PS'))
+                                AND ('patient' != ${paymentDetails.payer_type} OR bgct.claim_balance_total = 0::MONEY)
                         )
                         ------------------------------------------------------------
                         -- This query triggred only for OHIP process
