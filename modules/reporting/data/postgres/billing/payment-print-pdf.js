@@ -83,7 +83,8 @@ WITH payment_details AS(
     FULL JOIN patient_details pd ON pd.patient_id = payment_details.patient_id
     WHERE EXISTS (SELECT 1  FROM patient_details having count(1) > 1 )
     ORDER BY
-        pd.account_no DESC
+        id NULLS LAST, 
+        account_no DESC
 
 `);
 
