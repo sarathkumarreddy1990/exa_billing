@@ -298,15 +298,18 @@ const submitClaims = async (callback) => {
 
         const ebs = new EBSConnector(ohipConfig.ebsConfig);
 
-        let promises = uploads.map(obj => {
+        const groupByMOHIdUploads = groupBy(uploads, 'derivedMOHId');
 
-            let MOHId = obj.derivedMOHId;
-            let groupUploads = obj;
-            let claimIds = obj.claimIds;
+        let promises = Object.entries(groupByMOHIdUploads).map(([MOHId, groupUploads], index) => {
 
             return new Promise((reject, resolve) => {
-
                 ebs[EDT_UPLOAD]({ uploads: groupUploads, MOHId }, async (uploadErr, uploadResponse) => {
+
+                    let claimIds = groupUploads.map((claimDetails, index) => {
+                        return claimDetails.claimIds;
+                    });
+
+                    claimIds = flatten(claimIds) || [];
 
                     allSubmitClaimResults.faults = allSubmitClaimResults.faults.concat(uploadResponse.faults);
                     allSubmitClaimResults.auditInfo = allSubmitClaimResults.auditInfo.concat(uploadResponse.auditInfo);
@@ -414,19 +417,18 @@ const submitClaims = async (callback) => {
                         allSubmitClaimResults.auditInfo = allSubmitClaimResults.auditInfo.concat(submitResponse.auditInfo);
                         allSubmitClaimResults.results = allSubmitClaimResults.results.concat(submitResponse.results);
 
-
                         const separatedSubmitResults = separateResults(submitResponse, EDT_SUBMIT, responseCodes.SUCCESS);
                         const successfulSubmitResults = separatedSubmitResults[responseCodes.SUCCESS];
-                        const submissionResult = JSON.stringify(allSubmitClaimResults);
+                        const submissionResult = JSON.stringify(submitResponse);
 
                         // OHIP data error getting in response , so finding that using Eror codes
                         let err_matches = filter(submissionErrorCodes, (s) => submissionResult.indexOf(s) > -1);
 
-                        if (submitErr || (allSubmitClaimResults.faults && allSubmitClaimResults.faults.length) || err_matches.length || !successfulSubmitResults) {
+                        if (submitErr || ( submitResponse && submitResponse.faults && submitResponse.faults.length ) || err_matches.length || !successfulSubmitResults) {
 
                             await ohipData.updateFileStatus({
                                 files: uploadFiles,
-                                errors: JSON.stringify(submitErr) || (allSubmitClaimResults.faults.length && JSON.stringify(allSubmitClaimResults.faults)) || err_matches || JSON.stringify(allSubmitClaimResults),
+                                errors: submitErr && JSON.stringify(submitErr) || (submitResponse.faults && submitResponse.faults.length && JSON.stringify(submitResponse.faults)) || submitResponse && submissionResult || null,
                                 status: 'failure'
                             });
 
