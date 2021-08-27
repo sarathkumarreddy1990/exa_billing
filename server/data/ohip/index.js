@@ -1590,10 +1590,10 @@ const OHIPDataAPI = {
                                             THEN ( SELECT COALESCE(id, mc.claim_status_id ) FROM billing.claim_status WHERE company_id = ${paymentDetails.company_id} AND code = 'OP' AND inactivated_dt IS NULL )
                                         WHEN '0'::MONEY IN (SELECT payment FROM matched_claims mc WHERE mc.claim_id = billing.claims.id)
                                             THEN (SELECT COALESCE(id, mc.claim_status_id) FROM billing.claim_status WHERE company_id = ${paymentDetails.company_id} AND code = 'D' AND inactivated_dt IS NULL)
+                                        WHEN (claim_details.claim_balance_total > 0::money AND claim_details.claim_balance_total > claim_details.charges_bill_fee_total)
+                                            THEN (SELECT COALESCE(id, mc.claim_status_id) FROM billing.claim_status WHERE company_id = ${paymentDetails.company_id} AND code = 'CA' AND inactivated_dt IS NULL)
                                         WHEN claim_details.claim_balance_total > 0::money
                                             THEN ( SELECT COALESCE(id, mc.claim_status_id ) FROM billing.claim_status WHERE company_id = ${paymentDetails.company_id} AND code = 'PAP' AND inactivated_dt IS NULL )
-                                        WHEN claim_details.claim_balance_total > claim_details.charges_bill_fee_total
-                                            THEN (SELECT COALESCE(id, mc.claim_status_id) FROM billing.claim_status WHERE company_id = ${paymentDetails.company_id} AND code = 'CA' AND inactivated_dt IS NULL)
                                         ELSE
 				                        mc.claim_status_id
                                     END
