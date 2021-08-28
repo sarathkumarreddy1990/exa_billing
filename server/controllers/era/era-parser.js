@@ -341,15 +341,8 @@ module.exports = {
         let lineItemsByGroup = _.groupBy(lineItems, 'claim_index');
         let groupedLineItems = [];
 
-        for (let i in lineItemsByGroup) {
-            let items = lineItemsByGroup[i];
+        _.map(lineItemsByGroup, items => {
             const totalAdjustment = _.sumBy(items, 'cas_total_amt');
-
-            //get and push reporting line items
-            let reportingCharges = await data.getReportingCharges(items[0]);
-            if (reportingCharges.length) {
-                groupedLineItems = groupedLineItems.concat(reportingCharges);
-            }
 
             if (_.sumBy(items, 'payment') == 0 && (totalAdjustment == _.sumBy(items, 'bill_fee') || totalAdjustment == 0)) {
                 items = items.map(item => {
@@ -366,7 +359,9 @@ module.exports = {
             } else {
                 groupedLineItems = groupedLineItems.concat(items);
             }
-        };
+
+        });
+
 
         return {
             lineItems: groupedLineItems,
