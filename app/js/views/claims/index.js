@@ -256,7 +256,7 @@ define(['jquery',
                 }
                 var billingRegionCodes = ['can_AB', 'can_MB', 'can_BC'];
 
-                $('#txtClaimResponsibleNotes').prop('disabled', !(billingRegionCodes.indexOf(app.billingRegionCode) > -1 || app.billingRegionCode === 'can_BC' || app.country_alpha_3_code === 'usa'));
+                $('#txtClaimResponsibleNotes').prop('disabled', !(billingRegionCodes.indexOf(app.billingRegionCode) > -1 || app.country_alpha_3_code === 'usa'));
 
                 //EXA-18273 - Move diagnostics codes section under claim for alberta billing
                 if(app.billingRegionCode === 'can_AB') {
