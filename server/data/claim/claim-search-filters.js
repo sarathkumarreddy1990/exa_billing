@@ -395,7 +395,7 @@ const api = {
                 and studies.id = charges_studies.study_id
                 GROUP BY billing.claims.id
             ) studies ON TRUE `;
-        }    
+        }
 
         if (tables.claim_status) { r += ' INNER JOIN billing.claim_status  ON claim_status.id=claims.claim_status_id'; }
 
