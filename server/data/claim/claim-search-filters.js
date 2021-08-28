@@ -387,14 +387,15 @@ const api = {
         if (tables.studies) {
             r += `  LEFT JOIN LATERAL (
                 SELECT
-                    studies.modalities,
+                    STRING_AGG(DISTINCT studies.modalities, ',') AS modalities,
                     billing.claims.id
                 FROM studies
                 INNER JOIN billing.charges ON charges.claim_id = claims.id
                 INNER JOIN billing.charges_studies ON charges_studies.charge_id = charges.id
                 and studies.id = charges_studies.study_id
-                GROUP BY billing.claims.id, studies.modalities
-            ) studies ON TRUE `}
+                GROUP BY billing.claims.id
+            ) studies ON TRUE `;
+        }    
 
         if (tables.claim_status) { r += ' INNER JOIN billing.claim_status  ON claim_status.id=claims.claim_status_id'; }
 
