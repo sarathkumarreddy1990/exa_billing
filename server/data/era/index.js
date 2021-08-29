@@ -825,6 +825,49 @@ module.exports = {
                     AND coalesce(communication_info->>'enable_ftp','false') = 'true' `;
 
         return await queryRows(sql);
+    },
+
+    getReportingCharges: async (args) => {
+        let {
+            patient_fname,
+            patient_lname,
+            patient_mname,
+            patient_prefix,
+            patient_suffix,
+            payerClaimContorlNumber,
+            claim_number,
+            claimStatusCode,
+            claim_index
+        } = args;
+
+        let sql = SQL`SELECT
+                        DISTINCT(cc.display_code),
+                        cc.display_code AS cpt_code,
+                        bc.bill_fee,
+                        bc.id AS charge_id,
+                        null AS adjustment,
+                        bc.bill_fee AS payment,
+                        ${patient_fname} AS patient_fname,
+                        ${patient_lname} AS patient_lname,
+                        ${patient_mname} AS patient_mname,
+                        ${patient_prefix} AS patient_prefix,
+                        false AS duplicate,
+                        false AS is_debit,
+                        null AS adjustment_code,
+                        ${payerClaimContorlNumber} AS original_reference,
+                        0 AS claim_status_code,
+                        null AS cas_details,
+                        null AS cas_total_amt,
+                        ${patient_suffix} AS patient_suffix,
+                        ${claimStatusCode} AS claimStatusCode,
+                        ${claim_number} AS claim_number,
+                        ${claim_index} AS claim_index
+                    FROM billing.charges bc
+                    INNER JOIN public.cpt_codes cc ON cc.id = bc.cpt_id
+                    WHERE bc.claim_id = ${claim_number}
+                    AND bc.bill_fee = '0.01'`;
+
+        return await queryRows(sql);
     }
 
 };
