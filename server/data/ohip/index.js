@@ -461,13 +461,20 @@ const updateClaimStatus = async (args) => {
                 FROM billing.claim_status
                 WHERE code=${claimStatusCode}
                 LIMIT 1
-            ),
-            submitted_dt = (SELECT * FROM submissionDate)
-        WHERE
-            id = ANY(ARRAY[${claimIds}::int[]])
-        RETURNING id
-            , claim_status_id
-    `;
+            ) `
+        .append(
+            claimStatusCode === 'PA'
+                ? SQL` , submitted_dt = (SELECT timezone FROM submissionDate) `
+                : SQL``
+        )
+        .append(SQL`
+                WHERE
+                    id = ANY(${claimIds}::int[])
+                RETURNING
+                    id
+                    , claim_status_id `
+        );
+    
 
     return (await query(sql.text, sql.values));
 };
@@ -1129,7 +1136,7 @@ const OHIPDataAPI = {
                 WHERE bch.claim_id = bc.id AND NOT bch.is_excluded
                 ORDER BY bch.id DESC LIMIT 1
             ) claim_types ON TRUE
-            LEFT JOIN public.places_of_service pspos ON ppos.id = NULLIF((pf.facility_info->'ohipProfSLI'), '')::BIGINT
+            LEFT JOIN public.places_of_service pspos ON pspos.id = NULLIF((pf.facility_info->'ohipProfSLI'), '')::BIGINT
             WHERE`.append(whereQuery)
             .append(SQL` ORDER BY bc.id DESC `)
             .append(limitQuery);
@@ -1592,10 +1599,10 @@ const OHIPDataAPI = {
                                             THEN ( SELECT COALESCE(id, mc.claim_status_id ) FROM billing.claim_status WHERE company_id = ${paymentDetails.company_id} AND code = 'OP' AND inactivated_dt IS NULL )
                                         WHEN '0'::MONEY IN (SELECT payment FROM matched_claims mc WHERE mc.claim_id = billing.claims.id)
                                             THEN (SELECT COALESCE(id, mc.claim_status_id) FROM billing.claim_status WHERE company_id = ${paymentDetails.company_id} AND code = 'D' AND inactivated_dt IS NULL)
+                                        WHEN (claim_details.claim_balance_total > 0::money AND claim_details.claim_balance_total > claim_details.charges_bill_fee_total)
+                                            THEN (SELECT COALESCE(id, mc.claim_status_id) FROM billing.claim_status WHERE company_id = ${paymentDetails.company_id} AND code = 'CA' AND inactivated_dt IS NULL)
                                         WHEN claim_details.claim_balance_total > 0::money
                                             THEN ( SELECT COALESCE(id, mc.claim_status_id ) FROM billing.claim_status WHERE company_id = ${paymentDetails.company_id} AND code = 'PAP' AND inactivated_dt IS NULL )
-                                        WHEN claim_details.claim_balance_total > claim_details.charges_bill_fee_total
-                                            THEN (SELECT COALESCE(id, mc.claim_status_id) FROM billing.claim_status WHERE company_id = ${paymentDetails.company_id} AND code = 'CA' AND inactivated_dt IS NULL)
                                         ELSE
 				                        mc.claim_status_id
                                     END

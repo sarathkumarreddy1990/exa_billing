@@ -38,6 +38,23 @@ const ClaimsEncoder = require('./encoder/claims');
 const ohipData = require('../../server/data/ohip');
 
 const submissionLimit = 100;
+const submissionErrorCodes = [
+    'EEDTS0061',
+    'EEDTS0003',
+    'EEDTS0010',
+    'EEDTS0012',
+    'EEDTS0050',
+    'EEDTS0051',
+    'EEDTS0052',
+    'EEDTS0053',
+    'EEDTS0054',
+    'EEDTS0055',
+    'EEDTS0056',
+    'EEDTS0057',
+    'EEDTS0058',
+    'EEDTS0059',
+    'EEDTS0060'
+];
 const {
     getResourceFilename,
     getMonthCode,
@@ -60,7 +77,7 @@ const fetchErrors = (claimData) => {
             });
         }
 
-        if (!claim.groupNumber) {
+        if (claim.claim_type === 'technical' && !claim.groupNumber) {
             validations.push({
                 error: `Group number not available in facility for Claim ${claim.claim_id} `
             });
@@ -78,7 +95,7 @@ const fetchErrors = (claimData) => {
         } else {
             validationsResult.validClaims.push(claim);
         }
-            
+
     });
 
     return validationsResult;
@@ -400,14 +417,18 @@ const submitClaims = async (callback) => {
                         allSubmitClaimResults.auditInfo = allSubmitClaimResults.auditInfo.concat(submitResponse.auditInfo);
                         allSubmitClaimResults.results = allSubmitClaimResults.results.concat(submitResponse.results);
 
-
                         const separatedSubmitResults = separateResults(submitResponse, EDT_SUBMIT, responseCodes.SUCCESS);
                         const successfulSubmitResults = separatedSubmitResults[responseCodes.SUCCESS];
-                        if (submitErr) {
+                        const submissionResult = JSON.stringify(submitResponse);
+
+                        // OHIP data error getting in response , so finding that using Eror codes
+                        let err_matches = filter(submissionErrorCodes, (s) => submissionResult.indexOf(s) > -1);
+
+                        if (submitErr || ( submitResponse && submitResponse.faults && submitResponse.faults.length ) || err_matches.length || !successfulSubmitResults) {
 
                             await ohipData.updateFileStatus({
                                 files: uploadFiles,
-                                errors: submitErr || [],
+                                errors: submitErr && JSON.stringify(submitErr) || (submitResponse.faults && submitResponse.faults.length && JSON.stringify(submitResponse.faults)) || submitResponse && submissionResult || null,
                                 status: 'failure'
                             });
 
