@@ -461,13 +461,20 @@ const updateClaimStatus = async (args) => {
                 FROM billing.claim_status
                 WHERE code=${claimStatusCode}
                 LIMIT 1
-            ),
-            submitted_dt = (SELECT * FROM submissionDate)
-        WHERE
-            id = ANY(ARRAY[${claimIds}::int[]])
-        RETURNING id
-            , claim_status_id
-    `;
+            ) `
+        .append(
+            claimStatusCode === 'PA'
+                ? SQL` , submitted_dt = (SELECT timezone FROM submissionDate) `
+                : SQL``
+        )
+        .append(SQL`
+                WHERE
+                    id = ANY(${claimIds}::int[])
+                RETURNING
+                    id
+                    , claim_status_id `
+        );
+    
 
     return (await query(sql.text, sql.values));
 };
