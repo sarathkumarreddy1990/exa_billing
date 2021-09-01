@@ -6136,6 +6136,8 @@ define(['jquery',
 
             identifyAssociatedCptsAndModifiers: function() {
                 var self = this;
+                this.associatedCpts = [];
+                this.associatedModifiers = [];
                 for (var i = 0; i < self.claimChargeList.length; i++) {
                     var index = self.claimChargeList[i];
                     if (index.cpt_id) {
