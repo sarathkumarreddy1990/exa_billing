@@ -147,7 +147,7 @@ define
                 self.viewModel.reportFormat = rFormat;
                 self.viewModel.openInNewTab = (openInNewTab && rFormat === 'html') ? true : false;
 
-                if ($('#chkSentCollections').prop('checked') && self.viewModel.claim_write_off_required) {
+                if ($('#chkSentCollections').prop('checked')) {
                     if (confirm(commonjs.geti18NString("messages.status.areYouSureToSendClaimstoCollections"))) {
                         self.viewModel.claimsToCollections = true;
                     } else {
