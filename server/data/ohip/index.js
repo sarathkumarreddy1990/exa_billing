@@ -475,7 +475,6 @@ const updateClaimStatus = async (args) => {
                     , claim_status_id `
         );
 
-
     return (await query(sql.text, sql.values));
 };
 
