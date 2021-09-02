@@ -1070,7 +1070,11 @@ const util = {
             insFilterQuery +=
                 `${util.getArrayBindOperator(JSON.stringify(insFilterArray).replace(/]|[[]/g, '').replace(/"/g, "'"), insuranceFilterColumn.replace(/null/g, "''"), insFilterType)} `;
 
-            query += ` ${util.getRelationOperator(query)} ${conditionIsNot ? "NOT" : ""} (${insFilterQuery}) `;
+            if (conditionIsNot && insFilterType === "insProvGroup") {
+                query += ` ${util.getRelationOperator(query)} ${conditionIsNot ? "(NOT" : ""} (${insFilterQuery}) OR (provider_types IS NULL))`;
+            } else {
+                query += ` ${util.getRelationOperator(query)} ${conditionIsNot ? "NOT" : ""} (${insFilterQuery}) `;
+            }
         }
 
         return query;
