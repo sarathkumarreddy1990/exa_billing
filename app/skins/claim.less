@@ -685,3 +685,38 @@ ul.multiselect-container.dropdown-menu{
     color: red;
   }
 
+  .flex-parent-horiz {
+    display: -webkit-box;
+    display: -moz-box;
+    display: -ms-flexbox;
+    display: -webkit-flex;
+    display: flex;
+    flex-direction: row;
+    -webkit-flex-direction: row;
+    -moz-flex-direction: row;
+    -ms-flex-direction: row;
+  }
+
+  .flex-space-wrap {
+    flex-wrap: wrap;
+    justify-content: space-between;
+  }
+
+  .alert-corner {
+    cursor: pointer;
+    margin: 1px;
+    margin-right: 30px;
+    position: relative;
+
+    i {
+        font-size: 25px;
+    }
+  }
+
+  .alert-corner__badge {
+    &:extend(.alertBadge);
+    position: absolute;
+    right: -8px;
+    top: -8px;
+    z-index: 10;
+  }
