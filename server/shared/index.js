@@ -297,6 +297,7 @@ module.exports = {
             WHERE bef.file_type = 'can_ohip_p'
             AND company_id = ${companyId}
             AND status = 'pending'
+            ORDER BY id ASC
         `;
 
         let {

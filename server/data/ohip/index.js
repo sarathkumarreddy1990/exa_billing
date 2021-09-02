@@ -1,4 +1,4 @@
-const { query, SQL, audit } = require('./../index');
+const { query, SQL, audit, queryRows } = require('./../index');
 const moment = require('moment');
 const sprintf = require('sprintf');
 
@@ -474,7 +474,7 @@ const updateClaimStatus = async (args) => {
                     id
                     , claim_status_id `
         );
-    
+
 
     return (await query(sql.text, sql.values));
 };
@@ -1149,7 +1149,6 @@ const OHIPDataAPI = {
         return processedClaims;
     },
 
-
     getFileManagementData: async (params) => {
         let whereQuery = [];
         let filterCondition = '';
@@ -1374,6 +1373,90 @@ const OHIPDataAPI = {
         return await query(sql.text, sql.values);
     },
 
+    createLegacyClaimCharge: async (params, paymentDetails) => {
+        const {
+            lineItems,
+        } = params;
+
+        const sql = SQL` WITH
+                        get_charge_items AS (
+                            SELECT
+                                *
+                            FROM json_to_recordset(${JSON.stringify(lineItems)}) AS (
+                                claim_number text
+                                , charge_id bigint
+                                , payment money
+                                , adjustment money
+                                , cpt_code text
+                                , patient_fname text
+                                , patient_lname text
+                                , patient_mname text
+                                , patient_prefix text
+                                , patient_suffix text
+                                , original_reference text
+                                , cas_details jsonb
+                                , claim_status_code bigint
+                                , service_date date
+                                , index integer
+                                , duplicate boolean
+                                , code text
+                                , is_debit boolean
+                                , claim_index bigint
+                                , claim_status text
+                                , is_exa_claim boolean
+                            )
+                        )
+                        , get_claim_data AS (
+                            SELECT
+                                bc.id,
+                                bc.invoice_no
+                            FROM billing.claims bc
+                            INNER JOIN get_charge_items ON (LPAD(bc.invoice_no, 8, '0') = LPAD(TRIM(get_charge_items.claim_number), 8, '0'))
+                            ORDER BY bc.id DESC LIMIT 1
+                        )
+                        INSERT INTO billing.charges
+                        (
+                            claim_id
+                            , cpt_id
+                            , bill_fee
+                            , units
+                            , created_by
+                            , charge_dt
+                            , is_excluded
+                            , is_custom_bill_fee
+                        )
+                        SELECT
+                            bc.id
+                            , cpt.cpt_id
+                            , get_charge_items.payment
+                            , 1
+                            , ${paymentDetails.created_by}
+                            , now()
+                            , FALSE
+                            , TRUE
+                        FROM get_charge_items
+                        INNER JOIN get_claim_data AS bc ON TRUE
+                        INNER JOIN LATERAL (
+                            SELECT cc.id AS cpt_id
+                            FROM public.cpt_codes cc
+                            WHERE cc.display_code = get_charge_items.cpt_code
+                            ORDER BY cc.id ASC LIMIT 1
+                        ) cpt ON TRUE
+                        WHERE NOT get_charge_items.is_exa_claim
+                            AND bc.invoice_no IS NOT NULL
+                            AND get_charge_items.cpt_code NOT IN (
+                                SELECT
+                                    cc.display_code
+                                FROM billing.charges bch
+                                INNER JOIN get_claim_data AS claims ON claims.id = bch.claim_id
+                                INNER JOIN public.cpt_codes cc ON cc.id = bch.cpt_id
+                                WHERE cc.display_code = get_charge_items.cpt_code
+                            )
+                        RETURNING id AS charge_id `;
+
+        return await queryRows(sql);
+    },
+
     createPaymentApplication: async function (params, paymentDetails) {
 
         let {
@@ -1407,65 +1490,12 @@ const OHIPDataAPI = {
                                 ,is_debit boolean
                                 ,claim_index bigint
                                 ,claim_status text
+                                , is_exa_claim boolean
                             )
                         )
-                        ,insert_unmatched_charges AS (
-                            INSERT INTO billing.charges
-                                ( claim_id
-                                , cpt_id
-                                , bill_fee
-                                , units
-                                , created_by
-                                , charge_dt
-                                , is_excluded
-                                , is_custom_bill_fee
-                                )
+                        , final_claim_charges AS (
                             SELECT
-                                claims.id,
-                                cpt.cpt_id,
-                                application_details.payment,
-                                1,
-                                ${paymentDetails.created_by},
-                                now(),
-                                false,
-                                true
-                            FROM
-                                application_details
-                            INNER JOIN LATERAL (
-                                SELECT
-                                    bc.id,
-                                    bc.invoice_no
-                                FROM billing.claims bc
-                                WHERE (bc.id::TEXT = application_details.claim_number OR bc.invoice_no = application_details.claim_number)
-                                ORDER BY bc.id DESC LIMIT 1
-                            ) claims ON TRUE
-                            INNER JOIN LATERAL (
-                                SELECT cc.id AS cpt_id
-                                FROM public.cpt_codes cc
-                                WHERE cc.display_code = application_details.cpt_code
-                                ORDER BY cc.id ASC LIMIT 1
-                            ) cpt ON true
-                            WHERE
-                                claims.invoice_no IS NOT NULL
-                                AND application_details.cpt_code NOT IN (
-                                    SELECT
-                                        cc.display_code
-                                    FROM billing.charges bc
-                                    INNER JOIN LATERAL (
-                                        SELECT
-                                            bc.id,
-                                            bc.invoice_no
-                                        FROM billing.claims bc
-                                        WHERE (bc.id::TEXT = application_details.claim_number OR bc.invoice_no = application_details.claim_number)
-                                        ORDER BY bc.id DESC LIMIT 1
-                                    ) claims ON claims.id = bc.claim_id
-                                    INNER JOIN public.cpt_codes cc ON cc.id = bc.cpt_id
-                                    WHERE cc.display_code = application_details.cpt_code
-                                )
-                        )
-                        ,final_claim_charges AS (
-                            SELECT
-                                claims.id AS claim_id,
+                                bc.id AS claim_id,
                                 application_details.cpt_code,
                                 application_details.duplicate,
                                 application_details.index,
@@ -1484,34 +1514,37 @@ const OHIPDataAPI = {
                                 application_details.patient_suffix,
                                 application_details.claim_index,
                                 application_details.claim_status,
-                                claims.claim_status_id,
-                                claims.patient_id,
+                                bc.claim_status_id,
+                                bc.patient_id,
                                 cs.code AS claim_payment_status,
-                                charges.charge_id
-                            FROM
-                                application_details
+                                bch.id AS charge_id
+                            FROM application_details
                             INNER JOIN LATERAL (
-                                    SELECT
-                                        bc.id,
-                                        bc.claim_status_id,
-                                        bc.patient_id,
-                                        bc.invoice_no
-                                    FROM billing.claims bc
-                                    WHERE (bc.id::TEXT = application_details.claim_number OR bc.invoice_no = application_details.claim_number)
-                                    ORDER BY bc.id ASC LIMIT 1
-                            ) claims ON TRUE
-                            INNER JOIN billing.claim_status cs ON cs.id = claims.claim_status_id
+                                SELECT
+                                    bc.id,
+                                    bc.claim_status_id,
+                                    bc.patient_id,
+                                    bc.invoice_no
+                                FROM billing.claims bc
+                                WHERE (
+                                    LPAD(bc.id::TEXT, 8, '0') = LPAD(TRIM(application_details.claim_number), 8, '0') OR
+                                    (NOT application_details.is_exa_claim AND LPAD(bc.invoice_no, 8, '0') = LPAD(TRIM(application_details.claim_number), 8, '0'))
+                                )
+                                ORDER BY bc.id DESC LIMIT 1
+                            ) bc ON TRUE
+                            INNER JOIN billing.claim_status cs ON cs.id = bc.claim_status_id
                             LEFT JOIN LATERAL (
-								SELECT
-									bch.id AS charge_id
-								FROM billing.charges bch
-								INNER JOIN public.cpt_codes pcc ON pcc.id = bch.cpt_id
-								LEFT JOIN billing.payment_applications bpa ON bpa.charge_id = bch.id
-								WHERE bch.claim_id = claims.id AND NOT bch.is_excluded
-								ORDER BY bpa.id DESC NULLS FIRST LIMIT 1
-            				) charges ON TRUE
-							WHERE
-							  charges.charge_id IS NOT NULL
+                                SELECT
+                                    bch.id AS charge_id
+                                FROM billing.charges bch
+                                INNER JOIN public.cpt_codes pcc ON pcc.id = bch.cpt_id
+                                LEFT JOIN billing.payment_applications bpa ON bpa.charge_id = bch.id
+                                WHERE bch.claim_id = bc.id
+                                    AND NOT bch.is_excluded
+                                    AND pcc.display_code = application_details.cpt_code
+                                ORDER BY bpa.id DESC NULLS FIRST LIMIT 1
+                            ) charges ON TRUE
+                            WHERE charges.charge_id IS NOT NULL
                         )
                         ,matched_claims AS (
                             SELECT
@@ -1529,8 +1562,8 @@ const OHIPDataAPI = {
                                     'adjustment'    ,fcc.adjustment,
                                     'cas_details'   ,fcc.cas_details,
                                     'applied_dt'    ,CASE WHEN fcc.is_debit
-                                    THEN now() + INTERVAL '0.02' SECOND * fcc.claim_index
-                                    ELSE now() + INTERVAL '0.01' SECOND * fcc.claim_index
+                                    THEN now() + INTERVAL '0.02' SECOND * fcc.index
+                                    ELSE now() + INTERVAL '0.01' SECOND * fcc.index
                                     END
                                 )
                             FROM
