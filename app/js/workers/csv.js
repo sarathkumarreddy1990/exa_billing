@@ -14,6 +14,7 @@ const claimColumns = {
     "Billing Provider": "billing_provider",
     "Billing Fee": "billing_fee",
     "Account No": "account_no",
+    "Alt Account No": "pid_alt_account",
     "Policy Number": "policy_number",
     "Claim Status": "claim_status",
     "Date Of Birth": "birth_date",
