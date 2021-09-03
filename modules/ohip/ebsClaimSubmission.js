@@ -199,6 +199,12 @@ const submitClaims = async (callback) => {
             claimStatusCode: 'SUBF',
             claimNote: 'Electronic claim submission failed due to errors in claim data',
             userId: 1,
+            clientIp: '127.0.0.1',
+            companyId: 1,
+            screenName: 'system-event',
+            entityName: 'claims',
+            moduleName: 'claims',
+            auditDesc: 'Electronic claim submission failed due to errors in claim data'
         });
     }
 
@@ -338,6 +344,12 @@ const submitClaims = async (callback) => {
                             claimStatusCode: 'SUBF',
                             claimNote: 'Submission failed in MCEDT file upload',
                             userId: 1,
+                            clientIp: '127.0.0.1',
+                            companyId: 1,
+                            screenName: 'system-event',
+                            entityName: 'claims',
+                            moduleName: 'claims',
+                            auditDesc: 'Submission failed in MCEDT file upload'
                         });
 
                         uploadResponse.error = "Error in file upload";
@@ -364,6 +376,12 @@ const submitClaims = async (callback) => {
                             claimStatusCode: 'SUBF',
                             claimNote: 'Submission failed in MCEDT file upload',
                             userId: 1,
+                            clientIp: '127.0.0.1',
+                            companyId: 1,
+                            screenName: 'system-event',
+                            entityName: 'claims',
+                            moduleName: 'claims',
+                            auditDesc: 'Submission failed in MCEDT file upload'
                         });
 
                         uploadResponse.error = "Error in file upload";
@@ -386,6 +404,12 @@ const submitClaims = async (callback) => {
                             claimStatusCode: 'SUBF',
                             claimNote: 'Submission failed in MCEDT file upload',
                             userId: 1,
+                            clientIp: '127.0.0.1',
+                            companyId: 1,
+                            screenName: 'system-event',
+                            entityName: 'claims',
+                            moduleName: 'claims',
+                            auditDesc: 'Submission failed in MCEDT file upload'
                         });
 
                         return reject(uploadResponse, null);
@@ -437,6 +461,12 @@ const submitClaims = async (callback) => {
                                 claimStatusCode: 'SUBF',
                                 claimNote: 'Submission failed in MCEDT file Submit',
                                 userId: 1,
+                                clientIp: '127.0.0.1',
+                                companyId: 1,
+                                screenName: 'system-event',
+                                entityName: 'claims',
+                                moduleName: 'claims',
+                                auditDesc: 'Submission failed in MCEDT file Submit'
                             });
 
                             return reject(submitErr, allSubmitClaimResults);
@@ -470,6 +500,12 @@ const submitClaims = async (callback) => {
                                 claimStatusCode,
                                 claimNote: claimNote,
                                 userId: 1,
+                                clientIp: '127.0.0.1',
+                                companyId: 1,
+                                screenName: 'system-event',
+                                entityName: 'claims',
+                                moduleName: 'claims',
+                                auditDesc: claimNote
                             });
                         });
 

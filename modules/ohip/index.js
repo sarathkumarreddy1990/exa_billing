@@ -572,14 +572,23 @@ module.exports = {
      * @returns rows of claims which got updated
      */
     submitClaimsToQueue: async (req, callback) => {
-        let params = req.body;
+        let {
+            isAllClaims,
+            claimIds,
+            userId,
+            clientIp,
+            companyId,
+            screenName,
+            entityName,
+            moduleName,
+        } = req.body;
 
-        if (params.isAllClaims) {
-            params.claimIds = await claimWorkBenchController.getClaimsForEDI(params);
+        if (isAllClaims) {
+            claimIds = await claimWorkBenchController.getClaimsForEDI(req.body);
         }
 
-        let claimIds = params.claimIds.split(',');
-        let validationData = await validateClaimsData.validateEDIClaimCreation(claimIds);
+        let arrayClaimIds = claimIds.split(',');
+        let validationData = await validateClaimsData.validateEDIClaimCreation(arrayClaimIds);
         validationData = _.get(validationData, 'rows[0]', {});
 
         let excludeClaimStatus = ['PS', 'SUBF'];
@@ -606,7 +615,7 @@ module.exports = {
         }
 
         // 1 - convert args.claimIds to claim data (getClaimsData)
-        const claimData = await billingApi.getClaimsData({ claimIds });
+        const claimData = await billingApi.getClaimsData({ arrayClaimIds  });
         const validationMessages = claimData.reduce((validations, claim) => {
             if (!claim.claim_totalCharge) {
                 validations.push(`Claim ${claim.claim_id} has no billable charges`);
@@ -621,10 +630,16 @@ module.exports = {
 
         // updating the claims status to submission queue
         let {rows = []} = await billingApi.updateClaimStatus({
-            claimIds: claimIds,
+            claimIds: arrayClaimIds,
             claimStatusCode: 'CQ',
             claimNote: 'Electronically submitted through MCEDT-EBS',
-            userId: params.userId,
+            userId,
+            clientIp,
+            companyId,
+            screenName,
+            entityName: 'claims',
+            moduleName,
+            auditDesc: 'Claim has been queued for Electronically submitted through MCEDT-EBS'
         });
 
         return callback(null, {results: rows});
@@ -875,6 +890,12 @@ module.exports = {
                             claimStatusCode,
                             claimNote: 'Electronically submitted through MCEDT-EBS',
                             userId: params.userId,
+                            clientIp: params.clientIp,
+                            companyId: params.companyId,
+                            screenName: params.screenName,
+                            entityName: 'claims',
+                            moduleName: params.moduleName,
+                            auditDesc: 'Electronically submitted through MCEDT-EBS'
                         });
 
                     })

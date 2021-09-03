@@ -427,7 +427,12 @@ const updateClaimStatus = async (args) => {
         claimStatusCode,
         userId,
         claimNote,
-
+        clientIp,
+        companyId,
+        screenName,
+        entityName,
+        moduleName,
+        auditDesc
     } = args;
 
     const sql = SQL`
@@ -452,29 +457,54 @@ const updateClaimStatus = async (args) => {
             FROM billing.claims
             WHERE claims.id = ANY(${claimIds}::int[])
             RETURNING *
-        )
-
-        UPDATE billing.claims claims
-        SET
-            claim_status_id = (
-                SELECT id
-                FROM billing.claim_status
-                WHERE code=${claimStatusCode}
-                LIMIT 1
-            ) `
+            ),
+            update_status AS (
+                UPDATE billing.claims claims
+                SET
+                    claim_status_id = (
+                        SELECT id
+                        FROM billing.claim_status
+                        WHERE code=${claimStatusCode}
+                        LIMIT 1
+                    )`
+    
         .append(
             claimStatusCode === 'PA'
                 ? SQL` , submitted_dt = (SELECT timezone FROM submissionDate) `
                 : SQL``
         )
         .append(SQL`
-                WHERE
-                    id = ANY(${claimIds}::int[])
-                RETURNING
-                    id
-                    , claim_status_id `
-        );
-    
+                    WHERE
+                        id = ANY(${claimIds}::int[])
+                    RETURNING *
+                    , (SELECT row_to_json(old_row) FROM (
+                        SELECT * FROM billing.claims i_bc
+                        WHERE i_bc.id = claims.id) old_row
+                    ) old_values
+                )
+                SELECT 
+                    us.id AS claim_id
+                    , us.claim_status_id
+                    , billing.create_audit (
+                        ${companyId},
+                        lower(${entityName}),
+                        us.id,
+                        ${screenName},
+                        ${moduleName},
+                        ${auditDesc},
+                        ${clientIp},
+                        json_build_object(
+                            'old_values', COALESCE(us.old_values, '{}'),
+                            'new_values', ( 
+                                    SELECT 
+                                        row_to_json(temp_row)::jsonb - 'old_values'::text 
+                                    FROM 
+                                        ( SELECT * FROM update_status i_us where i_us.id = us.id) temp_row)
+                        )::jsonb,
+                        ${userId}
+                    ) id
+                    FROM update_status us
+        `);
 
     return (await query(sql.text, sql.values));
 };
