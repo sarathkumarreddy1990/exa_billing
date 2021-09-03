@@ -194,7 +194,7 @@ module.exports = {
         let result = {};
         let ohipPaymentResults = {};
         let eraObject = f_data.ra_json;
-        let totalAmountPayable = eraObject.totalAmountPayable ? Math.round(eraObject.totalAmountPayable * 100) / 10000 : 0.00;
+        let totalAmountPayable = eraObject.totalAmountPayable || 0.00;
         let notes = `File Name: ${f_data.uploaded_file_name || ''} \nAmount shown in EOB: $${totalAmountPayable}`;
         let payerDetails = {
             amount       : 0,
