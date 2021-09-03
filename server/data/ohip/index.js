@@ -656,7 +656,7 @@ const applyBatchEditReport = async (args) => {
             INNER JOIN billing.edi_file_batches efb ON efb.edi_file_id = ef.id
             WHERE
                 ef.file_type = 'can_ohip_h'
-                AND ef.status = 'success'
+                AND ef.status <> 'pending'
                 AND ef.created_dt::date = NULLIF(${createdDate}, 'Invalid date')::DATE
                 AND efb.sequence_number = ${batchSequenceNumber}
                 AND efb.provider_number = ${providerNumber}
@@ -682,15 +682,22 @@ const applyBatchEditReport = async (args) => {
             UPDATE
                 billing.edi_files
             SET
-                status = 'success',
+                status = (
+                    CASE
+                        WHEN EXISTS (
+                            SELECT
+                                1
+                            FROM related_submission_files
+                        )
+                        THEN
+                            'success'
+                        ELSE
+                            'nomatch'
+                    END
+                ),
                 processed_dt = now()
             WHERE
                 id = ${responseFileId}
-                AND EXISTS (
-                        SELECT
-                            1
-                        FROM related_submission_files
-                    )
             RETURNING
                 *
         )
