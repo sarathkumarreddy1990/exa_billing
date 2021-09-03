@@ -328,11 +328,13 @@ module.exports = {
                                                     sca.study_cpt_id = cpt.id
                                                     AND sca.authorization_type = 'primary'
                                                 )
-                                                LEFT JOIN provider_contacts pc ON pc.id = (CASE
-                                                                                                WHEN ${isAlbertaBilling}
-                                                                                                THEN st.approving_provider_id
-                                                                                                ELSE s.reading_physician_id
-                                                                                            END)
+                                                LEFT JOIN provider_contacts pc ON pc.id = (
+                                                    CASE
+                                                        WHEN ${isAlbertaBilling} AND s.study_status = 'APP'
+                                                        THEN st.approving_provider_id
+                                                        ELSE s.reading_physician_id
+                                                    END
+                                                )
                                                 LEFT JOIN providers p ON p.id = pc.provider_id
                                                 WHERE s.id = ${firstStudyId}
                                                 ORDER BY
