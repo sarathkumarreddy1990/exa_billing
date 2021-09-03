@@ -329,7 +329,7 @@ module.exports = {
                                                     AND sca.authorization_type = 'primary'
                                                 )
                                                 LEFT JOIN provider_contacts pc ON pc.id = (CASE
-                                                                                                WHEN ${isAlbertaBilling}
+                                                                                                WHEN ${isAlbertaBilling} AND s.study_status = 'APP'
                                                                                                 THEN st.approving_provider_id
                                                                                                 ELSE s.reading_physician_id
                                                                                             END)
