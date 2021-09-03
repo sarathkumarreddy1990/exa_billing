@@ -3158,6 +3158,47 @@ define(['jquery',
                 }
             },
 
+            changeMobileBillingDefaultValues: function (currentBillingType) {
+
+                /** 
+                 * Remove modifier 26 if exiting type is split
+                 * Add modifier 26 if new type is split if not present
+                 */
+
+                for (var index = 0; index < this.chargeModel.length; index++) {
+                    for (var i = 0; i < 4; i++) {
+                        var txtModifier = $('#txtModifier' + i + '_' + index);
+
+                        if (this.billing_type === 'split'
+                            && currentBillingType !== 'split'
+                            && txtModifier.val() === '26') {
+                            txtModifier.val('');
+                        } else if (this.billing_type !== 'split'
+                            && currentBillingType === 'split'
+                            && $('#txtModifier0_' + index).val() != '26'
+                            && $('#txtModifier1_' + index).val() != '26'
+                            && $('#txtModifier2_' + index).val() != '26'
+                            && $('#txtModifier3_' + index).val() != '26'
+                        ) {
+                            txtModifier.val('26');
+                        }
+                    }
+
+                };
+
+                var ddlClaimResponsible = $('#ddlClaimResponsible');
+
+                if (currentBillingType === 'facility') {
+                    ddlClaimResponsible.val("POF").change();
+                } else {
+                    var defaultResponsible = ddlClaimResponsible.find('option[value="PIP_P"]').length
+                        ? 'PIP_P' : 'PPP';
+                    ddlClaimResponsible.val(defaultResponsible).change();
+                }
+                this.is_split_claim = currentBillingType === 'split';
+                this.billing_type = currentBillingType || 'global';
+            },
+
             setOrderingFacilityAutoComplete: function () {
                 var self = this;
                 $("#ddlOrdFacility").select2({
@@ -3204,12 +3245,21 @@ define(['jquery',
                     self.ordering_facility_name = res.ordering_facility_name;
                     self.ordering_facility_id = res.ordering_facility_id;
                     self.ordering_facility_contact_id = res.id || null;
+
+                    if (app.isMobileBillingEnabled && res.billing_type != self.billing_type) {
+                        self.changeMobileBillingDefaultValues(res.billing_type);
+                    }
+
                     if (res && res.id) {
                         self.updateResponsibleList({
                             payer_type: 'POF',
                             payer_id: res.ordering_facility_id,
                             payer_name: res.ordering_facility_name + '(Service Facility)'
                         }, null);
+
+                        if(app.isMobileBillingEnabled && res.billing_type === 'facility'){
+                            $('#ddlClaimResponsible').val("POF").change();
+                        }
                     }
                     return res.ordering_facility_name;
                 }
@@ -4113,6 +4163,10 @@ define(['jquery',
                             return false;
                         }
                     }
+                }
+
+                if (app.isMobileBillingEnabled && self.billing_type === 'census') {
+                    return commonjs.showWarning("messages.warning.validBillingType");
                 }
 
                 if (app.isMobileBillingEnabled && self.is_split_claim && !self.ordering_facility_contact_id) {
