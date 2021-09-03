@@ -483,20 +483,26 @@ const updateClaimStatus = async (args) => {
                     ) old_values
                 )
                 SELECT 
-                    us.id
+                    us.id AS claim_id
                     , us.claim_status_id
                     , billing.create_audit (
-                    ${companyId},
-                    lower(${entityName}),
-                    us.id,
-                    ${screenName},
-                    ${moduleName},
-                    ${auditDesc},
-                    ${clientIp},
-                    json_build_object(
-                    'old_values', COALESCE(us.old_values, '{}'),
-                    'new_values', ( SELECT row_to_json(temp_row)::jsonb - 'old_values'::text FROM ( SELECT * FROM update_status i_us where i_us.id = us.id) temp_row))::jsonb,
-                    ${userId}) id
+                        ${companyId},
+                        lower(${entityName}),
+                        us.id,
+                        ${screenName},
+                        ${moduleName},
+                        ${auditDesc},
+                        ${clientIp},
+                        json_build_object(
+                            'old_values', COALESCE(us.old_values, '{}'),
+                            'new_values', ( 
+                                    SELECT 
+                                        row_to_json(temp_row)::jsonb - 'old_values'::text 
+                                    FROM 
+                                        ( SELECT * FROM update_status i_us where i_us.id = us.id) temp_row)
+                        )::jsonb,
+                        ${userId}
+                    ) id
                     FROM update_status us
         `);
 
