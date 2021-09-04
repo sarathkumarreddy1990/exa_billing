@@ -322,6 +322,7 @@ define(['jquery',
                                 var editor = tinymce.get('txtNotesEditor');
                                 editor.setContent((response.result[0] && response.result[0].note) || '');
                                 editor.setDirty(false);
+                                self.censusTable.options.customargs.orderingFacilityId = orderingFacilityId;
                                 self.censusTable.refresh();
                             } else {
                                 editor.setContent('');
