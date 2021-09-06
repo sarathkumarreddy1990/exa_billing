@@ -1523,7 +1523,7 @@ const OHIPDataAPI = {
                                 bc.claim_status_id,
                                 bc.patient_id,
                                 cs.code AS claim_payment_status,
-                                bch.id AS charge_id
+                                charges.charge_id
                             FROM application_details
                             INNER JOIN LATERAL (
                                 SELECT
