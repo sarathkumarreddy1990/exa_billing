@@ -127,7 +127,10 @@ const api = {
 
                 api.logJsReportOptions(jsReportOptions);
                 console.time(`${repInfo} s5___jsreport`);
-                jsReportClient.render(jsReportOptions, { timeout: 6000000 /* ms */, time: true })
+                jsReportClient.render(jsReportOptions, {
+                        maxContentLength: Infinity,
+                        maxBodyLength: Infinity
+                    })
                     .then( response => {
                         console.timeEnd(`${repInfo} s5___jsreport`);
                         // adjust response header for downloadable content
