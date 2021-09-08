@@ -138,6 +138,24 @@ define([
             'status_desc': 'Cancelled'
         }
     ];
+    var canadaPayerType = [
+        {
+            "code":"patient",
+            "desc":"Patient"
+        },
+        {
+            "code":"referring_provider",
+            "desc":"Referring Provider"
+        },
+        {
+            "code":"ordering_facility",
+            "desc":"Ordering Facility"
+        },
+        {
+            "code":"primary_insurance",
+            "desc":"Primary Insurance"
+        }
+    ];
 
     var listTools = function (textProp, idProp) {
         var _STRING = 'string';
@@ -2135,7 +2153,7 @@ define([
                     setupList('listClaimInfo', app.claim_status, 'description', 'id');
                     setupList('listBillingMethod', defaultBillingMethod, 'desc', 'code');
                     setupList('claimModalityList', app.modalities, 'modality_code');
-                    setupList('listPayerType', defaultPayerType, 'desc', 'code');
+                    setupList('listPayerType', (['can_AB', 'can_ON'].indexOf(app.billingRegionCode) > -1) ? canadaPayerType : defaultPayerType, 'desc', 'code');
                     setupList('listBalance', app.balance, 'balance');
                     setupList('listClaimFacility', facilities, 'facility_name');
                     setupList('listBillingCode', app.billing_codes, 'description', 'id');
