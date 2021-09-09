@@ -277,10 +277,13 @@ module.exports = {
                                     UPDATE
                                         billing.claims bc
                                     SET claim_status_id = (SELECT id FROM getStatus),
-                                        invoice_no = (SELECT NEXTVAL('billing.invoice_no_seq')),
+                                        invoice_no = CASE
+                                                        WHEN bc.billing_method = 'direct_billing'
+                                                        THEN (SELECT NEXTVAL('billing.invoice_no_seq'))
+                                                     END,
                                         submitted_dt=timezone(get_facility_tz(bc.facility_id::int), now()::timestamp)
                                     WHERE bc.id = ANY(${success_claimID})
-                                    AND bc.billing_method = 'direct_billing'
+                                    AND bc.billing_method IN ('direct_billing', 'paper_claim')
                                     RETURNING *,
                                     (SELECT row_to_json(old_row) FROM (
                                                   SELECT
