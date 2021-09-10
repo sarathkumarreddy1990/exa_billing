@@ -1948,7 +1948,7 @@ var commonjs = {
         if (!app.userInfo) {
             throw new Error('App settings is missing userInfo!');
         }
-        return app.userInfo.user_type === 'SU' ? app.facilities : app.userFacilities
+        return app.userInfo.user_type === 'SU' ? this.getActiveFacilities() : app.userFacilities;
     },
 
     getModalityRoomFromAppSettings: function (modalityRoomId) {
