@@ -1774,8 +1774,8 @@ function formatSingleClaim(claimData, servicelineList) {
                                     [
                                         {image: getImage( claimDet.outSideLab || (billType.toString().toUpperCase() === "SPLIT_P")), fit: [8, 8]},
                                         {image: getImage((claimDet.outSideLab != null) && !claimDet.outSideLab && (billType.toString().toUpperCase() !== "SPLIT_P")), fit: [8, 8]},
-                                        { text:"", alignment:"center"},
-                                        { text:"" , alignment:"center"}
+                                        { text: (billType.toString().toUpperCase() === "SPLIT_P") ? getDecimalNumericValue(claimDet.claimTotalCharge) : '' , alignment:"center"},
+                                        { text: (billType.toString().toUpperCase() === "SPLIT_P") ? getDecimalPointsValue(claimDet.claimTotalCharge) : '' , alignment:"center"}
                                     ]
                                 ]
                             },layout: 'noBorders' , colSpan:3
