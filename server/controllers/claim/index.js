@@ -69,8 +69,8 @@ const api= {
                     modifier2_id: modifier2,
                     modifier3_id: modifier3,
                     modifier4_id: modifier4,
-                    bill_fee: charges[index].is_custom_bill_fee  == true ? charges[index].bill_fee :  0,
-                    allowed_amount: charges[index].is_custom_bill_fee  == true  ? charges[index].allowed_amount : 0
+                    bill_fee: charges[index].is_custom_bill_fee  === 'true' ? charges[index].bill_fee :  0,
+                    allowed_amount: charges[index].is_custom_bill_fee  === 'true'  ? charges[index].allowed_amount : 0
                 });
             }));
 
