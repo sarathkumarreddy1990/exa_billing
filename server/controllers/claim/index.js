@@ -63,26 +63,14 @@ const api= {
                 let modifier3 = charge.modifier3_id == professional_modifier_id ? technical_modifier_id : charge.modifier3_id;
                 let modifier4 = charge.modifier4_id == professional_modifier_id ? technical_modifier_id : charge.modifier4_id;
 
-                // recalculate bill fee allowed amount again only if charges contains professional modifier
-                let { bill_fee, allowed_amount } = await data.getTechnicalBillFeeAmounts({
-                    cpt_id: charge.cpt_id,
-                    modifier1,
-                    modifier2,
-                    modifier3,
-                    modifier4,
-                    beneficiary_id: claims.beneficiary_id,
-                    facility_id: claims.facility_id,
-                    order_id: claims.order_id
-                });
-
                 newCharges.push({
                     ...charges[index],
                     modifier1_id: modifier1,
                     modifier2_id: modifier2,
                     modifier3_id: modifier3,
                     modifier4_id: modifier4,
-                    bill_fee,
-                    allowed_amount
+                    bill_fee: charges[index].is_custom_bill_fee  === 'true' ? charges[index].bill_fee :  0,
+                    allowed_amount: charges[index].is_custom_bill_fee  === 'true'  ? charges[index].allowed_amount : 0
                 });
             }));
 
