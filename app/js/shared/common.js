@@ -1948,7 +1948,7 @@ var commonjs = {
         if (!app.userInfo) {
             throw new Error('App settings is missing userInfo!');
         }
-        return app.userInfo.user_type === 'SU' ? this.getActiveFacilities() : app.userFacilities;
+        return this.getActiveFacilities();
     },
 
     getModalityRoomFromAppSettings: function (modalityRoomId) {
@@ -5029,6 +5029,13 @@ var commonjs = {
             });
         }
     },
+
+    // getCurrentUsersFacilitiesFromAppSettings: function () {
+    //     if (!app.userInfo) {
+    //         throw new Error('App settings is missing userInfo!');
+    //     }
+    //     return app.userInfo.user_type === 'SU' ? this.getActiveFacilities() : app.userFacilities;
+    // },
 
     // confineTabbing - Tabbing is confined to the specified element(s) - useful for modals
     confineTabbing: function (el) {
