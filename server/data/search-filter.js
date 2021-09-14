@@ -682,14 +682,8 @@ const api = {
                     LEFT JOIN
                         providers p ON pc.provider_id = P.id
                     WHERE
-                        CASE
-                            WHEN
-                                studies.ordering_provider_contact_id IS NOT NULL
-                            THEN
-                                studies.ordering_provider_contact_id = pc.id
-                            ELSE
-                                studies.referring_physician_id = pc.id
-                        END
+                        studies.ordering_provider_contact_id = pc.id
+                        OR studies.referring_physician_id = pc.id
                 ) AS providers_ref ON TRUE `;
         }
 
