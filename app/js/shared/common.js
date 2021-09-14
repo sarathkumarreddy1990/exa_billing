@@ -5030,13 +5030,6 @@ var commonjs = {
         }
     },
 
-    // getCurrentUsersFacilitiesFromAppSettings: function () {
-    //     if (!app.userInfo) {
-    //         throw new Error('App settings is missing userInfo!');
-    //     }
-    //     return app.userInfo.user_type === 'SU' ? this.getActiveFacilities() : app.userFacilities;
-    // },
-
     // confineTabbing - Tabbing is confined to the specified element(s) - useful for modals
     confineTabbing: function (el) {
         var inputs = $(el).find('select, input, textarea, button, a').filter(':visible');
