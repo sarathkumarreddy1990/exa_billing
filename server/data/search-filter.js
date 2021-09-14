@@ -672,7 +672,26 @@ const api = {
 
         if (tables.provider_contacts || imp_provider_contacts){ r += ' LEFT JOIN provider_contacts ON studies.referring_physician_id = provider_contacts.id ';}
 
-        if (tables.providers_ref){ r += ' LEFT JOIN providers AS providers_ref ON provider_contacts.provider_id = providers_ref.id ';}
+        if (tables.providers_ref) {
+            r += `
+                LEFT JOIN LATERAL (
+                    SELECT
+                        full_name
+                    FROM
+                        provider_contacts pc
+                    LEFT JOIN
+                        providers p ON pc.provider_id = P.id
+                    WHERE
+                        CASE
+                            WHEN
+                                studies.ordering_provider_contact_id IS NOT NULL
+                            THEN
+                                studies.ordering_provider_contact_id = pc.id
+                            ELSE
+                                studies.referring_physician_id = pc.id
+                        END
+                ) AS providers_ref ON TRUE `;
+        }
 
         if (tables.imagedelivery){
             r += `
@@ -772,15 +791,15 @@ const api = {
         }
 
         if (tables.primary_insurance) {
-            r += ` 
+            r += `
                     LEFT JOIN LATERAL(
-                        SELECT  
+                        SELECT
                             ipd.is_split_claim_enabled
                         FROM public.patient_insurances pi
                         INNER JOIN public.insurance_providers ip ON ip.id= pi.insurance_provider_id
                         LEFT JOIN billing.insurance_provider_details ipd on ipd.insurance_provider_id = ip.id
                         WHERE
-                            pi.patient_id = studies.patient_id 
+                            pi.patient_id = studies.patient_id
                             AND ((studies.study_dt IS NOT NULL
                                     AND valid_to_date >= studies.study_dt)
                                 OR (studies.study_dt IS NULL
