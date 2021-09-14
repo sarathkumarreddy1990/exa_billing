@@ -467,7 +467,7 @@ const updateClaimStatus = async (args) => {
                         WHERE code=${claimStatusCode}
                         LIMIT 1
                     )`
-    
+
         .append(
             claimStatusCode === 'PA'
                 ? SQL` , submitted_dt = (SELECT timezone FROM submissionDate) `
