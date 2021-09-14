@@ -17,6 +17,7 @@ const DEFAULT_BILLING_NOTES = "";
 const DEFAULT_CLAIM_NOTES = "";
 const DEFAULT_PAYER_TYPE = 'patient';
 const DEFAULT_BILLING_TYPE = 'global';
+const DEFAULT_BILLING_METHOD = 'patient_payment';
 const CLIENT_IP = '127.0.0.1';
 
 let _settings = null;
@@ -97,6 +98,8 @@ const getSaveClaimParams = async (params) => {
     });
 
     let payer_type = DEFAULT_PAYER_TYPE;
+    let billing_method = DEFAULT_BILLING_METHOD;
+    let place_of_service_id = claim_details.fac_place_of_service_id;
     let insurances = Object.keys(patBeneficiaryInsurances).map((val) => {
         let insurance = val.length ? patBeneficiaryInsurances[val].sort((data) => { return data.id - data.id; })[0] : {};
         insurance.claim_patient_insurance_id = insurance.id;
@@ -108,11 +111,18 @@ const getSaveClaimParams = async (params) => {
     const primary_insurance = insurances.find((val)=> {return val.coverage_level === 'primary';});
     const billing_type = (config.get('enableMobileBilling') && !isCanadaBilling  && claim_details.billing_type) || DEFAULT_BILLING_TYPE;
 
-    if (billing_type == 'facility') {
+    if (isMobileBillingEnabled && billing_type == 'facility') {
         payer_type = 'ordering_facility';
+        billing_method = 'direct_billing';
+        place_of_service_id = claim_details.ord_fac_place_of_service;
     }
     else if (primary_insurance) {
         payer_type = 'primary_insurance';
+        billing_method = primary_insurance.billing_method;
+    }
+
+    if (isMobileBillingEnabled && billing_type == 'global') {
+        place_of_service_id = claim_details.ord_fac_place_of_service;
     }
 
     const saveClaimParams = {
@@ -125,7 +135,7 @@ const getSaveClaimParams = async (params) => {
             company_id: companyId,
             billing_class_id: DEFAULT_BILLING_CLASS_ID,
             billing_code_id: DEFAULT_BILLING_CODE_ID,
-            billing_method: primary_insurance ? primary_insurance.billing_method : 'patient_payment',
+            billing_method,
             billing_notes: DEFAULT_BILLING_NOTES,
             billing_provider_id: settings.default_provider_id,
             claim_dt,
@@ -134,7 +144,7 @@ const getSaveClaimParams = async (params) => {
             created_by: userId,
             payer_type,
             patient_id,
-            place_of_service_id: isCanadaBilling ? null : claim_details.fac_place_of_service_id,
+            place_of_service_id: isCanadaBilling ? null : place_of_service_id,
             claim_charges: charge_details,
             ...claim_details,
             accident_state: claim_details.accident_state || null,
@@ -142,7 +152,8 @@ const getSaveClaimParams = async (params) => {
             ordering_facility_id: parseInt(claim_details.ordering_facility_id) || null,
             can_confidential: false,
             can_wcb_rejected: false,
-            billing_type
+            billing_type,
+            ord_fac_place_of_service: claim_details.ord_fac_place_of_service
         },
 
         insurances,
@@ -866,7 +877,8 @@ module.exports = {
                         billing_method: 'direct_billing',
                         payer_type: 'ordering_facility',
                         claim_charges: newCharges,
-                        billing_type: 'split_t'
+                        billing_type: 'split_t',
+                        place_of_service_id: claim.ord_fac_place_of_service
                     });
         
                 } else {

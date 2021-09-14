@@ -769,8 +769,8 @@ function formatRedForm(claimData, servicelineList, pageBrk) {
                         }, {},
                         {
                             text: ((claimDet.outSideLab != null) && !claimDet.outSideLab && (billType.toString().toUpperCase() !== "SPLIT_P")) ? '√' : ' ', alignment: 'center', margin:[-12,0,0,0] },
-                        { text: '', colSpan: 3, alignment: 'right' }, {}, {},
-                        { text: '', alignment: 'left', colSpan: 2 }, {}
+                        { text: (billType.toString().toUpperCase() === "SPLIT_P") ? getDecimalNumericValue(claimDet.claimTotalCharge) : '' , colSpan: 3, alignment: 'right' }, {}, {},
+                        { text: (billType.toString().toUpperCase() === "SPLIT_P") ? getDecimalPointsValue(claimDet.claimTotalCharge) : '' , alignment: 'center', colSpan: 2 }, {}
                     ],
                 ],
 

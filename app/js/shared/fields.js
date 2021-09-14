@@ -115,7 +115,9 @@ define([ 'backbone', 'immutable', 'moment', 'shared/utils' ], function ( Backbon
         var isNoneExist = false;
         var claimAction = ':All;corrected_claim:Corrected claim;new_claim:New claim';
         var renderingProvider = commonjs.makeValue(app.rendering_provider, ":All;", "full_name", "full_name");
-        var billingType = ':All;census:Census;global:Global;facility:Facility;split:Split';
+        var billingType = (filterType == "claims")
+            ? ':All;global:Global;facility:Facility;split:Split'
+            : ':All;census:Census;global:Global;facility:Facility;split:Split';
 
         for ( var i = 0; i < studyFlagArray.length; i++ ) {
             if ( studyFlagArray[ i ].description.toUpperCase() == 'NONE' ) {

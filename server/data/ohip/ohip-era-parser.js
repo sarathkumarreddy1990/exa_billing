@@ -9,6 +9,7 @@ module.exports = {
 
     processOHIPEraFile: async function (payment_data, params) {
         const self = this;
+        const edi_file_id = params.edi_files_id || 0;
 
         try {
 
@@ -25,33 +26,35 @@ module.exports = {
 
             params.insurance_provider_id = default_payer.rows[0].insurance_provider_id;
 
-            logger.info('Payment creation process started - OHIP');
+            logger.info(`Payment creation process started for edi file ${edi_file_id} - OHIP`);
 
             params.created_by = params.userId || 1;
             params.company_id = params.companyId || 1;
 
             let paymentDetails = await self.createPayment(payment_data, params);
 
-            logger.info('Payment creation process ended - OHIP');
+            logger.info(`Payment creation process ended for edi file ${edi_file_id} - OHIP`);
 
-            logger.info('Grouping claim process started - OHIP');
+            logger.info(`Grouping claim process for edi file ${edi_file_id} started - OHIP`);
             let lineItemsAndClaimLists = await self.getOHIPLineItemsAndClaims(payment_data.ra_json, params);
-            logger.info('Grouping claim process ended - OHIP');
+            logger.info(`Grouping claim process for edi file ${edi_file_id} ended - OHIP`);
 
-            logger.info('Applying claim process started - OHIP');
+            logger.info(`Creating charges for legacy claims for edi file ${edi_file_id} - started`);
+            await ohipData.createLegacyClaimCharge(lineItemsAndClaimLists, paymentDetails);
+            logger.info(`Creating charges for legacy claims for edi file ${edi_file_id} - ended`);
+
+            logger.info(`Applying claim process started for edi file ${edi_file_id} - OHIP`);
             let processedClaims = await ohipData.createPaymentApplication(lineItemsAndClaimLists, paymentDetails);
-            logger.info('Applying claim process ended - OHIP');
+            logger.info(`Applying claim process ended for edi file ${edi_file_id} - OHIP`);
 
-            logger.info('again we call to create payment application for unapplied charges form ERA claims - started');
-
-            // again we call to create payment application for unapplied charges form ERA claims
+            logger.info(`create payment application for unapplied charges for edi file ${edi_file_id} - started`);
             await ohipData.applyPaymentApplication(lineItemsAndClaimLists.audit_details, paymentDetails);
-            logger.info('again we call to create payment application for unapplied charges form ERA claims - ended');
+            logger.info(`create payment application for unapplied charges for edi file ${edi_file_id} - ended`);
 
 
-            logger.info('updating era file status started - OHIP');
+            logger.info(`updating era file status started for edi file ${edi_file_id} - OHIP`);
             await ohipData.updateERAFileStatus(paymentDetails);
-            logger.info('updating era file status ended - OHIP');
+            logger.info(`updating era file status ended for edi file ${edi_file_id} - OHIP`);
 
             const endTime = new Date().getTime();
 
@@ -74,8 +77,10 @@ module.exports = {
         let cas_reason_group_details = await data.getcasReasonGroupCodes(params);
         cas_reason_group_details = cas_reason_group_details.rows && cas_reason_group_details.rows.length ? cas_reason_group_details.rows[0] : {};
 
-        ohipJson.claims.forEach((claim, claim_index) => {
+        ohipJson.claims && ohipJson.claims.forEach((claim, claim_index) => {
             if (claim.accountingNumber) {
+                let isExaClaim = /^\d+$/.test(claim.accountingNumber);
+
                 claim.items.forEach((serviceLine) => {
 
                     let index = 1;
@@ -84,7 +89,7 @@ module.exports = {
 
                     //DESC : Formatting lineItems (Added sequence index and flag:true ) if duplicate cpt code came
                     let duplicateObj = _.findLast(lineItems, {
-                        claim_number: parseInt(claim.accountingNumber),
+                        claim_number: claim.accountingNumber,
                         cpt_code: serviceLine.serviceCode,
                         claim_index: claim_index
                     });
@@ -122,7 +127,7 @@ module.exports = {
                     amountPaid = isDebit && (amountPaid * -1) || amountPaid;
 
                     let item = {
-                        claim_number: claim.accountingNumber.replace(/^0+|0+$/g, ""),
+                        claim_number: claim.accountingNumber,
                         cpt_code: serviceLine.serviceCode,
                         denied_value: serviceLine.explanatoryCode !== '' && amountPaid === 0 ? 1 : 0, // Set 1 when cpts payment = zero and the explanatoryCode should not be empty
                         payment: amountPaid || 0.00,
@@ -139,7 +144,8 @@ module.exports = {
                         duplicate: duplicate_flag,
                         is_debit: isDebit,
                         code: adjustment_code,
-                        claim_index: claim_index
+                        claim_index: claim_index,
+                        is_exa_claim: isExaClaim
                     };
 
                     lineItems.push(item);
