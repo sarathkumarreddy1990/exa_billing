@@ -240,7 +240,9 @@ define(['jquery',
                 if (self.from !== 'ris')
                     self.showPaymentsGrid(paymentId);
 
-                commonjs.processPostRender();
+                if (!self.payment_id) {
+                    commonjs.processPostRender();
+                }
                 commonjs.validateControls();
                 commonjs.isMaskValidate();
                 if (self.screenCode.indexOf('APAY') > -1) {// for screen rights
@@ -322,7 +324,6 @@ define(['jquery',
                         }
                     });
                 }
-                commonjs.processPostRender();
             },
 
             clearPayemntForm: function () {
@@ -1579,7 +1580,6 @@ define(['jquery',
                     }, 500);
 
                     self.pendingGridLoaderd = true;
-                    commonjs.processPostRender();
                 }
                 else {
                     self.pendPaymentTable.options.customargs = {
