@@ -212,7 +212,7 @@ module.exports = function (options) {
                                     derivedMOHId = professionalGroupNumber;
                                 }
                                 else {
-                                    derivedGroupNumber = professionalGroupNumber || '0000';
+                                    derivedGroupNumber = '0000';
                                     derivedMOHId = providerNumber;
                                 }
                             }
