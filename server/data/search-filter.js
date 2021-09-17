@@ -671,8 +671,7 @@ const api = {
         }
 
         if (tables.provider_contacts || imp_provider_contacts) {
-            r += ` LEFT JOIN provider_contacts ON (studies.ordering_provider_contact_id = provider_contacts.id OR studies.referring_physician_id = provider_contacts.id)
-                       AND provider_contacts.is_primary `;
+            r += ` LEFT JOIN provider_contacts ON provider_contacts.id = COALESCE(studies.ordering_provider_contact_id, studies.referring_physician_id) `;
         }
 
         if (tables.providers_ref){ r += ' LEFT JOIN providers AS providers_ref ON provider_contacts.provider_id = providers_ref.id ';}
