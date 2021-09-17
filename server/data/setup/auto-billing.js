@@ -774,8 +774,10 @@ module.exports = {
                 (NOT exclude_study_statuses = (${studyStatus} = ANY(study_status_codes)))
                 AND
                 (exclude_facilities IS null OR NOT exclude_facilities = (context.facility_id = ANY(facility_ids)))
-                AND
-                (exclude_ordering_facilities IS NULL OR NOT exclude_ordering_facilities = (context.ordering_facility_id = ANY(cteAutoBillingRules.ordering_facility_ids)))
+                AND (
+                    exclude_ordering_facilities IS NULL
+                    OR NOT (exclude_ordering_facilities = COALESCE((context.ordering_facility_id = ANY(cteAutoBillingRules.ordering_facility_ids)), false))
+                )
                 AND
                 (exclude_modalities IS null OR NOT exclude_modalities = (context.modality_id = ANY(modality_ids)))
                 AND
