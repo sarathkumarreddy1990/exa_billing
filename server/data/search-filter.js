@@ -670,22 +670,12 @@ const api = {
                 ) `;
         }
 
-        if (tables.provider_contacts || imp_provider_contacts){ r += ' LEFT JOIN provider_contacts ON studies.referring_physician_id = provider_contacts.id ';}
-
-        if (tables.providers_ref) {
-            r += `
-                LEFT JOIN LATERAL (
-                    SELECT
-                        full_name
-                    FROM
-                        provider_contacts pc
-                    LEFT JOIN
-                        providers p ON pc.provider_id = P.id
-                    WHERE
-                        studies.ordering_provider_contact_id = pc.id
-                        OR studies.referring_physician_id = pc.id
-                ) AS providers_ref ON TRUE `;
+        if (tables.provider_contacts || imp_provider_contacts) {
+            r += ` LEFT JOIN provider_contacts ON (studies.ordering_provider_contact_id = provider_contacts.id OR studies.referring_physician_id = provider_contacts.id)
+                       AND provider_contacts.is_primary `;
         }
+
+        if (tables.providers_ref){ r += ' LEFT JOIN providers AS providers_ref ON provider_contacts.provider_id = providers_ref.id ';}
 
         if (tables.imagedelivery){
             r += `
