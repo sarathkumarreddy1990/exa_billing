@@ -172,10 +172,12 @@ const getClaimSubmissionFilename = (args) => {
         fileName = `${groupNumber}`;
     }
     else if (['professional_facility', 'professional_provider'].indexOf(claim_type) > -1) {
-        if (['27', '76', '85', '90'].includes(providerSpeciality))
+        if (['27', '76', '85', '90'].includes(providerSpeciality) || claim_type === 'professional_provider') {
             fileName = `${providerNumber}`;
-        else
+        }
+        else {
             fileName = `${professionalGroupNumber || providerNumber}`;
+        }
     }
 
     return `H${getMonthCode(new Date())}${fileName}`;
