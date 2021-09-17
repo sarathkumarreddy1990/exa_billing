@@ -3852,7 +3852,8 @@ define(['jquery',
                     wcb_injury_nature_code: self.wcbNatureCodeId || null,
                     billing_type: (app.isMobileBillingEnabled && self.billing_type) || 'global',
                     is_split_claim: app.isMobileBillingEnabled && self.is_split_claim,
-                    order_id: self.options && self.options.order_id
+                    order_id: self.options && self.options.order_id,
+                    is_mobile_billing_enabled: app.isMobileBillingEnabled
                 };
 
                 // Pay-to Details are only saved when Pay-to Code is Other
