@@ -5282,7 +5282,7 @@ define(['jquery',
                                                     study_id: studyId,
                                                     patient_id: patientId,
                                                     facility_id: facility_id,
-                                                    study_date: study_dt,
+                                                    study_date: commonjs.convertToFacilityTimeZone(facility_id, study_dt).format('MM/DD/YYYY'),
                                                     patient_name: patient_details.patient_name || '',
                                                     account_no: patient_details.patient_account_no || '',
                                                     patient_dob: patient_details.patient_dob || '',
@@ -5292,6 +5292,13 @@ define(['jquery',
                                                 selectedStudies.push(study);
 
                                             }
+                                            var studyDtGroup = _.groupBy(selectedStudies, 'study_date');
+                                            var isStudyDateMatch = Object.keys(studyDtGroup).length;
+
+                                            if (isStudyDateMatch > 1) {
+                                                return commonjs.showWarning('messages.warning.claims.sameStudyDtValidate');
+                                            }
+
                                             var studyIds = selectedStudies.map(function(value) { return value.study_id; });
                                             studyIds = studyIds.join();
                                             window.localStorage.setItem('primary_study_details', JSON.stringify(selectedStudies[0]));
