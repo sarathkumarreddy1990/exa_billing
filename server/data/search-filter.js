@@ -670,7 +670,9 @@ const api = {
                 ) `;
         }
 
-        if (tables.provider_contacts || imp_provider_contacts){ r += ' LEFT JOIN provider_contacts ON studies.referring_physician_id = provider_contacts.id ';}
+        if (tables.provider_contacts || imp_provider_contacts) {
+            r += ` LEFT JOIN provider_contacts ON provider_contacts.id = COALESCE(studies.ordering_provider_contact_id, studies.referring_physician_id) `;
+        }
 
         if (tables.providers_ref){ r += ' LEFT JOIN providers AS providers_ref ON provider_contacts.provider_id = providers_ref.id ';}
 
@@ -772,15 +774,15 @@ const api = {
         }
 
         if (tables.primary_insurance) {
-            r += ` 
+            r += `
                     LEFT JOIN LATERAL(
-                        SELECT  
+                        SELECT
                             ipd.is_split_claim_enabled
                         FROM public.patient_insurances pi
                         INNER JOIN public.insurance_providers ip ON ip.id= pi.insurance_provider_id
                         LEFT JOIN billing.insurance_provider_details ipd on ipd.insurance_provider_id = ip.id
                         WHERE
-                            pi.patient_id = studies.patient_id 
+                            pi.patient_id = studies.patient_id
                             AND ((studies.study_dt IS NOT NULL
                                     AND valid_to_date >= studies.study_dt)
                                 OR (studies.study_dt IS NULL
