@@ -343,6 +343,7 @@ define(['jquery',
                     url: '/orderingFacility/notes',
                     type: 'PUT',
                     data: {
+                        from: 'census',
                         id: $('#ddlOrdFacility').val(),
                         note: editor.getContent()
                     },
@@ -396,7 +397,7 @@ define(['jquery',
                     data: {
                         studyDetails: JSON.stringify(selectStudies),
                         company_id: app.companyID,
-                        screenName: 'Census',
+                        customScreenName: 'Census',
                         isAllCensus: false,
                         isAllStudies: false,
                         isMobileBillingEnabled: app.isMobileBillingEnabled

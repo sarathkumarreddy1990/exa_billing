@@ -27,7 +27,10 @@ router.put('/:id', async (req, res) => {
 });
 
 router.delete('/:id', async (req, res) => {
-    const data = await autobillingData.deleteAutobillingRule(req.params);
+    const data = await autobillingData.deleteAutobillingRule({
+        ...req.params, 
+        ...req.body
+    });
     httpHandler.sendRows(req, res, data);
 });
 

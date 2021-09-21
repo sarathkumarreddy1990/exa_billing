@@ -137,7 +137,7 @@ const getSaveClaimParams = async (params) => {
             billing_code_id: DEFAULT_BILLING_CODE_ID,
             billing_method,
             billing_notes: DEFAULT_BILLING_NOTES,
-            billing_provider_id: settings.default_provider_id,
+            billing_provider_id: claim_details.fac_billing_provider_id || settings.default_provider_id,
             claim_dt,
             claim_notes: DEFAULT_CLAIM_NOTES,
             claim_status_id: params.claim_status_id,
@@ -147,6 +147,7 @@ const getSaveClaimParams = async (params) => {
             place_of_service_id: isCanadaBilling ? null : place_of_service_id,
             claim_charges: charge_details,
             ...claim_details,
+            rendering_provider_contact_id: claim_details.fac_rendering_provider_contact_id,
             accident_state: claim_details.accident_state || null,
             service_facility_id: parseInt(claim_details.service_facility_id) || null,
             ordering_facility_id: parseInt(claim_details.ordering_facility_id) || null,
@@ -372,7 +373,10 @@ module.exports = {
             claim_status_id,
             inactive,
             userId,
-
+            screenName,
+            moduleName,
+            clientIp,
+            companyId,
             study_status_codes,
             exclude_study_statuses,
 
@@ -409,7 +413,8 @@ module.exports = {
                     , ${inactive ? 'now()' : null }
                     , ${userId}
                 )
-                RETURNING id
+                RETURNING id,  row_to_json(billing.autobilling_rules.*) AS new_values
+                , '{}'::jsonb old_values
             )
             , studyStatusesInsert AS (
                 INSERT INTO billing.autobilling_study_status_rules (
@@ -495,8 +500,23 @@ module.exports = {
                     , ${exclude_insurance_providers}
                 )
             )
-
-            SELECT id FROM abrInsert
+            SELECT 
+                id
+                , billing.create_audit (
+                      ${companyId}
+                    , ${screenName}
+                    , abrInsert.id
+                    , ${screenName}
+                    , ${moduleName}
+                    , 'Auto billing Rule created ID:' || abrInsert.id
+                    , ${clientIp}
+                    , json_build_object(
+                        'old_values', COALESCE(abrInsert.old_values, '{}'),
+                        'new_values', COALESCE(abrInsert.new_values, '{}')
+                      )::jsonb
+                    , ${userId}
+                ) audit_id
+        FROM abrInsert 
         `;
         return await query(sql);
     },
@@ -528,12 +548,94 @@ module.exports = {
 
             insurance_provider_ids,
             exclude_insurance_providers,
+
+            screenName,
+            moduleName,
+            clientIp,
+            userId,
+            companyId,
         } = params;
 
 
         const sql = SQL`
             WITH
-                facilitiesCleanSlate AS (
+                old_audit AS (
+                    SELECT row_to_json(row) AS old_values
+                    FROM (
+                        SELECT 
+                            ( 
+                                SELECT 
+                                    JSONB_AGG(
+                                        JSONB_BUILD_OBJECT(
+                                            'study_status_code', study_status_code,
+                                            'excludes', excludes
+                                    ))::TEXT AS study_status_list
+                                FROM billing.autobilling_study_status_rules
+                                WHERE autobilling_rule_id = ${id}
+                           ) AS study_status,
+                           (
+                                SELECT 
+                                    JSONB_AGG(
+                                        JSONB_BUILD_OBJECT(
+                                            'facility_id', facility_id,
+                                            'excludes', excludes
+                                    ))::TEXT AS facility_list
+                                FROM billing.autobilling_facility_rules 
+                                WHERE autobilling_rule_id = ${id}
+                           ) AS facility,
+                           (
+                                SELECT 
+                                    JSONB_AGG(
+                                        JSONB_BUILD_OBJECT(
+                                            'modality_id', modality_id,
+                                            'excludes', excludes
+                                    ))::TEXT AS modality_list
+                                FROM billing.autobilling_modality_rules
+                                WHERE autobilling_rule_id = ${id}
+                           ) AS modality,
+                           (
+                                SELECT 
+                                    JSONB_AGG(
+                                        JSONB_BUILD_OBJECT(
+                                            'cpt_code_id', cpt_code_id,
+                                            'excludes', excludes
+                                    ))::TEXT AS cpt_list
+                                FROM billing.autobilling_cpt_code_rules 
+                                WHERE autobilling_rule_id = ${id}
+                           ) AS cpt,
+                           (
+                                SELECT 
+                                    JSONB_AGG(
+                                        JSONB_BUILD_OBJECT(
+                                            'insurance_provider_payer_type_id', insurance_provider_payer_type_id,
+                                            'excludes', excludes
+                                    ))::TEXT AS insurance_list
+                                FROM billing.autobilling_insurance_provider_payer_type_rules
+                                WHERE autobilling_rule_id = ${id}
+                           ) AS insurance,
+                           (
+                                SELECT 
+                                    JSONB_AGG(
+                                        JSONB_BUILD_OBJECT(
+                                            'insurance_provider_id', insurance_provider_id,
+                                            'excludes', excludes
+                                    ))::TEXT AS insurance_provider_list
+                                FROM billing.autobilling_insurance_provider_rules 
+                                WHERE autobilling_rule_id = ${id}
+                           ) AS insurance_provider,
+                           (
+                                SELECT 
+                                    JSONB_AGG(
+                                        JSONB_BUILD_OBJECT(
+                                            'ordering_facility_id', ordering_facility_id,
+                                            'excludes', excludes
+                                    ))::TEXT AS ordering_facility_list
+                                FROM billing.autobilling_ordering_facility_rules
+                                WHERE autobilling_rule_id = ${id}
+                            ) AS ordering_facility
+                    ) row
+                )
+                , facilitiesCleanSlate AS (
                     DELETE FROM billing.autobilling_facility_rules WHERE autobilling_rule_id = ${id}
                 )
                 , studyStatusesCleanSlate AS (
@@ -563,6 +665,7 @@ module.exports = {
                         , UNNEST(${study_status_codes}::text[])
                         , ${exclude_study_statuses}
                     )
+                    RETURNING *
                 )
                 , facilitiesInsert AS (
                     INSERT INTO billing.autobilling_facility_rules (
@@ -575,6 +678,7 @@ module.exports = {
                         , UNNEST(${facility_ids}::int[])
                         , ${exclude_facilities}
                     )
+                    RETURNING *
                 )
                 , modalitiesInsert AS (
                     INSERT INTO billing.autobilling_modality_rules (
@@ -587,6 +691,7 @@ module.exports = {
                         , UNNEST(${modality_ids}::int[])
                         , ${exclude_modalities}
                     )
+                    RETURNING *
                 )
                 , cptCodesInsert AS (
                     INSERT INTO billing.autobilling_cpt_code_rules (
@@ -599,6 +704,7 @@ module.exports = {
                         , UNNEST(${cpt_code_ids}::int[])
                         , ${exclude_cpt_codes}
                     )
+                    RETURNING *
                 )
                 , insuranceProviderPayerTypesInsert AS (
                     INSERT INTO billing.autobilling_insurance_provider_payer_type_rules (
@@ -611,6 +717,7 @@ module.exports = {
                         , UNNEST(${insurance_provider_payer_type_ids}::int[])
                         , ${exclude_insurance_provider_payer_types}
                     )
+                    RETURNING *
                 )
                 , insuranceProvidersInsert AS (
                     INSERT INTO billing.autobilling_insurance_provider_rules (
@@ -623,6 +730,7 @@ module.exports = {
                         , UNNEST(${insurance_provider_ids}::int[])
                         , ${exclude_insurance_providers}
                     )
+                    RETURNING *
                 )
                 , updateExcludesOrderingFacilities AS (
                     UPDATE billing.autobilling_ordering_facility_rules SET excludes = ${exclude_ordering_facilities} 
@@ -649,16 +757,105 @@ module.exports = {
                         FROM billing.autobilling_ordering_facility_rules
                         WHERE ordering_facility_id = ofs.of_id
                         AND autobilling_rule_id = ${id})
-                    )
-            UPDATE billing.autobilling_rules
-            SET
-                description = ${description}
-                , claim_status_id = ${claim_status_id}
-                , inactivated_dt = ${inactive ? "now()": null}
-            WHERE
-                id = ${id}
-            RETURNING id
-        `;
+                        RETURNING *
+                )
+                , update_cte AS (
+                    UPDATE billing.autobilling_rules
+                    SET
+                        description = ${description}
+                        , claim_status_id = ${claim_status_id}
+                        , inactivated_dt = ${inactive ? "now()": null}
+                    WHERE
+                        id = ${id}
+                    RETURNING id
+                )
+                , new_audit AS (
+                    SELECT row_to_json(row) AS new_values
+                    FROM (
+                        SELECT 
+                            ( 
+                                SELECT JSONB_AGG(
+                                    JSONB_BUILD_OBJECT(
+                                        'study_status_code', study_status_code,
+                                        'excludes', excludes
+                                    ))::TEXT AS study_status_list
+                                FROM studyStatusesInsert
+                            ) AS study_status,
+                            (
+                                SELECT
+                                    JSONB_AGG(
+                                        JSONB_BUILD_OBJECT(
+                                            'facility_id', facility_id,
+                                            'excludes', excludes
+                                    ))::TEXT AS facility_list
+                                FROM facilitiesInsert 
+                            ) AS facility,
+                            (
+                                SELECT 
+                                    JSONB_AGG(
+                                        JSONB_BUILD_OBJECT(
+                                            'modality_id', modality_id,
+                                            'excludes', excludes
+                                    ))::TEXT AS modality_list
+                                FROM modalitiesInsert
+                            ) AS modality,
+                            (
+                                SELECT 
+                                    JSONB_AGG(
+                                        JSONB_BUILD_OBJECT(
+                                            'cpt_code_id', cpt_code_id,
+                                            'excludes', excludes
+                                    ))::TEXT AS cpt_list
+                                FROM cptCodesInsert 
+                            ) AS cpt,
+                            (
+                                SELECT 
+                                    JSONB_AGG(
+                                        JSONB_BUILD_OBJECT(
+                                            'insurance_provider_payer_type_id', insurance_provider_payer_type_id,
+                                            'excludes', excludes
+                                    ))::TEXT AS insurance_list
+                                FROM insuranceProviderPayerTypesInsert 
+                            ) AS insurance,
+                            (
+                                SELECT 
+                                    JSONB_AGG(
+                                        JSONB_BUILD_OBJECT(
+                                            'insurance_provider_id', insurance_provider_id,
+                                            'excludes', excludes
+                                    ))::TEXT AS insurance_provider_list
+                                FROM insuranceProvidersInsert
+                            ) AS insurance_provider,
+                            (
+                                SELECT 
+                                    JSONB_AGG(
+                                        JSONB_BUILD_OBJECT(
+                                            'ordering_facility_id', ordering_facility_id,
+                                            'excludes', excludes
+                                    ))::TEXT AS ordering_facility_list
+                                FROM insertOrderingFacilityRules
+                            ) AS ordering_facility
+                            
+                    ) row
+                
+                )
+                SELECT 
+                    uc.id,
+                    billing.create_audit(
+                       ${companyId || 1}
+                        , ${screenName}
+                        , uc.id
+                        , ${screenName}
+                        , ${moduleName}
+                        , 'Auto billing Updated Id: ' || uc.id
+                        , ${clientIp || '127.0.0.1'}
+                                , json_build_object(
+                                    'old_values', COALESCE((select old_values FROM old_audit), '{}'),
+                                    'new_values', COALESCE((select new_values FROM new_audit), '{}')
+                                  )::jsonb
+                        , ${userId || 1}
+                    ) AS audit_id
+                FROM update_cte uc `;        
 
         return await query(sql);
     },
@@ -666,15 +863,38 @@ module.exports = {
     deleteAutobillingRule: async (params) => {
         const {
             id,
+            screenName,
+            moduleName,
+            clientIp,
+            userId,
+            companyId
         } = params;
 
         const sql = SQL`
+        WITH purge_cte AS (
             UPDATE billing.autobilling_rules
             SET
                 deleted_dt = now()
             WHERE
                 id = ${id}
-            RETURNING id
+            RETURNING id,  row_to_json(billing.autobilling_rules.*) AS new_values
+            , '{}'::jsonb old_values
+        )
+        SELECT billing.create_audit(
+            ${companyId || 1}
+          , ${screenName}
+          , pc.id
+          , ${screenName}
+          , ${moduleName}
+          , 'Auto billing Deleted Id: ' || pc.id
+          , ${clientIp || '127.0.0.1'}
+                  , json_build_object(
+                      'old_values', COALESCE(pc.old_values, '{}'),
+                      'new_values', COALESCE(pc.new_values, '{}')
+                    )::jsonb
+          , ${userId || 1}
+          ) AS audit_id
+          FROM purge_cte pc
         `;
         return await query(sql);
     },
@@ -774,8 +994,10 @@ module.exports = {
                 (NOT exclude_study_statuses = (${studyStatus} = ANY(study_status_codes)))
                 AND
                 (exclude_facilities IS null OR NOT exclude_facilities = (context.facility_id = ANY(facility_ids)))
-                AND
-                (exclude_ordering_facilities IS NULL OR NOT exclude_ordering_facilities = (context.ordering_facility_id = ANY(cteAutoBillingRules.ordering_facility_ids)))
+                AND (
+                    exclude_ordering_facilities IS NULL
+                    OR NOT (exclude_ordering_facilities = COALESCE((context.ordering_facility_id = ANY(cteAutoBillingRules.ordering_facility_ids)), false))
+                )
                 AND
                 (exclude_modalities IS null OR NOT exclude_modalities = (context.modality_id = ANY(modality_ids)))
                 AND
@@ -848,26 +1070,14 @@ module.exports = {
                         let modifier3 = charge.modifier3_id == professional_modifier_id ? technical_modifier_id : charge.modifier3_id;
                         let modifier4 = charge.modifier4_id == professional_modifier_id ? technical_modifier_id : charge.modifier4_id;
         
-                        // recalculate bill fee allowed amount again only if charges contains professional modifier
-                        let { bill_fee, allowed_amount } = await claimsData.getTechnicalBillFeeAmounts({
-                            cpt_id: charge.cpt_id,
-                            modifier1,
-                            modifier2,
-                            modifier3,
-                            modifier4,
-                            beneficiary_id: claim.beneficiary_id,
-                            facility_id: claim.facility_id,
-                            order_id: claim.order_id
-                        });
-        
                         newCharges.push({
                             ...claim.claim_charges[index],
                             modifier1_id: modifier1,
                             modifier2_id: modifier2,
                             modifier3_id: modifier3,
                             modifier4_id: modifier4,
-                            bill_fee,
-                            allowed_amount
+                            bill_fee: claim.claim_charges[index].is_custom_bill_fee  === 'true' ? claim.claim_charges[index].bill_fee :  0,
+                            allowed_amount: claim.claim_charges[index].is_custom_bill_fee  === 'true'  ? claim.claim_charges[index].allowed_amount : 0
                         });
                     }));
         

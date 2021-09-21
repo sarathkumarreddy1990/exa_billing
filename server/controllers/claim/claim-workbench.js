@@ -579,7 +579,7 @@ module.exports = {
     createBatchClaims: async function (params) {
         let auditDetails = {
             company_id: params.company_id,
-            screen_name: params.screenName,
+            screen_name: params.customScreenName || params.screenName,
             module_name: params.screenName,
             entity_name: params.screenName,
             client_ip: params.clientIp,
