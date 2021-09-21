@@ -4,6 +4,7 @@ build/
 dist/
 yarn.lock
 build2/
+test-reports/
 
 app/package-lock.json
 
