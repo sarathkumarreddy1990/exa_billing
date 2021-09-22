@@ -147,7 +147,7 @@ const getSaveClaimParams = async (params) => {
             place_of_service_id: isCanadaBilling ? null : place_of_service_id,
             claim_charges: charge_details,
             ...claim_details,
-            rendering_provider_contact_id: claim_details.fac_rendering_provider_contact_id,
+            rendering_provider_contact_id: claim_details.rendering_provider_contact_id || claim_details.fac_rendering_provider_contact_id,
             accident_state: claim_details.accident_state || null,
             service_facility_id: parseInt(claim_details.service_facility_id) || null,
             ordering_facility_id: parseInt(claim_details.ordering_facility_id) || null,
