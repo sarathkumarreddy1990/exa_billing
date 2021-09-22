@@ -223,7 +223,7 @@ module.exports = {
                                         providers.fac_rendering_prov_npi_no,
                                         facility_info->'service_facility_id' as service_facility_id,
                                         facility_info->'service_facility_name' as service_facility_name,
-                                        ofc.id AS service_facility_contact_id,
+                                        ordering_facility_contacts.id AS service_facility_contact_id,
                                         ordering_facility.ordering_facility_contact_id,
                                         ordering_facility.id AS ordering_facility_id,
                                         ordering_facility.ordering_facility_name,
@@ -255,6 +255,10 @@ module.exports = {
                                         INNER JOIN facilities ON  facilities.id= orders.facility_id
                                         INNER JOIN patients p ON p.id= orders.patient_id
                                         LEFT JOIN billing.facility_settings bfs ON bfs.facility_id = facilities.id
+                                        LEFT JOIN ordering_facility_contacts ON (
+                                            ordering_facility_contacts.ordering_facility_id = facilities.ordering_facility_id
+                                            AND ordering_facility_contacts.is_primary
+                                        )
                                         LEFT JOIN LATERAL (
                                             SELECT
                                                 ofc.id AS ordering_facility_contact_id,
@@ -264,7 +268,7 @@ module.exports = {
                                                 of.id,
                                                 ofc.place_of_service_id
                                             FROM studies
-                                            INNER JOIN ordering_facility_contacts ofc ON ofc.id = studies.ordering_facility_contact_id
+                                            INNER JOIN ordering_facility_contacts ofc ON ofc.id = COALESCE(studies.ordering_facility_contact_id, ordering_facility_contacts.id)
                                             INNER JOIN ordering_facilities of ON of.id = ofc.ordering_facility_id
                                             WHERE studies.id = ${firstStudyId}
                                         ) ordering_facility  ON TRUE
@@ -341,10 +345,6 @@ module.exports = {
                                                     cpt.id ASC
                                                 LIMIT 1
                                         ) as studies_details ON TRUE
-                                        LEFT JOIN ordering_facility_contacts ofc ON (
-                                            ofc.ordering_facility_id = NULLIF((facilities.facility_info->'service_facility_id'), '')::BIGINT
-                                            AND ofc.is_primary
-                                        )
                             )
                             ,claim_problems AS (
                                         SELECT
