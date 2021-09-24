@@ -158,6 +158,7 @@ module.exports = {
                             LEFT JOIN public.study_cpt_authorizations sca ON (
                                 sca.study_cpt_id = sc.id
                                 AND sca.authorization_type = 'primary'
+                                AND sca.deleted_dt IS NULL
                             )
 			                LEFT JOIN professional_modifier ON TRUE
                             LEFT JOIN LATERAL (
@@ -331,6 +332,7 @@ module.exports = {
                                                 LEFT JOIN public.study_cpt_authorizations sca ON (
                                                     sca.study_cpt_id = cpt.id
                                                     AND sca.authorization_type = 'primary'
+                                                    AND sca.deleted_dt IS NULL
                                                 )
                                                 LEFT JOIN provider_contacts pc ON pc.id = (
                                                     CASE
