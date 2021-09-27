@@ -86,8 +86,9 @@ block content
                             a.dropdown-item(href='#setup/supporting_text/list' class='aSupportingText', i18n='shared.screens.setup.supportingText')
                         .dropdown-divider
                         a.dropdown-item(href='#setup/validations/all' class='aBillingValidations', i18n='shared.screens.setup.billingValidations')
-                        a.dropdown-item(href='#setup/edi_templates/all' class='aEDITemplate', i18n='shared.screens.setup.ediTemplates')
-                        a.dropdown-item(href='#setup/edi_clearinghouses/list' class='aEDIClearingHouses', i18n='shared.screens.setup.ediClearingHouses')
+                        if (['can_AB', 'can_ON'].indexOf(billingRegionCode) === -1)
+                            a.dropdown-item(href='#setup/edi_templates/all' class='aEDITemplate', i18n='shared.screens.setup.ediTemplates')
+                            a.dropdown-item(href='#setup/edi_clearinghouses/list' class='aEDIClearingHouses', i18n='shared.screens.setup.ediClearingHouses')
                         a.dropdown-item(href='#setup/insurance_x12_mapping/list' class='aInsuranceX12Mapping', i18n='shared.screens.setup.insuranceMapping')
                         a.dropdown-item(href='#setup/printer_templates/list' class='aPrinterTemplate', i18n='shared.screens.setup.printerTemplates')
                         a.dropdown-item(href='#setup/auto_billing/list' class='aAutoBilling', i18n='shared.screens.setup.autoBilling')
