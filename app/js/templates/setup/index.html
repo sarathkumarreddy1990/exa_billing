@@ -56,7 +56,7 @@
                 <li class="nav-item">
                     <a class="nav-link" id="aBillingValidations" href="#setup/validations/all" i18n="shared.screens.setup.billingValidations"></a>
                 </li>
-                <% if (billingRegionCode !== 'can_AB') { %>
+                <% if (['can_AB', 'can_ON'].indexOf(billingRegionCode) === -1) { %>
                 <li class="nav-item">
                     <a class="nav-link" id="aEDITemplate" href="#setup/edi_templates/all" i18n="shared.screens.setup.ediTemplates"></a>
                 </li>
