@@ -1824,6 +1824,7 @@ define(['jquery',
                     $('#btnPayfullAppliedPendingPayments').hide();
                     $('#formBillingProviders .form-group').not('.divAdjustmentCodes').hide();
                     $('#siteModalNested .close, #siteModalNested .btn-secondary').off().click(function (e) {
+                        $('#modal_div_container_nested').empty();
                         // Send response to claim screen
                         if (typeof callback === 'function') {
                             callback(null, {
