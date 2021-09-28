@@ -201,7 +201,7 @@ module.exports = {
                                         NULLIF(order_info->'hFrom','')::DATE AS hospitalization_from_date,
                                         COALESCE(NULLIF(order_info->'outsideLab',''), 'false')::boolean AS service_by_outside_lab,
                                         order_info->'original_ref' AS original_reference,
-                                        studies_details.authorization_no AS authorization_no,
+                                        orders.order_info -> 'authorization_no' AS authorization_no,
                                         order_info->'frequency_code' AS frequency,
                                         COALESCE(NULLIF(order_info->'oa',''), 'false')::boolean AS is_other_accident,
                                         COALESCE(NULLIF(order_info->'aa',''), 'false')::boolean AS is_auto_accident,
