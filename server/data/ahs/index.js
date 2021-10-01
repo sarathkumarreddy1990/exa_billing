@@ -264,6 +264,7 @@ const ahsData = {
                         claim_id
 	                  , MAX(batch_number) AS batch_number
 	                  , MAX(sequence_number) AS sequence_number
+                      , MAX(edi_file_id) AS edi_file_id
 	                FROM billing.edi_file_claims
 	                WHERE claim_id = ANY(${claimIds}) AND can_ahs_action_code = 'a'
 	                GROUP BY can_ahs_action_code, claim_id
@@ -383,8 +384,16 @@ const ahsData = {
                         inserted_efc.can_ahs_action_code             AS action_code,
                         comp.can_submitter_prefix                AS submitter_prefix,
                         inserted_efc.batch_number                    AS batch_number,
-                        TO_CHAR(CURRENT_DATE, 'YY')                   AS year,
-                        TO_CHAR(CURRENT_DATE, 'MM')                   AS source_code,
+                        CASE
+                            WHEN ${source} = 'reassessment' OR ${source} = 'delete' OR ${source} = 'change'
+                            THEN TO_CHAR(bef.created_dt::DATE, 'YY')
+                            ELSE TO_CHAR(CURRENT_DATE, 'YY')
+                        END                                           AS year,
+                        CASE
+                            WHEN ${source} = 'reassessment' OR ${source} = 'delete' OR ${source} = 'change'
+                            THEN TO_CHAR(bef.created_dt::DATE, 'MM')
+                            ELSE TO_CHAR(CURRENT_DATE, 'MM')
+                        END                                          AS source_code,
                         inserted_efc.sequence_number                 AS sequence_number,
                         public.get_can_ahs_mod10_for_claim_sequence_number(
                             inserted_efc.sequence_number :: INT8
@@ -393,8 +402,11 @@ const ahsData = {
                         -- currently hard-coded - AHS does not support another code right now
                         'CIP1'                                       AS transaction_type,
 
-                        'RGLR'                                       AS claim_type,
-
+                        CASE
+                            WHEN ${source} IN ('reassessment', 'delete')
+                            THEN ''
+                            ELSE 'RGLR'
+                        END                                        AS claim_type,
                         pc_app.can_prid                             AS service_provider_prid,
                         sc.code                                         AS skill_code,
 
@@ -674,6 +686,8 @@ const ahsData = {
                                 code
                                 FROM public.modifiers WHERE id = bch.modifier3_id AND NOT is_implicit ) AS mod3
                     ) fee_mod ON TRUE
+                    LEFT JOIN resubmission_claims rsc ON rsc.claim_id = bc.id
+                    LEFT JOIN billing.edi_files bef ON bef.id = rsc.edi_file_id
 
                     -- LEFT JOIN LATERAL (
                     --     SELECT
