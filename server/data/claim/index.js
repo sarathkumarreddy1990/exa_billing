@@ -1068,7 +1068,7 @@ module.exports = {
                                 AND study_dt IS NOT NULL
                                 AND studies.patient_id = ${id}
                                 AND NOT EXISTS ( SELECT 1 FROM billing.charges_studies WHERE study_id = studies.id )
-                            ORDER BY id ASC
+                            ORDER BY study_dt DESC
                     ) AS charge
             ) charge_details
             ,(
