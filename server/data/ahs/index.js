@@ -265,9 +265,10 @@ const ahsData = {
 	                  , MAX(batch_number) AS batch_number
 	                  , MAX(sequence_number) AS sequence_number
 	                  , MAX(edi_file_id) AS edi_file_id
+	                  , can_ahs_year_source_code
 	                FROM billing.edi_file_claims
 	                WHERE claim_id = ANY(${claimIds}) AND can_ahs_action_code = 'a'
-	                GROUP BY can_ahs_action_code, claim_id
+	                GROUP BY can_ahs_action_code, claim_id, can_ahs_year_source_code
 	                ORDER BY sequence_number DESC
                 ),
                 status AS (
@@ -286,7 +287,8 @@ const ahsData = {
                         batch_number,
                         sequence_number,
                         can_ahs_action_code,
-                        edi_file_id
+                        edi_file_id,
+                        can_ahs_year_source_code
                     )
                     SELECT
                         c.id,
@@ -305,7 +307,12 @@ const ahsData = {
                             THEN 'c'
                             ELSE 'a'
                         END,
-                        ${edi_file_id}
+                        ${edi_file_id},
+                        CASE
+                            WHEN ${source} = 'add'
+                            THEN TO_CHAR(CURRENT_DATE, 'YY') || TO_CHAR(CURRENT_DATE, 'MM')
+                            ELSE rsc.can_ahs_year_source_code
+                        END
                     FROM billing.claims c
                     INNER JOIN (
                         SELECT nextVal('edi_file_claims_batch_number_seq') % 1000000 AS batch_number
@@ -384,16 +391,7 @@ const ahsData = {
                         inserted_efc.can_ahs_action_code             AS action_code,
                         comp.can_submitter_prefix                AS submitter_prefix,
                         inserted_efc.batch_number                    AS batch_number,
-                        CASE
-                            WHEN ${source} = 'reassessment' OR ${source} = 'delete' OR ${source} = 'change'
-                            THEN TO_CHAR(bef.created_dt::DATE, 'YY')
-                            ELSE TO_CHAR(CURRENT_DATE, 'YY')
-                        END                                           AS year,
-                        CASE
-                            WHEN ${source} = 'reassessment' OR ${source} = 'delete' OR ${source} = 'change'
-                            THEN TO_CHAR(bef.created_dt::DATE, 'MM')
-                            ELSE TO_CHAR(CURRENT_DATE, 'MM')
-                        END                                          AS source_code,
+                        inserted_efc.can_ahs_year_source_code        AS year_source_code,
                         inserted_efc.sequence_number                 AS sequence_number,
                         public.get_can_ahs_mod10_for_claim_sequence_number(
                             inserted_efc.sequence_number :: INT8
@@ -687,7 +685,6 @@ const ahsData = {
                                 FROM public.modifiers WHERE id = bch.modifier3_id AND NOT is_implicit ) AS mod3
                     ) fee_mod ON TRUE
                     LEFT JOIN resubmission_claims rsc ON rsc.claim_id = bc.id
-                    LEFT JOIN billing.edi_files bef ON bef.id = rsc.edi_file_id
 
                     -- LEFT JOIN LATERAL (
                     --     SELECT
@@ -739,8 +736,7 @@ const ahsData = {
                                 billing.can_ahs_get_claim_number(info.claim_id),
                                 (
                                     info.submitter_prefix ||
-                                    info.year ||
-                                    info.source_code ||
+                                    info.year_source_code ||
                                     LPAD(info.sequence_number::TEXT, 7, '0') ||
                                     info.check_digit
                                 )
