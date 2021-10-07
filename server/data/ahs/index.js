@@ -310,7 +310,7 @@ const ahsData = {
                         ${edi_file_id},
                         CASE
                             WHEN ${source} = 'add'
-                            THEN TO_CHAR(CURRENT_DATE, 'YY') || TO_CHAR(CURRENT_DATE, 'MM')
+                            THEN TO_CHAR(CURRENT_DATE, 'YYMM')
                             ELSE rsc.can_ahs_year_source_code
                         END
                     FROM billing.claims c
