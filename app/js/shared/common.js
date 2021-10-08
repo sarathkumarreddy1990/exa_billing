@@ -4237,12 +4237,16 @@ var commonjs = {
         return upCul;
     },
 
-    getRightClickMenu: function (elementID, i18n, isSubMenu, elementName, isULMenu) {
+    getRightClickMenu: function (elementID, i18n, isSubMenu, elementName, isULMenu, isInsurance, url, type) {
         if (isULMenu) {
             return '<li class="dropdown-submenu" id=li_' + elementID + '><a tabindex="-1" href="javascript: void(0)" i18n=' + i18n + ' class="dropdown-item">' + elementName + '</a><ul id=' + elementID + ' style="float:right; max-width: 500px; overflow: auto; max-height: 300px";" class="dropdown-menu"></ul></li>';
-        } else if (isSubMenu) {
+        } else if (isSubMenu && !isInsurance) {
             return '<li><a class="dropdown-item" id=' + elementID + '  href="javascript: void(0)" >' + elementName + '</a></li>'
-        } else {
+        } else if (isSubMenu && isInsurance) {
+            var website = url || 'NULL';
+            return '<div style="max-width: 270px;overflow: hidden;"><span style="display:inline-block;"><a style="padding:0 0 0 10px;" href=' +website+ ' target="_blank" ><i style="color: blue;" class="fa fa-external-link" title ="Insurance URL: '+ website +'' +type+'"></i></a></span><li style="vertical-align:bottom;display:inline-block;"><a style="padding:0px;" id=' + elementID + '  href="javascript: void(0)">' + elementName + '</a></li></div>'
+        }
+        else {
             return '<li><a id=' + elementID + ' href="javascript: void(0)" i18n=' + i18n + ' class="dropdown-item">' + elementName + '</a></li>';
         }
     },
