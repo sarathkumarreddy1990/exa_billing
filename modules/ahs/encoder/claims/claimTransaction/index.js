@@ -50,8 +50,7 @@ const claimTransactionHeader = ( row ) => {
     const headerContext = {
         'record_type': 3,
         'submitter_prefix': row.submitter_prefix,
-        'year': row.year,
-        'source_code': row.source_code,
+        'year_source_code': row.year_source_code,
         'sequence_number': row.sequence_number,
         'check_digit': row.check_digit,
         'transaction_type': row.transaction_type,
