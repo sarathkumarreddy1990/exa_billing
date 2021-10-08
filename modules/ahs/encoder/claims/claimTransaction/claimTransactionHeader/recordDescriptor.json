@@ -12,15 +12,10 @@
     "startPos": 2,
     "length": 3
   },
-  "year": {
+  "year_source_code": {
     "format": "A",
     "startPos": 5,
-    "length": 2
-  },
-  "source_code": {
-    "format": "A",
-    "startPos": 7,
-    "length": 2,
+    "length": 4,
     "paddingChar": "0"
   },
   "sequence_number": {
