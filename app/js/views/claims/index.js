@@ -1167,7 +1167,7 @@ define(['jquery',
                 $('#frequency').val(claim_data.frequency || '');
                 $('#selAccidentState').val(claim_data.accident_state).prop('disabled', !isCauseCode);
 
-                if (app.billingRegionCode === 'can_BC') {
+                if (['can_BC', 'can_AB'].indexOf(app.billingRegionCode) !== -1) {
 
                     var areaOfInjuryCode = _.find(app.wcb_area_code, {
                         id: ~~claim_data.area_of_injury_code_id
