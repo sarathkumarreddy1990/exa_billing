@@ -4244,7 +4244,13 @@ var commonjs = {
             return '<li><a class="dropdown-item" id=' + elementID + '  href="javascript: void(0)" >' + elementName + '</a></li>'
         } else if (isSubMenu && isInsurance) {
             var website = url || 'NULL';
-            return '<div style="max-width: 270px;overflow: hidden;"><span style="display:inline-block;"><a style="padding:0 0 0 10px;" href=' +website+ ' target="_blank" ><i style="color: blue;" class="fa fa-external-link" title ="Insurance URL: '+ website +'' +type+'"></i></a></span><li style="vertical-align:bottom;display:inline-block;"><a style="padding:0px;" id=' + elementID + '  href="javascript: void(0)">' + elementName + '</a></li></div>'
+            return `<div style="max-width: 270px;overflow: hidden;">
+                        <span style="display:inline-block;">
+                        <a style="padding:0 0 0 10px;" href= `+website+` target="_blank" >
+                        <i style="color: blue;" class="fa fa-external-link" title ="Insurance URL: `+ website +`` +type+`"></i></a></span>
+                        <li style="vertical-align:bottom;display:inline-block;">
+                        <a style="padding:0px;" id=` + elementID + `  href="javascript: void(0)">`+ elementName + `</a></li>
+                    </div>`
         }
         else {
             return '<li><a id=' + elementID + ' href="javascript: void(0)" i18n=' + i18n + ' class="dropdown-item">' + elementName + '</a></li>';
