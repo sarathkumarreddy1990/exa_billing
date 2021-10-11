@@ -160,10 +160,10 @@ define('grid', [
             }
             return `<div style="max-width: 270px;overflow: hidden;">
                         <span style="display:inline-block;">
-                        <a style="padding:0 0 0 10px;" href= `+website+` target="_blank" >
-                        <i style="color: blue;" class="fa fa-external-link" title ="Insurance URL: `+ website +`` +type+`"></i></a></span>
+                        <a style="padding:0 0 0 10px;" href= ${website} target="_blank" >
+                        <i style="color: blue;" class="fa fa-external-link" title="Insurance URL: ${website}${type}"></i></a></span>
                         <li style="vertical-align:bottom;display:inline-block;">
-                        <a style="padding:0px;" id=` + elementID + `  href="javascript: void(0)">`+ elementName + `</a></li>
+                        <a style="padding:0px;" id= ${elementID} href="javascript: void(0)">${elementName}</a></li>
                     </div>`
         };
         var openCreateClaim = function (rowID, event, isClaimGrid, store) {
