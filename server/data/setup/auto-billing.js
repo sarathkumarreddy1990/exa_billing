@@ -153,6 +153,8 @@ const getSaveClaimParams = async (params) => {
             ordering_facility_id: parseInt(claim_details.ordering_facility_id) || null,
             can_confidential: false,
             can_wcb_rejected: false,
+            wcb_injury_area_code: claim_details.area_of_injury_code_id || null,
+            wcb_injury_nature_code: claim_details.nature_of_injury_code_id || null,
             billing_type,
             ord_fac_place_of_service: claim_details.ord_fac_place_of_service
         },

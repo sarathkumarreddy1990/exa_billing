@@ -1222,7 +1222,7 @@
                         </div>
                     </div>
                 </div>
-                <% if(billingRegionCode === 'can_BC') { %>
+                <% if(['can_BC', 'can_AB'].indexOf(billingRegionCode) !== -1) { %>
                 <div class="form-group row wcb_injury" id="natureOfInjuryDiv">
                     <label for="wcbNatureOfInjury" class="col-sm-3 col-form-label" i18n="order.additionalInfo.natureOfInjury"></label>
                     <div class="col-sm-5">
