@@ -699,6 +699,7 @@ define(['jquery',
                             self.paymentList = claimDetails.payment_details || [];
                             self.billing_method = claimDetails.billing_method;
                             self.phn = claimDetails.phn_acc_no;
+                            self.canAhsEncounterNo = claimDetails.can_ahs_encounter_no || 1;
                             $('.claimProcess').prop('disabled', false);
                             $('#btnSaveClaim').prop('disabled', false);
                             /* Bind claim charge Details - start */
@@ -1096,6 +1097,7 @@ define(['jquery',
                 $('#ddlPayToDetailsProvince').val(pay_to_details.province_code).change();
                 $('#txtPayToDetailsPostalCode').val(pay_to_details.postal_code);
                 $('#ddlPayToDetailsCountryCode').val(pay_to_details.country_code).change();
+                $('#txtEncounterNo').val(claim_data.can_ahs_encounter_no || 1)
 
                 var $businessArrangement = $('input[name="BusinessArrangement"]');
 
@@ -3853,7 +3855,8 @@ define(['jquery',
                     billing_type: (app.isMobileBillingEnabled && self.billing_type) || 'global',
                     is_split_claim: app.isMobileBillingEnabled && self.is_split_claim,
                     order_id: self.options && self.options.order_id,
-                    is_mobile_billing_enabled: app.isMobileBillingEnabled
+                    is_mobile_billing_enabled: app.isMobileBillingEnabled,
+                    can_ahs_encounter_no: $('#txtEncounterNo').val()
                 };
 
                 // Pay-to Details are only saved when Pay-to Code is Other
@@ -4164,6 +4167,10 @@ define(['jquery',
                             return false;
                         }
                     }
+                }
+
+                if ((!$('#txtEncounterNo').val() || $('#txtEncounterNo').val() == 0) && app.billingRegionCode === 'can_AB') {
+                    return commonjs.showWarning("messages.warning.shared.pleaseEnterEncounterNumber");
                 }
 
                 if (app.isMobileBillingEnabled && self.billing_type === 'census') {
@@ -5438,6 +5445,7 @@ define(['jquery',
 
                 $('#ddlFacility').val(app.facilityID || '');
                 $('#ddlClaimStatus').val($("option[data-desc = 'PV']").val());
+                $('#txtEncounterNo').val(1); // encounter number always 1 for new claim
 
                 if (patient_details.service_facility_contact_id) {
                     self.updateResponsibleList({
