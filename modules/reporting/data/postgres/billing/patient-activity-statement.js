@@ -319,56 +319,105 @@ WITH claim_data AS(
           , null                 AS c39
           UNION
           -- Coverage Info
-
+        <% if (billingPayers === "true")  { %>
         SELECT
-           null
-          ,null
-          ,null
-          ,null
-          ,null
-          ,null
-          ,null
-          ,null
-          ,null
-          , null
-          , null
-          , null
-          , null
-          , null
-          , null
-          , null
-          , null
-          , null
-          , null
-          , null
-          , null
-          , null
-          , null
-          , null
-          , null
-          , null
-          , valid_to_date
-          , cov_level
-          , policy_no
-          , group_no
-          , company_name
-          , null
-
-      , 0
-      , null
-      , 0
-      , 0                              AS sort_order
-      , 0
-      , null
-      , null
-      , null
-      , null
-      , null
-      , null
-      , null
-      , null
-      , null
+          null
+        , null
+        , null
+        , null
+        , null
+        , null
+        , null
+        , null
+        , null
+        , null
+        , null
+        , null
+        , null
+        , null
+        , null
+        , null
+        , null
+        , null
+        , null
+        , null
+        , null
+        , null
+        , null
+        , null
+        , null
+        , null
+        , valid_to_date
+        , cov_level
+        , policy_no
+        , group_no
+        , company_name
+        , null
+        , 0
+        , null
+        , 0
+        , 0 AS sort_order
+        , 0
+        , null
+        , null
+        , null
+        , null
+        , null
+        , null
+        , null
+        , null
+        , null
       FROM patient_insurance
+      <% } else if (billingPayers === "false") { %>
+        SELECT
+          null
+        , null
+        , null
+        , null
+        , null
+        , null
+        , null
+        , null
+        , null
+        , null
+        , null
+        , null
+        , null
+        , null
+        , null
+        , null
+        , null
+        , null
+        , null
+        , null
+        , null
+        , null
+        , null
+        , null
+        , null
+        , null
+        , null
+        , null
+        , null
+        , null
+        , null
+        , null
+        , 0
+        , null
+        , 0
+        , 0 AS sort_order
+        , 0
+        , null
+        , null
+        , null
+        , null
+        , null
+        , null
+        , null
+        , null
+        , null
+      FROM patient_insurance
+      <% } %>
 
       UNION
          -- Statement Amount
@@ -950,7 +999,8 @@ const api = {
             billingComments: null,
             billingAddressTaxNpi:null,
             claimId: null,
-            selectedClaimIds: null
+            selectedClaimIds: null,
+            billingPayers: null
         };
         let {
             companyId,
@@ -965,7 +1015,8 @@ const api = {
             billingProviderIds,
             dateFormat,
             browserLocale,
-            claimIds
+            claimIds,
+            billingPayers
         } = reportParams;
 
         // company id
@@ -993,6 +1044,7 @@ const api = {
 
         filters.billingComments = billingComments;
         filters.billingAddressTaxNpi = billingAddressTaxNpi;
+        filters.billingPayers = billingPayers;
 
         // billingProvider single or multiple
         if (billingProviderIds && billingProviderIds.length) {

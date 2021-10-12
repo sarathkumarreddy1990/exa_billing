@@ -100,7 +100,8 @@ define([
                         billingComments: claimInfo.billingComments,
                         billingAddressTaxNpi: claimInfo.billingAddressTaxNpi,
                         claimId : claimInfo.claimID,
-                        claimIds: claimInfo.selectedClaimIds || []
+                        claimIds: claimInfo.selectedClaimIds || [],
+                        billingPayers: claimInfo.billingPayers
                     }
                 }
 

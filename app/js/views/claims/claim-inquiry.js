@@ -1373,7 +1373,8 @@ define([
                     'billingProId': selectedBillingProList.length ? selectedBillingProList : billingProviderIds,
                     'billingComments': $('#bindComments').prop('checked'),
                     'billingAddressTaxNpi': $('#bindAddressTaxNpi').prop('checked'),
-                    'selectedClaimIds': claimIds
+                    'selectedClaimIds': claimIds,
+                    'billingPayers': $('#bindPayers').prop('checked')
                 }
             },
 
