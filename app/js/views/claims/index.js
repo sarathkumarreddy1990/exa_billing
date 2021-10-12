@@ -315,6 +315,51 @@ define(['jquery',
                 self.bindAddressInfo('Pri');
                 self.bindAddressInfo('Sec');
                 self.bindAddressInfo('Ter');
+
+                self.bindPatientRecentSearchResult();
+            },
+
+            /**
+             * Bind patient recent search result from bucket
+             *
+             * Copypasta from web... public/javascripts/views/patient/patientsearchLite.js
+             */
+            bindPatientRecentSearchResult: function () {
+                var self = this;
+
+                // Show recent patient search result
+                var patientRecentSearchDetails = localStorage.getItem('patientRecentSearchResult');
+                var $results = $('#divPatientRecentSearchResults');
+                var $noResults = $('#divNoRecentPatients');
+
+                $results.empty();
+                patientRecentSearchDetails = JSON.parse(patientRecentSearchDetails) || [];
+
+                if (!patientRecentSearchDetails.length) {
+                    $noResults.show();
+                    $('#ulChangeMenu').hide();
+                } else {
+                    // Bind recent search patient template
+                    $noResults.hide();
+                    var content = '';
+                    var patientList;
+
+                    for (var j = patientRecentSearchDetails.length - 1; j >= 0; j--) {
+                        patientList = patientRecentSearchDetails[j];
+                        patientList.id = atob(patientList.id);
+                        // content += self.contentTemplate({ patient: patientList });
+                        content += self.patSearchContentTemplate({ patient: patientList });
+                    }
+                    $results.html(content).show();
+
+                    $('.selectionpatient').off().click(function (e) {
+                        var $target = $(e.target || e.srcElement).closest('.studyList').length
+                        if (!$target && $(e.target || e.srcElement).attr('id') != 'btnClaimWStudy' && $(e.target || e.srcElement).attr('id') != 'btnClaimWOStudy') {
+                            self.selectPatient(e);
+                            e.stopPropagation();
+                        }
+                    });
+                }
             },
 
             initializeDateTimePickers: function () {
@@ -3162,7 +3207,7 @@ define(['jquery',
 
             changeMobileBillingDefaultValues: function (currentBillingType) {
 
-                /** 
+                /**
                  * Remove modifier 26 if exiting type is split
                  * Add modifier 26 if new type is split if not present
                  */
@@ -5241,6 +5286,23 @@ define(['jquery',
                             var charges = data && data.length && data[0].charges ? data[0].charges : [];
                             var patient_details = data && data.length && data[0].patient_details ? data[0].patient_details : {};
 
+                            var patient_info = commonjs.hstoreParse(patient_details.patient_info);
+                            var patientDetailsFormatted = {
+                                owner_id: 0,
+                                showOwner: false,
+                                is_active: patient_details.is_active,
+                                id: btoa(patient_details.patient_id) || '',
+                                last_name: patient_details.last_name || '',
+                                full_name: patient_details.patient_name || '',
+                                account_no: patient_details.patient_account_no || '',
+                                first_name: patient_details.first_name || '',
+                                facility_id: patient_details.facility_id || '',
+                                alt_account_no: patient_details.alt_account_no || '',
+                                dicom_patient_id: patient_details.dicom_patient_id || '',
+                                phone: patient_info.c1HomePhone || '',
+                                birth_date: moment(commonjs.getDateFormat(patient_details.patient_dob)).format('L')
+                            };
+
                             if (charges && charges.length) {
                                 $studyDetails.empty();
                                 $list.empty();
@@ -5313,6 +5375,7 @@ define(['jquery',
                                             window.localStorage.setItem('selected_studies', JSON.stringify(studyIds));
 
                                             $('#divPageLoading').show();
+                                            commonjs.patientRecentSearchResult(~~patientId, 'addSearchResult', null, patientDetailsFormatted);
                                             self.showClaimForm({ from: 'patientSearch' }, 'patientSearch');
 
                                             setTimeout(function () {
@@ -5332,6 +5395,7 @@ define(['jquery',
                             } else {
                                 var msg = commonjs.geti18NString("messages.confirm.billing.claimWithOutExam")
                                 if (confirm(msg)) {
+                                    commonjs.patientRecentSearchResult(~~patientId, 'addSearchResult', null, patientDetailsFormatted);
                                     self.claimWOStudy(patient_details);
                                 }
 

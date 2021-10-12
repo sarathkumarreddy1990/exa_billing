@@ -1082,6 +1082,12 @@ module.exports = {
 				            ,p.birth_date AS patient_dob
 				            ,p.gender AS patient_gender
                             ,p.account_no AS patient_account_no
+                            ,p.alt_account_no
+                            ,p.last_name
+                            ,p.first_name
+                            ,p.dicom_patient_id
+                            ,p.is_active
+                            ,p.patient_info
                             ,get_patient_alerts_to_jsonb(p.id, TRUE) AS alerts
                             ,f.id AS facility_id
                             ,fs.default_provider_id AS billing_provider_id
