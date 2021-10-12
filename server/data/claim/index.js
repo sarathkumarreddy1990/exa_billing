@@ -964,6 +964,7 @@ module.exports = {
                     ) AS payment_details
                     , c.area_of_injury_code_id
                     , c.nature_of_injury_code_id
+                    , COALESCE(c.encounter_no, 1)::SMALLINT AS can_ahs_encounter_no
                     FROM
                         billing.claims c
                         INNER JOIN public.patients p ON p.id = c.patient_id

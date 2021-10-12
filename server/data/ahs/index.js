@@ -444,7 +444,7 @@ const ahsData = {
                                 THEN TO_CHAR(timezone(f.time_zone, s.study_dt)::date, 'YYYYMMDD')
                                 ELSE TO_CHAR(s.hospital_admission_dt, 'YYYYMMDD')
                         END                                          AS service_start_date,
-                        1::INT  AS encounter_number,
+                        bc.encounter_no AS encounter_number,
                         icd.codes[1]                                 AS diagnosis_code_1,
                         icd.codes[2]                                 AS diagnosis_code_2,
                         icd.codes[3]                                 AS diagnosis_code_3,

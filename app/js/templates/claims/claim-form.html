@@ -513,6 +513,14 @@
                     </div>
                 </div>
                 <% } %>
+                <% if (billingRegionCode === 'can_AB') { %>
+                    <div class="form-group row">
+                        <label for="ddlEncounterNo" class="col-sm-3 col-form-label field-required" i18n="billing.claims.canAhs.encounterNo"></label>
+                        <div class="col-sm-5">
+                            <input type="text" class="form-control integerbox" id="txtEncounterNo" i18np="billing.claims.canAhs.encounterNo" maxlength="1">
+                        </div>
+                    </div>
+                <% } %>
             </div>
             <div class="col-lg-6" id="diagnosticsCodes">
                 <div class="form-group row">
