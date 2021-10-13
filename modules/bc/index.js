@@ -296,9 +296,11 @@ const bcModules = {
                     return { data: webServiceResponse };
                 }
 
+                logger.error(`Error occured while signing off MSP portal - ${JSON.stringify(disableResponse)}`);
                 return { error: 'apiFailed' };
             }
 
+            logger.error(`Error occured while signing into MSP portal - ${JSON.stringify(sessionResponse)}`);
             return { error: 'apiFailed' };
         } catch (err) {
             logger.error(`Error occured while requesting MSP portal web service.. ${err}`);
