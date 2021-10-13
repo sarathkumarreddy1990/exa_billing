@@ -61,7 +61,9 @@ const bcController = {
 
     getAllscheduledClaims:  bcData.getAllscheduledClaims,
 
-    getLastUpdatedSequenceByDataCenterNumber: bcData.getLastUpdatedSequenceByDataCenterNumber
+    getLastUpdatedSequenceByDataCenterNumber: bcData.getLastUpdatedSequenceByDataCenterNumber,
+
+    getAllBillingProviderCredentials: bcData.getAllBillingProviderCredentials
 };
 
 module.exports = bcController;
