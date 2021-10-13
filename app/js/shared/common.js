@@ -3135,6 +3135,90 @@ var commonjs = {
         }
     },
 
+    /**
+     * Adding, deleting and updating patient details in PatientRecentSearch Bucket
+     *
+     * Copypasta from web... public/javascripts/views/patient/patientMerge.js
+     *
+     * @param {number} patientID
+     * @param {string} flag - initial/update/delete
+     * @param {string} status - active/inactive
+     * @param {Object} patientDetails
+     */
+    patientRecentSearchResult: function (patientID, flag, status, patientDetails) {
+
+        var patientID = btoa(patientID);
+        var patientSearchCount = JSON.parse(localStorage.getItem('patientSearchCount')) || [];
+        var patientSearchResult = JSON.parse(localStorage.getItem('patientRecentSearchResult')) || [];
+        var existPatientIndex = _.findIndex(patientSearchResult, {
+            id: patientID
+        });
+        var currentPatient = _.find(patientSearchCount, {
+            patient_id: patientID
+        });
+        var existPatient = _.find(patientSearchResult, {
+            id: patientID
+        });
+
+        if (flag === 'getSearchResult') {
+            return _.find(patientSearchResult, {
+                id: patientID
+            });
+        }
+        function deleteFromBucket(index) {
+            var removedPatientDetails = patientSearchResult.splice(index, 1);
+
+            _.remove(patientSearchCount, {
+                patient_id: removedPatientDetails.length && removedPatientDetails[0].patient_id || ''
+            });
+        }
+
+        switch (flag) {
+            case 'initial': {
+
+                if (currentPatient) {
+                    currentPatient.count += 1;
+                } else {
+                    patientSearchCount.push({
+                        patient_id: patientID,
+                        count: 1
+                    }); // Default 1
+                }
+                break;
+            }
+            case 'addSearchResult': {
+
+                if (existPatientIndex === -1) {
+
+                    if (patientSearchResult.length === 10) {
+                        // Remove first occurrence of patient from recent search list which exists bucket limit 10.
+                        deleteFromBucket(0);
+                    }
+                    patientSearchResult.push(patientDetails);
+
+                } else {
+                    // Update existing patient if changes done by user
+                    patientSearchResult.splice(existPatientIndex, 1);
+                    patientSearchResult.push(patientDetails);
+                }
+                break;
+            }
+            case 'updateStatus': {
+                if (existPatient) {
+                    existPatient.is_active = status;
+                }
+                break;
+            }
+            case 'delete': {
+                deleteFromBucket(existPatientIndex);
+                break;
+            }
+        }
+
+        localStorage.setItem('patientSearchCount', JSON.stringify(patientSearchCount));
+        localStorage.setItem('patientRecentSearchResult', JSON.stringify(patientSearchResult));
+    },
+
     validateControls: function () {
         $(".floatbox").on("keypress keyup blur", function (event) {
             //$(this).val($(this).val().replace(/[^0-9\.]/g, ''));
