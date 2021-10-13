@@ -91,6 +91,9 @@ const bcCronService = {
                 return bcModules.downloadFiles(data);
             case 'BCFILESPROCESSSERVICE':
                 return bcCronService.processFile(data);
+            case 'BCEMAILREMINDER':
+                return bcCronService.emailReminder(data);
+
         }
     },
 
@@ -107,14 +110,14 @@ const bcCronService = {
             args.claimIds = ids;
             let response = await bcModules.submitClaims(args);
             return [response];
-        } 
+        }
 
         return [{ responseCode: 'noRecord' }];
     },
 
     /**
      * transferFileToMsp - To submit edi files to MSP portal
-     * @param  {Object} args  
+     * @param  {Object} args
      * @param  {Object} data
      */
     transferFileToMsp: async (data) => {
@@ -129,7 +132,7 @@ const bcCronService = {
 
     /**
     * submitBatchEligibility - To submit all batch eligible of claims
-    * @param  {Object} args  
+    * @param  {Object} args
     */
     submitBatchEligibility: async (args) => {
         let result = await bcController.getAllscheduledClaims(args);
@@ -141,7 +144,14 @@ const bcCronService = {
         args.isBatchEligibilityFile = true;
         let response = await bcModules.submitBatchEligibility(args, result);
         return [response];
-        
+    },
+
+    /**
+     * emailReminder - MSP Portal credentials expiry Email reminder
+     * @param  {Object} args
+     */
+    emailReminder: async (args) => {
+        return await bcController.getAllBillingProviderCredentials(args.companyId, true);
     }
 
 };

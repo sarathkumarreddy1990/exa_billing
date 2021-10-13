@@ -940,6 +940,34 @@ const bcData = {
                     WHERE can_bc_data_centre_number = ${can_bc_data_centre_number}`;
         return (await queryRows(sql)).pop();
     },
+
+    /**
+     * getAllBillingProviderCredentials - Get all billing provider's MSP portal credential
+     * @param {bigint} companyId  - company id
+     */
+    getAllBillingProviderCredentials: async (companyId, isEmailReminder) => {
+        const sql = SQL`
+                        SELECT
+                            bp.email
+                            , bp.name
+                            , bp.can_bc_msp_portal_username
+                            , bp.can_bc_msp_portal_password
+                            , bp.can_bc_msp_portal_external_url
+                            , abs(extract(day from CURRENT_DATE::timestamp - bp.can_bc_msp_portal_password_updated_date::timestamp)) AS days
+                        FROM billing.providers bp
+                        WHERE bp.company_id = ${companyId}
+                        AND bp.can_bc_msp_portal_username IS NOT NULL
+                        AND bp.can_bc_msp_portal_password IS NOT NULL
+                        AND bp.can_bc_msp_portal_external_url IS NOT NULL`;
+
+        if (isEmailReminder) {
+            // Exa to trigger remainder mail on 35 days, 39 days,  41 days from last password updated date
+            sql.append(' AND abs(extract(day from CURRENT_DATE::timestamp - bp.can_bc_msp_portal_password_updated_date::timestamp)) >= 35');
+        }
+
+        return await queryRows(sql);
+    }
+
 };
 
 module.exports = bcData;
