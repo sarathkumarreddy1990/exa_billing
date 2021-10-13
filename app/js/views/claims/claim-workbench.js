@@ -1,3 +1,5 @@
+const { i18n } = require("dateformat");
+
 define(['jquery',
     'immutable',
     'underscore',
@@ -428,7 +430,7 @@ define(['jquery',
                 var drpTabColumnSet = [
                     {
                         forTab: "claims",
-                        columns: ["current_illness_date", "claim_dt", "followup_date", "birth_date", 'submitted_dt', 'first_statement_dt', 'created_dt']
+                        columns: ["current_illness_date", "claim_dt", "followup_date", "birth_date", 'submitted_dt', 'first_statement_dt', 'created_dt', 'updated_date_time']
                     }
                 ];
                 var columnsToBind = _.find(drpTabColumnSet,function (val) {
@@ -460,7 +462,7 @@ define(['jquery',
 
 
                     if ((!self.datePickerCleared && defaultDateFilter === 'claim_dt' && col == 'claim_dt'
-                        && (gridObj.options.filterid == 'All_Claims' || gridObj.options.filterid === "Follow_up_queue"))
+                        && (gridObj.options.filterid == 'All_Claims' || gridObj.options.filterid === "Follow_up_queue" || gridObj.options.filterid === "Files"))
                         && !colElement.val()) {
                         var toDate = moment(),
                             fromDate = moment().subtract(89, 'days');
@@ -612,7 +614,7 @@ define(['jquery',
                         if (insProvider) {
                             insuranceProviders.push(insProvider);
                         }
-                        
+
                         if (claimStatus === "PV") {
                             commonjs.showWarning('messages.status.pleaseValidateClaims');
                             return false;
@@ -867,7 +869,7 @@ define(['jquery',
                         faults: data.faults
                     }
                 }
-        
+
                 var errorContent = '<div style="width:100%;height:100%" id="divError"><textarea style="width:100%;height:100%" id="txtAreaErrorData">' + JSON.stringify(errData, undefined, 4) + '</textarea></div>';
 
                 commonjs.showDialog({
@@ -876,7 +878,7 @@ define(['jquery',
                     width: '50%',
                     height: '50%',
                     html: errorContent
-                });      
+                });
 
             },
 
@@ -887,7 +889,7 @@ define(['jquery',
 
                 if (data.validationMessages && data.validationMessages.length) {
                     var responseTemplate = _.template(validationTemplate);
-                    
+
                     // To show array of validation messages
                     commonjs.showNestedDialog({
                         header: 'Claim Validation Result',
@@ -1561,9 +1563,10 @@ define(['jquery',
                             pager: self.fileManagementPager,
                             options: { filterid: filterID }
                         });
+                        commonjs.setFilter(filterID, filter);
 
                         return;
-                    }                    
+                    }
 
                     if (!filter) {
 
@@ -2174,7 +2177,7 @@ define(['jquery',
                         btnRefresh.show();
                     } else if (filterID === "Files") {
                         btnRefresh.hide();
-                    }                    
+                    }
 
                     btnInsuranceClaim.hide();
                     btnValidateOrder.hide();
@@ -2204,9 +2207,59 @@ define(['jquery',
 
             },
 
+            bindFileType: function () {
+                switch (app.billingRegionCode) {
+                    case 'can_AB':
+                        return file_type = {
+                            "": "All",
+                            "can_ahs_ard": i18n.get('billing.payments.payment'),
+                            "can_ahs_bbr": i18n.get('billing.payments.acknowledgement'),
+                            "file_type" : i18n.get('billing.claims.submission')
+                        };
+                    case 'can_MB':
+                        return file_type = {
+                            "": "All",
+                            "can_ohip_p": i18n.get('billing.payments.payment'),
+                            "success": "Submitted",
+                            "pending": "Pending"
+                        };
+                    case 'can_ON':
+                        return file_type = {
+                            "": "All",
+                            "can_ohip_p": i18n.get('billing.payments.payment'),
+                            "can_ohip_b": i18n.get('billing.claims.acknowledgement'),
+                            "can_ohip_x": i18n.get('billing.claims.rejection'),
+                            "can_ohip_e": i18n.get('billing.claims.correction'),
+                            "can_ohip_h": i18n.get('billing.claims.submission')
+                        };
+                    case 'can_BC':
+                        return file_type = {
+                            "": "All",
+                            "can_bc_remit": i18n.get('billing.payments.payment'),
+                            "can_bc_submit" : i18n.get('billing.claims.submission')
+                        };
+                    default:
+                        return file_type = {
+                            "": "All",
+                            "can_ahs_ard": i18n.get('billing.payments.payment'),
+                            "can_ahs_bbr": i18n.get('billing.payments.acknowledgement')
+                        };
+                }
+            },
+
             showFileManagementGrid: function (options) {
                 var self = this;
-
+                var file_type = self.bindFileType();
+                var current_status = {
+                    "": "All",
+                    "pending": i18n.get('billing.claims.pending'),
+                    "in_progress": i18n.get('billing.claims.inprogress'),
+                    "duplicate": i18n.get('billing.claims.duplicate'),
+                    "partial": i18n.get('billing.claims.partial'),
+                    "nomatch": i18n.get('billing.claims.nomatch'),
+                    "failure": i18n.get('billing.claims.failure'),
+                    "success": i18n.get('billing.claims.success')
+                };
                 self.fileManagementTable = new customGrid();
                 self.fileManagementTable.render({
                     gridelementid: options.tableElementId,
@@ -2232,79 +2285,63 @@ define(['jquery',
                         "billing.claims.acknowledgementReceived",
                         "billing.claims.paymentReceived",
                         "",
-                        "billing.claims.totalAmountPayable"
+                        "billing.claims.totalAmountPayable",
+                        ""
                     ],
                     colModel: [
                         { name: '', index: 'id', key: true, search: false, width: 25 },
                         {
+                            name: 'error_data', width: 20, sortable: false, search: false,
+                            className: 'icon-ic-raw-transctipt',
+                            formatter: function (cellvalue, options, rowObject) {
+                                return (rowObject.error_data && JSON.parse(rowObject.error_data).length) && "<i class='icon-ic-raw-transctipt' i18nt='billing.fileInsurance.errorMsg'></i>" || '';
+                            },
+                            customAction: function (rowID, e) {
+                                var gridData = $(options.tableElementId).jqGrid('getRowData', rowID);
+                                var errorContent = '<div style="width:100%;height:100%" id="divError"><textarea style="width:100%;height:100%" id="txtAreaErrorData">' + JSON.stringify(gridData.error_data, undefined, 4) + '</textarea></div>';
+
+                                commonjs.showDialog({
+                                    header: 'OHIP  Submission Error',
+                                    i18nHeader: 'shared.moduleheader.ohipClaims',
+                                    width: '50%',
+                                    height: '50%',
+                                    html: errorContent
+                                });
+                            }
+                        },
+                        {
                             name: 'file_name',
-                            search: false,
+                            search: true,
                             width: 150
                         },
                         {
                             name: 'file_type',
-                            search: false,
                             width: 150,
-                            formatter: function (value, model, data) {
-                                switch (data.file_type) {
-                                    case 'can_ohip_p':
-                                    case 'can_ahs_ard':
-                                    case 'can_bc_remit':
-                                        return i18n.get('billing.payments.payment');
-                                    case 'can_ohip_b':
-                                    case 'can_ahs_bbr':
-                                        return i18n.get('billing.claims.acknowledgement');
-                                    case 'can_ohip_x':
-                                        return i18n.get('billing.claims.rejection');
-                                    case 'can_ohip_e':
-                                        return i18n.get('billing.claims.correction');
-                                    case 'can_ohip_h':
-                                    default:
-                                        return i18n.get('billing.claims.submission');
-                                }
+                            stype: 'select',
+                            formatter: self.fileTypeFormatter,
+                            stype: 'select',
+                            "searchoptions": {
+                                "value": file_type,
+                                "tempvalue": file_type
                             }
                         },
                         {
                             name: 'updated_date_time',
-                            search: false,
+                            search: true,
                             width: 175,
                             formatter: function (value, model, data) {
-                                return commonjs.checkNotEmpty(value)
-                                    ? commonjs.convertToFacilityTimeZone(app.facilityID, value).format('L LT z')
-                                    : '';
+                                return commonjs.checkNotEmpty(value) ? commonjs.getFormattedUtcDate(value) : '';
                             }
                         },
                         {
                             name: 'current_status',
-                            search: false,
-                            width: 100,
-                            formatter: function (value, model, data) {
-                                switch (data.file_type) {
-                                    case 'can_ohip_h':
-                                        switch (value) {
-                                            case 'in_progress':
-                                                return i18n.get('billing.claims.uploaded');
-                                            case 'success':
-                                                return i18n.get('billing.claims.submitted');
-                                            case 'failure':
-                                                return i18n.get('billing.claims.failure');    
-                                            case 'pending':
-                                            default:
-                                                return i18n.get('billing.claims.created');
-                                        }
-                                    case 'can_ohip_b':
-                                    case 'can_ohip_e':
-                                    case 'can_ohip_x':
-                                        return (value === 'success')
-                                            ? i18n.get('billing.claims.processed')
-                                            : i18n.get('billing.claims.downloaded');
-                                    case 'can_ohip_p':
-                                        return (value === 'success')
-                                            ? i18n.get('billing.claims.applied')
-                                            : i18n.get('billing.claims.downloaded');
-                                    default:
-                                        return value;
-                                }
+                            width: 215,
+                            stype: 'select',
+                            formatter: self.currentStatusFormatter,
+                            stype: 'select',
+                            "searchoptions": {
+                                "value": current_status,
+                                "tempvalue": current_status
                             }
                         },
                         {
@@ -2382,7 +2419,7 @@ define(['jquery',
                                         retVal += '<td>$' + accountTransaction[i].transactionAmount.toFixed(2) + '</td></tr>';
                                     }
                                 }
-                                
+
                                 retVal = retVal.length ? '<table class="table table-bordered"><tbody>' + retVal + '</tbody></table>' : '';
                                 return retVal;
 
@@ -2390,24 +2427,44 @@ define(['jquery',
                                 return '';
                               }
                             }
-                        }
+                        },
+                        {
+                            name: 'error_data',
+                            search: true,
+                            width: 150,
+                            hidden: true
+                        },
                     ],
                     datastore: options.files,
+                    customizeSort: true,
                     container: self.el,
                     pager: '#gridPagerFileManagement',
                     sortname: 'id',
                     sortorder: 'DESC',
                     disablepaging: false,
-                    disablesort: false,
-                    disablesearch: false,
+                    customargs:{
+                        filter_id: commonjs.currentStudyFilter,
+                        isClaimGrid: true,
+                        isDicomSearch: null,
+                        isRisOrderSearch: null,
+                        isAuthorizationSearch: null,
+                        isAuthorizationExpSearch: null
+                    },
+                    beforeRequest: function () {
+                        self.refreshClaims(true);
+                    },
                     onaftergridbind: function(model, gridObj){
+                        gridObj.options.filterid = commonjs.currentStudyFilter;
+
                         options.pager.set({
                             "TotalRecords": model.length ? model[0].get('total_records') : 0
-                        }); 
+                        });
                         self.setFooter({
                             pager:  options.pager,
                             options: { filterid: options.filterID }
-                        });                                           
+                        });
+                        self.bindDateRangeOnSearchBox(gridObj, 'claims','updated_date_time');
+                        commonjs.setFilter(commonjs.currentStudyFilter, gridObj);
                     }
                 });
 
@@ -2417,6 +2474,48 @@ define(['jquery',
             initEbsListResults: function(dataset) {
                 if (dataset.length) {
                     this.edtListResults = dataset;
+                }
+            },
+
+            currentStatusFormatter: function (cellvalue, options, rowObject) {
+
+                switch (rowObject.current_status) {
+                    case 'in_progress':
+                        return i18n.get('billing.claims.inprogress');
+                    case 'duplicate':
+                        return i18n.get('billing.claims.duplicate');
+                    case 'failure':
+                        return i18n.get('billing.claims.failure');
+                    case 'success':
+                        return i18n.get('billing.claims.success');
+                    case 'pending':
+                        return i18n.get('billing.claims.pending');
+                    case 'partial':
+                        return i18n.get('billing.claims.partial');
+                    case 'nomatch':
+                        return i18n.get('billing.claims.nomatch');
+                    default:
+                        return i18n.get('billing.claims.created');
+                }
+            },
+
+            fileTypeFormatter: function (cellvalue, options, rowObject) {
+
+                switch (rowObject.file_type) {
+                    case 'can_ohip_p':
+                    case 'can_ahs_ard':
+                    case 'can_bc_remit':
+                        return i18n.get('billing.payments.payment');
+                    case 'can_ohip_b':
+                    case 'can_ahs_bbr':
+                        return i18n.get('billing.claims.acknowledgement');
+                    case 'can_ohip_x':
+                        return i18n.get('billing.claims.rejection');
+                    case 'can_ohip_e':
+                        return i18n.get('billing.claims.correction');
+                    case 'can_ohip_h':
+                    default:
+                        return i18n.get('billing.claims.submission');
                 }
             },
 

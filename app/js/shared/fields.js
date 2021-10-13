@@ -2159,9 +2159,22 @@ define([ 'backbone', 'immutable', 'moment', 'shared/utils' ], function ( Backbon
                         "hidden": app.billingRegionCode !== 'can_BC'
                     },
                     "field_code": "can_bc_claim_sequence_numbers"
-            }
+            },
+            "updated_date_time": {
+                "id": 75,
+                "field_code": "updated_date_time",
+                "field_name": "updated_date_time",
+                "i18n_name": "billing.claims.submittedDate",
+                "field_info": {
+                    "custom_name": "updated_date_time",
+                    "name": "updated_date_time",
+                    "formatter":  function ( cellvalue ) {
+                        return commonjs.checkNotEmpty(cellvalue) ? commonjs.getFormattedUtcDate(cellvalue) : '';
+                    },
+                    "width": 200
+                }
+            },
         });
-
     }
     };
 });
