@@ -158,13 +158,12 @@ define('grid', [
                     type = '( Tertiary Insurance )';
                     break;
             }
-            return `<div style="max-width: 270px;overflow: hidden;">
-                        <span style="display:inline-block;">
-                        <a style="padding:0 0 0 10px;" href= ${website} target="_blank" >
-                        <i style="color: blue;" class="fa fa-external-link" title="Insurance URL: ${website}${type}"></i></a></span>
-                        <li style="vertical-align:bottom;display:inline-block;">
-                        <a style="padding:0px;" id= ${elementID} href="javascript: void(0)">${elementName}</a></li>
-                    </div>`
+            var html = '<div style="max-width: 270px;overflow: hidden;">';
+                html += '<span style="display:inline-block;"><a style="padding:0 0 0 10px;" href= '+ website +' target="_blank" >';
+                html += '<i style="color: blue;" class="fa fa-external-link" title="Insurance URL: '+ website +''+ type +'"></i></a></span>';
+                html += '<li style="vertical-align:bottom;display:inline-block;">';
+                html += '<a style="padding:0px;" id= '+ elementID +' href="javascript: void(0)"> '+ elementName +'</a></li></div>';
+            return html;
         };
         var openCreateClaim = function (rowID, event, isClaimGrid, store) {
             var target = event.currentTarget;
