@@ -160,8 +160,8 @@ define('grid', [
                     break;
             }
 
-            var subMenuTemaplate = _.template(payerTypeTemplate);
-            return subMenuTemaplate ({
+            var subMenuTemplate = _.template(payerTypeTemplate);
+            return subMenuTemplate ({
                 website : website,
                 elementID : elementID,
                 elementName : elementName,
