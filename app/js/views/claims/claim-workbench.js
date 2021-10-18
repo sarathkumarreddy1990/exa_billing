@@ -2210,21 +2210,21 @@ define(['jquery',
             bindFileType: function () {
                 switch (app.billingRegionCode) {
                     case 'can_AB':
-                        return file_type = {
+                        return {
                             "": "All",
                             "can_ahs_ard": i18n.get('billing.payments.payment'),
                             "can_ahs_bbr": i18n.get('billing.payments.acknowledgement'),
                             "file_type" : i18n.get('billing.claims.submission')
                         };
                     case 'can_MB':
-                        return file_type = {
+                        return {
                             "": "All",
                             "can_ohip_p": i18n.get('billing.payments.payment'),
                             "success": "Submitted",
                             "pending": "Pending"
                         };
                     case 'can_ON':
-                        return file_type = {
+                        return {
                             "": "All",
                             "can_ohip_p": i18n.get('billing.payments.payment'),
                             "can_ohip_b": i18n.get('billing.claims.acknowledgement'),
@@ -2233,13 +2233,13 @@ define(['jquery',
                             "can_ohip_h": i18n.get('billing.claims.submission')
                         };
                     case 'can_BC':
-                        return file_type = {
+                        return {
                             "": "All",
                             "can_bc_remit": i18n.get('billing.payments.payment'),
                             "can_bc_submit" : i18n.get('billing.claims.submission')
                         };
                     default:
-                        return file_type = {
+                        return {
                             "": "All",
                             "can_ahs_ard": i18n.get('billing.payments.payment'),
                             "can_ahs_bbr": i18n.get('billing.payments.acknowledgement')
