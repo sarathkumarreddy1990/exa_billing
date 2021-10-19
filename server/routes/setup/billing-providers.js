@@ -36,4 +36,12 @@ router.delete('/:id', async function (req, res) {
 
 });
 
+router.put('/msp_credentials/:id', async function (req, res) {
+    const data = await billingProviderControllers.updateMspCredential({
+        ...req.body,
+        id: req.params.id
+    });
+    httpHandler.sendRows(req, res, data);
+});
+
 module.exports = router;
