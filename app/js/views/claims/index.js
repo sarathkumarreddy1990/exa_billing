@@ -5388,6 +5388,7 @@ define(['jquery',
 
                                     }
                                     else {
+                                        commonjs.patientRecentSearchResult(~~patientId, 'addSearchResult', null, patientDetailsFormatted);
                                         self.claimWOStudy(patient_details);
                                     }
 
