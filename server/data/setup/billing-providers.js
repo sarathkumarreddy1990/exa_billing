@@ -429,8 +429,8 @@ module.exports = {
             RETURNING *,
                 (
                     SELECT row_to_json(old_row)
-                    FROM   (SELECT *
-                            FROM  billing.providers
+                    FROM (SELECT *
+                            FROM billing.providers
                             WHERE id = ${id}) old_row
                 ) old_values`;
         

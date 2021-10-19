@@ -778,7 +778,7 @@ define(['jquery',
                     return true;
             },
 
-            saveMspCredentials: function(){
+            saveMspCredentials: function () {
 
                 // MSP portal Credential 
                 var externalMspUrl = $('#txtExternalUrl').val();
@@ -786,7 +786,7 @@ define(['jquery',
                 var mspPassword = $('#txtPassword').val();
 
                 if (!externalMspUrl) {
-                   return commonjs.showWarning('messages.warning.setup.pleaseEnterMspUrl');
+                    return commonjs.showWarning('messages.warning.setup.pleaseEnterMspUrl');
                 }
 
                 if (!mspUserName) {
@@ -794,7 +794,7 @@ define(['jquery',
                 }
 
                 if (!mspPassword) {
-                   return commonjs.showWarning('messages.warning.setup.pleaseEnterPassword');
+                    return commonjs.showWarning('messages.warning.setup.pleaseEnterPassword');
                 }
 
                 // MSP portal credential to trigger only if any value been changed
