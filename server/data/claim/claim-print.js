@@ -51,6 +51,7 @@ module.exports = {
                     get_full_name(pp.last_name, pp.first_name) as patient_name,
                     bc.facility_id as facility_id,
                     pp.birth_date,
+                    gid->'alt_account_no' AS phn_number,
                     CASE WHEN payer_type = 'primary_insurance' THEN json_build_object('name',pip.insurance_name,'address',pip.insurance_info->'Address1','address2',pip.insurance_info->'Address2','city',pip.insurance_info->'City','state',pip.insurance_info->'State','zip_code',pip.insurance_info->'ZipCode','phone_no',pip.insurance_info->'PhoneNo')
                     WHEN payer_type = 'secondary_insurance' THEN json_build_object('name',pip.insurance_name,'address',pip.insurance_info->'Address1', 'address2',pip.insurance_info->'Address2','city',pip.insurance_info->'City','state',pip.insurance_info->'State','zip_code',pip.insurance_info->'ZipCode','phone_no',pip.insurance_info->'PhoneNo')
                     WHEN payer_type = 'tertiary_insurance' THEN json_build_object('name',pip.insurance_name,'address',pip.insurance_info->'Address1','address2',pip.insurance_info->'Address2','city',pip.insurance_info->'City','state',pip.insurance_info->'State','zip_code',pip.insurance_info->'ZipCode','phone_no',pip.insurance_info->'PhoneNo')
@@ -73,6 +74,7 @@ module.exports = {
                 LEFT JOIN public.ordering_facilities pof ON pof.id = pofc.ordering_facility_id
                 LEFT JOIN public.provider_contacts ppc ON ppc.id = bc.referring_provider_contact_id
                 LEFT JOIN public.providers ppr ON ppr.id = ppc.provider_id
+                LEFT JOIN public.get_issuer_details(pp.id, 'uli_phn') gid ON TRUE
                 WHERE  bc.id = ANY(${params.claimIds})
 
             `
