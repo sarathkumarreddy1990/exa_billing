@@ -418,8 +418,7 @@ module.exports = {
         } = params;
 
         const sql = SQL`
-            UPDATE
-                    billing.providers
+            UPDATE billing.providers
             SET
                 can_bc_msp_portal_username = ${mspUserName}
                 , can_bc_msp_portal_password = ${mspPassword}
@@ -431,8 +430,8 @@ module.exports = {
                 (
                     SELECT row_to_json(old_row)
                     FROM   (SELECT *
-                            FROM   billing.providers
-                            WHERE  id = ${id}) old_row
+                            FROM  billing.providers
+                            WHERE id = ${id}) old_row
                 ) old_values`;
         
         return await queryWithAudit(sql, {
