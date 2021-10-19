@@ -347,7 +347,6 @@ define(['jquery',
                     for (var j = patientRecentSearchDetails.length - 1; j >= 0; j--) {
                         patientList = patientRecentSearchDetails[j];
                         patientList.id = atob(patientList.id);
-                        // content += self.contentTemplate({ patient: patientList });
                         content += self.patSearchContentTemplate({ patient: patientList });
                     }
                     $results.html(content).show();
@@ -5274,7 +5273,7 @@ define(['jquery',
                     $('.studyDetails').empty();
                     $('.studyDetails').hide();
 
-                    $list = $('<ul class="studyList" style="width: 50%;margin:0px;"></ul>');
+                    $list = $('<ul class="studyList"></ul>');
                     jQuery.ajax({
                         url: "/exa_modules/billing/claims/claim/studiesby_patient_id",
                         type: "GET",
@@ -5300,6 +5299,12 @@ define(['jquery',
                                 alt_account_no: patient_details.alt_account_no || '',
                                 dicom_patient_id: patient_details.dicom_patient_id || '',
                                 phone: patient_info.c1HomePhone || '',
+                                home: patient_info.c1HomePhone || '',
+                                address1: patient_info.c1AddressLine1 || '',
+                                address2: patient_info.c1AddressLine2 || '',
+                                zip: patient_info.c1Zip || '',
+                                city: patient_info.c1City || '',
+                                state: patient_info.c1State || '',
                                 birth_date: moment(commonjs.getDateFormat(patient_details.patient_dob)).format('L')
                             };
 
