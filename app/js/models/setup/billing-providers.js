@@ -32,7 +32,12 @@ define(['backbone'], function (Backbone) {
             "payToEmail": "",
             "payToPhoneNumber": "",
             "payToFaxNumber": "",
-            "communicationInfo": ""
+            "communicationInfo": "",
+            "mspExternalUrl": '',
+            "mspUserName": '',
+            "mspPassword": '',
+            "mspLastUpdateDate": null
+
         },
 
         initialize: function (models) {

@@ -63,7 +63,10 @@ const bcController = {
 
     getLastUpdatedSequenceByDataCenterNumber: bcData.getLastUpdatedSequenceByDataCenterNumber,
 
-    getAllBillingProviderCredentials: bcData.getAllBillingProviderCredentials
+    getAllBillingProviderCredentials: bcData.getAllBillingProviderCredentials,
+
+    getDefaultBillingProvider: bcData.getDefaultBillingProvider
+
 };
 
 module.exports = bcController;

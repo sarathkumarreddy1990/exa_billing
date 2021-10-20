@@ -33,13 +33,14 @@ define(['jquery',
             model: null,
             billingProvidersTable: null,
             editedInsuraceIDCode : null,
+            editedBillingProvider: null,
             pager: null,
             events: {
                 'click #btnSaveICDCode': 'saveProviderIDCodes',
                 'click #btnAddNewProviderCodes': 'addNewProviderIDCodes',
                 'click #btnRefreshProviderCodes': 'refreshProviderCodes',
-                'click #btnCancel' : 'cancel'
-
+                'click #btnCancel' : 'cancel',
+                'click #btnSaveMspCredentials': 'saveMspCredentials'
             },
             initialize: function (options) {
                 var self = this;
@@ -233,12 +234,14 @@ define(['jquery',
                     }
                 }
                 if (id > 0) {
+                    $('#divMspCredentials').show();
                     this.model.set({ id: id });
                     this.model.fetch({
                         success: function (model, response) {
                             if (response && response.length > 0) {
                                 var data = response[0];
                                 var communication_info = data.communication_info;
+                                self.editedBillingProvider = data;
                                 if (data) {
                                     Address.loadCityStateZipTemplate('#divAddressInfo', data, AddressInfoMap);
                                     Address.loadCityStateZipTemplate('#divPayToAddress', data, payToAddressMap);
@@ -272,6 +275,9 @@ define(['jquery',
                                     $('#txtPayFaxNo').val(data.pay_to_fax_number || '');
                                     $('#txtPayeeNumber').val(data.can_bc_payee_number || '');
                                     $('#txtDataCentreNumber').val(data.can_bc_data_centre_number || '');
+                                    $('#txtExternalUrl').val(data.msp_external_url);
+                                    $('#txtUserName').val(data.msp_user_name);
+                                    $('#txtPassword').val(data.msp_password);
 
                                     var $txtPayCity = $("[for=txtPayCity]");
                                     $txtPayCity.find("span").remove();
@@ -284,7 +290,7 @@ define(['jquery',
                     });
                 } else {
                     this.model = new BillingProvidersModel();
-
+                    $('#divMspCredentials').hide();
                 }
                 commonjs.initializeScreen({header: {screen: 'BillingProviders', ext: 'billingProvider'}, buttons: [
                     {value: 'Save', type: 'submit', class: 'btn btn-primary', i18n: 'shared.buttons.save', clickEvent: function () {
@@ -292,6 +298,7 @@ define(['jquery',
                     }},
                     {value: 'Back', class: 'btn', i18n: 'shared.buttons.back', clickEvent: function () {
                         Backbone.history.navigate('#setup/billing_providers/list', true);
+                        self.editedBillingProvider = null;
                     }}
                 ]});
                 Address.loadCityStateZipTemplate('#divAddressInfo', {}, AddressInfoMap);
@@ -379,7 +386,8 @@ define(['jquery',
                         required: true
                     },
                     email: {
-                        email: true
+                        email: true,
+                        required: app.billingRegionCode === 'can_BC'
                     },
                     DataCentreNumber: {
                         required: app.billingRegionCode === 'can_BC'
@@ -440,6 +448,24 @@ define(['jquery',
                     return false;
                 }
 
+                if (app.billingRegionCode === 'can_BC') {
+                    var externalMspUrl = $('#txtExternalUrl').val();
+                    var mspUserName = $('#txtUserName').val();
+                    var mspPassword = $('#txtPassword').val();
+
+                    if (!externalMspUrl) {
+                        return commonjs.showWarning('messages.warning.setup.pleaseEnterMspUrl');
+                    }
+
+                    if (!mspUserName) {
+                        return commonjs.showWarning('messages.warning.setup.pleaseEnterUsername');
+                    }
+
+                    if (!mspPassword) {
+                        return commonjs.showWarning('messages.warning.setup.pleaseEnterPassword');
+                    }
+                }
+
                 var communication_info = {};
 
                 this.model.set({
@@ -474,7 +500,10 @@ define(['jquery',
                     "communicationInfo": communication_info,
                     "canIsAlternatePaymentProgram" : $('#chkAltPay').prop('checked'), 
                     "payeeNumber": $('#txtPayeeNumber').val(),
-                    "dataCentreNumber": $('#txtDataCentreNumber').val()
+                    "dataCentreNumber": $('#txtDataCentreNumber').val(),
+                    mspExternalUrl: $('#txtExternalUrl').val(),
+                    mspUserName: $('#txtUserName').val(),
+                    mspPassword: $('#txtPassword').val()
                 });
 
                 this.model.save({}, {
@@ -482,6 +511,7 @@ define(['jquery',
                         commonjs.showStatus('messages.status.savedSuccessfully');
                         if (response) {
                             location.href = "#setup/billing_providers/list";
+                            self.editedBillingProvider = null;
                         }
                     },
                     error: function (model, response) {
@@ -746,6 +776,50 @@ define(['jquery',
                 }
                 else
                     return true;
+            },
+
+            saveMspCredentials: function () {
+
+                // MSP portal Credential 
+                var externalMspUrl = $('#txtExternalUrl').val();
+                var mspUserName = $('#txtUserName').val();
+                var mspPassword = $('#txtPassword').val();
+
+                if (!externalMspUrl) {
+                    return commonjs.showWarning('messages.warning.setup.pleaseEnterMspUrl');
+                }
+
+                if (!mspUserName) {
+                    return commonjs.showWarning('messages.warning.setup.pleaseEnterUsername');
+                }
+
+                if (!mspPassword) {
+                    return commonjs.showWarning('messages.warning.setup.pleaseEnterPassword');
+                }
+
+                // MSP portal credential to trigger only if any value been changed
+                if (this.editedBillingProvider.msp_external_url != externalMspUrl
+                    || this.editedBillingProvider.msp_user_name != mspUserName
+                    || this.editedBillingProvider.msp_password != mspPassword
+                ) {
+                    $.ajax({
+                        url: '/exa_modules/billing/setup/billing_providers/msp_credentials/' + this.editedBillingProvider.id,
+                        type: "PUT",
+                        data: {
+                            mspExternalUrl: externalMspUrl,
+                            mspUserName: mspUserName,
+                            mspPassword: mspPassword
+                        },
+                        success: function (model, response) {
+                            if (model.length) {
+                                commonjs.showStatus('messages.status.savedSuccessfully');
+                            }
+                        },
+                        error: function (model, response) {
+                            commonjs.handleXhrError(model, response);
+                        }
+                    });
+                }
             }
         });
         return BillingProvidersView;

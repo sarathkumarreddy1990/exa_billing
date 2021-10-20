@@ -6318,7 +6318,8 @@ define(['jquery',
                         patient_insurance_id: self.priClaimInsID || self.primaryPatientInsuranceId,
                         eligibility_dt: self.benefitDate1 && self.benefitDate1.date() ? self.benefitDate1.date().format('YYYY-MM-DD') : null,
                         phn: self.phn && self.phn.alt_account_no,
-                        birth_date: self.cur_patient_dob
+                        birth_date: self.cur_patient_dob,
+                        facility_id: self.facilityId || app.default_facility_id
                     },
                     success: function (result) {
                         var data = result.data;

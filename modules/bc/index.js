@@ -18,10 +18,6 @@ const eraData = require('../../server/data/era');
 const processBatchEligibility = require('./encoder/batchEligibility');
 const request = require('request-promise-native');
 const downtime = require('../bc/resx/downtime.json');
-const siteConfig = require('../../server/config');
-const externalUrlBc = siteConfig.get('externalUrlBc');
-const externalUrlBcUserName = siteConfig.get('externalUrlBcUserName');
-const externalUrlBcPassword = siteConfig.get('externalUrlBcPassword');
 
 const writeFileAsync = promisify(fs.writeFile);
 const mkdirpAsync = promisify(mkdirp);
@@ -111,8 +107,16 @@ const bcModules = {
             eligibility_dt,
             phn,
             birth_date,
-            companyId
+            companyId,
+            facility_id
         } = args;
+
+        // Fetching facility's default billing provider credential to make API call to MSP portal 
+        let portalCredentials = await bcController.getDefaultBillingProvider(facility_id, companyId);
+
+        if (!portalCredentials) {
+            return { responseCode: 'credentialsMissing' };
+        }
 
         let dateOfServiceyyyy;
         let dateOfServicemm;
@@ -137,7 +141,9 @@ const bcModules = {
 
         let options = {
             method: 'POST',
-            uri: externalUrlBc,
+            uri: portalCredentials.can_bc_msp_portal_external_url,
+            mspUserName: portalCredentials.can_bc_msp_portal_username,
+            mspPassword: portalCredentials.can_bc_msp_portal_password,
             rejectUnauthorized: false,
             form: {
                 ExternalAction: 'AcheckE45',
@@ -223,9 +229,9 @@ const bcModules = {
         let downtimeWeekDay = downtime[weekDay];
         let isDownTime = false;
 
-        if(!externalUrlBcUserName || !externalUrlBcPassword || !externalUrlBc){
-            logger.error('MSP Username/Password/URL missing in web config');
-            return { error: 'webConfigError' };
+        if(!requestOptions.mspUserName || !requestOptions.mspPassword || !requestOptions.uri){
+            logger.error('MSP Username/Password/URL missing in billing provider setup');
+            return { error: 'credentialsMissing' };
         }
 
         for (let i = 0; i < downtimeWeekDay.length; i++) {
@@ -245,7 +251,7 @@ const bcModules = {
 
             let enableSessionOptions = {
                 method: 'POST',
-                uri: externalUrlBc,
+                uri: requestOptions.uri,
                 rejectUnauthorized: false,
                 resolveWithFullResponse: true,
                 form: {
@@ -257,8 +263,8 @@ const bcModules = {
 
             enableSessionOptions.form = {
                 ...enableSessionOptions.form,
-                username: externalUrlBcUserName,
-                password: externalUrlBcPassword
+                username: requestOptions.mspUserName,
+                password: requestOptions.mspPassword
             };
 
             logger.debug(`Sign in to MSP portal.. ${JSON.stringify(enableSessionOptions)}`);
@@ -277,7 +283,7 @@ const bcModules = {
                 logger.debug(`Response from MSP portal web service... ${JSON.stringify(webServiceResponse)}`);
                 let disableSessionOptions = {
                     method: 'POST',
-                    uri: externalUrlBc,
+                    uri: requestOptions.uri,
                     rejectUnauthorized: false,
                     resolveWithFullResponse: true,
                     form: {
@@ -296,14 +302,14 @@ const bcModules = {
                     return { data: webServiceResponse };
                 }
 
-                logger.error(`Error occured while signing off MSP portal - ${JSON.stringify(disableResponse)}`);
+                logger.error(`Error occurred while signing off MSP portal - ${JSON.stringify(disableResponse)}`);
                 return { error: 'apiFailed' };
             }
 
-            logger.error(`Error occured while signing into MSP portal - ${JSON.stringify(sessionResponse)}`);
+            logger.error(`Error occurred while signing into MSP portal - ${JSON.stringify(sessionResponse)}`);
             return { error: 'apiFailed' };
         } catch (err) {
-            logger.error(`Error occured while requesting MSP portal web service.. ${err}`);
+            logger.error(`Error occurred while requesting MSP portal web service.. ${err}`);
             return { error: 'exceptionErrors' };
         }
     },
@@ -488,6 +494,9 @@ const bcModules = {
                     , time_zone
                     , billing_provider_id
                     , can_bc_data_centre_number
+                    , can_bc_msp_portal_username
+                    , can_bc_msp_portal_password 
+                    , can_bc_msp_portal_external_url
                 } = row;
 
                 try {
@@ -502,7 +511,19 @@ const bcModules = {
                         lastSequenceNumber = can_bc_data_centre_sequence_number;
                     } else if (uploaded_file_name) {
                         can_bc_data_centre_number = uploaded_file_name.split('_')[0];
-                        let { can_bc_data_centre_sequence_number, id } = await bcController.getLastUpdatedSequenceByDataCenterNumber(can_bc_data_centre_number);
+                        let {
+                            id,
+                            can_bc_data_centre_sequence_number,
+                            msp_portal_username,
+                            msp_portal_password,
+                            msp_portal_external_url
+                        } = await bcController.getLastUpdatedSequenceByDataCenterNumber(can_bc_data_centre_number);
+
+                        // Assigning billing provider credentials based on the data center number for Batch eligibility 
+                        can_bc_msp_portal_username = msp_portal_username;
+                        can_bc_msp_portal_password  = msp_portal_password;
+                        can_bc_msp_portal_external_url = msp_portal_external_url;
+
                         billing_provider_id = id;
                         lastSequenceNumber = can_bc_data_centre_sequence_number;
                     } else {
@@ -595,7 +616,9 @@ const bcModules = {
 
                     let response = await bcModules.doRequest({
                         method: 'POST',
-                        uri: externalUrlBc,
+                        uri: can_bc_msp_portal_external_url,
+                        mspUserName: can_bc_msp_portal_username,
+                        mspPassword: can_bc_msp_portal_password,
                         rejectUnauthorized: false,
                         formData: {
                             submitFile: buffer,
@@ -633,7 +656,7 @@ const bcModules = {
                         } else if (jsonResponse.Result === 'SUCCESS') {
 
                             if (isBatchEligibilityFile && sequenceMapping.B04.length) {
-                                await bcController.saveBatchEligibilitySequence(sequenceMapping.C02);
+                                await bcController.saveBatchEligibilitySequence(sequenceMapping.B04);
                                 fileTransferResponse.push({ responseCode: 'batchEligibilitySubmitted' });
                             } else {
                                 if (sequenceMapping.C02.length) {
@@ -907,8 +930,33 @@ const bcModules = {
             bcModules.sendDataError(`Company file store folder missing in server file system ${e}`);
         }
 
+        let billingProviders = await bcController.getAllBillingProviderCredentials(companyId);
+
+        let promises = billingProviders.map(async (billingProvider) => {
+            return await bcModules.downLoadFilesForBillingProvider(billingProvider, root_directory, time_zone, companyId);
+        });
+
+        return Promise.all(promises)
+            .then(function (responses) {
+                // Combining all billing provider response
+                return responses.reduce((allData, result) => {
+                    return allData.concat(result);
+                });
+            });
+    },
+
+    /**
+     * Download the files for a billing provider from MSP portal
+     * @param  {Object} credentials - contains user name, password and external url of MSP portal 
+     * @param  {String} root_directory - file store root directory to download file
+     * @param  {String} time_zone - company time zone 
+     * @param  {String} companyId - company ID
+    */
+    downLoadFilesForBillingProvider: async(credentials, root_directory, time_zone, companyId) => {
         let downloadParams = {
-            uri: externalUrlBc,
+            uri: credentials.can_bc_msp_portal_external_url,
+            mspUserName: credentials.can_bc_msp_portal_username,
+            mspPassword: credentials.can_bc_msp_portal_password,
             method: 'POST',
             rejectUnauthorized: false,
             form: {
@@ -928,7 +976,7 @@ const bcModules = {
 
         //Error Validations in MSP portal connectivity
         if (isDownTime) {
-            logger.error(`MSP Portal connection downtime`);
+            logger.error('MSP Portal connection downtime');
             return [{
                 error: true,
                 responseCode: 'isDownTime'

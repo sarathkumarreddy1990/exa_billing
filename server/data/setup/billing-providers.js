@@ -132,6 +132,10 @@ module.exports = {
                     , communication_info
                     , can_bc_is_alt_payment_program
                     , can_bc_data_centre_number
+                    , can_bc_msp_portal_username AS msp_user_name
+                    , can_bc_msp_portal_password AS msp_password
+                    , can_bc_msp_portal_external_url AS msp_external_url
+                    , to_char(can_bc_msp_portal_password_updated_date, 'YYYY-MM-DD') AS msp_last_update_date
                 FROM   billing.providers
                 WHERE
                     id = ${id} `;
@@ -174,6 +178,9 @@ module.exports = {
             isActive,
             canIsAlternatePaymentProgram,
             dataCentreNumber, 
+            mspExternalUrl,
+            mspUserName,
+            mspPassword
         } = params;
         let inactivated_dt = isActive ? null : 'now()';
 
@@ -211,7 +218,11 @@ module.exports = {
                     , can_bc_is_alt_payment_program
                     , can_bc_data_centre_number
                     , can_bc_data_centre_sequence_number
-                    , inactivated_dt)
+                    , inactivated_dt
+                    , can_bc_msp_portal_username
+                    , can_bc_msp_portal_password
+                    , can_bc_msp_portal_external_url
+                    , can_bc_msp_portal_password_updated_date)
                 values
                     (
                         ${name}
@@ -246,7 +257,11 @@ module.exports = {
                     , ${canIsAlternatePaymentProgram || false}
                     , ${dataCentreNumber}
                     , '0'::INT
-                    , ${inactivated_dt})
+                    , ${inactivated_dt}
+                    , ${mspUserName}
+                    , ${mspPassword}
+                    , ${mspExternalUrl}
+                    , CURRENT_DATE::TIMESTAMP)
                 RETURNING *, '{}'::jsonb old_values`;
 
         return await queryWithAudit(sql, {
@@ -289,7 +304,7 @@ module.exports = {
             communicationInfo,
             isActive,
             canIsAlternatePaymentProgram,
-            dataCentreNumber,
+            dataCentreNumber
         } = params;
         let inactivated_dt = isActive ? null : 'now()';
 
@@ -392,5 +407,37 @@ module.exports = {
             FROM    audit_cte`;
 
         return await query(sql);
+    },
+
+    updateMspCredential: async (params) => {
+        let {
+            id,
+            mspUserName,
+            mspPassword,
+            mspExternalUrl
+        } = params;
+
+        const sql = SQL`
+            UPDATE billing.providers
+            SET
+                can_bc_msp_portal_username = ${mspUserName}
+                , can_bc_msp_portal_password = ${mspPassword}
+                , can_bc_msp_portal_external_url = ${mspExternalUrl}
+                , can_bc_msp_portal_password_updated_date = CURRENT_DATE::TIMESTAMP
+            WHERE
+                id = ${id} 
+            RETURNING *,
+                (
+                    SELECT row_to_json(old_row)
+                    FROM (SELECT *
+                            FROM billing.providers
+                            WHERE id = ${id}) old_row
+                ) old_values`;
+        
+        return await queryWithAudit(sql, {
+            ...params,
+            logDescription: `Update: Billing Provider MSP Credentials(${id}) updated`
+        });
     }
+
 };

@@ -24,5 +24,9 @@ module.exports = {
 
     delete: async (params) => {
         return data.delete(params);
+    },
+
+    updateMspCredential: async (params) => {
+        return data.updateMspCredential(params);
     }
 };

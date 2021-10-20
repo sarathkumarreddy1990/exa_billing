@@ -505,6 +505,9 @@ const bcData = {
                         billing_providers.billing_provider_id
                         , billing_providers.claim_id
                         , billing_providers.can_bc_data_centre_number
+                        , billing_providers.can_bc_msp_portal_username
+                        , billing_providers.can_bc_msp_portal_password
+                        , billing_providers.can_bc_msp_portal_external_url
                         , bef.id AS edi_file_id
                         , fs.root_directory
                         , bef.file_path
@@ -518,6 +521,9 @@ const bcData = {
                             bp.id AS billing_provider_id
                             , befc.id AS claim_id
                             , bp.can_bc_data_centre_number
+                            , bp.can_bc_msp_portal_username
+                            , bp.can_bc_msp_portal_password
+                            , bp.can_bc_msp_portal_external_url
                         FROM billing.edi_file_claims befc
                         INNER JOIN billing.claims bc ON bc.id = befc.claim_id
                         INNER JOIN billing.providers bp ON bp.id = bc.billing_provider_id
@@ -530,6 +536,9 @@ const bcData = {
                         NULL AS billing_provider_id
                         , NULL AS claim_id
                         , NULL AS can_bc_data_centre_number
+                        , NULL AS can_bc_msp_portal_username
+                        , NULL AS can_bc_msp_portal_password
+                        , NULL AS can_bc_msp_portal_external_url
                         , bef.id AS edi_file_id
                         , fs.root_directory
                         , bef.file_path
@@ -934,10 +943,13 @@ const bcData = {
     getLastUpdatedSequenceByDataCenterNumber: async(can_bc_data_centre_number) => {
         const sql = SQL`
                     SELECT
-                        id,
-                        can_bc_data_centre_sequence_number
-                    FROM billing.providers
-                    WHERE can_bc_data_centre_number = ${can_bc_data_centre_number}`;
+                        bp.id,
+                        bp.can_bc_data_centre_sequence_number,
+                        bp.can_bc_msp_portal_username AS msp_portal_username,
+                        bp.can_bc_msp_portal_password AS msp_portal_password,
+                        bp.can_bc_msp_portal_external_url AS msp_portal_external_url
+                    FROM billing.providers bp
+                    WHERE bp.can_bc_data_centre_number = ${can_bc_data_centre_number}`;
         return (await queryRows(sql)).pop();
     },
 
@@ -966,7 +978,29 @@ const bcData = {
         }
 
         return await queryRows(sql);
-    }
+    },
+
+    /**
+    * getDefaultBillingProvider - Get default billing provider MSP portal credential
+    * @param {bigint} facility_id  - facility id
+    * @param {bigint} companyId  - company id
+    */
+    getDefaultBillingProvider: async(facility_id, companyId) => {
+        const sql = SQL`
+                        SELECT
+                          bp.can_bc_msp_portal_username
+                          , bp.can_bc_msp_portal_password
+                          , bp.can_bc_msp_portal_external_url
+                        FROM billing.facility_settings bfs
+                        INNER JOIN billing.providers bp ON bp.id = bfs.default_provider_id
+                        WHERE bfs.facility_id = ${facility_id}
+                        AND bp.company_id = ${companyId}
+                        AND bp.can_bc_msp_portal_username IS NOT NULL 
+                        AND bp.can_bc_msp_portal_password IS NOT NULL
+                        AND bp.can_bc_msp_portal_external_url IS NOT NULL`;
+        
+        return (await queryRows(sql)).pop();
+    },
 
 };
 
