@@ -2019,7 +2019,7 @@ define('grid', [
             if(app.billingRegionCode === 'can_AB') {
                 var liClaimReassess = commonjs.getRightClickMenu('anc_claim_reassess', 'setup.rightClickMenu.claimReassess', false, 'Claim Reassess', false);
 
-                if (studyArray.length === 1 && gridData.hidden_billing_method === 'electronic_billing' && ['R', 'D', 'BR', 'AD'].indexOf(gridData.hidden_claim_status_code) === -1) {
+                if (gridData.hidden_billing_method === 'electronic_billing' && ['R', 'D', 'BR', 'AD'].indexOf(gridData.hidden_claim_status_code) === -1) {
                     $divObj.append(liClaimReassess);
                 }
 
