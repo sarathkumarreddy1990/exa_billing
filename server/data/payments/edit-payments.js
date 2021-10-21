@@ -681,10 +681,8 @@ module.exports = {
         if (f.healthCard) {
             filter.filterQuery += `
                 AND EXISTS (
-                    SELECT
-                        1
-                    FROM
-                        patient_insurances pi
+                    SELECT 1
+                    FROM patient_insurances pi
                     WHERE pi.coverage_level = 'primary'
                     AND pi.patient_id = patients.id
                     AND ${this.buildPatientSearchQuery('pi.policy_number', f.healthCard, false, filter.type)}
@@ -693,12 +691,9 @@ module.exports = {
                         OR pi.valid_to_date >= CURRENT_DATE
                     )
                     AND pi.insurance_provider_id IN (
-                        SELECT
-                            ip.id
-                        FROM
-                            insurance_providers ip
-                        WHERE
-                            ip.is_active
+                        SELECT ip.id
+                        FROM insurance_providers ip
+                        WHERE ip.is_active
                         AND ip.deleted_dt IS NULL
                     )
                 )
