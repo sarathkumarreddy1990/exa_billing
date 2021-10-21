@@ -111,6 +111,9 @@
                             <input type="text" id="lname" class="form-control search-field" i18np="billing.payments.lastName">
                             <input type="text" id="fname" class="form-control search-field" i18np="billing.payments.firstName">
                             <input type="text" id="mrn" class="form-control search-field" i18np="billing.payments.mrn">
+                            <% if (billingRegionCode === 'can_ON') { %>
+                                <input type="text" id="healthCard" class="form-control search-field" i18np="shared.fields.healthCard">
+                            <% } %>
                         </div>
                     </div>
                 </div>
