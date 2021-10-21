@@ -4290,6 +4290,7 @@ var commonjs = {
                     result.study_id = data[0].study_id;
                     result.order_id = data[0].order_id;
                     result.split_claim_id = data[0].split_claim_ids;
+                    result.patient_id = data[0].patient_id;
                 }
 
                 callback(result);

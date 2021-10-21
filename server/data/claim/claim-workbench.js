@@ -382,6 +382,7 @@ module.exports = {
                         study_id,
                         studies.order_id,
                         studies.study_status,
+                        studies.patient_id,
                         CASE
                             WHEN studies.study_status = 'APP' THEN 1
                             ELSE 2

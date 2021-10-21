@@ -118,7 +118,8 @@ define(['jquery',
                 "click #btnClearPatSearch": "resetPatSearch",
                 "click #eobPreviewPayment img": "showPDF",
                 "click .btnEobPaymentUpload": "uploadPDF",
-                "click #btnReloadEOB": "reloadEobPDF"
+                "click #btnReloadEOB": "reloadEobPDF",
+                "click #btnPaymentDocument": "showPatientDocuments"
             },
 
             usermessage: {
@@ -326,6 +327,15 @@ define(['jquery',
                 }
             },
 
+            showPatientDocuments: function () {
+                if (!this.patient_id) {
+                    commonjs.showWarning('messages.warning.noPatient');
+                    return;
+                }
+
+                window.open('/vieworder#patient/document/' + btoa(this.patient_id) + '/payment');
+            },
+
             clearPayemntForm: function () {
                 var facility = this.paidlocation.get(app.facilityID);
 
@@ -384,6 +394,7 @@ define(['jquery',
                 var val = $('#selectPayerType').val();
                 $('.payerFields').hide();
                 $('#divInputType span').show();
+                $('#btnPaymentDocument').hide();
                 this.clearPayerFields();
                 if (val === 'insurance') {
                     var $payerInsurance = $('#txtautoPayerPIP');
@@ -414,6 +425,7 @@ define(['jquery',
                     $('#searchPayer #lname').val('');
                     $('#searchPayer #fname').val('');
                     $('#searchPayer #dob').val('');
+                    $('#btnPaymentDocument').show();
                 }
                 else if (val === 'ordering_facility') {
                     var $payerOrdFacility = $('#txtautoPayerPOF');
@@ -1763,7 +1775,7 @@ define(['jquery',
                 var cas_group_codes = self.cas_group_codes || rowData.cas_group_codes;
                 var cas_reason_codes = self.cas_reason_codes || rowData.cas_reason_codes;
                 var claimDt = (commonjs.checkNotEmpty(rowData.claim_dt) ? commonjs.convertToFacilityTimeZone(rowData.facility_id, rowData.claim_dt).format('L') : '');
-                var casDialogHeader = commonjs.geti18NString('billing.fileInsurance.claim') + ': # <strong>' + rowData.claim_id + ',  ' + rowData.full_name + '  ' + claimDt + '</strong>';
+                var casDialogHeader = commonjs.geti18NString('billing.fileInsurance.claim') + ': # <strong>' + rowData.claim_id + ',  ' + rowData.full_name + '  ' + claimDt + '</strong> <h6 class="pull-right"><input type="button" id="btnPatientDocument" class="ml-5 btn btn-primary" i18n="shared.fields.documents"></h6>';
                 var casDialogHtml = self.applyCasTemplate({
                     country_alpha_3_code: app.country_alpha_3_code,
                     province_alpha_2_code: app.province_alpha_2_code,
@@ -1790,6 +1802,20 @@ define(['jquery',
                 } else {
                     commonjs.showDialog(_showDialogObj);
                 }
+
+
+                $('#btnPatientDocument').off().click(function(e){
+                    var study_id, order_id, patient_id;
+                    commonjs.getClaimStudy(claimId, function (result) {
+                        if (result) {
+                            study_id = result.study_id;
+                            order_id = result.order_id;
+                            patient_id = result.patient_id;
+                        }
+
+                        window.open('/vieworder#order/document/' + btoa(order_id) + '/' + btoa(patient_id) + '/' + btoa(study_id) + '/encounter');
+                    });
+                });
 
                 $('#siteModal').removeAttr('tabindex');
                 $('#divApplyPendingPayments').height($('#modal_div_container').height() - 340);
