@@ -1560,11 +1560,11 @@ define([ 'backbone', 'immutable', 'moment', 'shared/utils' ], function ( Backbon
                 "i18n_name": "setup.userSettings.orderingFacility",
                 "field_info": {
                     "custom_name": "Ordering Facility",
-                    "name": "ordering_facility",
+                    "name": "ordering_facility_name",
                     "width": 250,
                     "defaultValue": ""
                 },
-                "field_code": "ordering_facility"
+                "field_code": "ordering_facility_name"
             },
             "MU Last Updated date": {
                 "id": 38,

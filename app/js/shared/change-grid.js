@@ -1,5 +1,15 @@
-define('change-grid', [ 'jquery' ], function ( jQuery ) {
+define('change-grid',[
+    'jquery',
+    'text!templates/orderingFacilityAlert.html',
+    'text!templates/common/contactIcon.html'
+], function (
+    jQuery,
+    ordering_facility_template,
+    ordFac_contact_template
+    ) {
     var $ = jQuery;
+    var ordering_facility_template = _.template(ordering_facility_template);
+    var ordFac_contact_template = _.template(ordFac_contact_template);
     var dateFormatter = function ( value, data ) {
         return commonjs.checkNotEmpty(value) ?
                commonjs.convertToFacilityTimeZone(data.facility_id, value).format('L LT z') :
@@ -623,6 +633,96 @@ define('change-grid', [ 'jquery' ], function ( jQuery ) {
             }
         };
 
+        var getOrdFacilityName  = function ( data ) {
+            var text =  (!data.ordfac_name || data.ordfac_name.trim().toLowerCase() === 'no ordering facility selected') && '' || data.ordfac_name;
+
+            return [
+                {
+                    'field': 'ordering_facility',
+                    'data': text
+                }
+            ];
+        };
+
+        var getOrderingFacility = function ( id, data ) {
+            var content = '';
+            var ordfac_con_id = '';
+            if ( data.ordering_facility || data.ordering_facility_name ) {
+                content = data.ordering_facility || data.ordering_facility_name;
+                ordfac_con_id = data.ordering_facility_contact_id;
+            }
+
+            if ( content && content.length ) {
+                return {
+                    'field': 'ordering_facility_name',
+                    'data': ordFac_contact_template ({
+                        ordFacName: {
+                             ordering_facility_name: content || '',
+                             rowId: id || ''
+                        }
+                    }),
+                    'callback': function ( $cell ) {
+                        var $ordFacEl = $cell.find('#ordFacility_' + id);
+                        $ordFacEl.off().on('click', function () {
+                            jQuery.ajax({
+                                url: "/getOrderingFacilityContactInfo",
+                                type: "GET",
+                                data: {
+                                    ord_fac_id: ordfac_con_id || null
+                                },
+                                success: function ( data ) {
+                                    var phtm = "<div style='color: black;'>" + commonjs.geti18NString("messages.status.noInfoAvailable") + "</div>";
+
+                                    if ( data && data.result && data.result.length > 0) {
+                                        phtm = data.result.reduce(function ( html, info ) {
+                                            // Construct Ordering Facility Info HTML
+                                            html += ordering_facility_template({
+                                                orderingFacility: {
+                                                    name: info.ordfac_name || "",
+                                                    location: info.location || "",
+                                                    address: info.address1 + ' ' + info.address2 || "",
+                                                    city: info.city || "",
+                                                    state: info.state || "",
+                                                    zip: info.zip1 || "",
+                                                    zip_plus: info.zip2 || "",
+                                                    phone: info.phone || "",
+                                                    fax: info.fax_no || "",
+                                                    notes: info.ordfac_notes || ""
+                                                },
+                                                labels: {
+                                                    phone: commonjs.geti18NString("shared.fields.phone"),
+                                                    fax: commonjs.geti18NString("shared.fields.fax"),
+                                                }
+                                            });
+
+                                            return html;
+                                        }, '');
+                                    }
+
+                                    $ordFacEl.popover({
+                                        placement: function () {
+                                            return ( $cell.parent().closest('tr'))
+                                                ? "bottom"
+                                                : "top";
+                                        },
+                                        html: true,
+                                        content: $("<div class='div-ordFac-popup'></div>").html(phtm)
+                                    });
+                                    $ordFacEl.popover('show');
+                                },
+                                error: function ( err ) {
+                                    commonjs.handleXhrError(err);
+                                }
+                            });
+                        });
+                    }
+                };
+            }
+            else {
+                return getOrdFacilityName(data);
+            }
+        };
+
         /**
          * Shows the edit provider modal and destroys the referring provider popover.
          * Triggered when a user clicks on a referring physician's name inside of the popover
@@ -879,6 +979,7 @@ define('change-grid', [ 'jquery' ], function ( jQuery ) {
             getMU: getMU,
             getRefPhy: getRefPhy,
             getReferringProviders: getReferringProviders,
+            getOrderingFacility: getOrderingFacility,
             getReadPhy: getReadPhy,
             getAge: getAge,
             getDOB: getDOB,

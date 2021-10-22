@@ -304,6 +304,7 @@ const api = {
             case 'referring_providers': return 'ref_provider.full_name';
             case 'rendering_provider': return 'render_provider.full_name';
             case 'ordering_facility_name': return 'ordering_facilities.name';
+            case 'ordering_facility_contact_id': return 'ordering_facility_contacts.id';
             case 'facility_name': return 'facilities.facility_name';
             case 'billing_fee': return 'bgct.charges_bill_fee_total';
             case 'invoice_no': return 'claims.invoice_no';
@@ -578,6 +579,7 @@ const api = {
             'ref_provider.full_name as   referring_providers',
             'render_provider.full_name as   rendering_provider',
             'ordering_facilities.name AS ordering_facility_name',
+            'ordering_facility_contacts.id AS ordering_facility_contact_id',
             'facilities.facility_name as facility_name',
             'bgct.charges_bill_fee_total as billing_fee',
             'claims.current_illness_date::text as current_illness_date',
