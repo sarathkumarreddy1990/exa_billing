@@ -1814,7 +1814,7 @@ define(['jquery',
                             patient_id = result.patient_id;
                         }
 
-                        window.open('/vieworder#order/document/' + btoa(order_id) + '/' + btoa(patient_id) + '/' + btoa(study_id) + '/encounter');
+                        window.open('/vieworder#order/document/' + btoa(order_id) + '/' + btoa(patient_id) + '/' + btoa(study_id) + '/claim');
                     });
                 });
 
