@@ -1,0 +1,55 @@
+<div style="color: black; margin-bottom: 15px;">
+
+    <% if (orderingFacility.name) { %>
+        <div style="font-weight: bold; color: blue;">
+            <%= orderingFacility.name %>
+        </div>
+    <% } %>
+
+        <%if (orderingFacility.location) { %>
+            <div style="font-style: italic; color: blue;">
+                <%= orderingFacility.location %>
+            </div>
+        <% } %>
+
+    <!-- Address -->
+    <div class="mb-2">
+        <% if (orderingFacility.address) { %>
+        <div>
+            <%= orderingFacility.address %>
+        </div>
+        <% } %>
+
+        <% if (orderingFacility.city || orderingFacility.state || orderingFacility.zip) { %>
+        <div>
+            <% if (orderingFacility.city) { print(orderingFacility.city + ', ') } %>
+            <%= orderingFacility.state %>
+            <%= orderingFacility.zip %>
+            <% if (orderingFacility.zip && orderingFacility.zip_plus) { print('-' + orderingFacility.zip_plus) } %>
+        </div>
+        <% } %>
+    </div>
+
+    <!-- Phone / Fax -->
+    <div class="mb-2">
+
+        <% if (orderingFacility.phone) { %>
+        <div>
+            <div class="d-inline-block w-50"><%= labels.phone %></div>
+            <div class="d-inline-block"><%= orderingFacility.phone %></div>
+        </div>
+        <% } %>
+
+        <% if (orderingFacility.fax) { %>
+        <div>
+            <div class="d-inline-block w-50"><%= labels.fax %></div>
+            <div class="d-inline-block"><%= orderingFacility.fax %></div>
+        </div>
+        <% } %>
+    </div>
+
+    <!-- orderingFacility Alerts -->
+    <div>
+        <%= orderingFacility.notes %>
+    </div>
+</div>

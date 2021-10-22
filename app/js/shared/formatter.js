@@ -141,6 +141,14 @@ define('formatter', function () {
             return changeGrid.getRefPhy(data);
         };
 
+        this.ordering_facility = function () {
+            return changeGrid.getOrderingFacility(id, data);
+        };
+
+        this.ordfac_name = function() {
+            return changeGrid.getOrdFacilityName(data);
+        };
+
         this.readphy_arr = function () {
             return changeGrid.getReadPhy(id, data);
         };

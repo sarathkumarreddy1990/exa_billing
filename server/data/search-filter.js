@@ -174,7 +174,7 @@ const colModel = [
         searchFlag: '%'
     },
     {
-        name: 'ordering_facility',
+        name: 'ordering_facility_name',
         searchColumns: ["ordering_facilities.name"],
         searchFlag: '%'
     },
@@ -486,7 +486,7 @@ const api = {
             case 'requesting_date': return `to_timestamp(orders.order_info->'requestingDate', 'MM/DD/YYYY')`;
             case 'days_count': return `studies.study_info->'preOrderDays'`;
             case 'days_left': return `studies.study_info->'preOrderDays'`;
-            case 'ordering_facility': return `ordering_facilities.name`;
+            case 'ordering_facility_name': return `ordering_facilities.name`;
             case 'technologist_name': return 'providers.full_name';
             case 'claim_status': return `orders.order_info->'claim_status'`;
             case 'check_indate': return `to_isots(studies.study_info->'Check-InDt')`;             // optimization! use sutom immutable function (instead of timestamptz) and corresponding index to improve query time
@@ -879,7 +879,8 @@ const api = {
             `timezone(facilities.time_zone, COALESCE(orders.order_info->'manually_verified_dt', NULL)::timestamp)::text
                 AS manually_verified_dt`,
             `ordering_facilities.name
-                AS ordering_facility`,
+                AS ordering_facility_name`,
+            `studies.ordering_facility_contact_id`,
             `orders.order_info-> 'requestingDate'
                 AS requesting_date`,
             `orders.order_info-> 'visit_no'

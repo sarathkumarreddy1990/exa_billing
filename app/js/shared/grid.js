@@ -1479,7 +1479,7 @@ define('grid', [
                     hidden: true,
                     isIconCol: true,
                     formatter: function (cellvalue, options, rowObject) {
-                        return rowObject.ordering_facility || null;
+                        return rowObject.ordering_facility || rowObject.ordering_facility_name || null;
                     }
                 },
                 {
@@ -1610,6 +1610,7 @@ define('grid', [
                 cells = cells.concat(changeGrid.getPrior(rowdata));
                 cells = cells.concat(changeGrid.getRefPhy(rowdata));
                 cells = cells.concat(changeGrid.getReferringProviders(rowid, rowdata));
+                cells = cells.concat(changeGrid.getOrderingFacility(rowid, rowdata));
                 cells = cells.concat(changeGrid.getReadPhy(rowid, rowdata));
                 cells = cells.concat(changeGrid.getAge(rowdata.patient_age));
                 setCell(cells);
@@ -1885,7 +1886,7 @@ define('grid', [
 
                     var i = (e.target || e.srcElement).parentNode.cellIndex;
 
-                    if (i > 0) {
+                    if (i > 0 && options.colModel[i] && options.colModel[i].customAction) {
                         options.colModel[i].customAction(rowID, e, self);
                     }
                 },
