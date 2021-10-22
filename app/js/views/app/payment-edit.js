@@ -1165,12 +1165,13 @@ define(['jquery',
                 var startDate = self.paymentDateObj ? moment(self.paymentDateObj).subtract(30, 'days').startOf('day') : moment().subtract(30, 'days').startOf('day');
                 var endDate = self.paymentDateObj ? moment(self.paymentDateObj).add(30, 'days').startOf('day') : moment().add(30, 'days').startOf('day');
 
-                if (!moment(accountingDate).isBetween(startDate, endDate) && accountingDate) {
-                    confirm(commonjs.geti18NString("messages.confirm.payments.overwriteAccountingDate"));
+                if (!moment(accountingDate).isBetween(startDate, endDate)
+                    && accountingDate
+                    && !confirm(commonjs.geti18NString("messages.confirm.payments.overwriteAccountingDate"))) {
                     return false;
                 }
 
-                if ($('#ddlPaidLocation').val() === '0') {
+                if (!$('#ddlPaidLocation').val() || $('#ddlPaidLocation').val() === '0') {
                     commonjs.showWarning("messages.warning.payments.selectPaidLocation");
                     $('#ddlPaidLocation').focus();
                     return false;
