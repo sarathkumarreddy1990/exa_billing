@@ -1,7 +1,7 @@
 define('change-grid',[
     'jquery',
     'text!templates/orderingFacilityAlert.html',
-    'text!templates/common/contactIcon.html'
+    'text!templates/contactIcon.html'
 ], function (
     jQuery,
     ordering_facility_template,
