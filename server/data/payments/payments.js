@@ -633,7 +633,7 @@ module.exports = {
                                 WHERE id IS NOT NULL
                             ),
                             change_responsible_party AS (
-                                    SELECT billing.update_claim_responsible_party(${params.claimId},0,${params.companyId},null, ${params.claimStatusID}, ${is_payerChanged}, ${paymentId}) AS result
+                                    SELECT billing.update_claim_responsible_party(${params.claimId},0,${params.companyId},null, ${params.claimStatusID}, ${is_payerChanged}, ${paymentId}, null) AS result
                                     WHERE
                                         NOT ${params.changeResponsibleParty}
                             ),
@@ -808,7 +808,7 @@ module.exports = {
                             FROM claim_comment_details
                             RETURNING *, '{}'::jsonb old_values),
                             change_responsible_party AS (
-                                    SELECT billing.update_claim_responsible_party(${params.claimId},0,${params.companyId},null, ${params.claimStatusID}, ${params.is_payerChanged}, ${params.paymentId}) AS result
+                                    SELECT billing.update_claim_responsible_party(${params.claimId},0,${params.companyId},null, ${params.claimStatusID}, ${params.is_payerChanged}, ${params.paymentId}, null) AS result
                                     WHERE
                                         NOT ${params.changeResponsibleParty}
 
@@ -1417,7 +1417,8 @@ module.exports = {
             screenName,
             moduleName,
             writeOffAmount,
-            defaultFacilityId
+            defaultFacilityId,
+            from
         } = params;
 
         let auditDetails = {
@@ -1667,6 +1668,7 @@ module.exports = {
                         , 0
                         , false
                         , 0
+                        , ${from}
                     ) AS result
                 FROM
                     claim_charges
@@ -1874,6 +1876,7 @@ module.exports = {
                         , 0
                         , false
                         , 0
+                        , null
                     ) AS result
                 FROM
                     claim_charges

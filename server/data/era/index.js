@@ -381,7 +381,7 @@ module.exports = {
                         update_claim_status_and_payer AS (
                             SELECT
                                 DISTINCT claim_id
-                                ,billing.update_claim_responsible_party(claim_id, claim_status_code, ${paymentDetails.company_id}, original_reference, 0, false, ${paymentDetails.id})
+                                ,billing.update_claim_responsible_party(claim_id, claim_status_code, ${paymentDetails.company_id}, original_reference, 0, false, ${paymentDetails.id}, null)
                             FROM
                                 matched_claims
                             INNER JOIN billing.get_claim_totals(matched_claims.claim_id) bgct ON TRUE
