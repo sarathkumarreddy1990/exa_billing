@@ -379,6 +379,7 @@ const acr = {
                             , 0
                             , false
                             , 0
+                            , null
                         ) AS result
                     FROM
                         claim_charges
