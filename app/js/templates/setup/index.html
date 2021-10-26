@@ -26,6 +26,11 @@
                     <a class="nav-link" id="aCollectionsProcess" href="#setup/collections_process/all" i18n="shared.screens.setup.collectionsProcess"></a>
                 </li>
 
+                <% if (countryCode === 'usa') { %>
+                    <li class="nav-item">
+                        <a class="nav-link" id="aDelayReasons" href="#setup/delay_reason/list" i18n="shared.screens.setup.delayReason"></a>
+                    </li>
+                <% } %>
                 <li class="nav-item">
                     <a class="nav-link" id="aBillingProviders" href="#setup/billing_providers/list" i18n="shared.screens.setup.billingProvider"></a>
                 </li>

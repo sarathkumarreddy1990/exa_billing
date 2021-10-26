@@ -73,6 +73,8 @@ block content
                         a.dropdown-item(href='#setup/claim_status/list', class='aClaimStatus', i18n='shared.screens.setup.claimStatus')
                         a.dropdown-item(href='#setup/collections_process/all', class='aCollectionsProcess', i18n='shared.screens.setup.collectionsProcess')
                         .dropdown-divider
+                        if (countryCode === 'usa')
+                           a.dropdown-item(href='#setup/delay_reason/list' class='aDelayReasons', i18n='shared.screens.setup.delayReason')
                         a.dropdown-item(href='#setup/billing_providers/list', class='aBillingProviders', i18n='shared.screens.setup.billingProvider')
                         a.dropdown-item(href='#setup/provider_id_code_qualifiers/list' class='aProviderIdCodeQualifiers', i18n='shared.screens.setup.providerIDCodeQualifiers')
                         .dropdown-divider

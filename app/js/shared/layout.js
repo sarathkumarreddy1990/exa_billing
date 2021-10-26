@@ -33,7 +33,7 @@ var layout = {
     },
 
     screenLinkIds: {
-        // NOTE to add these, use the screen name set as "options.screen" in route::initializeRouter 
+        // NOTE to add these, use the screen name set as "options.screen" in route::initializeRouter
         'Adjustment Codes': '#aAdjustmentCodes',
         'Billing Codes': '#aBillingCodes',
         'Billing Classes': '#aBillingClasses',
@@ -83,7 +83,8 @@ var layout = {
         'Printer Templates': '#aPrinterTemplate',
         'Payments Realization Rate Analysis': '#aPaymentsRealizationRateAnalysis',
         'Auto Billing': '#aAutoBilling',
-        'Submission Types': '#aSubmissionTypes'
+        'Submission Types': '#aSubmissionTypes',
+        'Delay Reasons': '#aDelayReasons'
         /// To be added
     },
 
@@ -206,7 +207,7 @@ var layout = {
             case 'Census':
                 module = 'Census';
                 break;
-    
+
         }
 
         if (module == 'Setup') {

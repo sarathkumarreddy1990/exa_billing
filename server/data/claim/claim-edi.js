@@ -466,7 +466,8 @@ module.exports = {
 							,( SELECT Json_agg(Row_to_json(claim)) "claim"
 							FROM   (
                                 SELECT claims.id as "claimNumber",
-                                order_details.order_id as "orderId",
+                                bdr.code AS "delayReasonCode",
+								order_details.order_id as "orderId",
 										frequency as "claimFrequencyCode",
 										facilities.facility_name,
 										facilities.can_mb_wcb_number,
@@ -815,7 +816,8 @@ module.exports = {
 					FROM billing.claims
 					INNER JOIN LATERAL billing.get_claim_payments(claims.id, true) bgcp ON TRUE
 					INNER JOIN facilities ON facilities.id=claims.facility_id
-					INNER JOIN patients ON patients.id=claims.patient_id
+                    INNER JOIN patients ON patients.id=claims.patient_id
+                    LEFT JOIN billing.delay_reasons bdr ON bdr.id = claims.delay_reason_id
 					LEFT JOIN    patient_insurances pi  ON  pi.id =
 											(  CASE COALESCE(${params.payerType}, payer_type)
 											WHEN 'primary_insurance' THEN primary_patient_insurance_id
