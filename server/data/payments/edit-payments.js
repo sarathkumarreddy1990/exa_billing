@@ -690,15 +690,16 @@ module.exports = {
                         pi.valid_to_date IS NULL
                         OR pi.valid_to_date >= CURRENT_DATE
                     )
-                    AND pi.insurance_provider_id IN (
-                        SELECT ip.id
+                    AND EXISTS (
+                        SELECT 1
                         FROM insurance_providers ip
                         WHERE ip.is_active
                         AND ip.deleted_dt IS NULL
+                        AND ip.id = pi.insurance_provider_id
                     )
                 )
             `;
-        }      
+        }
     },
 
     getAll: async function (filter) {
