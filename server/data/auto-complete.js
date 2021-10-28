@@ -538,6 +538,12 @@ module.exports = {
                 , pofc.billing_type
                 , pof.code AS ordering_facility_code
                 , pof.name AS ordering_facility_name
+                , pof.address_line_1
+                , pof.address_line_2
+                , pof.city
+                , pof.state
+                , pof.zip_code
+                , pof.zip_plus
                 , gofc.total_records
             FROM public.ordering_facility_contacts pofc
             INNER JOIN public.ordering_facilities pof ON pof.id = pofc.ordering_facility_id AND pof.deleted_dt IS NULL
