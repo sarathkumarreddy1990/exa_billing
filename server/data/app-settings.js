@@ -483,6 +483,20 @@ module.exports = {
                             AND NOT p.sys_provider
                         ORDER BY p.full_name asc
                     )  AS rendering_provider
+                ),
+                cte_delay_reasons AS (
+                    SELECT COALESCE(JSON_AGG(ROW_TO_JSON(delay_reasons)), '[]') "delay_reasons"
+                    FROM (
+                        SELECT
+                                id AS delay_reason_id,
+                                code,
+                                description
+                        FROM billing.delay_reasons bdr
+                        WHERE
+                            bdr.inactivated_dt IS NULL
+                            AND bdr.company_id = ${companyID}
+                        ORDER BY bdr.id asc
+                    )  AS delay_reasons
                 )
 
                SELECT *
@@ -523,6 +537,7 @@ module.exports = {
                       cte_cities,
                       cte_grid_filter,
                       cte_claim_submission_codes,
+                      cte_delay_reasons,
                       cte_wcb_injury_nature,
                       cte_wcb_injury_area,
                       cte_rendering_provider

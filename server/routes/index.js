@@ -11,6 +11,7 @@ router.get('/', function (req, res) {
     let currentTheme = 'default';
     let billingRegionCode= (req.session && req.session.billingRegionCode) || '';
     let hasCensusRights = req.session?.user_type === 'SU' || req.session?.screens?.indexOf('CENS') > -1;
+    let countryCode = req.session?.country_alpha_3_code || ''
 
     if (req.session && req.session.currentTheme && ['default', 'dark'].indexOf(req.session.currentTheme) > -1) {
         currentTheme = req.session.currentTheme;
@@ -22,6 +23,7 @@ router.get('/', function (req, res) {
         currentTheme: currentTheme,
         csrfToken: req.csrfToken(),
         staticAssetsRoot,
+        countryCode,
         enableCensus: siteConfig.get('enableMobileBilling') && hasCensusRights && req.session.country_alpha_3_code === 'usa'
     });
 });

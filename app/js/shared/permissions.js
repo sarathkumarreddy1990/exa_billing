@@ -7,7 +7,7 @@ var permissions = {
         var billingScreenCodes = ['ADJC', 'BICO', 'BICL', 'CLST', 'BIPR', 'PRCQ', 'BILM', 'PARE', 'CASG', 'CASR', 'STCC', 'STTE', 'BIVA', 'PCA', 'EDRT', 'INSM', 'CLHO', 'BULG', 'BALG',
             'AGAR', 'AARD', 'CHRG', 'CLAY', 'CLIN', 'CLTR', 'COLR', 'CRBE', 'DICN', 'IVSL', 'MOSU', 'MNRC', 'PATS', 'PYMX', 'PAYT', 'PAIC', 'PBIC', 'PABI', 'PRCN', 'RPFR', 'REPC', 'REPS', 'TSUM', 'PACT',
             'CLIM', 'HSTY', 'ECLM', 'CLMI', 'MASO', 'CLVA', 'ERAI', 'PAYM', 'APAY', 'DPAY', 'DCLM', 'PCLM', 'PATR', 'TOSP', 'PRRA', 'CLFM', 'ECST', 'RCLM', 'QCLM', 'IAST', 'AUTO', 'SUBT', 'COLL', 'SCTC',
-            'CENS'];
+            'CENS', 'DELR'];
 
         mappingObject = {
             'ADJC': 'aAdjustmentCodes',
@@ -77,7 +77,8 @@ var permissions = {
             'SUBT': 'aSubmissionTypes',
             'COLL': 'aCollectionsProcess',
             'SCTC': 'chkSentCollections',
-            'CENS': 'aCensus'
+            'CENS': 'aCensus',
+            'DELR':'aDelayReasons'
         };
 
         var tosPayments = (app.screens).indexOf('TOSP') > -1 && (app.screens).indexOf('PAYM') === -1 ? true : false ;

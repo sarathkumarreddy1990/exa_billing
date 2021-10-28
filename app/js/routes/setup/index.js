@@ -25,7 +25,8 @@ define([
     'routes/setup/printer-templates',
     'routes/setup/auto-billing',
     'routes/setup/submission-types',
-    'routes/setup/collections-process'
+    'routes/setup/collections-process',
+    'routes/setup/delay-reason'
 
 ], function (
     Backbone,
@@ -54,7 +55,8 @@ define([
 	PaperClaimTemplatesRoute,
     AutoBillingRoute,
     SubmissionTypesRoute,
-    CollectionsProcess
+    CollectionsProcess,
+    DelayReasonRoute
     ) {
         return Backbone.SubRoute.extend({
             routes: {
@@ -80,7 +82,8 @@ define([
                 "printer_templates/*subroute" : "startPaperClaimTemplates",
                 "auto_billing/*subroute" : "startAutoBilling",
                 "submission_types/*subroute": "startSubmissionType",
-                "collections_process/*subroute": "startCollectionsProcess"
+                "collections_process/*subroute": "startCollectionsProcess",
+                "delay_reason/*subroute": "startDelayReason"
 
             },
 
@@ -298,6 +301,15 @@ define([
                 if (this.checkLicense('SubmissionTypes') && !this.submissionTypeRouter) {
                     this.defaultArgs.routePrefix = 'setup/submission_types/';
                     this.submissionTypeRouter = new SubmissionTypesRoute(this.defaultArgs.routePrefix, this.defaultArgs);
+                } else {
+                    this.accessDenied();
+                }
+            },
+
+            startDelayReason: function(){
+                if (this.checkLicense('delayReason') && !this.delayReasonRouter) {
+                    this.defaultArgs.routePrefix = 'setup/delay_reason/';
+                    this.delayReasonRouter = new DelayReasonRoute(this.defaultArgs.routePrefix, this.defaultArgs);
                 } else {
                     this.accessDenied();
                 }

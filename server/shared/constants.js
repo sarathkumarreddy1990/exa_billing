@@ -74,7 +74,8 @@ module.exports = {
         'update_claim_status': 'Claim Status',
         'update_grid_settings': 'Studies / Claims Grid',
         'submitClaims': 'Submit Claims',
-        'fileManagement': 'File Management'
+        'fileManagement': 'File Management',
+        'delay_reasons': 'Delay Reasons'
     },
 
     entityNames: {
@@ -235,6 +236,7 @@ module.exports = {
         'submission_types': 'SUBT',
         'collections_process': 'COLL',
         'send-claims-to-collections': 'SCTC',
-        'census': 'CENS'
+        'census': 'CENS',
+        'delay_reasons': 'DELR'
     }
 };
