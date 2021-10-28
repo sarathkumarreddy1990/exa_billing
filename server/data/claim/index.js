@@ -1138,6 +1138,7 @@ module.exports = {
             INNER JOIN patients p ON p.id = c.patient_id
             WHERE
                 p.id = ${id}
+                AND c.claim_dt > (CURRENT_DATE - INTERVAL '12 months')
             ORDER BY claim_id DESC
             LIMIT ${pageSize}
             OFFSET ${pageSize * (pageNo - 1)} `;
