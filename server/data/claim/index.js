@@ -1115,6 +1115,36 @@ module.exports = {
 
     },
 
+    getClaimsByPatient: async function (args) {
+        const {
+            id,
+            pageNo,
+            pageSize
+        } = args
+
+        let sql = SQL`
+            SELECT
+                claim_id AS claim_no
+                , cpt.display_code AS cpt_code
+                , cpt.display_description AS description
+                , s.study_dt
+                , COUNT(1) OVER (range unbounded preceding) as total_records
+            FROM
+                billing.claims c
+            INNER JOIN billing.charges ch ON ch.claim_id = c.id
+            LEFT JOIN billing.charges_studies cs ON cs.charge_id = ch.id
+            LEFT JOIN studies s ON s.id = cs.study_id
+            INNER JOIN public.cpt_codes cpt ON ch.cpt_id = cpt.id
+            INNER JOIN patients p ON p.id = c.patient_id
+            WHERE
+                p.id = ${id}
+            ORDER BY claim_id DESC
+            LIMIT ${pageSize}
+            OFFSET ${pageSize * (pageNo - 1)} `;
+
+        return await query(sql);
+    },
+
     getExistingPayer: async (params) => {
 
         let sqlQry = SQL`

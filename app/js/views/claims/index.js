@@ -93,6 +93,8 @@ define(['jquery',
             priInsCode : '',
             isProviderChiropractor: false,
             isClaimStatusUpdated: false,
+            claimTotalRecords: 0,
+            patientClaimsPager: null,
             elIDs: {
                 'primaryInsAddress1': '#txtPriSubPriAddr',
                 'primaryInsAddress2': '#txtPriSubSecAddr',
@@ -133,6 +135,7 @@ define(['jquery',
                 this.patientsPager = new modelPatientPager();
                 this.patientListcoll = new patientCollection();
                 this.pendingPayments = new pendingPayments();
+                this.patientClaimsPager = new modelPatientPager();
                 this. screenCode = [];
                 if(app.userInfo.user_type != 'SU'){
                     var rights = (window.appRights).init();
@@ -1729,6 +1732,10 @@ define(['jquery',
 
                 $('.search-field').off().keyup(function (e) {
                     self.applySearch(e);
+                });
+
+                $('#anc_first_page, #anc_previous_page, #anc_next_page, #anc_last_page').off().click(function (e) {
+                    self.onClaimPaging(e);
                 });
 
                 if (app.billingRegionCode === 'can_MB') {
@@ -5266,12 +5273,22 @@ define(['jquery',
                 var patientId = (tagName == 'P') ? (e.target || e.srcElement).parentElement.id.split('_')[2] : (e.target || e.srcElement).id.split('_')[2];
                 var $studyDetails = $(e.target || e.srcElement).closest('.selectionpatient').find('.studyDetails');
                 var facility_id = $(e.target || e.srcElement).closest('.selectionpatient').data('facility_id');
+                var $target = $(e.target || e.srcElement).closest('#patient-search-result').length;
+
                 self.cur_patient_id = patientId || 0;
 
                 if (!$studyDetails.is(':visible')) {
 
                     $('.studyDetails').empty();
                     $('.studyDetails').hide();
+
+                    if ($target) {
+                        $('#div_patient_recent_search').removeClass('col-5').addClass('col-2');
+                        $('#patient-search-result').removeClass('col-2').addClass('col-5');
+                    } else {
+                        $('#div_patient_recent_search').removeClass('col-2').addClass('col-5');
+                        $('#patient-search-result').removeClass('col-5').addClass('col-2');
+                    }
 
                     $list = $('<ul class="studyList"></ul>');
                     jQuery.ajax({
@@ -5414,6 +5431,10 @@ define(['jquery',
                             commonjs.handleXhrError(err);
                         }
                     });
+
+                    self.patientClaimsPager.set({ "pageNo": 1 });
+                    self.getPatientClaims(self.cur_patient_id);
+
                 }
 
             },
@@ -6380,6 +6401,143 @@ define(['jquery',
                         });
                     });
                 }
+            },
+
+            renderClaimPage: function (claimList, isTotalRecordNeeded) {
+                var self = this;
+                var prevClaimNo;
+
+                if (!isTotalRecordNeeded) {
+                    self.patientClaimsPager.set({ "claimTotalRecords": self.claimTotalRecords });
+                    self.patientClaimsPager.set({ "lastPageNo": Math.ceil(self.claimTotalRecords / self.patientClaimsPager.get('pageSize')) });
+                } else {
+                    self.claimTotalRecords = (claimList && claimList.length > 0) ? claimList[0].total_records : 0;
+                    self.patientClaimsPager.set({ "lastPageNo": Math.ceil(self.claimTotalRecords / self.patientClaimsPager.get('pageSize')) });
+                }
+                self.setClaimPaging();
+
+                $('.divPatientClaims').empty();
+                $('.divPatientClaims').hide();
+                $("#divNoClaims").hide();
+
+                _.each(claimList, function (claim) {
+                    var currentClaimNo = '', studyDate = '';
+                    var newRow = '<div class="row" style="padding:10px; font-weight:bold;">'
+
+                    if (prevClaimNo !== claim.claim_no) {
+                       currentClaimNo = claim.claim_no;
+                       studyDate = commonjs.getConvertedFacilityTime(claim.study_dt, '', 'L', app.facility_id);
+                    }
+                    newRow += '<div style="width:15%; padding-left:23px;">' + currentClaimNo + '</div>';
+                    newRow += '<div style="width:20%;">' + studyDate + '</div>';
+                    newRow += '<div style="width:15%;">' + claim.cpt_code + '</div>';
+                    newRow += '<div style="overflow:hidden; width:48%; white-space: pre;" title="' + claim.description + '">' + claim.description + '</div></div>';
+
+                    prevClaimNo = claim.claim_no;
+                    $('.divPatientClaims').append(newRow);
+
+                });
+
+                $('.divPatientClaims').show();
+                $("#div_patient_claims").show();
+            },
+
+            setClaimPaging: function () {
+
+                if (parseInt(this.patientClaimsPager.get('pageNo')) == 1) {
+                    this.patientClaimsPager.set({ "previousPageNo": 1 });
+                }
+                else {
+                    this.patientClaimsPager.set({ "previousPageNo": (parseInt(this.patientClaimsPager.get('pageNo'))) - 1 });
+                }
+
+                if (parseInt(this.patientClaimsPager.get('pageNo')) >= this.patientClaimsPager.get('lastPageNo')) {
+                    this.patientClaimsPager.set({ "nextPageNo": this.patientClaimsPager.get('lastPageNo') });
+                }
+                else {
+                    this.patientClaimsPager.set({ "nextPageNo": (parseInt(this.patientClaimsPager.get('pageNo'))) + 1 });
+                }
+
+                if (this.patientClaimsPager.get('pageNo') == 1) {
+                    $('#li_first_page').addClass('disabled').attr('disabled', 'disabled');
+                    $('#li_previous_page').addClass('disabled').attr('disabled', 'disabled');
+                }
+                else {
+                    $('#li_first_page').removeClass('disabled').removeAttr('disabled');
+                    $('#li_previous_page').removeClass('disabled').removeAttr('disabled');
+                }
+
+                if (this.patientClaimsPager.get('pageNo') == this.patientClaimsPager.get('lastPageNo')) {
+                    $('#li_next_page').addClass('disabled').attr('disabled', 'disabled');
+                    $('#li_last_page').addClass('disabled').attr('disabled', 'disabled');
+                }
+                else {
+                    $('#li_next_page').removeClass('disabled').removeAttr('disabled');
+                    $('#li_last_page').removeClass('disabled').removeAttr('disabled');
+                }
+
+                $('#claimTotalRecords').html(this.claimTotalRecords);
+                $('#claimCurrentPage').html(this.patientClaimsPager.get('pageNo'));
+                $('#claimTotalPage').html(this.patientClaimsPager.get('lastPageNo'));
+            },
+
+            onClaimPaging: function (e) {
+                var self = this;
+                var id = ((e.target || e.srcElement).tagName == 'I') ? (e.target || e.srcElement).parentElement.id : (e.target || e.srcElement).id;
+
+                if ($('#' + id).closest("li").attr('disabled') != 'disabled') {
+                    switch (id) {
+                        case "anc_first_page":
+                            this.patientClaimsPager.set({ "pageNo": 1 });
+                            break;
+                        case "anc_previous_page":
+                            if ((this.patientClaimsPager.get("pageNo") - 1) == 1) {
+                                this.patientClaimsPager.set({ "pageNo": 1 });
+                            }
+                            else {
+                                this.patientClaimsPager.set({ "pageNo": this.patientClaimsPager.get('previousPageNo') });
+                            }
+                            break;
+
+                        case "anc_next_page":
+                            if ((this.patientClaimsPager.get("pageNo") + 1) == this.patientClaimsPager.get('lastPageNo')) {
+                                this.patientClaimsPager.set({ "pageNo": this.patientClaimsPager.get('lastPageNo') });
+                            }
+                            else {
+                                this.patientClaimsPager.set({ "pageNo": this.patientClaimsPager.get('nextPageNo') });
+                            }
+                            break;
+                        case "anc_last_page":
+                            this.patientClaimsPager.set({ "pageNo": this.patientClaimsPager.get('lastPageNo') });
+                            break;
+                    }
+                    self.getPatientClaims(self.cur_patient_id);
+                }
+            },
+
+            getPatientClaims: function(patientId) {
+                var self = this;
+
+                jQuery.ajax({
+                    url: "/exa_modules/billing/claims/claim/claimsby_patient",
+                    type: "GET",
+                    data: {
+                        id: patientId,
+                        pageNo: this.patientClaimsPager.get('pageNo'),
+                        pageSize: this.patientClaimsPager.get('pageSize')
+                    },
+                    success: function (response) {
+                        if (response && response.length) {
+                            self.renderClaimPage(response, true);
+                        } else {
+                            $("#divNoClaims").show();
+                            $("#div_patient_claims").hide();
+                        }
+                    },
+                    error: function (err) {
+                        commonjs.handleXhrError(err);
+                    }
+                });
             }
 
         });
