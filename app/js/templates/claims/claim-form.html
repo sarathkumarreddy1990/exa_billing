@@ -1741,6 +1741,21 @@
                         </select>
                     </div>
                 </div>
+                <% if (country_alpha_3_code === 'usa') { %>
+                    <div class="form-group row">
+                        <label for="ddlDelayReasons" class="col-sm-3 col-form-label" i18n="shared.screens.setup.delayReason"></label>
+                        <div class="col-sm-5">
+                            <select class="form-control select-box" id="ddlDelayReasons">
+                                <option value=''>Select</option>
+                                <% _.each(delayReasons, function(delayReason) { %>
+                                    <option value='<%= delayReason.delay_reason_id %>'>
+                                        <%= delayReason.code %> - <%= delayReason.description %>
+                                    </option>
+                                    <% }); %>
+                            </select>
+                        </div>
+                    </div>
+                <% } %>
             </div>
         </div>
         <% } %>
