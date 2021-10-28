@@ -677,6 +677,29 @@ module.exports = {
                 filter.filterQuery += ` OR patient_info -> ${this.buildPatientSearchQuery('c2Zip', f.zip, true, filter.type)}) `;
             }
         }
+
+        if (f.healthCard) {
+            filter.filterQuery += `
+                AND EXISTS (
+                    SELECT 1
+                    FROM patient_insurances pi
+                    WHERE pi.coverage_level = 'primary'
+                    AND pi.patient_id = patients.id
+                    AND ${this.buildPatientSearchQuery('pi.policy_number', f.healthCard, false, filter.type)}
+                    AND (
+                        pi.valid_to_date IS NULL
+                        OR pi.valid_to_date >= CURRENT_DATE
+                    )
+                    AND EXISTS (
+                        SELECT 1
+                        FROM insurance_providers ip
+                        WHERE ip.is_active
+                        AND ip.deleted_dt IS NULL
+                        AND ip.id = pi.insurance_provider_id
+                    )
+                )
+            `;
+        }
     },
 
     getAll: async function (filter) {
