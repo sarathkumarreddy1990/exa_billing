@@ -3843,6 +3843,7 @@ define(['jquery',
 
                 var can_ahs_pay_to_code = $('#ddlPayToCode').val();
                 var claim_status_id = ~~$('#ddlClaimStatus').val() || null;
+                var claim_Study_date = $('#txtClaimDate').val();
                 var delayReasonId = $('#ddlDelayReasons option:selected').val();
 
                 claim_model.claims = {
