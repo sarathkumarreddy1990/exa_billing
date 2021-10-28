@@ -244,7 +244,8 @@ define(['jquery',
                         chargeField : self.getClaimChargeFieldDetails(app.billingRegionCode || ''),
                         wcbAreaCode: app.wcb_area_code,
                         wcbNatureCode: app.wcb_nature_code,
-                        isSplitClaim: app.isMobileBillingEnabled
+                        isSplitClaim: app.isMobileBillingEnabled,
+                        delayReasons: app.delay_reasons
                     })
                 });
 
@@ -1104,6 +1105,7 @@ define(['jquery',
                 self.billing_type = claim_data.billing_type || 'global';
 
                 $('#ddlBillingProvider').val(claim_data.fac_billing_provider_id || claim_data.billing_provider_id || '');
+                $('#ddlDelayReasons').val(claim_data.delay_reason_id || '');
                 $('#ddlFacility').val(claim_data.facility_id || '');
                 $('#select2-ddlRenderingProvider-container').html(renderingProvider);
                 $('#select2-ddlReferringProvider-container').html(referringProvider);
@@ -3841,7 +3843,7 @@ define(['jquery',
 
                 var can_ahs_pay_to_code = $('#ddlPayToCode').val();
                 var claim_status_id = ~~$('#ddlClaimStatus').val() || null;
-                var claim_Study_date = $('#txtClaimDate').val();
+                var delayReasonId = $('#ddlDelayReasons option:selected').val();
 
                 claim_model.claims = {
                     claim_id: self.claim_Id,
@@ -3849,6 +3851,7 @@ define(['jquery',
                     facility_id: facility_id,
                     patient_id: parseInt(self.cur_patient_id) || null,
                     billing_provider_id: $('#ddlBillingProvider option:selected').val() != '' ? parseInt($('#ddlBillingProvider option:selected').val()) : null,
+                    delay_reason_id: delayReasonId != '' ? parseInt(delayReasonId) : null,
                     rendering_provider_contact_id: self.ACSelect && self.ACSelect.readPhy ? self.ACSelect.readPhy.contact_id : null,
                     referring_provider_contact_id: self.ACSelect && self.ACSelect.refPhy ? self.ACSelect.refPhy.contact_id : null,
                     ordering_facility_contact_id: self.ordering_facility_contact_id || null,

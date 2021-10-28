@@ -675,6 +675,7 @@ module.exports = {
                     , c.can_ahs_paper_supporting_docs
                     , c.can_supporting_text
                     , c.can_ohip_manual_review_indicator AS manual_review_indicator
+                    , c.delay_reason_id
                     , cst.code AS claim_status_code
                     , p.account_no AS patient_account_no
                     , p.birth_date::text AS patient_dob
