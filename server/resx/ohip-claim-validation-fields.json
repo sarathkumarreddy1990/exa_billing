@@ -8,7 +8,8 @@
         "rmb": {
             "rmbRegistrationNumber": true,
             "patientAddress": true,
-            "provinceCode": true
+            "provinceCode": true,
+            "versionCode": true 
         }
 
 	},

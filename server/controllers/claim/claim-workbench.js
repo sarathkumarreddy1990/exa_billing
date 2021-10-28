@@ -652,15 +652,11 @@ module.exports = {
         let file_path = path.join(__dirname, '../../resx/ohip-claim-validation-fields.json');
         let valdationClaimJson = await readFileAsync(file_path, 'utf8');
         valdationClaimJson = JSON.parse(valdationClaimJson);
+        let billingMethod = claimDetails[0].billing_method;
+        let validationFields = {};
 
-        if (claimDetails[0].billing_method == 'patient_payment' || claimDetails[0].billing_method == 'direct_billing') {
-            valdationClaimJson = valdationClaimJson.patient_payment;
-        } else {
-            let {
-                paymentProgram = null
-            } = claimDetails[0].insurance_details || {};
-
-            valdationClaimJson = valdationClaimJson.default[paymentProgram && paymentProgram.toLowerCase() || ''];
+        if (billingMethod == 'patient_payment' || billingMethod == 'direct_billing') {
+            validationFields = valdationClaimJson.patient_payment;
         }
 
         let validation_result = {
@@ -675,8 +671,16 @@ module.exports = {
             let errorMessages = [];
             let claimData = {...currentClaim, ...currentClaim.insurance_details };
 
-            if (claimData) {
-                _.each(valdationClaimJson, (fieldValue, field) => {
+            if (!_.isEmpty(claimData)) {
+                let {
+                    paymentProgram = null
+                } = claimData;
+
+                if (billingMethod === 'electronic_billing') {
+                    validationFields = valdationClaimJson.default[paymentProgram && paymentProgram.toLowerCase() || ''];
+                }
+
+                _.each(validationFields, (fieldValue, field) => {
                     if (fieldValue) {
                         if (typeof fieldValue === 'object') {
                             if (claimData[field]) {
