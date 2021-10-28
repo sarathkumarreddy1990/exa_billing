@@ -1,5 +1,3 @@
-const { i18n } = require("dateformat");
-
 define(['jquery',
     'immutable',
     'underscore',
