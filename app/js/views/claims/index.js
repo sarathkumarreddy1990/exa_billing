@@ -5273,7 +5273,7 @@ define(['jquery',
                 var patientId = (tagName == 'P') ? (e.target || e.srcElement).parentElement.id.split('_')[2] : (e.target || e.srcElement).id.split('_')[2];
                 var $studyDetails = $(e.target || e.srcElement).closest('.selectionpatient').find('.studyDetails');
                 var facility_id = $(e.target || e.srcElement).closest('.selectionpatient').data('facility_id');
-                var $target = $(e.target || e.srcElement).closest('#patient-search-result').length;
+                var $target = $(e.target || e.srcElement).closest('#patient-search-result');
 
                 self.cur_patient_id = patientId || 0;
 
@@ -5282,7 +5282,7 @@ define(['jquery',
                     $('.studyDetails').empty();
                     $('.studyDetails').hide();
 
-                    if ($target) {
+                    if ($target.length) {
                         $('#div_patient_recent_search').removeClass('col-5').addClass('col-2');
                         $('#patient-search-result').removeClass('col-2').addClass('col-5');
                     } else {
