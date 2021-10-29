@@ -1118,30 +1118,51 @@ module.exports = {
     getClaimsByPatient: async function (args) {
         const {
             id,
+            countFlag,
             pageNo,
             pageSize
         } = args
 
-        let sql = SQL`
-            SELECT
-                claim_id AS claim_no
-                , cpt.display_code AS cpt_code
-                , cpt.display_description AS description
-                , s.study_dt
-                , COUNT(1) OVER (range unbounded preceding) as total_records
-            FROM
-                billing.claims c
+        let joinQuery = `
             INNER JOIN billing.charges ch ON ch.claim_id = c.id
             LEFT JOIN billing.charges_studies cs ON cs.charge_id = ch.id
             LEFT JOIN studies s ON s.id = cs.study_id
             INNER JOIN public.cpt_codes cpt ON ch.cpt_id = cpt.id
             INNER JOIN patients p ON p.id = c.patient_id
-            WHERE
-                p.id = ${id}
-                AND c.claim_dt > (CURRENT_DATE - INTERVAL '12 months')
-            ORDER BY claim_id DESC
-            LIMIT ${pageSize}
-            OFFSET ${pageSize * (pageNo - 1)} `;
+        `;
+
+        let whereQuery = SQL` WHERE p.id = ${id} AND c.claim_dt > (CURRENT_DATE - INTERVAL '12 months') `;
+
+        let sql = '';
+
+        if (countFlag == 'true') {
+
+            sql = SQL`
+                SELECT
+                    COUNT(1) AS total_records
+                FROM billing.claims c
+                `;
+            sql.append(joinQuery);
+            sql.append(whereQuery);
+        } else {
+
+            sql = SQL`
+                SELECT
+                    claim_id AS claim_no
+                    , cpt.display_code AS cpt_code
+                    , cpt.display_description AS description
+                    , s.study_dt
+                FROM
+                    billing.claims c
+                `;
+            sql.append(joinQuery);
+            sql.append(whereQuery);
+            sql.append(SQL`
+                ORDER BY claim_id DESC
+                LIMIT ${pageSize}
+                OFFSET ${pageSize * (pageNo - 1)}
+            `);
+        }
 
         return await query(sql);
     },

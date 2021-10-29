@@ -5433,7 +5433,7 @@ define(['jquery',
                     });
 
                     self.patientClaimsPager.set({ "pageNo": 1 });
-                    self.getPatientClaims(self.cur_patient_id);
+                    self.getPatientClaims(self.cur_patient_id, true);
 
                 }
 
@@ -6410,11 +6410,27 @@ define(['jquery',
                 if (!isTotalRecordNeeded) {
                     self.patientClaimsPager.set({ "claimTotalRecords": self.claimTotalRecords });
                     self.patientClaimsPager.set({ "lastPageNo": Math.ceil(self.claimTotalRecords / self.patientClaimsPager.get('pageSize')) });
+                    self.setClaimPaging();
                 } else {
-                    self.claimTotalRecords = (claimList && claimList.length > 0) ? claimList[0].total_records : 0;
-                    self.patientClaimsPager.set({ "lastPageNo": Math.ceil(self.claimTotalRecords / self.patientClaimsPager.get('pageSize')) });
+                    jQuery.ajax({
+                        url: "/exa_modules/billing/claims/claim/claimsby_patient",
+                        type: "GET",
+                        data: {
+                            id: self.cur_patient_id,
+                            countFlag: true
+                        },
+                        success: function (response) {
+                            if (response && response.length) {
+                                self.claimTotalRecords =  response[0].total_records;
+                                self.patientClaimsPager.set({ "lastPageNo": Math.ceil(self.claimTotalRecords / self.patientClaimsPager.get('pageSize')) });
+                                self.setClaimPaging();
+                            }
+                        },
+                        error: function (err) {
+                            commonjs.handleXhrError(err);
+                        }
+                    });
                 }
-                self.setClaimPaging();
 
                 $('.divPatientClaims').empty();
                 $('.divPatientClaims').hide();
@@ -6511,11 +6527,11 @@ define(['jquery',
                             this.patientClaimsPager.set({ "pageNo": this.patientClaimsPager.get('lastPageNo') });
                             break;
                     }
-                    self.getPatientClaims(self.cur_patient_id);
+                    self.getPatientClaims(self.cur_patient_id, false);
                 }
             },
 
-            getPatientClaims: function(patientId) {
+            getPatientClaims: function(patientId, isTotalRecordNeeded) {
                 var self = this;
 
                 jQuery.ajax({
@@ -6523,12 +6539,13 @@ define(['jquery',
                     type: "GET",
                     data: {
                         id: patientId,
+                        countFlag: false,
                         pageNo: this.patientClaimsPager.get('pageNo'),
                         pageSize: this.patientClaimsPager.get('pageSize')
                     },
                     success: function (response) {
                         if (response && response.length) {
-                            self.renderClaimPage(response, true);
+                            self.renderClaimPage(response, isTotalRecordNeeded);
                         } else {
                             $("#divNoClaims").show();
                             $("#div_patient_claims").hide();
