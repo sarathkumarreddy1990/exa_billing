@@ -1125,13 +1125,10 @@ module.exports = {
 
         let joinQuery = `
             INNER JOIN billing.charges ch ON ch.claim_id = c.id
-            LEFT JOIN billing.charges_studies cs ON cs.charge_id = ch.id
-            LEFT JOIN studies s ON s.id = cs.study_id
             INNER JOIN public.cpt_codes cpt ON ch.cpt_id = cpt.id
-            INNER JOIN patients p ON p.id = c.patient_id
         `;
 
-        let whereQuery = SQL` WHERE p.id = ${id} AND c.claim_dt > (CURRENT_DATE - INTERVAL '12 months') `;
+        let whereQuery = SQL` WHERE c.patient_id = ${id} AND c.claim_dt > (CURRENT_DATE - INTERVAL '12 months') `;
 
         let sql = '';
 
@@ -1151,7 +1148,7 @@ module.exports = {
                     claim_id AS claim_no
                     , cpt.display_code AS cpt_code
                     , cpt.display_description AS description
-                    , s.study_dt
+                    , c.claim_dt AS study_dt
                 FROM
                     billing.claims c
                 `;
