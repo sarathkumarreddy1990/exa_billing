@@ -620,7 +620,7 @@ module.exports = {
             }
 
             if (claim.insurance_details.paymentProgram === 'RMB' && !claim.insurance_details.versionCode) {
-                validations.push (`Claim ${claim.claim_id} has no version code`);
+                validations.push(`Claim ${claim.claim_id} has no version code`);
             }
 
             return validations;

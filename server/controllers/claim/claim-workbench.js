@@ -677,7 +677,7 @@ module.exports = {
                 } = claimData;
 
                 if (billingMethod === 'electronic_billing') {
-                    validationFields = valdationClaimJson.default[paymentProgram && paymentProgram.toLowerCase() || ''];
+                    validationFields = valdationClaimJson.default[paymentProgram?.toLowerCase() || ''];
                 }
 
                 _.each(validationFields, (fieldValue, field) => {
