@@ -20,7 +20,8 @@ define(['jquery',
 'shared/address',
 'text!templates/claims/eligibilityResponseOHIP.html',
 'text!templates/claims/eligibilityResponseBC.html',
-'text!templates/claims/ahs_charges_today.html'
+'text!templates/claims/ahs_charges_today.html',
+'text!templates/app/patient-recent-claims.html'
 ],
     function ($,
         moment,
@@ -44,7 +45,8 @@ define(['jquery',
         address,
         insuranceOhipForm,
         insuranceBCForm,
-        patientChargesTemplate
+        patientChargesTemplate,
+        patientClaimTemplate
     ) {
         var claimView = Backbone.View.extend({
             el: null,
@@ -58,6 +60,7 @@ define(['jquery',
             insuranceOhipTemplate: _.template(insuranceOhipForm),
             patientChargesTemplate: _.template(patientChargesTemplate),
             insuranceBCTemplate: _.template(insuranceBCForm),
+            patientClaimTemplate: _.template(patientClaimTemplate),
             updateResponsibleList: [],
             chargeModel: [],
             claimICDLists: [],
@@ -6434,28 +6437,13 @@ define(['jquery',
 
                 $('.divPatientClaims').empty();
                 $('.divPatientClaims').hide();
-                $("#divNoClaims").hide();
 
-                _.each(claimList, function (claim) {
-                    var currentClaimNo = '', studyDate = '';
-                    var newRow = '<div class="row" style="padding:10px; font-weight:bold;">'
-
-                    if (prevClaimNo !== claim.claim_no) {
-                       currentClaimNo = claim.claim_no;
-                       studyDate = commonjs.getConvertedFacilityTime(claim.study_dt, '', 'L', app.facility_id);
-                    }
-                    newRow += '<div style="width:15%; padding-left:23px;">' + currentClaimNo + '</div>';
-                    newRow += '<div style="width:20%;">' + studyDate + '</div>';
-                    newRow += '<div style="width:15%;">' + claim.cpt_code + '</div>';
-                    newRow += '<div style="overflow:hidden; width:48%; white-space: pre;" title="' + claim.description + '">' + claim.description + '</div></div>';
-
-                    prevClaimNo = claim.claim_no;
-                    $('.divPatientClaims').append(newRow);
-
-                });
+                var patClaim = self.patientClaimTemplate({ claimList });
+                $('.divPatientClaims').append(patClaim);
 
                 $('.divPatientClaims').show();
                 $("#div_patient_claims").show();
+                $("#divNoClaims").hide();
             },
 
             setClaimPaging: function () {
