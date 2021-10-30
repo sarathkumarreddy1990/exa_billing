@@ -213,7 +213,6 @@ WITH claim_data AS(
           ) pg_rank 
     FROM  (
       SELECT
-        DISTINCT 
         mdc.pid AS mpid,
         pg.id AS pgid,
         pg.guarantor_info->'address1' AS guarantor_address1,
@@ -221,53 +220,59 @@ WITH claim_data AS(
         pg.guarantor_info->'city' AS guarantor_city,
         pg.guarantor_info->'state' AS guarantor_state,
         pg.guarantor_info->'zip' AS guarantor_zip,
-        get_full_name(pg.guarantor_info->'lastName',pg.guarantor_info->'firstName',pg.guarantor_info->'mi','',pg.guarantor_info->'suffix') as guarantor_full_name
+        get_full_name(
+          pg.guarantor_info->'lastName',
+          pg.guarantor_info->'firstName',
+          pg.guarantor_info->'mi',
+          '',
+          pg.guarantor_info->'suffix'
+        ) AS guarantor_full_name
       FROM main_detail_cte mdc
       INNER JOIN patient_guarantors pg on pg.patient_id = mdc.pid AND pg.deleted_dt IS NULL
     ) pgs
   ),
   main_detail_ext_cte AS (
     SELECT
-    pid,
-    sum_amount,
-    first_name,
-    middle_name,
-    last_name,
-    full_name,
-    account_no,
-    address1,
-    address2,
-    city,
-    state,
-    zip,
-    enc_date,
-    description,
-    code,
-    enc_id,
-    row_flag,
-    amount,
-    charge,
-    payment,
-    adjustment,
-    billing_provider_name,
-    billing_proaddress1,
-    billing_proaddress2,
-    billing_procity,
-    billing_prostate,
-    billing_prozip,
-    billing_zip_plus,
-    billing_phoneno,
-    study_date,
-    age,
-    payment_type,
-    sort_order,
-    charge_id,
-    gc.guarantor_full_name,
-    gc.guarantor_address1,
-    gc.guarantor_address2,
-    gc.guarantor_city,
-    gc.guarantor_state,
-    gc.guarantor_zip
+      pid,
+      sum_amount,
+      first_name,
+      middle_name,
+      last_name,
+      full_name,
+      account_no,
+      address1,
+      address2,
+      city,
+      state,
+      zip,
+      enc_date,
+      description,
+      code,
+      enc_id,
+      row_flag,
+      amount,
+      charge,
+      payment,
+      adjustment,
+      billing_provider_name,
+      billing_proaddress1,
+      billing_proaddress2,
+      billing_procity,
+      billing_prostate,
+      billing_prozip,
+      billing_zip_plus,
+      billing_phoneno,
+      study_date,
+      age,
+      payment_type,
+      sort_order,
+      charge_id,
+      gc.guarantor_full_name,
+      gc.guarantor_address1,
+      gc.guarantor_address2,
+      gc.guarantor_city,
+      gc.guarantor_state,
+      gc.guarantor_zip
     FROM main_detail_cte mdc
     LEFT JOIN guarantor_cte gc ON gc.mpid = mdc.pid
     WHERE COALESCE(pg_rank,1) = 1
@@ -275,8 +280,8 @@ WITH claim_data AS(
     detail_cte AS(
     SELECT
      *
-    From main_detail_ext_cte
-    where (payment_type != 'adjustment' or (payment_type = 'adjustment' AND amount != 0::money))
+    FROM main_detail_ext_cte
+    WHERE (payment_type != 'adjustment' or (payment_type = 'adjustment' AND amount != 0::money))
     ),
     sum_encounter_cte AS (
     SELECT

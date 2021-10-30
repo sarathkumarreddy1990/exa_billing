@@ -156,7 +156,7 @@ WITH claim_data AS (
             END) * (CASE WHEN type IN('payment','adjustment') THEN -1
             ELSE 1
             END)) OVER (PARTITION BY bc.id) AS claim_sum_amount,
-            bc.claim_dt,	
+            bc.claim_dt,
             p.birth_date
     FROM public.patients p
     INNER JOIN billing.claims bc on bc.patient_id = p.id
@@ -203,7 +203,6 @@ WITH claim_data AS (
                 ) pg_rank 
         FROM (
                 SELECT
-                    DISTINCT 
                     mdc.pid AS mpid,
                     pg.id AS pgid,
                     pg.guarantor_info->'address1' AS guarantor_address1,
