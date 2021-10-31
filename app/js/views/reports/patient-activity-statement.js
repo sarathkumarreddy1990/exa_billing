@@ -101,7 +101,8 @@ define([
                         billingAddressTaxNpi: claimInfo.billingAddressTaxNpi,
                         claimId : claimInfo.claimID,
                         claimIds: claimInfo.selectedClaimIds || [],
-                        billingPayers: claimInfo.billingPayers
+                        billingPayers: claimInfo.billingPayers,
+                        countryCode: app.country_alpha_3_code
                     }
                 }
 

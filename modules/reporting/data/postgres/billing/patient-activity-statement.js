@@ -172,12 +172,24 @@ WITH claim_data AS(
         bp.phone_number as billing_phoneno,
         type as payment_type,
         CASE type WHEN 'charge' THEN 1 ELSE 2 END AS sort_order,
-        charge_id
+        charge_id,
+        std.study_date,
+        date_part('year', age(std.study_date, p.birth_date)::interval) AS age
     FROM public.patients p
          INNER JOIN billing.claims bc on bc.patient_id = p.id
          INNER JOIN billing_comments pc on pc.id = bc.id
          INNER JOIN billing.providers bp on bp.id = bc.billing_provider_id
          INNER JOIN facilities f on f.id = bc.facility_id
+         LEFT JOIN LATERAL (
+          SELECT
+              MAX(COALESCE(study_dt, bc.claim_dt)) AS study_date
+          FROM billing.claims bc
+              LEFT JOIN billing.charges bch ON bch.claim_id = bc.id 
+              LEFT JOIN billing.charges_studies bchs on bchs.charge_id = bch.id
+              LEFT JOIN studies s ON s.id = bchs.study_id
+           WHERE bc.patient_id = p.id
+           <% if(selectedClaimIds) { %> AND <% print(selectedClaimIds); } %>
+        ) std ON TRUE
          LEFT JOIN public.patient_insurances pi on pi.id = (CASE WHEN  bc.payer_type = 'primary_insurance' THEN
          primary_patient_insurance_id
    WHEN  bc.payer_type = 'secondary_insurance' THEN
@@ -185,11 +197,91 @@ WITH claim_data AS(
    WHEN  bc.payer_type = 'tertiary_insurance' THEN
          tertiary_patient_insurance_id
    END)),
+   guarantor_cte AS (
+    SELECT 
+      mpid, 
+      pgid, 
+      guarantor_address1,
+      guarantor_address2,
+      guarantor_city,
+      guarantor_state,
+      guarantor_zip,
+      guarantor_full_name,
+      RANK () OVER ( 
+          PARTITION BY mpid
+              ORDER BY pgid DESC
+          ) pg_rank 
+    FROM  (
+      SELECT
+        mdc.pid AS mpid,
+        pg.id AS pgid,
+        pg.guarantor_info->'address1' AS guarantor_address1,
+        pg.guarantor_info->'address2' AS guarantor_address2,
+        pg.guarantor_info->'city' AS guarantor_city,
+        pg.guarantor_info->'state' AS guarantor_state,
+        pg.guarantor_info->'zip' AS guarantor_zip,
+        get_full_name(
+          pg.guarantor_info->'lastName',
+          pg.guarantor_info->'firstName',
+          pg.guarantor_info->'mi',
+          '',
+          pg.guarantor_info->'suffix'
+        ) AS guarantor_full_name
+      FROM main_detail_cte mdc
+      INNER JOIN patient_guarantors pg on pg.patient_id = mdc.pid AND pg.deleted_dt IS NULL
+    ) pgs
+  ),
+  main_detail_ext_cte AS (
+    SELECT
+      pid,
+      sum_amount,
+      first_name,
+      middle_name,
+      last_name,
+      full_name,
+      account_no,
+      address1,
+      address2,
+      city,
+      state,
+      zip,
+      enc_date,
+      description,
+      code,
+      enc_id,
+      row_flag,
+      amount,
+      charge,
+      payment,
+      adjustment,
+      billing_provider_name,
+      billing_proaddress1,
+      billing_proaddress2,
+      billing_procity,
+      billing_prostate,
+      billing_prozip,
+      billing_zip_plus,
+      billing_phoneno,
+      study_date,
+      age,
+      payment_type,
+      sort_order,
+      charge_id,
+      gc.guarantor_full_name,
+      gc.guarantor_address1,
+      gc.guarantor_address2,
+      gc.guarantor_city,
+      gc.guarantor_state,
+      gc.guarantor_zip
+    FROM main_detail_cte mdc
+    LEFT JOIN guarantor_cte gc ON gc.mpid = mdc.pid
+    WHERE COALESCE(pg_rank,1) = 1
+  ),
     detail_cte AS(
     SELECT
      *
-    From main_detail_cte
-    where (payment_type != 'adjustment' or (payment_type = 'adjustment' AND amount != 0::money))
+    FROM main_detail_ext_cte
+    WHERE (payment_type != 'adjustment' or (payment_type = 'adjustment' AND amount != 0::money))
     ),
     sum_encounter_cte AS (
     SELECT
@@ -317,6 +409,13 @@ WITH claim_data AS(
           , null                 AS c37
           , null                 AS c38
           , null                 AS c39
+          , 'GuarantorName'      AS c40
+          , 'Age'                AS c41
+          , 'PatientGuarantorAddress1'    AS c42
+          , 'PatientGuarantorAddress2'    AS c43
+          , 'PatientGuarantorCity'        AS c44
+          , 'PatientGuarantorState'       AS c45
+          , 'PatientGuarantorZip'         AS c46
           UNION
           -- Coverage Info
         <% if (billingPayers === "true")  { %>
@@ -367,6 +466,13 @@ WITH claim_data AS(
         , null
         , null
         , null
+        , null
+        , null
+        , null
+        , null
+        , null
+        , null
+        , null
       FROM patient_insurance
       <% } else if (billingPayers === "false") { %>
         SELECT
@@ -407,6 +513,13 @@ WITH claim_data AS(
         , 0
         , 0 AS sort_order
         , 0
+        , null
+        , null
+        , null
+        , null
+        , null
+        , null
+        , null
         , null
         , null
         , null
@@ -467,6 +580,13 @@ WITH claim_data AS(
               , null
               , null
               , null
+              , null  
+              , null
+              , null
+              , null
+              , null
+              , null
+              , null
               , null
               FROM sum_statement_credit_cte
               UNION
@@ -520,6 +640,13 @@ WITH claim_data AS(
               , null
               , null
               , null
+              , guarantor_full_name
+              , age::text
+              , guarantor_address1
+              , guarantor_address2
+              , guarantor_city
+              , guarantor_state
+              , guarantor_zip
               FROM detail_cte
               UNION
 
@@ -572,6 +699,13 @@ WITH claim_data AS(
           , null
           , null
           , null
+          , null
+          , null
+          , null
+          , null
+          , null
+          , null
+          , null
           FROM detail_cte
           UNION
 
@@ -613,6 +747,13 @@ WITH claim_data AS(
           , null
           , 5
           , 98   AS sort_order
+          , null
+          , null
+          , null
+          , null
+          , null
+          , null
+          , null
           , null
           , null
           , null
@@ -674,6 +815,13 @@ WITH claim_data AS(
           , null
           , null
           , null
+          , null
+          , null
+          , null
+          , null
+          , null
+          , null
+          , null
           FROM statement_cte
 
           UNION
@@ -716,6 +864,13 @@ WITH claim_data AS(
               , 6
               , 99   AS sort_order
               , 2
+              , null
+              , null
+              , null
+              , null
+              , null
+              , null
+              , null
               , null
               , null
               , null
@@ -777,6 +932,13 @@ WITH claim_data AS(
             , billing_procity
             , billing_prostate
             , billing_prozip
+            , null
+            , null
+            , null
+            , null
+            , null
+            , null
+            , null
             FROM
             billing_provider_cte
         <% } else if (billingAddressTaxNpi === "false") { %>
@@ -820,6 +982,13 @@ WITH claim_data AS(
             , 2
             , null
             , billing_provider_name
+            , null
+            , null
+            , null
+            , null
+            , null
+            , null
+            , null
             , null
             , null
             , null
@@ -879,6 +1048,23 @@ WITH claim_data AS(
           , c37
           , c38
           , c39
+          <% if (countryCode === 'usa') { %> 
+            , c40
+            , c41
+            , c42
+            , c43
+            , c44
+            , c45
+            , c46
+          <% } else { %> 
+            , null
+            , -1
+            , null
+            , null
+            , null
+            , null
+            , null
+          <% } %> 
           FROM all_cte
           ORDER BY
             pid
@@ -1000,7 +1186,8 @@ const api = {
             billingAddressTaxNpi:null,
             claimId: null,
             selectedClaimIds: null,
-            billingPayers: null
+            billingPayers: null,
+            countryCode: null
         };
         let {
             companyId,
@@ -1016,7 +1203,8 @@ const api = {
             dateFormat,
             browserLocale,
             claimIds,
-            billingPayers
+            billingPayers,
+            countryCode
         } = reportParams;
 
         // company id
@@ -1061,6 +1249,7 @@ const api = {
             filters.selectedClaimIds = queryBuilder.whereIn('bc.id', [params.length]);
         }
 
+        filters.countryCode = countryCode;
         return {
             queryParams: params,
             templateData: filters
