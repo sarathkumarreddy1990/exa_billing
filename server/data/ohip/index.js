@@ -1188,7 +1188,7 @@ const OHIPDataAPI = {
         }
 
         if (file_type) {
-            whereQuery.push(` ef.file_type ILIKE '%${file_type.replace(/\\/g, '')}%' `);
+            whereQuery.push(` ef.file_type = '${file_type.replace(/\\/g, '')}' `);
         }
 
         if (size) {
