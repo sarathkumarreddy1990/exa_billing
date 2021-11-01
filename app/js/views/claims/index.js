@@ -20,7 +20,8 @@ define(['jquery',
 'shared/address',
 'text!templates/claims/eligibilityResponseOHIP.html',
 'text!templates/claims/eligibilityResponseBC.html',
-'text!templates/claims/ahs_charges_today.html'
+'text!templates/claims/ahs_charges_today.html',
+'text!templates/app/patient-recent-claims.html'
 ],
     function ($,
         moment,
@@ -44,7 +45,8 @@ define(['jquery',
         address,
         insuranceOhipForm,
         insuranceBCForm,
-        patientChargesTemplate
+        patientChargesTemplate,
+        patientClaimTemplate
     ) {
         var claimView = Backbone.View.extend({
             el: null,
@@ -58,6 +60,7 @@ define(['jquery',
             insuranceOhipTemplate: _.template(insuranceOhipForm),
             patientChargesTemplate: _.template(patientChargesTemplate),
             insuranceBCTemplate: _.template(insuranceBCForm),
+            patientClaimTemplate: _.template(patientClaimTemplate),
             updateResponsibleList: [],
             chargeModel: [],
             claimICDLists: [],
@@ -93,6 +96,8 @@ define(['jquery',
             priInsCode : '',
             isProviderChiropractor: false,
             isClaimStatusUpdated: false,
+            claimTotalRecords: 0,
+            patientClaimsPager: null,
             elIDs: {
                 'primaryInsAddress1': '#txtPriSubPriAddr',
                 'primaryInsAddress2': '#txtPriSubSecAddr',
@@ -133,6 +138,7 @@ define(['jquery',
                 this.patientsPager = new modelPatientPager();
                 this.patientListcoll = new patientCollection();
                 this.pendingPayments = new pendingPayments();
+                this.patientClaimsPager = new modelPatientPager();
                 this. screenCode = [];
                 if(app.userInfo.user_type != 'SU'){
                     var rights = (window.appRights).init();
@@ -1731,6 +1737,10 @@ define(['jquery',
 
                 $('.search-field').off().keyup(function (e) {
                     self.applySearch(e);
+                });
+
+                $('#anc_first_page, #anc_previous_page, #anc_next_page, #anc_last_page').off().click(function (e) {
+                    self.onClaimPaging(e);
                 });
 
                 if (app.billingRegionCode === 'can_MB') {
@@ -5278,12 +5288,22 @@ define(['jquery',
                 var patientId = (tagName == 'P') ? (e.target || e.srcElement).parentElement.id.split('_')[2] : (e.target || e.srcElement).id.split('_')[2];
                 var $studyDetails = $(e.target || e.srcElement).closest('.selectionpatient').find('.studyDetails');
                 var facility_id = $(e.target || e.srcElement).closest('.selectionpatient').data('facility_id');
+                var $target = $(e.target || e.srcElement).closest('#patient-search-result');
+
                 self.cur_patient_id = patientId || 0;
 
                 if (!$studyDetails.is(':visible')) {
 
                     $('.studyDetails').empty();
                     $('.studyDetails').hide();
+
+                    if ($target.length) {
+                        $('#div_patient_recent_search').removeClass('col-5').addClass('col-2');
+                        $('#patient-search-result').removeClass('col-2').addClass('col-5');
+                    } else {
+                        $('#div_patient_recent_search').removeClass('col-2').addClass('col-5');
+                        $('#patient-search-result').removeClass('col-5').addClass('col-2');
+                    }
 
                     $list = $('<ul class="studyList"></ul>');
                     jQuery.ajax({
@@ -5426,6 +5446,10 @@ define(['jquery',
                             commonjs.handleXhrError(err);
                         }
                     });
+
+                    self.patientClaimsPager.set({ "pageNo": 1 });
+                    self.getPatientClaims(self.cur_patient_id, true);
+
                 }
 
             },
@@ -6392,6 +6416,145 @@ define(['jquery',
                         });
                     });
                 }
+            },
+
+            renderClaimPage: function (claimList, isTotalRecordNeeded) {
+                var self = this;
+                var prevClaimNo;
+
+                if (!isTotalRecordNeeded) {
+                    self.patientClaimsPager.set({ "claimTotalRecords": self.claimTotalRecords });
+                    self.patientClaimsPager.set({ "lastPageNo": Math.ceil(self.claimTotalRecords / self.patientClaimsPager.get('pageSize')) });
+                    self.setClaimPaging();
+                } else {
+                    jQuery.ajax({
+                        url: "/exa_modules/billing/claims/claim/claimsby_patient",
+                        type: "GET",
+                        data: {
+                            id: self.cur_patient_id,
+                            countFlag: true
+                        },
+                        success: function (response) {
+                            if (response && response.length) {
+                                self.claimTotalRecords =  response[0].total_records;
+                                self.patientClaimsPager.set({ "lastPageNo": Math.ceil(self.claimTotalRecords / self.patientClaimsPager.get('pageSize')) });
+                                self.setClaimPaging();
+                            }
+                        },
+                        error: function (err) {
+                            commonjs.handleXhrError(err);
+                        }
+                    });
+                }
+
+                $('.divPatientClaims').empty();
+                $('.divPatientClaims').hide();
+
+                var patClaim = self.patientClaimTemplate({ claimList });
+                $('.divPatientClaims').append(patClaim);
+
+                $('.divPatientClaims').show();
+                $("#div_patient_claims").show();
+                $("#divNoClaims").hide();
+            },
+
+            setClaimPaging: function () {
+
+                if (parseInt(this.patientClaimsPager.get('pageNo')) == 1) {
+                    this.patientClaimsPager.set({ "previousPageNo": 1 });
+                }
+                else {
+                    this.patientClaimsPager.set({ "previousPageNo": (parseInt(this.patientClaimsPager.get('pageNo'))) - 1 });
+                }
+
+                if (parseInt(this.patientClaimsPager.get('pageNo')) >= this.patientClaimsPager.get('lastPageNo')) {
+                    this.patientClaimsPager.set({ "nextPageNo": this.patientClaimsPager.get('lastPageNo') });
+                }
+                else {
+                    this.patientClaimsPager.set({ "nextPageNo": (parseInt(this.patientClaimsPager.get('pageNo'))) + 1 });
+                }
+
+                if (this.patientClaimsPager.get('pageNo') == 1) {
+                    $('#li_first_page').addClass('disabled').attr('disabled', 'disabled');
+                    $('#li_previous_page').addClass('disabled').attr('disabled', 'disabled');
+                }
+                else {
+                    $('#li_first_page').removeClass('disabled').removeAttr('disabled');
+                    $('#li_previous_page').removeClass('disabled').removeAttr('disabled');
+                }
+
+                if (this.patientClaimsPager.get('pageNo') == this.patientClaimsPager.get('lastPageNo')) {
+                    $('#li_next_page').addClass('disabled').attr('disabled', 'disabled');
+                    $('#li_last_page').addClass('disabled').attr('disabled', 'disabled');
+                }
+                else {
+                    $('#li_next_page').removeClass('disabled').removeAttr('disabled');
+                    $('#li_last_page').removeClass('disabled').removeAttr('disabled');
+                }
+
+                $('#claimTotalRecords').html(this.claimTotalRecords);
+                $('#claimCurrentPage').html(this.patientClaimsPager.get('pageNo'));
+                $('#claimTotalPage').html(this.patientClaimsPager.get('lastPageNo'));
+            },
+
+            onClaimPaging: function (e) {
+                var self = this;
+                var id = ((e.target || e.srcElement).tagName == 'I') ? (e.target || e.srcElement).parentElement.id : (e.target || e.srcElement).id;
+
+                if ($('#' + id).closest("li").attr('disabled') != 'disabled') {
+                    switch (id) {
+                        case "anc_first_page":
+                            this.patientClaimsPager.set({ "pageNo": 1 });
+                            break;
+                        case "anc_previous_page":
+                            if ((this.patientClaimsPager.get("pageNo") - 1) == 1) {
+                                this.patientClaimsPager.set({ "pageNo": 1 });
+                            }
+                            else {
+                                this.patientClaimsPager.set({ "pageNo": this.patientClaimsPager.get('previousPageNo') });
+                            }
+                            break;
+
+                        case "anc_next_page":
+                            if ((this.patientClaimsPager.get("pageNo") + 1) == this.patientClaimsPager.get('lastPageNo')) {
+                                this.patientClaimsPager.set({ "pageNo": this.patientClaimsPager.get('lastPageNo') });
+                            }
+                            else {
+                                this.patientClaimsPager.set({ "pageNo": this.patientClaimsPager.get('nextPageNo') });
+                            }
+                            break;
+                        case "anc_last_page":
+                            this.patientClaimsPager.set({ "pageNo": this.patientClaimsPager.get('lastPageNo') });
+                            break;
+                    }
+                    self.getPatientClaims(self.cur_patient_id, false);
+                }
+            },
+
+            getPatientClaims: function(patientId, isTotalRecordNeeded) {
+                var self = this;
+
+                jQuery.ajax({
+                    url: "/exa_modules/billing/claims/claim/claimsby_patient",
+                    type: "GET",
+                    data: {
+                        id: patientId,
+                        countFlag: false,
+                        pageNo: this.patientClaimsPager.get('pageNo'),
+                        pageSize: this.patientClaimsPager.get('pageSize')
+                    },
+                    success: function (response) {
+                        if (response && response.length) {
+                            self.renderClaimPage(response, isTotalRecordNeeded);
+                        } else {
+                            $("#divNoClaims").show();
+                            $("#div_patient_claims").hide();
+                        }
+                    },
+                    error: function (err) {
+                        commonjs.handleXhrError(err);
+                    }
+                });
             }
 
         });

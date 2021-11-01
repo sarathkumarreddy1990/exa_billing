@@ -333,6 +333,10 @@ const api= {
 
     getStudiesByPatientId: async (params) => { return await data.getStudiesByPatientId(params); },
 
+    getClaimsByPatient: async (args) => {
+        return await data.getClaimsByPatient(args);
+    },
+
     getIcd9To10: async function (params) {
         let pokitdokSecretKey = await data.getKeys();
         let pokitdok_client_id = pokitdokSecretKey.rows[1].info.value;

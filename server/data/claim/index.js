@@ -1116,6 +1116,55 @@ module.exports = {
 
     },
 
+    getClaimsByPatient: async function (args) {
+        const {
+            id,
+            countFlag,
+            pageNo,
+            pageSize
+        } = args
+
+        let joinQuery = `
+            INNER JOIN billing.charges ch ON ch.claim_id = c.id
+            INNER JOIN public.cpt_codes cpt ON ch.cpt_id = cpt.id
+        `;
+
+        let whereQuery = SQL` WHERE c.patient_id = ${id} AND c.claim_dt > (CURRENT_DATE - INTERVAL '12 months') `;
+
+        let sql = '';
+
+        if (countFlag == 'true') {
+
+            sql = SQL`
+                SELECT
+                    COUNT(1) AS total_records
+                FROM billing.claims c
+                `;
+            sql.append(joinQuery);
+            sql.append(whereQuery);
+        } else {
+
+            sql = SQL`
+                SELECT
+                    claim_id AS claim_no
+                    , cpt.display_code AS cpt_code
+                    , cpt.display_description AS description
+                    , c.claim_dt AS study_dt
+                FROM
+                    billing.claims c
+                `;
+            sql.append(joinQuery);
+            sql.append(whereQuery);
+            sql.append(SQL`
+                ORDER BY claim_id DESC
+                LIMIT ${pageSize}
+                OFFSET ${pageSize * (pageNo - 1)}
+            `);
+        }
+
+        return await query(sql);
+    },
+
     getExistingPayer: async (params) => {
 
         let sqlQry = SQL`
