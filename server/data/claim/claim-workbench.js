@@ -419,8 +419,11 @@ module.exports = {
                             , pof.name AS ordering_facility_name
                             , pofc.location
                             , ipp.insurance_name AS p_insurance_name
+                            , ipp.insurance_info->'website' AS p_insurance_website
                             , ips.insurance_name AS s_insurance_name
+                            , ips.insurance_info->'website' AS s_insurance_website
                             , ipt.insurance_name AS t_insurance_name
+                            , ipt.insurance_info->'website' AS t_insurance_website
                             , ref_pr.full_name AS ref_prov_full_name
                             , p.full_name AS patient_full_name
                             , f.facility_name

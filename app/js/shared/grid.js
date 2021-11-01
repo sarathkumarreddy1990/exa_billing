@@ -137,7 +137,35 @@ define('grid', [
                 } selectedStudyArray.push(study);
             }
         };
-
+        var payerTypeSubmenu = function (data, payerType) {
+            switch (payerType) {
+                case 'primary':
+                    elementID = 'ancPrimaryIns_' + data.primary_patient_insurance_id;
+                    elementName = data.p_insurance_name;
+                    website = data.p_insurance_website || "NULL";
+                    type = '( Primary Insurance )';
+                    break;
+                case 'secondary':
+                    elementID = 'ancSecondaryIns_' + data.secondary_patient_insurance_id;
+                    elementName = data.s_insurance_name;
+                    website = data.s_insurance_website || "NULL";
+                    type = '( Secondary Insurance )';
+                    break;
+                case 'tertiary':
+                    elementID = 'ancTertiaryIns_' + data.tertiary_patient_insurance_id;
+                    elementName = data.t_insurance_name;
+                    website = data.t_insurance_website || "NULL";
+                    type = '( Tertiary Insurance )';
+                    break;
+            }
+            return `<div style="max-width: 270px;overflow: hidden;">
+                        <span style="display:inline-block;">
+                        <a style="padding:0 0 0 10px;" href= ${website} target="_blank" >
+                        <i style="color: blue;" class="fa fa-external-link" title="Insurance URL: ${website}${type}"></i></a></span>
+                        <li style="vertical-align:bottom;display:inline-block;">
+                        <a style="padding:0px;" id= ${elementID} href="javascript: void(0)">${elementName}</a></li>
+                    </div>`
+        };
         var openCreateClaim = function (rowID, event, isClaimGrid, store) {
             var target = event.currentTarget;
             var $target = $(target);
@@ -371,13 +399,14 @@ define('grid', [
                                     liPayerTypeArray.push($(commonjs.getRightClickMenu('ancPatient_' + billingPayers.patient_id, '', true, billingPayers.patient_full_name + '( Patient )', false)));
                                 }
                                 if (billingPayers.primary_patient_insurance_id) {
-                                    liPayerTypeArray.push($(commonjs.getRightClickMenu('ancPrimaryIns_' + billingPayers.primary_patient_insurance_id, '', true, billingPayers.p_insurance_name + '( Primary Insurance )', false)));
+                                    liPayerTypeArray.push($(payerTypeSubmenu(billingPayers, 'primary')));
+
                                 }
                                 if (billingPayers.secondary_patient_insurance_id) {
-                                    liPayerTypeArray.push($(commonjs.getRightClickMenu('ancSecondaryIns_' + billingPayers.secondary_patient_insurance_id, '', true, billingPayers.s_insurance_name + '( Secondary Insurance )', false)));
+                                    liPayerTypeArray.push($(payerTypeSubmenu(billingPayers, 'secondary')));
                                 }
                                 if (billingPayers.tertiary_patient_insurance_id) {
-                                    liPayerTypeArray.push($(commonjs.getRightClickMenu('ancTertiaryIns_' + billingPayers.tertiary_patient_insurance_id, '', true, billingPayers.t_insurance_name + '( Tertiary Insurance )', false)));
+                                    liPayerTypeArray.push($(payerTypeSubmenu(billingPayers, 'tertiary')));
                                 }
                                 if (billingPayers.ordering_facility_contact_id) {
                                     liPayerTypeArray.push($(commonjs.getRightClickMenu('ancOrderingFacility_' + billingPayers.ordering_facility_contact_id, '', true, billingPayers.ordering_facility_name + '( Service Facility )', false)));
