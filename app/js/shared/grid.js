@@ -16,8 +16,9 @@ define('grid', [
     'views/claims/followup',
     'views/claims/reassessClaim',
     'text!templates/claims/validations.html',
-    'text!templates/claims/adjustPaidInFull.html'
-], function (jQuery, _, initChangeGrid, utils, Pager, StudyFields, Studies, claimWorkbench, claimsView, UserSettingsView, StudyFilterView, studyFilterGrid, claimInquiryView, splitClaimView, followUpView, claimReassessView, validationTemplate, adjustPaidInFullTemplate) {
+    'text!templates/claims/adjustPaidInFull.html',
+    'text!templates/claims/payerTypeSubMenu.html'
+], function (jQuery, _, initChangeGrid, utils, Pager, StudyFields, Studies, claimWorkbench, claimsView, UserSettingsView, StudyFilterView, studyFilterGrid, claimInquiryView, splitClaimView, followUpView, claimReassessView, validationTemplate, adjustPaidInFullTemplate, payerTypeTemplate) {
     var $ = jQuery;
     var isTrue = utils.isTrue;
     var isFalse = utils.isFalse;
@@ -158,13 +159,14 @@ define('grid', [
                     type = '( Tertiary Insurance )';
                     break;
             }
-            return `<div style="max-width: 270px;overflow: hidden;">
-                        <span style="display:inline-block;">
-                        <a style="padding:0 0 0 10px;" href= ${website} target="_blank" >
-                        <i style="color: blue;" class="fa fa-external-link" title="Insurance URL: ${website}${type}"></i></a></span>
-                        <li style="vertical-align:bottom;display:inline-block;">
-                        <a style="padding:0px;" id= ${elementID} href="javascript: void(0)">${elementName}</a></li>
-                    </div>`
+
+            var subMenuTemplate = _.template(payerTypeTemplate);
+            return subMenuTemplate ({
+                website : website,
+                elementID : elementID,
+                elementName : elementName,
+                type : type
+            });
         };
         var openCreateClaim = function (rowID, event, isClaimGrid, store) {
             var target = event.currentTarget;
