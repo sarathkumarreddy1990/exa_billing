@@ -2211,8 +2211,11 @@ define(['jquery',
                         return {
                             "": "All",
                             "can_ahs_ard": i18n.get('billing.payments.payment'),
-                            "can_ahs_bbr": i18n.get('billing.payments.acknowledgement'),
-                            "file_type" : i18n.get('billing.claims.submission')
+                            "can_ahs_bbr": i18n.get('billing.claims.acknowledgement'),
+                            "can_ahs_a" : i18n.get('billing.claims.submissionA'),
+                            "can_ahs_c" : i18n.get('billing.claims.submissionC'),
+                            "can_ahs_r" : i18n.get('billing.claims.submissionR'),
+                            "can_ahs_d" : i18n.get('billing.claims.submissionD')
                         };
                     case 'can_MB':
                         return {
@@ -2265,6 +2268,7 @@ define(['jquery',
                     emptyMessage: i18n.get("messages.status.noRecordFound"),
                     colNames: [
                         "",
+                        "",
                         "File Name",
                         "File Type",
                         "Submitted Date",
@@ -2276,6 +2280,7 @@ define(['jquery',
                     ],
                     i18nNames: [
                         "",
+                        "",
                         "billing.claims.fileName",
                         "billing.claims.fileType",
                         "billing.claims.submittedDate",
@@ -2283,8 +2288,7 @@ define(['jquery',
                         "billing.claims.acknowledgementReceived",
                         "billing.claims.paymentReceived",
                         "",
-                        "billing.claims.totalAmountPayable",
-                        ""
+                        "billing.claims.totalAmountPayable"
                     ],
                     colModel: [
                         { name: '', index: 'id', key: true, search: false, width: 25 },
@@ -2426,12 +2430,6 @@ define(['jquery',
                               }
                             }
                         },
-                        {
-                            name: 'error_data',
-                            search: true,
-                            width: 150,
-                            hidden: true
-                        },
                     ],
                     datastore: options.files,
                     customizeSort: true,
@@ -2511,6 +2509,14 @@ define(['jquery',
                         return i18n.get('billing.claims.rejection');
                     case 'can_ohip_e':
                         return i18n.get('billing.claims.correction');
+                    case 'can_ahs_a':
+                        return i18n.get('billing.claims.submissionA');
+                    case 'can_ahs_c':
+                        return i18n.get('billing.claims.submissionC');
+                    case 'can_ahs_r':
+                        return i18n.get('billing.claims.submissionR');
+                    case 'can_ahs_d':
+                        return i18n.get('billing.claims.submissionD');
                     case 'can_ohip_h':
                     default:
                         return i18n.get('billing.claims.submission');
