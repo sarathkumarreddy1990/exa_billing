@@ -1,6 +1,10 @@
 <div style="max-width: 270px;overflow: hidden;">
     <span style="display:inline-block;">
+        <% if (website != 'NULL') { %>
         <a style="padding:0 0 0 10px;" href=<%= website %> target="_blank" >
+        <% }  else { %>
+        <a style="padding:0 0 0 10px;" href= "javascript: void(0)">
+        <% } %>
             <i style="color: blue;" class="fa fa-external-link" title="Insurance URL: <%= website %><%= type %>"></i>
         </a>
     </span>
