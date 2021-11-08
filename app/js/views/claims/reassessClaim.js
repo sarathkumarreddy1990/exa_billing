@@ -43,10 +43,6 @@ define(['jquery',
             $('#saveSupportText').off().click(function () {
                 var supportText = $('#claimReassessment').val();
 
-                if (supportText =='') {
-                    return commonjs.showWarning('billing.fileInsurance.reasonForReassess');
-                }
-
                 commonjs.showLoading();
                 $.ajax({
                     url: '/exa_modules/billing/ahs/can_ahs_reassess_claim',

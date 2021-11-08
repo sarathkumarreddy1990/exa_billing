@@ -400,11 +400,7 @@ const ahsData = {
                         -- currently hard-coded - AHS does not support another code right now
                         'CIP1'                                       AS transaction_type,
 
-                        CASE
-                            WHEN ${source} IN ('reassessment', 'delete')
-                            THEN ''
-                            ELSE 'RGLR'
-                        END                                        AS claim_type,
+                        'RGLR'                                      AS claim_type,
                         pc_app.can_prid                             AS service_provider_prid,
                         sc.code                                         AS skill_code,
 
@@ -939,16 +935,21 @@ const ahsData = {
      * @returns updated records
      */
     updateSupportingText: async (args) => {
-        const {
+        let {
             claimId,
             supportingText
         } = args;
+
+        claimId = claimId.split(',');
         const sql = SQL`
-                     UPDATE
-                         billing.claims
-                     SET
-                         can_supporting_text = ${supportingText}
-                     WHERE id = ${claimId}`;
+                        UPDATE
+                            billing.claims
+                        SET can_supporting_text = CASE
+                                                    WHEN TRIM(${supportingText}) = ''
+                                                    THEN can_supporting_text
+                                                    ELSE COALESCE(TRIM(${supportingText})::TEXT, '') || ' ' || COALESCE(can_supporting_text, '')
+                                                  END
+                        WHERE id = ANY(${claimId}::BIGINT[])`;
         return await query(sql);
     },
 
