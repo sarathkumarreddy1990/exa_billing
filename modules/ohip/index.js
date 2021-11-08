@@ -56,8 +56,6 @@ const billingApi = require('../../server/data/ohip');
 const validateClaimsData = require('../../server/data/claim/claim-workbench');
 const claimWorkBenchController = require('../../server/controllers/claim/claim-workbench');
 const _ = require('lodash');
-
-
 const config = require('../../server/config');
 /**
  * Global value declared for edi file resource_no
@@ -619,6 +617,10 @@ module.exports = {
         const validationMessages = claimData.reduce((validations, claim) => {
             if (!claim.claim_totalCharge) {
                 validations.push(`Claim ${claim.claim_id} has no billable charges`);
+            }
+
+            if (claim.insurance_details.paymentProgram === 'RMB' && !claim.insurance_details.versionCode) {
+                validations.push(`Claim ${claim.claim_id} has no version code`);
             }
 
             return validations;

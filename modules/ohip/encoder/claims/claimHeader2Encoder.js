@@ -47,7 +47,7 @@ const ClaimHeader2Encoder = function (options) {
         // format: numeric
         let encodeChar = claimData.patient_gender || '';
         let isRMBClaim = claimData.insurance_details && claimData.insurance_details.paymentProgram === 'RMB'
-        
+
         switch (isRMBClaim && encodeChar) {
             case 'M': encodeChar = '1';
             break;
@@ -64,7 +64,8 @@ const ClaimHeader2Encoder = function (options) {
         // required: mandatory
         // field length: 2
         // format: ALPHA
-        return util.formatAlphanumeric(claimData.patient_province, 2);
+        // temporary solution of sending province code from version code field for RMB claims
+        return util.formatAlphanumeric(claimData.versionCode, 2);
     };
 
     const getReservedForMOHUse = () => {
