@@ -3,7 +3,7 @@
         <div class="row test" style="padding:10px; font-weight:bold;">
             <% if (!index || claim.claim_no != claimList[index - 1].claim_no) { %>
                 <div style="width:15%; padding-left:23px;"><%= claim.claim_no %></div>
-                <div style="width:20%;"><%= commonjs.getConvertedFacilityTime(claim.study_dt, '', 'L', app.facility_id) %></div>
+                <div style="width:20%;"><%= commonjs.getConvertedFacilityTime(claim.study_dt, '', 'L', facilityId) %></div>
             <% } else { %>
                 <div style="width:15%; padding-left:23px;"></div>
                 <div style="width:20%;"></div>

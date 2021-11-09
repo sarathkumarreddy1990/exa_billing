@@ -5049,6 +5049,7 @@ define(['jquery',
                     $('#divEmptySearch').hide();
                     $('#divNoPatients').hide();
                     $("#ulChangeMenu").hide();
+                    $("#div_patient_claims").hide();
                 }
             }, 500),
 
@@ -6450,7 +6451,7 @@ define(['jquery',
                 $('.divPatientClaims').empty();
                 $('.divPatientClaims').hide();
 
-                var patClaim = self.patientClaimTemplate({ claimList });
+                var patClaim = self.patientClaimTemplate({ claimList, facilityId: app.facilityID });
                 $('.divPatientClaims').append(patClaim);
 
                 $('.divPatientClaims').show();
