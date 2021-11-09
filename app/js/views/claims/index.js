@@ -5049,6 +5049,7 @@ define(['jquery',
                     $('#divEmptySearch').hide();
                     $('#divNoPatients').hide();
                     $("#ulChangeMenu").hide();
+                    $("#div_patient_claims").hide();
                 }
             }, 500),
 
