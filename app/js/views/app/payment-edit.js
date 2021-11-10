@@ -79,6 +79,7 @@ define(['jquery',
             eobFileId: null,
             ediFileId: null,
             defaultCASField: 7,
+            patientId: null,
             additionCASFormTemplate: _.template(AdditionCASTemplate),
             events: {
                 'click #btnPaymentSave': 'savePayment',
@@ -1806,15 +1807,20 @@ define(['jquery',
 
 
                 $('#btnPatientDocument').off().click(function(e){
-                    var study_id, order_id, patient_id;
+                    var study_id;
+                    var order_id;
+                    var url;
+
                     commonjs.getClaimStudy(claimId, function (result) {
                         if (result) {
                             study_id = result.study_id;
                             order_id = result.order_id;
-                            patient_id = result.patient_id;
-                        }
+                            url = study_id
+                                    ? '/vieworder#order/document/' + btoa(order_id) + '/' + btoa(self.patientId) + '/' + btoa(study_id) + '/claim'
+                                    : '/vieworder#patient/document/' + btoa(self.patientId) + '/payment';
 
-                        window.open('/vieworder#order/document/' + btoa(order_id) + '/' + btoa(patient_id) + '/' + btoa(study_id) + '/claim');
+                            window.open(url);
+                        }
                     });
                 });
 
@@ -1998,6 +2004,7 @@ define(['jquery',
                         });
 
                         $.each(payerTypes, function (index, payerObj) {
+                            self.patientId = payerObj.patient_id;
 
                             if (payerObj.patient_id) {
                                 responsibleObjArray.push({
