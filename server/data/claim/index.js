@@ -258,6 +258,7 @@ module.exports = {
                             , pi.subscriber_gender
                             , pi.subscriber_address_line1
                             , pi.subscriber_address_line2
+                            , pi.subscriber_country_code
                             , pi.subscriber_city
                             , pi.subscriber_state
                             , pi.subscriber_zipcode
@@ -308,6 +309,7 @@ module.exports = {
                             , pi.subscriber_gender
                             , pi.subscriber_address_line1
                             , pi.subscriber_address_line2
+                            , pi.subscriber_country_code
                             , pi.subscriber_city
                             , pi.subscriber_state
                             , pi.subscriber_zipcode
@@ -390,6 +392,7 @@ module.exports = {
                             , pi.subscriber_gender
                             , pi.subscriber_address_line1
                             , pi.subscriber_address_line2
+                            , pi.subscriber_country_code
                             , pi.subscriber_city
                             , pi.subscriber_state
                             , pi.subscriber_zipcode
@@ -544,6 +547,7 @@ module.exports = {
                     , cpi.subscriber_gender AS p_subscriber_gender
                     , cpi.subscriber_address_line1 AS p_subscriber_address_line1
                     , cpi.subscriber_address_line2 AS p_subscriber_address_line2
+                    , cpi.subscriber_country_code AS p_subscriber_country_code
                     , cpi.subscriber_city AS p_subscriber_city
                     , cpi.subscriber_state AS p_subscriber_state
                     , cpi.assign_benefits_to_patient AS p_assign_benefits_to_patient
@@ -573,6 +577,7 @@ module.exports = {
                     , csi.subscriber_gender AS s_subscriber_gender
                     , csi.subscriber_address_line1 AS s_subscriber_address_line1
                     , csi.subscriber_address_line2 AS s_subscriber_address_line2
+                    , csi.subscriber_country_code AS s_subscriber_country_code
                     , csi.subscriber_city AS s_subscriber_city
                     , csi.subscriber_state AS s_subscriber_state
                     , csi.assign_benefits_to_patient AS s_assign_benefits_to_patient
@@ -602,6 +607,7 @@ module.exports = {
                     , cti.subscriber_gender AS t_subscriber_gender
                     , cti.subscriber_address_line1 AS t_subscriber_address_line1
                     , cti.subscriber_address_line2 AS t_subscriber_address_line2
+                    , cti.subscriber_country_code AS t_subscriber_country_code
                     , cti.subscriber_city AS t_subscriber_city
                     , cti.subscriber_state AS t_subscriber_state
                     , cti.assign_benefits_to_patient AS t_assign_benefits_to_patient
