@@ -4078,7 +4078,7 @@ define(['jquery',
                         units: app.country_alpha_3_code ==='can' ? parseInt($('#txtUnits_' + id).val()) || 1 : parseFloat($('#txtUnits_' + id).val()) || 1.000,
                         created_by: app.userID,
                         authorization_no: $('#txtAuthInfo_' + id).val() || null,
-                        charge_dt: self.claim_dt_iso || null,
+                        charge_dt: commonjs.shiftToFacilityTimeZone(facility_id, $('#txtScheduleDate_' + id).val()).format('YYYY-MM-DD LT z') || null,
                         study_id: rowData.study_id || null,
                         is_deleted: false,
                         is_custom_bill_fee: $('#txtBillFee_' + id).attr('data-edit'),
@@ -4498,8 +4498,22 @@ define(['jquery',
                 }
                 /* Charge section */
                 var invalidCount = 0;
+                var invalidCptDateCount = 0;
+                var unmatchedChargeDates = [];
 
                 $("#tBodyCharge").find("tr").each(function (index) {
+                    var id = $(this).attr('data_row_id');
+                    var $curChargeDt = $(this).find("#txtScheduleDate_" + id);
+
+                    if (!$curChargeDt.val() || !moment($curChargeDt.val()).isValid()) {
+                        $curChargeDt.focus();
+                        invalidCptDateCount++;
+                        return false;
+                    }
+
+                    if ($curChargeDt.val() !== $('#txtClaimDate').val()) {
+                        unmatchedChargeDates.push(id);
+                    }
 
                     var modifiers = [
                         $(this).find("#txtModifier1_" + index).val() ? $(this).find("#txtModifier1_" + index).val() : '',
@@ -4533,6 +4547,15 @@ define(['jquery',
                     commonjs.showWarning("messages.warning.shared.chargeValidation", 'largewarning');
                     return false;
                 }
+
+                if (invalidCptDateCount) {
+                    return commonjs.showWarning("messages.warning.claims.selectCPTDate");
+                }
+
+                if (unmatchedChargeDates.length && !confirm(commonjs.geti18NString('messages.confirm.billing.confirmServiceDateMismatch'))) {
+                    return;
+                }
+
                 if ($('.cptcode').hasClass('cptIsExists')) {
                     commonjs.showWarning("messages.warning.claims.selectCPTValidation");
                     return false;
@@ -5253,6 +5276,7 @@ define(['jquery',
                     patientList.phone = (patient_info.c1HomePhone) ? patient_info.c1HomePhone : '';
                     patientList.address1 = (patient_info.c1AddressLine1) ? patient_info.c1AddressLine1 : '';
                     patientList.address2 = (patient_info.c1AddressLine2) ? patient_info.c1AddressLine2 : '';
+                    patientList.country = (patient_info.c1country) ? patient_info.c1country : '';
                     patientList.zip = (patient_info.c1Zip) ? patient_info.c1Zip : '';
                     patientList.zipplus = patient_info.c1ZipPlus || '';
                     patientList.country = (patient_info.c1country) ? patient_info.c1country : '';

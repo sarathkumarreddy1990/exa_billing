@@ -329,9 +329,10 @@
                                                     <span id="spDeleteCharge_<%= row.data_row_id %>" class="icon  icon-ic-close removecharge"></span>
                                                 </td>
                                                 <td>
-                                                    <span class="scheduleDate" id="spScheduleDate_<%= row.data_row_id %>">
-                                                        <%= row.charge_dt %>
-                                                    </span>
+                                                    <input
+                                                        class="scheduleDate form-control form-control-date maskDateLocale"
+                                                        i18np="dateFormat" id="txtScheduleDate_<%= row.data_row_id %>"
+                                                        value="<%= row.charge_dt %>">
                                                 </td>
                                                 <td>
                                                     <span class="charges__accession-num" id="spAccessionNo_<%= row.data_row_id %>">

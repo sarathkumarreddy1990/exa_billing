@@ -1221,7 +1221,7 @@ const OHIPDataAPI = {
         }
 
         if (file_type) {
-            whereQuery.push(` ef.file_type ILIKE '%${file_type}%' `);
+            whereQuery.push(` ef.file_type = '${file_type.replace(/\\/g, '')}' `);
         }
 
         if (size) {
@@ -1263,6 +1263,7 @@ const OHIPDataAPI = {
                     eob.eob_file_id,
                     'true' as is_payment_received,
                     'true' as is_acknowledgement_received,
+                    error_data::TEXT,
                     COUNT(1) OVER (range unbounded preceding) AS total_records
                 FROM
                     billing.edi_files ef
