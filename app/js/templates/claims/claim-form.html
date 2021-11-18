@@ -1010,6 +1010,17 @@
                         </select>
                     </div>
                 </div>
+                <!-- Country -->
+                <div class="form-group row">
+                    <label for="ddlPriCountry" class="col-sm-3 col-form-label " i18n="customer.siteSettings.countrySelect"></label>
+                    <div class="col-sm-5">
+                        <select id="ddlPriCountry" class="form-control">
+                            <% _.each(countries, function(country) { %>
+                                <option value="<%= country.alpha_3_code %>" i18n="address.countries.<%= country.alpha_3_code %>"></option>
+                            <% }); %>
+                        </select>
+                    </div>
+                </div>
                 <div class="form-group row">
                     <label for="txtPriSubPriAddr" class="col-sm-3 col-form-label field-required" i18n="billing.claims.addressline1"></label>
                     <div class="col-sm-5">
@@ -1022,29 +1033,32 @@
                         <input type="text" class="form-control" id="txtPriSubSecAddr"i18np="billing.claims.addressline2">
                     </div>
                 </div>
-                <div class="form-group row" id="divPriAddressInfo">
-                    <label for="txtPriCity" class="col-sm-3 col-form-label field-required" i18n="setup.billingprovider.cityStateZip"></label>
-                    <div class="col-sm-3">
-                        <input type="text" class="form-control" id="txtPriCity" name="payCity" i18np="billing.claims.city">
+                <div class="form-group row">
+                    <div class="col-sm-12" id="divPriAddressInfo">
+                        <label for="txtPriCity" class="col-sm-3 col-form-label field-required"
+                            i18n="setup.billingprovider.cityStateZip"></label>
+                        <div class="col-sm-3">
+                            <input type="text" class="form-control" id="txtPriCity" name="payCity"
+                                i18np="billing.claims.city">
+                        </div>
+                        <div class="col-sm-2" style="padding-left:0px;">
+                            <select id="ddlPriState" class="form-control" style="height:32px;">
+                                <% _.each(states, function(obj) { %>
+                                <option value='<%= obj.id %>'>
+                                    <%= obj.text %>
+                                </option>
+                                <% }); %>
+                            </select>
+                        </div>
+                        <div class="col-sm-2" style="padding-left:0px;">
+                            <input type="text" class="form-control" id="txtPriZipCode" i18np="shared.fields.zip">
+                        </div>
+                        <% if(country_alpha_3_code === 'usa') { %>
+                        <div class="col-sm-2 pl-0">
+                            <input type="text" class="form-control" id="txtPriZipPlus" i18np="shared.fields.zipPlus">
+                        </div>
+                        <% } %>
                     </div>
-                    <div class="col-sm-2" style="padding-left:0px;">
-                        <select id="ddlPriState" class="form-control" style="height:32px;">
-                            <% _.each(states, function(obj) { %>
-                            <option value='<%= obj.id %>'>
-                                <%= obj.text %>
-                            </option>
-                            <% }); %>
-                        </select>
-                        </select>
-                    </div>
-                    <div class="col-sm-2" style="padding-left:0px;">
-                        <input type="text" class="form-control" id="txtPriZipCode" i18np="shared.fields.zip">
-                    </div>
-                    <% if(country_alpha_3_code === 'usa') { %>
-                    <div class="col-sm-2 pl-0">
-                        <input type="text" class="form-control" id="txtPriZipPlus" i18np="shared.fields.zipPlus">
-                    </div>
-                    <% } %>
                 </div>
                 <% if(country_alpha_3_code !== 'can') { %>
                 <div class="form-group row editClaimRelated">
@@ -1208,6 +1222,17 @@
                         </select>
                     </div>
                 </div>
+                <!-- Country -->
+                <div class="form-group row">
+                    <label for="ddlSecCountry" class="col-sm-3 col-form-label " i18n="customer.siteSettings.countrySelect"></label>
+                    <div class="col-sm-5">
+                        <select id="ddlSecCountry" class="form-control">
+                            <% _.each(countries, function(country) { %>
+                                <option value="<%= country.alpha_3_code %>" i18n="address.countries.<%= country.alpha_3_code %>"></option>
+                            <% }); %>
+                        </select>
+                    </div>
+                </div>
                 <div class="form-group row">
                     <label for="txtSecSubPriAddr" class="col-sm-3 col-form-label field-required" i18n="billing.claims.addressline1"></label>
                     <div class="col-sm-5">
@@ -1220,29 +1245,32 @@
                         <input type="text" class="form-control" id="txtSecSubSecAddr" i18np="billing.claims.addressline2">
                     </div>
                 </div>
-                <div class="form-group row" id="divSecAddressInfo">
-                    <label for="txtSecCity" class="col-sm-3 col-form-label field-required" i18n="setup.billingprovider.cityStateZip"></label>
-                    <div class="col-sm-3">
-                        <input type="text" class="form-control" id="txtSecCity" name="payCity" i18np="billing.claims.city">
-                    </div>
-                    <div class="col-sm-2" style="padding-left:0px;">
-                        <select id="ddlSecState" class="form-control" style="height:32px;">
-                            <% _.each(states, function(obj) { %>
+                <div class="form-group row">
+                    <div class="col-sm-12" id="divSecAddressInfo">
+                        <label for="txtSecCity" class="col-sm-3 col-form-label field-required"
+                            i18n="setup.billingprovider.cityStateZip"></label>
+                        <div class="col-sm-3">
+                            <input type="text" class="form-control" id="txtSecCity" name="payCity"
+                                i18np="billing.claims.city">
+                        </div>
+                        <div class="col-sm-2" style="padding-left:0px;">
+                            <select id="ddlSecState" class="form-control" style="height:32px;">
+                                <% _.each(states, function(obj) { %>
                                 <option value='<%= obj.id %>'>
                                     <%= obj.text %>
                                 </option>
                                 <% }); %>
-                        </select>
-                        </select>
+                            </select>
+                        </div>
+                        <div class="col-sm-2" style="padding-left:0px;">
+                            <input type="text" class="form-control" id="txtSecZipCode" i18np="shared.fields.zip">
+                        </div>
+                        <% if(country_alpha_3_code === 'usa') { %>
+                        <div class="col-sm-2 pl-0">
+                            <input type="text" class="form-control" id="txtSecZipPlus" i18np="shared.fields.zipPlus">
+                        </div>
+                        <% } %>
                     </div>
-                    <div class="col-sm-2" style="padding-left:0px;">
-                        <input type="text" class="form-control" id="txtSecZipCode" i18np="shared.fields.zip">
-                    </div>
-                    <% if(country_alpha_3_code === 'usa') { %>
-                    <div class="col-sm-2 pl-0">
-                        <input type="text" class="form-control" id="txtSecZipPlus" i18np="shared.fields.zipPlus">
-                    </div>
-                    <% } %>
                 </div>
                 <% if(country_alpha_3_code !== 'can') { %>
                 <div class="form-group row editClaimRelated">
@@ -1597,6 +1625,17 @@
                         </select>
                     </div>
                 </div>
+                <!-- Country -->
+                <div class="form-group row">
+                    <label for="ddlTerCountry" class="col-sm-3 col-form-label " i18n="customer.siteSettings.countrySelect"></label>
+                    <div class="col-sm-5">
+                        <select id="ddlTerCountry" class="form-control">
+                            <% _.each(countries, function(country) { %>
+                                <option value="<%= country.alpha_3_code %>" i18n="address.countries.<%= country.alpha_3_code %>"></option>
+                            <% }); %>
+                        </select>
+                    </div>
+                </div>
                 <div class="form-group row">
                     <label for="txtTerSubPriAddr" class="col-sm-3 col-form-label field-required" i18n="billing.claims.addressline1"></label>
                     <div class="col-sm-5">
@@ -1609,29 +1648,33 @@
                         <input type="text" class="form-control" id="txtTerSubSecAddr" i18np="billing.claims.addressline2">
                     </div>
                 </div>
-                <div class="form-group row" id="divTerAddressInfo">
-                    <label for="txtTerCity" class="col-sm-3 col-form-label field-required" i18n="setup.billingprovider.cityStateZip"></label>
-                    <div class="col-sm-3">
-                        <input type="text" class="form-control" id="txtTerCity" name="payCity" i18np="billing.claims.city">
-                    </div>
-                    <div class="col-sm-2" style="padding-left:0px;">
-                        <select id="ddlTerState" class="form-control" style="height:32px;">
-                            <% _.each(states, function(obj) { %>
+                <div class="form-group row">
+                    <div class="col-sm-12" id="divTerAddressInfo">
+                        <label for="txtTerCity" class="col-sm-3 col-form-label field-required"
+                            i18n="setup.billingprovider.cityStateZip"></label>
+                        <div class="col-sm-3">
+                            <input type="text" class="form-control" id="txtTerCity" name="payCity"
+                                i18np="billing.claims.city">
+                        </div>
+                        <div class="col-sm-2" style="padding-left:0px;">
+                            <select id="ddlTerState" class="form-control" style="height:32px;">
+                                <% _.each(states, function(obj) { %>
                                 <option value='<%= obj.id %>'>
                                     <%= obj.text %>
                                 </option>
                                 <% }); %>
-                        </select>
-                        </select>
+                            </select>
+                            </select>
+                        </div>
+                        <div class="col-sm-2" style="padding-left:0px;">
+                            <input type="text" class="form-control" id="txtTerZipCode" i18np="shared.fields.zip">
+                        </div>
+                        <% if(country_alpha_3_code === 'usa') { %>
+                        <div class="col-sm-2 pl-0">
+                            <input type="text" class="form-control" id="txtTerZipPlus" i18np="shared.fields.zipPlus">
+                        </div>
+                        <% } %>
                     </div>
-                    <div class="col-sm-2" style="padding-left:0px;">
-                        <input type="text" class="form-control" id="txtTerZipCode" i18np="shared.fields.zip">
-                    </div>
-                    <% if(country_alpha_3_code === 'usa') { %>
-                    <div class="col-sm-2 pl-0">
-                        <input type="text" class="form-control" id="txtTerZipPlus" i18np="shared.fields.zipPlus">
-                    </div>
-                    <% } %>
                 </div>
                 <% if(country_alpha_3_code !== 'can') { %>
                 <div class="form-group row editClaimRelated">
