@@ -88,6 +88,72 @@ define(['jquery',
                 selectcptdescription: "Select Cpt Description"
             },
             patientsPager: null,
+            cszFieldMap: [{
+                city: {
+                    domId: 'txtPriCity',
+                    infoKey: 'subscriber_city'
+                },
+                state: {
+                    domId: 'ddlPriState',
+                    infoKey: 'subscriber_state'
+                },
+                zipCode: {
+                    domId: 'txtPriZipCode',
+                    infoKey: 'subscriber_zipcode'
+                },
+                zipCodePlus: {
+                    domId: 'txtPriZipPlus',
+                    infoKey: 'subscriber_zipcode_plus'
+                },
+                country: {
+                    domId: 'ddlPriCountry',
+                    infoKey: 'subscriber_country_code'
+                }
+            },
+            {
+                city: {
+                    domId: 'txtSecCity',
+                    infoKey: 'subscriber_city'
+                },
+                state: {
+                    domId: 'ddlSecState',
+                    infoKey: 'subscriber_state'
+                },
+                zipCode: {
+                    domId: 'txtSecZipCode',
+                    infoKey: 'subscriber_zipcode'
+                },
+                zipCodePlus: {
+                    domId: 'txtSecZipPlus',
+                    infoKey: 'subscriber_zipcode_plus'
+                },
+                country: {
+                    domId: 'ddlSecCountry',
+                    infoKey: 'subscriber_country_code'
+                }
+            },
+            {
+                city: {
+                    domId: 'txtTerCity',
+                    infoKey: 'subscriber_city'
+                },
+                state: {
+                    domId: 'ddlTerState',
+                    infoKey: 'subscriber_state'
+                },
+                zipCode: {
+                    domId: 'txtTerZipCode',
+                    infoKey: 'subscriber_zipcode'
+                },
+                zipCodePlus: {
+                    domId: 'txtTerZipPlus',
+                    infoKey: 'subscriber_zipcode_plus'
+                },
+                country: {
+                    domId: 'ddlTerCountry',
+                    infoKey: 'subscriber_country_code'
+                }
+            }],
             patientTotalRecords: 0,
             patientAddress: {},
             priInsCode : '',
@@ -96,6 +162,7 @@ define(['jquery',
             elIDs: {
                 'primaryInsAddress1': '#txtPriSubPriAddr',
                 'primaryInsAddress2': '#txtPriSubSecAddr',
+                'primaryInsCountry': '#ddlPriCountry',
                 'primaryInsCity': '#txtPriCity',
                 'primaryInsState': '#ddlPriState',
                 'primaryInsZipCode': '#txtPriZipCode'
@@ -248,6 +315,11 @@ define(['jquery',
                     })
                 });
 
+                address.bindCountrySelectToCityStateZip('#divPriAddressInfo', {}, this.cszFieldMap[0]);
+                if (app.country_alpha_3_code !== 'can') {
+                    address.bindCountrySelectToCityStateZip('#divSecAddressInfo', {}, this.cszFieldMap[1]);
+                    address.bindCountrySelectToCityStateZip('#divTerAddressInfo', {}, this.cszFieldMap[2]);
+                }
                 if (app.billingRegionCode === 'can_ON' || app.country_alpha_3_code === 'usa') {
                     $('label[for=txtPriPolicyNo]').append("<span class='Required' style='color: red;padding-left: 5px;'>*</span>");
                 }
@@ -313,8 +385,11 @@ define(['jquery',
 
                 // Append dynamic address details for canadian config
                 self.bindAddressInfo('Pri');
-                self.bindAddressInfo('Sec');
-                self.bindAddressInfo('Ter');
+                if (app.country_alpha_3_code !== 'can') {
+                    self.bindAddressInfo('Sec');
+                    self.bindAddressInfo('Ter');
+                }
+
             },
 
             initializeDateTimePickers: function () {
@@ -1492,6 +1567,7 @@ define(['jquery',
                     }
                     $('#txtPriSubPriAddr').val(claimData.p_subscriber_address_line1);
                     $('#txtPriSubSecAddr').val(claimData.p_subscriber_address_line2);
+                    $('#ddlPriCountry').val(claimData.p_subscriber_country_code || app.country_alpha_3_code);
 
                     // Append dynamic address details for canadian config
                     self.bindAddressInfo('Pri',claimData,'p');
@@ -1536,6 +1612,7 @@ define(['jquery',
                     $('#txtSecSubSuffix').val(claimData.s_subscriber_name_suffix);
                     $('#txtSecSubPriAddr').val(claimData.s_subscriber_address_line1);
                     $('#txtSecSubSecAddr').val(claimData.s_subscriber_address_line2);
+                    $('#ddlSecCountry').val(claimData.s_subscriber_country_code || app.country_alpha_3_code);
                     $('#txtSecCity').val(claimData.s_subscriber_city);
                     //$('#ddlSecState').val(claimData.s_subscriber_state);
                     $('#txtSecZipCode').val(claimData.s_subscriber_zipcode);
@@ -1585,6 +1662,7 @@ define(['jquery',
                     $('#txtTerSubSuffix').val(claimData.t_subscriber_name_suffix);
                     $('#txtTerSubPriAddr').val(claimData.t_subscriber_address_line1);
                     $('#txtTerSubSecAddr').val(claimData.t_subscriber_address_line2);
+                    $('#ddlTerCountry').val(claimData.s_subscriber_country_code || app.country_alpha_3_code);
                     $('#txtTerCity').val(claimData.t_subscriber_city);
                     //$('#ddlTerState').val(claimData.t_subscriber_state);
                     $('#txtTerZipCode').val(claimData.t_subscriber_zipcode);
@@ -3573,8 +3651,13 @@ define(['jquery',
                     }
                     $('#txt' + flag + 'SubPriAddr').val(result.subscriber_address_line1);
                     $('#txt' + flag + 'SubSecAddr').val(result.subscriber_address_line2);
+                    $('#ddl' + flag + 'Country').val(result.subscriber_country_code);
                      // Append dynamic address details for canadian config
                     var AddressInfoMap = {
+                        country: {
+                            domId: 'ddl' + flag + 'Country',
+                            infoKey: 'subscriber_country_code'
+                        },
                         city: {
                             domId: 'txt' + flag + 'City',
                             infoKey: 'subscriber_city'
@@ -3631,6 +3714,7 @@ define(['jquery',
 
                 return $(this.elIDs[level + 'InsAddress1']).val() != getValue(patientAddress.c1AddressLine1) ||
                     $(this.elIDs[level + 'InsAddress2']).val() != getValue(patientAddress.c1AddressLine2) ||
+                    $(this.elIDs[level + 'InsCountry']).val() != getValue(patientAddress.c1country) ||
                     $(this.elIDs[level + 'InsCity']).val() != getValue(patientAddress.c1City) ||
                     $(this.elIDs[level + 'InsState']).val() != getValue(patientAddress.c1State) ||
                     $(this.elIDs[level + 'InsZipCode']).val() != getValue(patientAddress.c1Zip)
@@ -3712,6 +3796,7 @@ define(['jquery',
                     subscriber_gender: $('#ddlPriGender option:selected').val() || null,
                     subscriber_address_line1: $('#txtPriSubPriAddr').val(),
                     subscriber_address_line2: $('#txtPriSubSecAddr').val(),
+                    subscriber_country_code: $('#ddlPriCountry').val(),
                     subscriber_city: $('#txtPriCity').val(),
                     subscriber_state: $('#ddlPriState option:selected').val() || null,
                     subscriber_zipcode: $('#txtPriZipCode').val() != '' ? $('#txtPriZipCode').val() : null,
@@ -3740,6 +3825,7 @@ define(['jquery',
                     subscriber_gender: $('#ddlSecGender option:selected').val() || null,
                     subscriber_address_line1: $('#txtSecSubPriAddr').val(),
                     subscriber_address_line2: $('#txtSecSubSecAddr').val(),
+                    subscriber_country_code: $('#ddlSecCountry').val(),
                     subscriber_city: $('#txtSecCity').val(),
                     subscriber_zipcode: $('#txtSecZipCode').val() != '' ? $('#txtSecZipCode').val() : null,
                     subscriber_zipcode_plus: $.trim($('#ddlSecRelationShip option:selected').text().toLowerCase()) === "self" && app.country_alpha_3_code === "usa" ? $.trim($('#txtSecZipPlus').val()) : null,
@@ -3769,6 +3855,7 @@ define(['jquery',
                     subscriber_gender: $('#ddlTerGender option:selected').val() || null,
                     subscriber_address_line1: $('#txtTerSubPriAddr').val(),
                     subscriber_address_line2: $('#txtTerSubSecAddr').val(),
+                    subscriber_country_code: $('#ddlTerCountry').val(),
                     subscriber_city: $('#txtTerCity').val(),
                     subscriber_zipcode: $('#txtTerZipCode').val() != '' ? $('#txtTerZipCode').val() : null,
                     subscriber_zipcode_plus: $.trim($('#ddlTerRelationShip option:selected').text().toLowerCase()) === "self" && app.country_alpha_3_code === "usa" ? $.trim($('#txtTerZipPlus').val()) : null,
@@ -4492,6 +4579,7 @@ define(['jquery',
                                 self.gender = response.gender;
                                 self.address1 = contactInfo.c1AddressLine1;
                                 self.address2 = contactInfo.c1AddressLine2;
+                                self.subscriber_country_code = contactInfo.c1country;
                                 self.city = contactInfo.c1City;
                                 self.state = contactInfo.c1State;
                                 self.zipCode = contactInfo.c1Zip;
@@ -4526,6 +4614,12 @@ define(['jquery',
 
             bindSubscriber: function (flag) {
                 var self = this;
+                var level = null;
+                switch (flag) {
+                    case 'Pri': level = 0; break;
+                    case 'Sec': level = 1; break;
+                    case 'Ter': level = 2; break;
+                }
                 var relationShip = $.trim($('#ddl' + flag + 'RelationShip option:selected').text().toLowerCase());
                 $('#txt' + flag + 'SubFirstName').val('');
                 $('#txt' + flag + 'SubLastName').val('');
@@ -4539,6 +4633,7 @@ define(['jquery',
                     if (confirm(msg)) {
                         $('#txt' + flag + 'SubPriAddr').val('');
                         $('#txt' + flag + 'SubSecAddr').val('');
+                        $('#ddl' + flag + 'Country').val('');
                         $('#txt' + flag + 'City').val('');
                         $('#ddl' + flag + 'State').val('');
                         $('#txt' + flag + 'ZipCode').val('');
@@ -4548,6 +4643,7 @@ define(['jquery',
                 else {
                     $('#txt' + flag + 'SubPriAddr').val(self.address1);
                     $('#txt' + flag + 'SubSecAddr').val(self.address2);
+                    $('#ddl' + flag + 'Country').val(self.subscriber_country_code);
                     $('#txt' + flag + 'City').val(self.city);
                     $('#ddl' + flag + 'State').val(self.state);
                     $('#txt' + flag + 'ZipCode').val(self.zipCode);
@@ -4558,6 +4654,12 @@ define(['jquery',
                     $('#txt' + flag + 'SubMiName').val(self.mi);
                     $('#txt' + flag + 'SubSuffix').val(self.suffix);
                     $('#ddl' + flag + 'Gender').val(self.gender);
+                    $('#ddl' + flag + 'Country').val(self.subscriber_country_code);
+
+                    self.bindCityStateZipTemplate(self, this.cszFieldMap[level], flag);
+                    $('#txt' + flag + 'City').val(self.city);
+                    $('#ddl' + flag + 'State').val(self.state);
+                    $('#txt' + flag + 'ZipCode').val(self.zipCode);
                     $('#txt' + flag + 'ZipPlus').val(self.zipCodePlus);
                 }
                 else
@@ -4566,10 +4668,11 @@ define(['jquery',
             checkAddressDetails: function (flag) {
                 var chkaddress1 = $('#txt' + flag + 'SubPriAddr').val();
                 var chkaddress2 = $('#txt' + flag + 'SubSecAddr').val();
+                var chkCountry = $('#ddl' + flag + 'Country').val();
                 var chkcity = $('#txt' + flag + 'City').val();
                 var chkstate = $('#ddl' + flag + 'State option:selected').val();
                 var chkzipcode = $('#txt' + flag + 'ZipCode').val();
-                if (chkaddress1 == '' && chkaddress2 == '' && chkcity == '' && (chkstate == '' || chkstate == '0') && chkzipcode == '') {
+                if (chkaddress1 == '' && chkaddress2 == '' && chkCountry === '' && chkcity == '' && (chkstate == '' || chkstate == '0') && chkzipcode == '') {
                     return false;
                 }
                 else {
@@ -5102,6 +5205,7 @@ define(['jquery',
                     patientList.address2 = (patient_info.c1AddressLine2) ? patient_info.c1AddressLine2 : '';
                     patientList.zip = (patient_info.c1Zip) ? patient_info.c1Zip : '';
                     patientList.zipplus = patient_info.c1ZipPlus || '';
+                    patientList.country = (patient_info.c1country) ? patient_info.c1country : '';
                     patientList.city = (patient_info.c1City) ? patient_info.c1City : '';
                     patientList.state = (patient_info.c1State) ? patient_info.c1State : '';
                     patientList.home = (patient_info.c1HomePhone) ? patient_info.c1HomePhone : '';
@@ -5407,6 +5511,7 @@ define(['jquery',
                     $('#ddl' + flag[i] + 'Gender option:contains("Select")').prop("selected", true);
                     $('#txt' + flag[i] + 'SubPriAddr').val('');
                     $('#txt' + flag[i] + 'SubSecAddr').val('');
+                    $('#ddl' + flag[i] + 'Country').val(app.country_alpha_3_code);
                     $('#txt' + flag[i] + 'City').val('');
                     $('#ddl' + flag[i] + 'Insurance').val('').trigger('change');
                     $('#ddl' + flag[i] + 'Insurance').find('option').remove();
@@ -6079,12 +6184,7 @@ define(['jquery',
                 commonjs.updateCulture(app.currentCulture, commonjs.beautifyMe);
             },
             bindCityStateZipTemplate:function(data,AddressInfoMap, flag){
-
-                address.loadCityStateZipTemplate('#div' + flag + 'AddressInfo', data, AddressInfoMap);
-                // Adjust the style alignment
-                var $addressDiv = $('#div' + flag + 'AddressInfo');
-                $addressDiv.find('.city-state-zip-label').removeClass('p-0');
-                $addressDiv.find('.city-state-zip-content').addClass('pl-2').removeClass('pl-1');
+                address.bindCountrySelectToCityStateZip('#div' + flag + 'AddressInfo', data, AddressInfoMap);
             },
             checkHealthNumberEligiblity: function () {
                 if (app.country_alpha_3_code === 'can') {
@@ -6164,22 +6264,25 @@ define(['jquery',
 
             bindAddressInfo: function (id, data, key) { // Append dynamic address details for canadian config
                 var AddressInfoMap = {
+                    country: {
+                        domId: 'ddl' + id + 'Country',
+                        infoKey: (key && key + '_subscriber_country_code') || 'subscriber_country_code'
+                    },
                     city: {
                         domId: 'txt' + id + 'City',
-                        infoKey: (key && key + '_subscriber_city') || 'city'
+                        infoKey: (key && key + '_subscriber_city') || 'subscriber_city'
                     },
                     state: {
                         domId: 'ddl' + id + 'State',
-                        infoKey: (key && key + '_subscriber_state') || 'state'
+                        infoKey: (key && key + '_subscriber_state') || 'subscriber_state'
                     },
                     zipCode: {
                         domId: 'txt' + id + 'ZipCode',
-                        infoKey: (key && key + '_subscriber_zipcode') || 'zip'
-
+                        infoKey: (key && key + '_subscriber_zipcode') || 'subscriber_zipcode'
                     },
                     zipCodePlus: {
                         domId: 'txt' + id + 'ZipPlus',
-                        infoKey: (key && key + '_subscriber_zipcode_plus') || 'zipplus'
+                        infoKey: (key && key + '_subscriber_zipcode_plus') || 'subscriber_zipcode_plus'
                     }
                 }
                 this.bindCityStateZipTemplate(data || {}, AddressInfoMap, id);
