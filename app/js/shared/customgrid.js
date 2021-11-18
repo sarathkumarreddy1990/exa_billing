@@ -810,7 +810,7 @@ function customGrid ( datastore, gridID ) {
 
         var filterDataValue = filterData;
 
-        if (self.options.isClaimGrid) {
+        if (self.options.isClaimGrid || self.options.customargs && self.options.customargs.isClaimGrid) {
             if (this.options.filterid == 'Follow_up_queue') {
                 $("#btnInsuranceClaim").hide();
             } else if (filterCol.indexOf('billing_method') > -1) {

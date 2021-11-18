@@ -5203,6 +5203,7 @@ define(['jquery',
                     patientList.phone = (patient_info.c1HomePhone) ? patient_info.c1HomePhone : '';
                     patientList.address1 = (patient_info.c1AddressLine1) ? patient_info.c1AddressLine1 : '';
                     patientList.address2 = (patient_info.c1AddressLine2) ? patient_info.c1AddressLine2 : '';
+                    patientList.country = (patient_info.c1country) ? patient_info.c1country : '';
                     patientList.zip = (patient_info.c1Zip) ? patient_info.c1Zip : '';
                     patientList.zipplus = patient_info.c1ZipPlus || '';
                     patientList.country = (patient_info.c1country) ? patient_info.c1country : '';
