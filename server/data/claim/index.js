@@ -1072,6 +1072,7 @@ module.exports = {
                                 studies.deleted_dt IS NULL
                                 AND study_dt IS NOT NULL
                                 AND studies.patient_id = ${id}
+                                AND studies.study_status NOT IN ('CAN', 'ABRT', 'NOS')
                                 AND NOT EXISTS ( SELECT 1 FROM billing.charges_studies WHERE study_id = studies.id )
                             ORDER BY id ASC
                     ) AS charge
