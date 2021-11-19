@@ -606,7 +606,7 @@ module.exports = {
                 filter.filterQuery = ` WHERE patients.deleted_dt IS NULL AND patients.id ${filter.symbol} ${filter.searchId} AND patients.company_id = ${filter.company_id}`;
             }
         } else {
-            filter.filterQuery = ` WHERE patients.deleted_dt IS NULL AND patients.company_id = ${filter.company_id}`;
+            filter.filterQuery = ` WHERE patients.deleted_dt IS NULL AND u.id = ${~~filter.userId} AND patients.company_id = ${filter.company_id}`;
         }
 
         if (filter.showInactive === 'false') {
@@ -769,30 +769,30 @@ module.exports = {
             if (filter.fromPTSL) {
                 sql = `
                 SELECT
-                    account_no,
-                    alt_account_no,
-                    gender,
+                    patients.account_no,
+                    patients.alt_account_no,
+                    patients.gender,
                     pf.facility_id,
                     patients.id,
                     rcopia_id,
-                    date_part('year',age(birth_date)) as age,
-                    dicom_patient_id,
-                    first_name,
-                    last_name,
-                    (deleted_dt IS NOT NULL) as has_deleted,
-                    is_active, /* patients.is_active */
+                    date_part('year',age(patients.birth_date)) as age,
+                    patients.dicom_patient_id,
+                    patients.first_name,
+                    patients.last_name,
+                    (patients.deleted_dt IS NOT NULL) as has_deleted,
+                    patients.is_active, /* patients.is_active */
                     get_full_name(
-                        last_name,
-                        first_name,
-                        middle_name,
-                        prefix_name,
-                        suffix_name) AS full_name,
+                        patients.last_name,
+                        patients.first_name,
+                        patients.middle_name,
+                        patients.prefix_name,
+                        patients.suffix_name) AS full_name,
                     owner_id,
-                    patient_info as more_info,
-                    to_char(patients.birth_date, 'YYYY-MM-DD') as birth_date,
-                    COUNT(1) OVER (range unbounded preceding) as total_records
+                    patients.patient_info as more_info,
+                    to_char(patients.birth_date, 'YYYY-MM-DD') as birth_date
                 FROM patients
                 INNER JOIN patient_facilities pf ON pf.patient_id = patients.id AND pf.is_default
+                INNER JOIN users u ON pf.facility_id = ANY(u.facilities)
                 ${filter.filterQuery}
                 ORDER BY ${filter.sortField} ASC
                 LIMIT ${filter.pageSize}
@@ -844,8 +844,9 @@ module.exports = {
             SELECT
                   COUNT(DISTINCT patients.id) AS total_records
                 , max(patients.id)            AS lastid
-            FROM
-                patients
+            FROM patients
+            INNER JOIN patient_facilities pf ON pf.patient_id = patients.id AND pf.is_default
+            INNER JOIN users u ON pf.facility_id = ANY(u.facilities)
                 ${filter.joinQuery}
             ${filter.filterQuery}
             `;
