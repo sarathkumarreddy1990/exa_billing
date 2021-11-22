@@ -184,7 +184,7 @@ WITH claim_data AS(
           SELECT
               MAX(COALESCE(study_dt, bc.claim_dt)) AS study_date
           FROM billing.claims bc
-              LEFT JOIN billing.charges bch ON bch.claim_id = bc.id 
+              LEFT JOIN billing.charges bch ON bch.claim_id = bc.id
               LEFT JOIN billing.charges_studies bchs on bchs.charge_id = bch.id
               LEFT JOIN studies s ON s.id = bchs.study_id
            WHERE bc.patient_id = p.id
@@ -198,19 +198,19 @@ WITH claim_data AS(
          tertiary_patient_insurance_id
    END)),
    guarantor_cte AS (
-    SELECT 
-      mpid, 
-      pgid, 
+    SELECT
+      mpid,
+      pgid,
       guarantor_address1,
       guarantor_address2,
       guarantor_city,
       guarantor_state,
       guarantor_zip,
       guarantor_full_name,
-      RANK () OVER ( 
+      RANK () OVER (
           PARTITION BY mpid
               ORDER BY pgid DESC
-          ) pg_rank 
+          ) pg_rank
     FROM  (
       SELECT
         mdc.pid AS mpid,
@@ -229,6 +229,15 @@ WITH claim_data AS(
         ) AS guarantor_full_name
       FROM main_detail_cte mdc
       INNER JOIN patient_guarantors pg on pg.patient_id = mdc.pid AND pg.deleted_dt IS NULL
+      GROUP BY
+          mpid
+        , pgid
+        , guarantor_address1
+        , guarantor_address2
+        , guarantor_city
+        , guarantor_state
+        , guarantor_zip
+        , guarantor_full_name
     ) pgs
   ),
   main_detail_ext_cte AS (
@@ -580,7 +589,7 @@ WITH claim_data AS(
               , null
               , null
               , null
-              , null  
+              , null
               , null
               , null
               , null
@@ -1048,7 +1057,7 @@ WITH claim_data AS(
           , c37
           , c38
           , c39
-          <% if (countryCode === 'usa') { %> 
+          <% if (countryCode === 'usa') { %>
             , c40
             , c41
             , c42
@@ -1056,7 +1065,7 @@ WITH claim_data AS(
             , c44
             , c45
             , c46
-          <% } else { %> 
+          <% } else { %>
             , null
             , -1
             , null
@@ -1064,7 +1073,7 @@ WITH claim_data AS(
             , null
             , null
             , null
-          <% } %> 
+          <% } %>
           FROM all_cte
           ORDER BY
             pid

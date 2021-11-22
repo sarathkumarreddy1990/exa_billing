@@ -28,7 +28,8 @@ define([
                 fromDate: null,
                 allBillingProviders: false,
                 patientLastnameFrom: null,
-                patientLastnameTo: null
+                patientLastnameTo: null,
+                mailTo: null
             },
             selectedFacilityList: [],
             events: {
@@ -90,8 +91,23 @@ define([
                     width: '200px'
                 });
 
+                $('#ddlMailToOption')
+                .append('<option value="select">' + commonjs.geti18NString('shared.buttons.select'))
+                .append('<option value="patient">' + commonjs.geti18NString('shared.fields.patient'))
+                .append('<option value="guarantor">' + commonjs.geti18NString('shared.fields.guarantor'))
+                .append('<option value="orderingFacility">' + commonjs.geti18NString('shared.fields.orderingFacility'));
+
+                $('#ddlMailToOption').multiselect({
+                    maxHeight: '200px',
+                    buttonWidth: '220px',
+                    width: '200px'
+                });
+
                 this.viewModel.fromDate = commonjs.bindDateTimePicker("txtFromDate", { format: 'L' });
                 this.viewModel.fromDate.date(commonjs.getFacilityCurrentDateTime(app.facilityID));
+
+                $('#mailToOption').hide();
+                $('#divPatient').hide();
 
                 $('#ddlFacilityFilter').multiselect({
                     maxHeight: 200,
@@ -137,6 +153,7 @@ define([
                 this.viewModel.minAmount = $('#minAmount').val() || "0";
                 this.viewModel.patientLastnameFrom = $('#patientLastnameFrom').val() === '' ? 'a' : $('#patientLastnameFrom').val();
                 this.viewModel.patientLastnameTo = $('#patientLastnameTo').val() === '' ? 'z' : $('#patientLastnameTo').val();
+                this.viewModel.mailTo = $('#ddlMailToOption').val() || null;
 
                 if (this.hasValidViewModel()) {
                     var urlParams = this.getReportParams();
@@ -146,7 +163,7 @@ define([
 
             hasValidViewModel: function () {
                 var fromDateValue = this.viewModel.fromDate.date();
-                
+
                 if (this.viewModel.reportId == null || this.viewModel.reportCategory == null || this.viewModel.reportFormat == null) {
                     return commonjs.showWarning('messages.status.pleaseCheckReportIdCategoryandorFormat');
                 }
@@ -177,7 +194,8 @@ define([
                     patientLastnameFrom: this.viewModel.patientLastnameFrom,
                     patientLastnameTo: this.viewModel.patientLastnameTo,
                     logInClaimInquiry: $('#chkLogInClaimInquiry').prop('checked'),
-                    countryCode: app.country_alpha_3_code
+                    countryCode: app.country_alpha_3_code,
+                    mailTo:  this.viewModel.mailTo
                 };
             },
 
@@ -197,11 +215,23 @@ define([
                 UI.hideShowBox('ddlPatient');
                 $('#txtPatient').empty();
 
-                if ($('#ddlPatientOption').val() !== 'R') {
+                $('#ddlMailToOption').val('select');
+                $("#ddlMailToOption").multiselect("refresh");
+
+                if ($('#ddlPatientOption').val() === 'R') {
+                    $('#ddlPatientLastNameBox').show();
+                    $('#mailToOption').hide();
+                    $('#divPatient').hide();
+                }
+                else if($('#ddlPatientOption').val() === 'S') {
                     $('#ddlPatientLastNameBox').hide();
+                    $('#mailToOption').show();
+                    $('#divPatient').show();
                 }
                 else {
-                    $('#ddlPatientLastNameBox').show();
+                    $('#ddlPatientLastNameBox').hide();
+                    $('#mailToOption').hide();
+                    $('#divPatient').hide();
                 }
             }
         });
