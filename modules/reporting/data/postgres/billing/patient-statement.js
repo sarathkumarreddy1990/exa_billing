@@ -10,6 +10,7 @@ const _ = require('lodash')
 const patientStatementDataSetQueryTemplate = _.template(`
 WITH claim_data AS (
     SELECT
+        bc.patient_id,
         bc.id AS claim_id,
         bc.facility_id
     FROM billing.claims bc
@@ -93,6 +94,7 @@ WITH claim_data AS (
     SELECT
         p.id as pid,
         bc.id as claim_id,
+        bc.ordering_facility_contact_id,
         sum((CASE type WHEN 'charge' then amount
                       WHEN 'payment' then amount
                       WHEN 'adjustment' then amount
@@ -163,6 +165,15 @@ WITH claim_data AS (
     INNER JOIN billing_comments pc on pc.id = bc.id
     INNER JOIN billing.providers bp on bp.id = bc.billing_provider_id
     INNER JOIN facilities f on f.id = bc.facility_id
+    LEFT JOIN LATERAL (
+        SELECT
+            MAX(coalesce(study_dt,bc.claim_dt)) AS study_date
+		FROM billing.claims bc
+            LEFT JOIN billing.charges bch ON bch.claim_id = bc.id
+            LEFT JOIN billing.charges_studies bchs on bchs.charge_id = bch.id
+            LEFT JOIN studies s ON s.id = bchs.study_id
+		WHERE bc.patient_id = p.id
+      ) std ON TRUE
     WHERE <%= whereDate %>
     <% if (billingProviderIds) { %>AND <% print(billingProviderIds); } %>
     <% if (facilityIds) { %>AND <% print(facilityIds); } %>
@@ -173,34 +184,34 @@ WITH claim_data AS (
     <% } %>
 
     ORDER BY first_name),
-    patient_claim_details AS(	
-		SELECT	
-		    pid AS patient_id,	
-			max(claim_dt) AS study_date	
-		FROM detailed_cte	
-		GROUP BY pid	
-	),	
-    main_detail_cte AS (	
-		SELECT	
-			*,	
-		   date_part('year', age(pcd.study_date, dc.birth_date)::interval) AS age	
-		FROM patient_claim_details pcd	
-		INNER JOIN detailed_cte dc ON pcd.patient_id = dc.pid	
+    patient_claim_details AS(
+		SELECT
+		    pid AS patient_id,
+			max(claim_dt) AS study_date
+		FROM detailed_cte
+		GROUP BY pid
+	),
+    main_detail_cte AS (
+		SELECT
+			*,
+		   date_part('year', age(pcd.study_date, dc.birth_date)::interval) AS age
+		FROM patient_claim_details pcd
+		INNER JOIN detailed_cte dc ON pcd.patient_id = dc.pid
 	),
     guarantor_cte AS (
-        SELECT 
-           mpid, 
-           pgid, 
+        SELECT
+           mpid,
+           pgid,
            guarantor_address1,
            guarantor_address2,
            guarantor_city,
            guarantor_state,
            guarantor_zip,
            guarantor_full_name,
-           RANK () OVER ( 
+           RANK () OVER (
                 PARTITION BY mpid
                    ORDER BY pgid DESC
-                ) pg_rank 
+                ) pg_rank
         FROM (
                 SELECT
                     mdc.pid AS mpid,
@@ -213,12 +224,22 @@ WITH claim_data AS (
                     get_full_name(pg.guarantor_info->'lastName',pg.guarantor_info->'firstName',pg.guarantor_info->'mi','',pg.guarantor_info->'suffix') as guarantor_full_name
                 FROM main_detail_cte mdc
                 INNER JOIN patient_guarantors pg on pg.patient_id = mdc.pid AND pg.deleted_dt IS NULL
+                GROUP BY
+                      mpid
+                    , pgid
+                    , guarantor_address1
+                    , guarantor_address2
+                    , guarantor_city
+                    , guarantor_state
+                    , guarantor_zip
+                    , guarantor_full_name
         ) pgs
     ),
     main_detail_ext_cte AS (
         SELECT
-            pid,
-            claim_id,
+            mdc.pid,
+            mdc.claim_id,
+            mdc.ordering_facility_contact_id,
             sum_amount,
             first_name,
             middle_name,
@@ -276,7 +297,36 @@ WITH claim_data AS (
         AND claim_sum_amount != 0::MONEY
         ORDER BY first_name
     ),
-
+    ordering_facility_claim_cte AS (
+        SELECT
+              pid
+            , max(claim_id) AS ordering_facility_claim_id
+        FROM detail_cte
+        WHERE ordering_facility_contact_id IS NOT NULL
+        GROUP BY pid
+    ),
+    ordering_facility_cte AS (
+        SELECT
+              ofct.pid          AS patient_id
+            , ofct.ordering_facility_claim_id
+            , of.name           AS ordering_facility_name
+            , of.address_line_1 AS ordering_facility_address1
+            , of.address_line_2 AS ordering_facility_address2
+            , of.city           AS ordering_facility_city
+            , of.state          AS ordering_facility_state
+            , of.zip_code       AS ordering_facility_zip_code
+        FROM ordering_facility_claim_cte ofct
+        INNER JOIN billing.claims bc ON bc.id = ofct.ordering_facility_claim_id
+        INNER JOIN ordering_facility_contacts ofc ON ofc.id = bc.ordering_facility_contact_id
+        INNER JOIN ordering_facilities of ON of.id = ofc.ordering_facility_id
+    ),
+    all_detail_cte AS(
+        SELECT
+              dc.*
+            , ofc.*
+        FROM detail_cte dc
+        LEFT JOIN ordering_facility_cte ofc ON ofc.patient_id = dc.pid
+    ),
     <% if (logInClaimInquiry === 'true') { %>
         create_comments AS (
             INSERT INTO billing.claim_comments
@@ -315,7 +365,7 @@ WITH claim_data AS (
         dc.enc_id,
         COALESCE (payment_type_date1, payment_type_date2) AS bucket_date,
         <%= encounterTotal %> AS enc_total_amount
-    FROM detail_cte dc
+    FROM all_detail_cte dc
     INNER JOIN date_cte dtc ON  dtc.pid = dc.pid
     GROUP BY
       dc.pid
@@ -385,6 +435,7 @@ WITH claim_data AS (
     , 'Over90'             AS c24
     , 'Over120'            AS c25
     , 'BillingMessage'     AS c26
+    <% if (reportFormat === 'html' || reportFormat === 'pdf') {%>
     , 'GuarantorName'               AS c27
     , 'Age'                         AS c28
     , 'PatientGuarantorAddress1'    AS c29
@@ -392,6 +443,15 @@ WITH claim_data AS (
     , 'PatientGuarantorCity'        AS c31
     , 'PatientGuarantorState'       AS c32
     , 'PatientGuarantorZip'         AS c33
+    , 'orderingFacilityName'        AS c34
+    , 'orderingFacilityAddress1'    AS c35
+    , 'orderingFacilityAddress2'    AS c36
+    , 'orderingFacilityCity'        AS c37
+    , 'orderingFacilityState'       AS c38
+    , 'orderingFacilityZipCode'     AS c39
+    , 'mailTo'                      AS c40
+    , 'countryCode'                 AS c41
+    <% } %>
     , -1                   AS pid
     , -1                   AS enc_id
     , null::date           AS enc_date
@@ -430,6 +490,7 @@ WITH claim_data AS (
     , null
     , null
     , null
+    <% if (reportFormat === 'html' || reportFormat === 'pdf') {%>
     , null
     , null
     , null
@@ -437,6 +498,15 @@ WITH claim_data AS (
     , null
     , null
     , null
+    , null
+    , null
+    , null
+    , null
+    , null
+    , null
+    , null
+    , null
+    <% } %>
     , pid
     , 0
     , null
@@ -445,7 +515,7 @@ WITH claim_data AS (
     , 0
     , null
     , null
-    FROM detail_cte
+    FROM all_detail_cte
     UNION
 
     <%= statementAmount %>
@@ -479,6 +549,7 @@ WITH claim_data AS (
     , null
     , null
     , null
+    <% if (reportFormat === 'html' || reportFormat === 'pdf') {%>
     , null
     , null
     , null
@@ -486,6 +557,15 @@ WITH claim_data AS (
     , null
     , null
     , null
+    , null
+    , null
+    , null
+    , null
+    , null
+    , null
+    , null
+    , null
+    <% } %>
     , pid
     , enc_id
     , enc_date::date AS enc_date
@@ -494,7 +574,7 @@ WITH claim_data AS (
     , null
     <%= anythingElse %>
     , charge_id::text
-    FROM detail_cte
+    FROM all_detail_cte
     UNION
 
     -- Encounter Total, sum per pid and enc_id, both should be in select
@@ -525,6 +605,7 @@ WITH claim_data AS (
     , null
     , null
     , null
+    <% if (reportFormat === 'html' || reportFormat === 'pdf') {%>
     , null
     , null
     , null
@@ -532,6 +613,15 @@ WITH claim_data AS (
     , null
     , null
     , null
+    , null
+    , null
+    , null
+    , null
+    , null
+    , null
+    , null
+    , null
+    <% } %>
     , pid
     , enc_id
     , null
@@ -571,6 +661,7 @@ WITH claim_data AS (
     , over90_amount::text
     , over120_amount::text
     , billing_msg
+    <% if (reportFormat === 'html' || reportFormat === 'pdf') {%>
     , null
     , null
     , null
@@ -578,6 +669,15 @@ WITH claim_data AS (
     , null
     , null
     , null
+    , null
+    , null
+    , null
+    , null
+    , null
+    , null
+    , null
+    , null
+    <% } %>
     , pid
     , null
     , null
@@ -623,23 +723,23 @@ WITH claim_data AS (
     , c24
     , c25
     , c26
-    <% if (countryCode === 'usa') { %>
-        , c27
-        , c28
-        , c29
-        , c30
-        , c31
-        , c32
-        , c33
-    <% } else { %> 
-        , null
-        , -1
-        , null
-        , null
-        , null
-        , null
-        , null
-    <% } %> 
+    <% if (reportFormat === 'html' || reportFormat === 'pdf') {%>
+    , c27
+    , c28
+    , c29
+    , c30
+    , c31
+    , c32
+    , c33
+    , c34
+    , c35
+    , c36
+    , c37
+    , c38
+    , c39
+    , c40
+    , c41
+    <% } %>
     <%= rowFlag %>
     <%= encounterAmount %>
     <%= statementFlag %>
@@ -785,7 +885,8 @@ const api = {
             userId: null,
             reportFormat: null,
             logInClaimInquiry: null,
-            countryCode: null
+            countryCode: null,
+            mailTo: null
         };
 
         filters.userId = reportParams.userId;
@@ -867,6 +968,14 @@ const api = {
               , null
               , null
               , null
+              , null
+              , null
+              , null
+              , null
+              , null
+              , null
+              , null
+              , null
               , pid
               , 0
               , null
@@ -915,6 +1024,14 @@ const api = {
               , guarantor_city
               , guarantor_state
               , guarantor_zip
+              , ordering_facility_name
+              , ordering_facility_address1
+              , ordering_facility_address2
+              , ordering_facility_city
+              , ordering_facility_state
+              , ordering_facility_zip_code
+              , '${reportParams.mailTo}'
+              , '${reportParams.countryCode}'
               , pid
               , 0
               , null
@@ -923,7 +1040,7 @@ const api = {
               , 2
               , null
               , null
-              FROM detail_cte
+              FROM all_detail_cte
               UNION
               `;
 
@@ -963,6 +1080,14 @@ const api = {
             , null
             , null
             , null
+            , null
+            , null
+            , null
+            , null
+            , null
+            , null
+            , null
+            , null
             , pid
             , null
             , null
@@ -971,7 +1096,7 @@ const api = {
             , 1
             , null
             , null
-            FROM detail_cte
+            FROM all_detail_cte
             `;
 
             filters.billingMsg = `
@@ -1003,6 +1128,14 @@ const api = {
             , null
             , null
             , billing_msg
+            , null
+            , null
+            , null
+            , null
+            , null
+            , null
+            , null
+            , null
             , null
             , null
             , null
@@ -1075,6 +1208,7 @@ const api = {
 
         filters.dateFormat = reportParams.dateFormat;
         filters.countryCode = reportParams.countryCode;
+        filters.mailTo = reportParams.mailTo;
         return {
             queryParams: params,
             templateData: filters
