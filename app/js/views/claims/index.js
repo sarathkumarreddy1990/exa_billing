@@ -4207,6 +4207,7 @@ define(['jquery',
                 self.is_secondary_available = false;
                 self.is_tertiary_available = false;
                 self.isUpdatePatientInfo = false;
+                var isRMBInsurance = self.priInsCode && self.priInsCode.toLowerCase() === 'rmb';
                 /* Claims section */
                 if (!$('#ddlFacility').val()) {
                     commonjs.showWarning("messages.warning.shared.selectfacility");
@@ -4420,7 +4421,7 @@ define(['jquery',
                     self.isUpdatePatientInfo = true;
                 }
 
-                if (app.country_alpha_3_code === 'can' && self.validateHealthNumberInputCanada("txtPriPolicyNo") ) {
+                if (app.country_alpha_3_code === 'can' && !isRMBInsurance && self.validateHealthNumberInputCanada("txtPriPolicyNo") ) {
                     commonjs.showWarning('messages.warning.shared.invalidHealthNumber');
                     return false;
                 }
