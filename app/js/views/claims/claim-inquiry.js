@@ -23,7 +23,8 @@ define([
     'views/app/unapplied-payment',
     'text!templates/claims/claim-inquiry-cas.html',
     'shared/report-utils',
-    'text!templates/claims/claim-inquiry-cas-header.html'
+    'text!templates/claims/claim-inquiry-cas-header.html',
+    'views/reports/patient-statement'
 ], function (
     $,
     _,
@@ -49,7 +50,8 @@ define([
     unappliedPaymentView,
     casTemplate,
     UI,
-    claimEnquiryCasHeader
+    claimEnquiryCasHeader,
+    PatientStatementView
 ) {
         var paperClaim = new PaperClaim(true);
 
@@ -268,6 +270,17 @@ define([
                 $('#btnCIPrintInvoice').off().click(function () {
                     self.generatePrintInvoice(self.claim_id);
                 });
+
+                $('#btnPatientStatement').off().on('click', function(e) {
+                    mailTo = 'select';
+                    self.printStatement(e, self.claim_id, [self.options.patient_id]);
+                });
+
+                $('.printStatement').off().on('click', function(e) {
+                    mailTo = $(e.target).attr('data-method');
+                    self.printStatement(e, self.claim_id, [self.options.patient_id]);
+                });
+
             },
 
             disableElementsForProvince: function(data) {
@@ -1375,6 +1388,27 @@ define([
                     'billingAddressTaxNpi': $('#bindAddressTaxNpi').prop('checked'),
                     'selectedClaimIds': claimIds,
                     'billingPayers': $('#bindPayers').prop('checked')
+                }
+            },
+
+            printPatientStatement: function(claimId, patientId) {
+                this.PatientStatementView = new PatientStatementView({
+                    el: $('#reportFrame')
+                });
+                return {
+                    'patientIds': patientId,
+                    'claimID': claimId,
+                    'flag': "patientStatement",
+                    'logInClaimInquiry': true,
+                    'mailTo': mailTo
+                }
+            },
+
+            printStatement: function (e, claimId, patientId) {
+                var patientStatementParams = this.printPatientStatement(claimId, patientId);
+                if (patientStatementParams) {
+                    this.PatientStatementView.onReportViewClick(e, patientStatementParams);
+                    $('#modal_div_container').removeAttr('style');
                 }
             },
 

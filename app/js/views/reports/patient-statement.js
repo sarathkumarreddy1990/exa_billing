@@ -4,12 +4,13 @@ define([
     , 'backbone'
     , 'shared/report-utils'
     , 'text!templates/reports/patient-statement.html'
+    , 'text!templates/reports/patient-activity-statement.html'
 ],
-    function ($, _, Backbone, UI, PatientStatementTemplate) {
+    function ($, _, Backbone, UI, PatientStatementTemplate, PatientActivityStatementTemplate) {
 
         var PatientStatementView = Backbone.View.extend({
             rendered: false,
-            mainTemplate: _.template(PatientStatementTemplate),
+            mainTemplate: _.template(PatientStatementTemplate) || _.template(PatientActivityStatementTemplate),
             viewModel: {
                 dateFormat: 'MM/DD/YYYY',
                 country_alpha_3_code: 'usa',
@@ -104,7 +105,7 @@ define([
                 });
 
                 this.viewModel.fromDate = commonjs.bindDateTimePicker("txtFromDate", { format: 'L' });
-                this.viewModel.fromDate.date(commonjs.getFacilityCurrentDateTime(app.facilityID));
+                this.viewModel.fromDate && this.viewModel.fromDate.date(commonjs.getFacilityCurrentDateTime(app.facilityID));
 
                 $('#mailToOption').hide();
                 $('#divPatient').hide();
@@ -131,7 +132,7 @@ define([
                 this.viewModel.allFacilities = this.selectedFacilityList && this.selectedFacilityList.length === $("#ddlFacilityFilter option").length;
             },
 
-            onReportViewClick: function (e) {
+            onReportViewClick: function (e, patientStatementParams) {
                 this.getSelectedFacility();
                 $('#minAmount').val() == "" ? $('#minAmount').val('0') : $('#minAmount').val();
                 var btnClicked = e && e.target ? $(e.target) : null;
@@ -155,7 +156,32 @@ define([
                 this.viewModel.patientLastnameTo = $('#patientLastnameTo').val() === '' ? 'z' : $('#patientLastnameTo').val();
                 this.viewModel.mailTo = $('#ddlMailToOption').val() || null;
 
-                if (this.hasValidViewModel()) {
+                if (patientStatementParams && patientStatementParams.flag === 'patientStatement') {
+                    var reportName = "patient-statement";
+                    var params = {
+                        patientIds: patientStatementParams.patientIds,
+                        claimId: patientStatementParams.claimId,
+                        sDate: moment().format('YYYY-MM-DD'),
+                        minAmount: 0,
+                        logInClaimInquiry: patientStatementParams.logInClaimInquiry,
+                        mailTo: patientStatementParams.mailTo,
+                        patientOption: 'S',
+                        countryCode: app.country_alpha_3_code
+                    };
+                    params.dateFormat = this.viewModel.dateFormat;
+                    params.async = false;
+                    params.save = false;
+                    var options = {
+                        'id': reportName,
+                        'category': this.viewModel.reportCategory,
+                        'format': 'pdf',
+                        'params': params,
+                        'openInNewTab': true,
+                        'generateUrl': true
+                    };
+                    UI.showReport(options);
+                }
+                else if(this.hasValidViewModel()) {
                     var urlParams = this.getReportParams();
                     UI.generateReport(this.viewModel.reportId, this.viewModel.reportCategory, this.viewModel.reportFormat, urlParams);
                 }
@@ -200,7 +226,7 @@ define([
             },
 
             onNumberKeyPress: function () {
-                var number = document.getElementById('minAmount');
+                var number = document.getElementById('minAmount') || 0;
                 // Listen for input event on numInput.
                 number.onkeydown = function (e) {
                     if (!((e.keyCode > 95 && e.keyCode < 106)

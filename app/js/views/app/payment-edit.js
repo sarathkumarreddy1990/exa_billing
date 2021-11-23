@@ -18,7 +18,8 @@ define(['jquery',
     'views/claims/claim-inquiry',
     'collections/app/studycpt-list',
     'shared/trackFormChanges',
-    'text!templates/app/addtional-cas.html'],
+    'text!templates/app/addtional-cas.html',
+    'views/reports/patient-statement'],
 
     function (
         jQuery,
@@ -41,7 +42,8 @@ define(['jquery',
         claimInquiryView,
         studycptCollection,
         trackFormChanges,
-        AdditionCASTemplate
+        AdditionCASTemplate,
+        PatientStatementView
     ) {
         return Backbone.View.extend({
             el: null,
@@ -78,6 +80,8 @@ define(['jquery',
             isEscKeyPress:false,
             eobFileId: null,
             ediFileId: null,
+            claimId: null,
+            mailTo: '',
             defaultCASField: 7,
             patientId: null,
             additionCASFormTemplate: _.template(AdditionCASTemplate),
@@ -213,6 +217,7 @@ define(['jquery',
                 self.paymentDateObj = null;
                 commonjs.showLoading('messages.loadingMsg.default');
                 self.defalutCASArray = [0, 1, 2, 3, 4, 5, 6];
+                self.claimId = this.options.claim_id;
 
                 var yearValue = moment().year();
                 var expiryYear = [];
@@ -2136,6 +2141,26 @@ define(['jquery',
                             self.updateNotes(e, claimId);
                         });
 
+                        if (payerTypes[0].payer_type === "patient" && $('#ddlClaimResponsible').val() === "PPP") {
+                            $('#divPatientStatement').show();
+                        }
+                        else if (!self.isFromClaim && $('#ddlResponsible').find(':selected').attr('data-payer_type') === "patient") {
+                            $('#divPatientStatement').show();
+                        }
+                        else {
+                            $('#divPatientStatement').val('').hide();
+                        }
+
+                        $('#btnPatientStatement').off().on('click', function(e) {
+                            mailTo = 'select';
+                            self.printStatement(e, claimId, [payerTypes[0].patient_id]);
+                        });
+
+                        $('.printStatement').off().on('click', function(e) {
+                            mailTo = $(e.target).attr('data-method');
+                            self.printStatement(e, claimId, [payerTypes[0].patient_id]);
+                        });
+
                         $('#btnClearAppliedPendingPayments').unbind().on('click', function (e) {
                             self.clearPayments(e, paymentId, claimId);
                         });
@@ -2647,6 +2672,27 @@ define(['jquery',
                         targetObj.removeAttr('disabled');
                     }
                 });
+            },
+
+            createPatientActivityParams: function(claimId, patientId) {
+                this.PatientStatementView = new PatientStatementView({
+                    el: $('#reportFrame')
+                });
+                return {
+                    'patientIds': patientId,
+                    'claimId': claimId,
+                    'flag': "patientStatement",
+                    'logInClaimInquiry': true,
+                    'mailTo': mailTo
+                }
+            },
+
+            printStatement: function (e, claimId, patientId) {
+                var patientStatementParams = this.createPatientActivityParams(claimId, patientId);
+                if (patientStatementParams) {
+                    this.PatientStatementView.onReportViewClick(e, patientStatementParams);
+                    $('#modal_div_container').removeAttr('style');
+                }
             },
 
             reloadPaymentFields: function (claimId, paymentId, paymentApplicationId, isInitialBind) {
