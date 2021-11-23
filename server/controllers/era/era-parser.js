@@ -346,7 +346,7 @@ module.exports = {
             const totalAdjustment = _.sumBy(items, 'cas_total_amt');
 
             //get and push reporting line items
-            let reportingCharges = await data.getReportingCharges(items[0]);
+            let reportingCharges = await data.getReportingCharges(items[0], payer_details.payer_id);
 
             if (reportingCharges.length) {
                 groupedLineItems = groupedLineItems.concat(reportingCharges);
