@@ -134,7 +134,7 @@ const ahsData = {
                         pc_c.contact_info -> 'STATE',
                         pc_c.contact_info -> 'STATE_NAME',
                         ''
-                    )) NOT IN ( 'ab', 'alberta' )
+                    )) NOT IN ( 'ab', 'alberta', '' )
                     THEN 'Y'
                     ELSE ''
                 END AS oop_referral_indicator,
@@ -490,7 +490,7 @@ const ahsData = {
                                 pc_ref.contact_info -> 'STATE',
                                 pc_ref.contact_info -> 'STATE_NAME',
                                 ''
-                            )) NOT IN ( 'ab', 'alberta' )
+                            )) NOT IN ( 'ab', 'alberta', '' )
                             THEN 'Y'
                             ELSE ''
                         END                                          AS oop_referral_indicator,
