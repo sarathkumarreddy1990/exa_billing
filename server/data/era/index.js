@@ -827,7 +827,7 @@ module.exports = {
         return await queryRows(sql);
     },
 
-    getReportingCharges: async (args) => {
+    getReportingCharges: async (args, payerId) => {
         let {
             patient_fname,
             patient_lname,
@@ -865,8 +865,20 @@ module.exports = {
                     FROM billing.charges bc
                     INNER JOIN public.cpt_codes cc ON cc.id = bc.cpt_id
                     WHERE bc.claim_id = ${claim_number}
-                    AND bc.bill_fee = '0.01'`;
-
+                    AND bc.bill_fee = '0.01'
+                    AND NOT EXISTS (
+                        SELECT
+                            1
+                        FROM billing.claims bcc
+                        LEFT JOIN patient_insurances pi ON (
+                            pi.id = bcc.primary_patient_insurance_id
+                            OR pi.id = bcc.secondary_patient_insurance_id
+                            OR pi.id = bcc.tertiary_patient_insurance_id
+                        )
+                        WHERE bcc.id = ${claim_number}
+                        AND pi.insurance_provider_id = ${payerId}
+                        AND pi.coverage_level IN ('secondary', 'tertiary')
+                    )`;
         return await queryRows(sql);
     }
 
