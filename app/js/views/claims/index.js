@@ -4669,11 +4669,10 @@ define(['jquery',
             checkAddressDetails: function (flag) {
                 var chkaddress1 = $('#txt' + flag + 'SubPriAddr').val();
                 var chkaddress2 = $('#txt' + flag + 'SubSecAddr').val();
-                var chkCountry = $('#ddl' + flag + 'Country').val();
                 var chkcity = $('#txt' + flag + 'City').val();
                 var chkstate = $('#ddl' + flag + 'State option:selected').val();
                 var chkzipcode = $('#txt' + flag + 'ZipCode').val();
-                if (chkaddress1 == '' && chkaddress2 == '' && chkCountry === '' && chkcity == '' && (chkstate == '' || chkstate == '0') && chkzipcode == '') {
+                if (chkaddress1 == '' && chkaddress2 == '' && chkcity == '' && (chkstate == '' || chkstate == '0') && chkzipcode == '') {
                     return false;
                 }
                 else {
