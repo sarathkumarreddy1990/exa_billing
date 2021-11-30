@@ -69,6 +69,7 @@ define([
             payCmtGrid: '',
             casHeaderTemplate: _.template(claimEnquiryCasHeader),
             claim_id: null,
+            mailTo: '',
             rights: null,
             patientClaims: {
                 header: null,
@@ -272,12 +273,12 @@ define([
                 });
 
                 $('#btnPatientStatement').off().on('click', function(e) {
-                    mailTo = 'select';
+                    self.mailTo = 'select';
                     self.printStatement(e, self.claim_id, [self.options.patient_id]);
                 });
 
                 $('.printStatement').off().on('click', function(e) {
-                    mailTo = $(e.target).attr('data-method');
+                    self.mailTo = $(e.target).attr('data-method');
                     self.printStatement(e, self.claim_id, [self.options.patient_id]);
                 });
 
@@ -1400,7 +1401,7 @@ define([
                     'claimID': claimId,
                     'flag': "patientStatement",
                     'logInClaimInquiry': true,
-                    'mailTo': mailTo
+                    'mailTo': this.mailTo
                 }
             },
 

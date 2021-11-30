@@ -2152,12 +2152,12 @@ define(['jquery',
                         }
 
                         $('#btnPatientStatement').off().on('click', function(e) {
-                            mailTo = 'select';
+                            self.mailTo = 'select';
                             self.printStatement(e, claimId, [payerTypes[0].patient_id]);
                         });
 
                         $('.printStatement').off().on('click', function(e) {
-                            mailTo = $(e.target).attr('data-method');
+                            self.mailTo = $(e.target).attr('data-method');
                             self.printStatement(e, claimId, [payerTypes[0].patient_id]);
                         });
 
@@ -2683,7 +2683,7 @@ define(['jquery',
                     'claimId': claimId,
                     'flag': "patientStatement",
                     'logInClaimInquiry': true,
-                    'mailTo': mailTo
+                    'mailTo': this.mailTo
                 }
             },
 

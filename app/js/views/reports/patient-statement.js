@@ -226,7 +226,11 @@ define([
             },
 
             onNumberKeyPress: function () {
-                var number = document.getElementById('minAmount') || 0;
+                var number = document.getElementById('minAmount');
+
+                if (!number) {
+                    return;
+                }
                 // Listen for input event on numInput.
                 number.onkeydown = function (e) {
                     if (!((e.keyCode > 95 && e.keyCode < 106)
