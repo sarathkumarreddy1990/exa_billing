@@ -2141,10 +2141,10 @@ define(['jquery',
                             self.updateNotes(e, claimId);
                         });
 
-                        if (payerTypes[0].payer_type === "patient" && $('#ddlClaimResponsible').val() === "PPP") {
-                            $('#divPatientStatement').show();
-                        }
-                        else if (!self.isFromClaim && $('#ddlResponsible').find(':selected').attr('data-payer_type') === "patient") {
+                        var is_payer_type_patient = (payerTypes[0].payer_type === "patient" && $('#ddlClaimResponsible').val() === "PPP");
+                        var is_payer_type_patient_exclude_from_claim = (!self.isFromClaim && $('#ddlResponsible').find(':selected').attr('data-payer_type') === "patient");
+
+                        if (is_payer_type_patient || is_payer_type_patient_exclude_from_claim) {
                             $('#divPatientStatement').show();
                         }
                         else {
