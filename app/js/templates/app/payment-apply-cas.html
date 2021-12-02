@@ -35,7 +35,22 @@
         background-color: #5897fb !important;
         color: white !important;
     }
-
+    #divPatientStatement {
+        position: relative;
+        bottom: 10px;
+        left: 10px;
+    }
+    .dropDownButton {
+        text-align: right;
+        margin: 10px 0 10px 0;
+    }
+    .lblAdjustmentCodes {
+        position: relative;
+        right: 200px;
+    }
+    .selectAdjustmentCode {
+        height: 30px;
+    }
 </style>
 <div id="divPendingPayment" class="divBackgroundPayment form-horizontal form-list commonBorder">
     <div id="applyPaymentContent">
@@ -102,7 +117,22 @@
                 </tbody>
             </table>
         </div>
-        <div style="text-align: right;margin: 10px 0 10px 0;">
+        <div class="dropDownButton">
+            <% if (country_alpha_3_code === "usa") { %>
+                <div id="divPatientStatement" >
+                    <li class="btn-group">
+                        <button type="button" class="btn btn-primary btn-print" i18n="shared.buttons.printStatement" id="btnPatientStatement" data-rformat="pdf"></button>
+                        <button type="button" class="btn btn-primary dropdown-toggle printButton btn-print" data-toggle="dropdown">
+                            <span class="caret"></span>
+                        </button>
+                        <ul class="dropdown-menu" role="menu">
+                            <li><a class="listMenu printStatement" id="btnPatient" i18n="billing.payments.patient" data-method="patient" data-rformat="pdf"></a></li>
+                            <li><a class="listMenu printStatement" id="btnGuarantor" i18n="billing.payments.guarantor" data-method="guarantor" data-rformat="pdf"></a></li>
+                            <li><a class="listMenu printStatement" id="btnOrdFacility" i18n="billing.payments.orderingFacility" data-method="orderingFacility" data-rformat="pdf"></a></li>
+                        </ul>
+                    </li>
+                </div>
+            <% } %>
             <input type="button" id="btnPayfullAppliedPendingPayments" style="float:left;" class="btn btn-default btn-primary" value="Pay in full"
                 i18n="billing.payments.payInFull">
             <input type="button" id="btnSaveAppliedPendingPayments" class="btn btn-default btn-primary" i18n="shared.buttons.saveAll"
@@ -155,7 +185,11 @@
                             </div>
                         </div>
                     </div>
-                    <div class="col">
+                    <% if (country_alpha_3_code === "usa") { %>
+                        <div class="col">
+                    <% } else { %>
+                        <div class="col lblAdjustmentCodes">
+                    <% } %>
                         <div class="form-group row">
                             <label for="ddlClaimStatus" class="control-label col-sm-4 field-required" i18n="billing.claims.claimStatus"></label>
                             <div class="col-sm-5">
@@ -178,10 +212,11 @@
                             </div>
                         </div>
                         <div class="form-group row divAdjustmentCodes">
-                            <label class="control-label col-sm-4" i18n="billing.payments.adjustmentCode"></label>
-
-                            <div class="col-sm-8">
-                                <select id="ddlAdjustmentCode_fast" class="form-control form-control-lg adjustmentCode" style="height:30px;">
+                            <div class="col-md-4">
+                                <label class="control-label" i18n="billing.payments.adjustmentCode"></label>
+                            </div>
+                            <div class="col-md-8">
+                                <select id="ddlAdjustmentCode_fast" class="form-control form-control-lg adjustmentCode selectAdjustmentCode">
                                     <option data_id='0' data_code="0" value="0" i18n="shared.buttons.select"></option>
                                     <% _.each(adjustmentCodes, function(adjustmentCode) { %>
                                         <option data_id='<%= adjustmentCode.id %>' data_code='<%= adjustmentCode.code %>' data_codetype='<%= adjustmentCode.type %>'

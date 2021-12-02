@@ -15,6 +15,9 @@
             line-height: 8px;
             font-size: 13px;
         }
+        .dropDownButton {
+            float: right;
+        }
     </style>
     <form>
         <div class="row">
@@ -22,6 +25,21 @@
                 <div class="col-md-12">
                     <input type="button" i18n="billing.fileInsurance.previous" id="btnPreviousInquiry" value="previous" class=" btn btn-primary claimProcess" style="float:left">
                     <input type="button" i18n="billing.fileInsurance.next" id="btnNextInquiry" value="next" class=" btn btn-primary claimProcess" style="float:right">
+                    <% if (country_alpha_3_code === "usa") { %>
+                        <div id="divPatientStatement" class="dropDownButton">
+                            <li class="btn-group" >
+                                <button type="button" class="btn btn-primary btn-print" i18n="shared.buttons.printStatement" id="btnPatientStatement" data-rformat="pdf"></button>
+                                <button type="button" class="btn btn-primary dropdown-toggle printButton btn-print" data-toggle="dropdown">
+                                    <span class="caret"></span>
+                                </button>
+                                <ul class="dropdown-menu" role="menu">
+                                    <li><a class="listMenu printStatement" id="btnPatient" i18n="billing.payments.patient" data-method="patient" data-rformat="pdf"></a></li>
+                                    <li><a class="listMenu printStatement" id="btnGuarantor" i18n="billing.payments.guarantor" data-method="guarantor" data-rformat="pdf"></a></li>
+                                    <li><a class="listMenu printStatement" id="btnOrdFacility" i18n="billing.payments.orderingFacility" data-method="orderingFacility" data-rformat="pdf"></a></li>
+                                </ul>
+                            </li>
+                        </div>
+                    <% } %>
                 </div>
             </div>
         </div>
