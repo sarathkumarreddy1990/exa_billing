@@ -1446,14 +1446,6 @@ const OHIPDataAPI = {
                                 , is_exa_claim boolean
                             )
                         )
-                        , get_claim_data AS (
-                            SELECT
-                                bc.id,
-                                bc.invoice_no
-                            FROM billing.claims bc
-                            INNER JOIN get_charge_items ON (LPAD(bc.invoice_no, 8, '0') = LPAD(TRIM(get_charge_items.claim_number), 8, '0'))
-                            ORDER BY bc.id DESC LIMIT 1
-                        )
                         INSERT INTO billing.charges
                         (
                             claim_id
@@ -1467,7 +1459,7 @@ const OHIPDataAPI = {
                         )
                         SELECT
                             bc.id
-                            , cpt.cpt_id
+                            , cpt.id
                             , get_charge_items.payment
                             , 1
                             , ${paymentDetails.created_by}
@@ -1475,22 +1467,17 @@ const OHIPDataAPI = {
                             , FALSE
                             , TRUE
                         FROM get_charge_items
-                        INNER JOIN get_claim_data AS bc ON TRUE
-                        INNER JOIN LATERAL (
-                            SELECT cc.id AS cpt_id
-                            FROM public.cpt_codes cc
-                            WHERE cc.display_code = get_charge_items.cpt_code
-                            ORDER BY cc.id ASC LIMIT 1
-                        ) cpt ON TRUE
+                        INNER JOIN billing.claims bc ON (LPAD(bc.invoice_no, 8, '0') = LPAD(TRIM(get_charge_items.claim_number), 8, '0'))
+                        INNER JOIN public.cpt_codes cpt ON cpt.display_code = get_charge_items.cpt_code
                         WHERE NOT get_charge_items.is_exa_claim
                             AND bc.invoice_no IS NOT NULL
                             AND get_charge_items.cpt_code NOT IN (
                                 SELECT
                                     cc.display_code
                                 FROM billing.charges bch
-                                INNER JOIN get_claim_data AS claims ON claims.id = bch.claim_id
                                 INNER JOIN public.cpt_codes cc ON cc.id = bch.cpt_id
-                                WHERE cc.display_code = get_charge_items.cpt_code
+                                WHERE bch.claim_id = bc.id
+                                    AND cc.display_code = get_charge_items.cpt_code
                             )
                         RETURNING id AS charge_id `;
 
