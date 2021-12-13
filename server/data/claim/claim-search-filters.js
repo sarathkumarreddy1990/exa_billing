@@ -539,17 +539,17 @@ const api = {
                 ) AS claim_icds ON TRUE `;
         }
 
-        if (args && args.billingRegionCode == 'can_ON') {
+        if (args && args.billingRegionCode == 'can_ON' && tables.claim_errors) {
             r += `
                 LEFT JOIN LATERAL (
                     SELECT
                         ef.error_data
                     FROM billing.edi_files ef
-                    INNER JOIN billing.edi_file_claims efc ON ef.id = efc.edi_file_id                    
+                    INNER JOIN billing.edi_file_claims efc ON ef.id = efc.edi_file_id
                     WHERE efc.claim_id = claims.id
                     ORDER BY efc.id DESC LIMIT 1
                 ) AS claim_errors ON TRUE
-            `
+            `;
         }
 
         return r;
@@ -584,7 +584,6 @@ const api = {
             'bgct.charges_bill_fee_total as billing_fee',
             'claims.current_illness_date::text as current_illness_date',
             'claims.id As claim_no',
-            'billing.can_ahs_get_claim_number(claims.id) AS can_ahs_claim_no',
             'patient_insurances.policy_number',
             'patient_insurances.group_number',
             'claims.payer_type',
@@ -635,7 +634,6 @@ const api = {
                  THEN 'new_claim'
               END) AS claim_action`,
             `ins_prov.insurance_name AS insurance_providers`,
-            `claims.can_mhs_microfilm_no`,
             `patient_alt_accounts.pid_alt_account`,
             `patient_alt_accounts.phn_alt_account`,
             `billing.can_bc_get_claim_sequence_numbers(claims.id) AS can_bc_claim_sequence_numbers`,
@@ -661,6 +659,12 @@ const api = {
 
         if (['can_ON'].indexOf(args.billingRegionCode) > -1) {
             stdcolumns.push('claim_errors.error_data');
+        } else if (args.billingRegionCode === 'can_BC') {
+            stdcolumns.push('billing.can_bc_get_claim_sequence_numbers(claims.id) AS can_bc_claim_sequence_numbers');
+        } else if (args.billingRegionCode === 'can_AB') {
+            stdcolumns.push('billing.can_ahs_get_claim_number(claims.id) AS can_ahs_claim_no');
+        } else if (args.billingRegionCode === 'can_MB') {
+            stdcolumns.push(`claims.can_mhs_microfilm_no`);
         }
 
         return stdcolumns;
