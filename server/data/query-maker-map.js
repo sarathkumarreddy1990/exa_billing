@@ -37,4 +37,5 @@ module.exports = new Map([
     ['lt', require('./query-makers/lt')],
     ['bw', require('./query-makers/money_range')],
     ['authStatus', require('./query-makers/auth_status')],
+    ['study_flags', require('./query-makers/study_flags')],
 ]);

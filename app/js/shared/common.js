@@ -2464,6 +2464,9 @@ var commonjs = {
             commonjs.disposeStatusFilter('divStatusSearch', _target);
             commonjs.disposeStatusFilter('divEncStatusSearch', _target);
         }
+        if (_target.id !== 'gs_study_flags') {
+            commonjs.disposeStatusFilter('divStudyFlag', _target);
+        }
         if (_target.id !== 'gs_order_status') {
             commonjs.disposeStatusFilter('divOrderStatusSearch', _target);
             commonjs.disposeStatusFilter('divOrderStatusSearchFacility', _target);

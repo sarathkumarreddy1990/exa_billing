@@ -184,6 +184,23 @@ define([ 'backbone', 'immutable', 'moment', 'shared/utils' ], function ( Backbon
                                                        ":All;None:None;" :
                                                        ":All;","id", "description");
 
+        var studyFlagFormatter = function (cellvalue, options, rowObject) {
+            var flag_design = [];
+
+            if (rowObject) {
+                var flagList = rowObject.study_flags;
+
+                if (flagList && flagList.length) {
+                    flagList.forEach(function (flagId, index) {
+                        var flagDetails = _.find(app.studyflag, { 'id': parseInt(flagId) }) || {};
+
+                        flag_design.push("<div title='" + flagDetails.description + "' data_id='" + flagDetails.id + "' style='text-align: center;  max-width: 100px; width: 24%; float: left; margin: 1px; overflow: inherit; border-radius: 10px; background:" + flagDetails.color_code + ";' >" + flagDetails.description + "</div>");
+                    });
+                }
+            }
+            return flag_design.join(' ');
+        };                                            
+
         var modalityRoomValue = commonjs.makeValue(app.modality_room, ":All;", "id", "modality_room_name");
         var reportQueueValue = commonjs.makeValue(app.report_queue_status, ":All;", "code", "description");
 
@@ -1356,18 +1373,13 @@ define([ 'backbone', 'immutable', 'moment', 'shared/utils' ], function ( Backbon
                 "i18n_name": "setup.userSettings.studyFlag",
                 "field_info": {
                     "custom_name": "Study Flag",
-                    "name": "study_flag",
+                    "name": "study_flags",
                     "width": 100,
-                    "stype": "select",
-                    "searchoptions": {
-                        "value": studyFlagValue,
-                        "tempvalue": studyFlagValue
-                    },
-                    "cellattr": function (id, cellvalue, rowObject) {
-                        return 'style="background:' + (rowObject && rowObject.study_color_code || 'transparent') + ';"';
-                    }
+                    "search": true,
+                    "sortable": false,
+                    "formatter": studyFlagFormatter
                 },
-                "field_code": "study_flag"
+                "field_code": "study_flags"
             },
             "Priority": {
                 "id": 24,

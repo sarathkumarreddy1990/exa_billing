@@ -1267,7 +1267,8 @@ function customGrid ( datastore, gridID ) {
     };
 
     this.getFilterValue = function (uiFieldID, defaultValue, searchoptionsalt, validateMoney, paymentIDFormatter) {
-        var fieldValue = $.trim($('#gview_' + this.options.gridelementid.replace('#', '') + ' #gs_' + uiFieldID).val());
+        var element = $('#gview_' + this.options.gridelementid.replace('#', '') + ' #gs_' + uiFieldID);
+        var fieldValue = (uiFieldID === 'study_flags') && $.trim(element.attr('data-value')) || $.trim(element.val());
         if (searchoptionsalt) {
             searchoptionsalt = searchoptionsalt.value;
             fieldValue = searchoptionsalt[fieldValue];

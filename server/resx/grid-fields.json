@@ -819,11 +819,12 @@
             "i18n_name": "setup.userSettings.studyFlag",
             "field_info": {
                 "custom_name": "Study Flag",
-                "name": "study_flag",
+                "name": "study_flags",
                 "width": 100,
-                "stype": "select"
+                "sortable": false,
+                "formatter": "self.studyFlagFormatter"
             },
-            "field_code": "study_flag"
+            "field_code": "study_flags"
         },
         {
             "id": 24,

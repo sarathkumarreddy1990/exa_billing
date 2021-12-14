@@ -5,10 +5,10 @@ define('formatter', function () {
 
         // TODO: Add modality!
 
-        this.study_flag = function ( value ) {
+        this.study_flags = function ( value ) {
             return [{
                 'data': value || '',
-                'field': 'study_flag'
+                'field': 'study_flags'
             }];
         };
 

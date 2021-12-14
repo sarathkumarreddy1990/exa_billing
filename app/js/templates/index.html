@@ -13,6 +13,7 @@
     .statusMenu {
         height: auto;
         border: 2px #d4d4d4 solid;
+        color: #000;
         background-color: #F6F6F6;
         z-index: 110000;
         position: absolute;
@@ -62,6 +63,34 @@
         width:200px!important;
         padding-left:5px!important;
         text-align: left!important;
+    }
+    .chkStudyFlag {
+        margin-top: 2px;
+        margin-left: 10px;
+    }
+    #chkStudyFlag {
+        margin-right: 5px;
+        margin-top: 5px;
+    }
+    .multiStudyFlag {
+        margin-bottom: 5px;
+    }
+    .ulStudyFlag{
+        list-style: none;
+    }
+    .studyFlagButtons {
+        width: 100%;
+        margin-bottom:0px;
+    }
+    .tdRow {
+        text-align: right;
+    }
+    div.multiStudyColumnList input[type=checkbox] {
+        margin-right: 5px;
+    }
+    #divStudyFlag {
+        max-width: 500px;
+        display: none;
     }
 
 </style>
@@ -178,6 +207,45 @@
         <div id="divGadgetSummaryNew" style="position: absolute; top: 90px; bottom: 10px; left: 10px; right: 10px; overflow: auto;">
         </div>
     </div>
+</div>
+<div class="statusMenu" id="divStudyFlag">
+    <div class="header-status">
+        <label class="checkbox chkStudyFlag">
+            <span i18n="home.worklist.studyFlag"></span>
+        </label>
+    </div>
+    <div class="multiStudyColumnList" class="multiStudyFlag">
+        <ul id="ulStudyFlags" class='statusList ulStudyFlag'>
+            <% _.each(customStudyFlag, function(flag) { %>
+                <li>
+                    <label class="checkbox-inline statusTextColor wordBreak">
+                        <input class="status" data-id="<%= flag.id%>" data-value="<%= flag.description %>"
+                            type="checkbox" value="<%= flag.id %>">
+                        <span>
+                            <%= flag.description.toUpperCase() %>
+                        </span>
+                    </label>
+                </li>
+                <% }); %>
+        </ul>
+    </div>
+
+    <table class="table studyFlagButtons">
+        <tbody>
+            <tr>
+                <td>
+                    <input id="chkAllStudyFlag" type="checkbox">
+                    <label for="chkAllStudyFlag" class="checkbox-inline" i18n="shared.fields.all"></label>
+                </td>
+                <td class="tdRow">
+                    <button type="button" class="btn btn-primary" id="btnCancelStudyFlag"
+                        i18n="shared.buttons.cancel"></button>
+                    <button id="btnStudyFlagApply" class="btn btn-primary" type="button"
+                        i18n="shared.buttons.applyFilter"></button>
+                </td>
+            </tr>
+        </tbody>
+    </table>
 </div>
 
 <div class="col-xs-7 col-md-7 col-lg-7" style="margin-top: 5px !important;">
