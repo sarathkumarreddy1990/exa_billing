@@ -3690,7 +3690,7 @@ define(['jquery',
                             if (app.billingRegionCode === 'can_BC' && self.isProviderChiropractor && (!self.priInsCode || self.priInsCode.toLowerCase() === 'msp')) {
                                 responsibleEle.val('PPP');
                             }
-                            else if (self.ordering_facility_contact_id && self.isClaimWOStudy) {
+                            else if (self.ordering_facility_contact_id && app.isMobileBillingEnabled && self.billing_type === 'facility') {
                                 responsibleEle.val('POF');
                             }
                             else {
