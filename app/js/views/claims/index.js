@@ -163,6 +163,7 @@ define(['jquery',
             isProviderChiropractor: false,
             isClaimStatusUpdated: false,
             claimTotalRecords: 0,
+            chargeTotalRecords: 0,
             patientClaimsPager: null,
             elIDs: {
                 'primaryInsAddress1': '#txtPriSubPriAddr',
@@ -6550,8 +6551,8 @@ define(['jquery',
                 var prevClaimNo;
 
                 if (!isTotalRecordNeeded) {
-                    self.patientClaimsPager.set({ "claimTotalRecords": self.claimTotalRecords });
-                    self.patientClaimsPager.set({ "lastPageNo": Math.ceil(self.claimTotalRecords / self.patientClaimsPager.get('pageSize')) });
+                    self.patientClaimsPager.set({ "chargeTotalRecords": self.chargeTotalRecords });
+                    self.patientClaimsPager.set({ "lastPageNo": Math.ceil(self.chargeTotalRecords / self.patientClaimsPager.get('pageSize')) });
                     self.setClaimPaging();
                 } else {
                     jQuery.ajax({
@@ -6563,8 +6564,9 @@ define(['jquery',
                         },
                         success: function (response) {
                             if (response && response.length) {
-                                self.claimTotalRecords =  response[0].total_records;
-                                self.patientClaimsPager.set({ "lastPageNo": Math.ceil(self.claimTotalRecords / self.patientClaimsPager.get('pageSize')) });
+                                self.claimTotalRecords =  response[0].claims_total_records;
+                                self.chargeTotalRecords =  response[0].charges_total_records;
+                                self.patientClaimsPager.set({ "lastPageNo": Math.ceil(self.chargeTotalRecords / self.patientClaimsPager.get('pageSize')) });
                                 self.setClaimPaging();
                             }
                         },
