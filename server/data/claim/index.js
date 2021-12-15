@@ -1145,7 +1145,8 @@ module.exports = {
 
             sql = SQL`
                 SELECT
-                    COUNT(1) AS total_records
+                    COUNT(ch.id) AS charges_total_records,
+                    COUNT(DISTINCT c.id) AS claims_total_records
                 FROM billing.claims c
                 `;
             sql.append(joinQuery);
