@@ -60,7 +60,7 @@ define([
             render: function () {
                 var modelCollection = Backbone.Collection.extend({
                     model: Backbone.Model.extend({})
-                });               
+                });
                 this.$el.html(this.mainTemplate(this.viewModel));
                 // bind DRP and initialize it
                 this.bindDateRangePicker();
@@ -154,7 +154,8 @@ define([
                     'billingProvider': this.selectedBillingProList ? this.selectedBillingProList : [],
                     'allBillingProvider': this.viewModel.allBillingProvider ? this.viewModel.allBillingProvider : '',
                     'billingProFlag': this.viewModel.allBillingProvider == 'true' ? true : false,
-                    'groupByField': this.groupingNameValue || 'InsuranceClass'
+                    'groupByField': this.groupingNameValue || 'InsuranceClass',
+                    'openInNewTab': this.viewModel.openInNewTab
                 };
             }
         });

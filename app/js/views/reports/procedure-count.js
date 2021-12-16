@@ -153,7 +153,8 @@ define([
                     'toDate': this.viewModel.dateTo.format('YYYY-MM-DD'),
                     'billingProvider': this.selectedBillingProList ? this.selectedBillingProList : [],
                     'allBillingProvider': this.viewModel.allBillingProvider ? this.viewModel.allBillingProvider : '',
-                    'billingProFlag': this.viewModel.allBillingProvider == 'true' ? true : false
+                    'billingProFlag': this.viewModel.allBillingProvider == 'true' ? true : false,
+                    'openInNewTab': this.viewModel.openInNewTab
                 };
             }
         });

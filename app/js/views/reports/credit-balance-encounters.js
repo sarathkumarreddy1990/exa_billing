@@ -161,7 +161,8 @@ define([
                     'fromDate': this.viewModel.dateFrom.format('YYYY-MM-DD'),
                     'toDate': this.viewModel.dateTo.format('YYYY-MM-DD'),
                     'billingProvider': this.selectedBillingProList ? this.selectedBillingProList : [],
-                    'allBillingProvider': this.viewModel.allBillingProvider ? this.viewModel.allBillingProvider : ''
+                    'allBillingProvider': this.viewModel.allBillingProvider ? this.viewModel.allBillingProvider : '',
+                    'openInNewTab': this.viewModel.openInNewTab
                 };
             }
 

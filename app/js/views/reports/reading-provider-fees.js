@@ -192,6 +192,7 @@ define([
                     'allBillingProvider': this.viewModel.allBillingProvider ? this.viewModel.allBillingProvider : '',
                     'billingProFlag': this.viewModel.allBillingProvider == 'true' ? true : false,
                     'refProviderGroupList': this.viewModel.refProviderGroupList ? this.viewModel.refProviderGroupList : [],
+                    'openInNewTab': this.viewModel.openInNewTab
                 };
             }
         });

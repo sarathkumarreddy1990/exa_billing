@@ -473,6 +473,7 @@ function ($, _, Backbone, UI, MainTemplate) {
                 'payerTypeList': this.viewModel.payerTypeList || [] ,
                 'allRefProList': this.viewModel.allRefProList  ? true : false,
                 'refProviderFlag': $('#ddlProcedureBySelectBoxes').val() == 'refPro' ? true : false,
+                'openInNewTab': this.viewModel.openInNewTab
             }
             return urlParams;
         }

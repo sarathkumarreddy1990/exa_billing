@@ -142,11 +142,16 @@ const api = {
                         const duration = moment().diff(start, 'seconds', true);
                         logger.logInfo(`${repInfo} finished in ${duration} seconds`);
 
-                        if (reportParams.async === 'false') {
+                        if (reportParams.async === 'false' || reportParams.reportFormat === 'html') {
 
-                            if(reportParams.reportFormat === 'pdf') {
+                            if (reportParams.reportFormat === 'pdf') {
                                 res.setHeader('content-type', 'application/pdf');
                             }
+
+                            if (reportParams.reportFormat === 'html') {
+                                res.setHeader('content-type', 'text/html');
+                            }
+
                             return response
                                 .pipe(res)
                                 .on('finish', () => {
@@ -290,7 +295,7 @@ const api = {
                 },
                 "reports": {
                     "save": reportParams.save !== 'false',
-                    "async": reportParams.async !== 'false'
+                    "async": reportParams.async !== 'false' && reportParams.reportFormat !== 'html'
                 },
                 "reportName": reportParams.reportTitle + '---' + reportParams.userId,
             }
