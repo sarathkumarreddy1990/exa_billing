@@ -146,7 +146,7 @@ define([
 
             hasValidViewModel: function () {
                 var fromDateValue = this.viewModel.fromDate.date();
-                
+
                 if (this.viewModel.reportId == null || this.viewModel.reportCategory == null || this.viewModel.reportFormat == null) {
                     return commonjs.showWarning('messages.status.pleaseCheckReportIdCategoryandorFormat');
                 }
@@ -176,7 +176,8 @@ define([
                     billingProvider: this.viewModel.billingProvider,
                     patientLastnameFrom: this.viewModel.patientLastnameFrom,
                     patientLastnameTo: this.viewModel.patientLastnameTo,
-                    logInClaimInquiry: $('#chkLogInClaimInquiry').prop('checked')
+                    logInClaimInquiry: $('#chkLogInClaimInquiry').prop('checked'),
+                    openInNewTab: this.viewModel.openInNewTab
                 };
             },
 

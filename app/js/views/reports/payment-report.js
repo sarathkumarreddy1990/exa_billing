@@ -373,7 +373,8 @@ define([
                     'insuranceGroupIds': this.viewModel.insuranceGroupIds,
                     'allInsuranceGroup': this.viewModel.allInsGrpSelection || '',
                     'facilityLists': this.selectedFacilityList || '',
-                    'selectAllFacilities': this.viewModel.selectAllFacilities || ''
+                    'selectAllFacilities': this.viewModel.selectAllFacilities || '',
+                    'openInNewTab': this.viewModel.openInNewTab
                 };
             }
         });

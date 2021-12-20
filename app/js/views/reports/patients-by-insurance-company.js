@@ -220,7 +220,8 @@ define([
                     'allBillingProvider': this.viewModel.allBillingProvider || '',
                     'billingProFlag': this.viewModel.allBillingProvider == 'true' ? true : false,
                     'insuranceProviderIds': this.viewModel.insuranceOption || '',
-                    'insuranceActive': $("#insuranceActive").is(':checked')
+                    'insuranceActive': $("#insuranceActive").is(':checked'),
+                    'openInNewTab': this.viewModel.openInNewTab
                 };
             }
         });

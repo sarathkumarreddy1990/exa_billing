@@ -100,8 +100,20 @@ define([
                 swal2.fire({
                     type: 'success',
                     title: i18n.get("report.home.reportCreated"),
-                    html:  isHtml ? i18n.get("report.home.displayAutomatically") : i18n.get("report.home.reportProcess")
+                    html:  isHtml ? i18n.get("report.home.displayAutomatically") : i18n.get("report.home.reportProcess"),
+                    timer: 5000
                 });
+
+                if (isHtml) {
+                    return UI.showReport({
+                        id: id,
+                        category: category,
+                        format: format,
+                        params: params,
+                        openInNewTab: params.openInNewTab,
+                        generateUrl: true
+                    })
+                }
 
                 // fire request for report
                 return $.ajax({

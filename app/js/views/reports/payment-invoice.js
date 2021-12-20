@@ -33,11 +33,11 @@ define([
             selectedBillingProList: [],
             selectedFacilityList: [],
             defaultyFacilityId: null,
-           
-          
+
+
             initialize: function (options) {
                 this.showForm();
-                this.$el.html(this.mainTemplate(this.viewModel));               
+                this.$el.html(this.mainTemplate(this.viewModel));
                 UI.initializeReportingViewModel(options, this.viewModel);
 
                 this.viewModel.dateFrom = commonjs.getFacilityCurrentDateTime(app.facilityID);
@@ -56,9 +56,9 @@ define([
                 var modelCollection = Backbone.Collection.extend({
                     model: Backbone.Model.extend({})
                 });
-               
-            },         
-           
+
+            },
+
             onReportViewClick: function (e) {
                 var btnClicked = e && e.target ? $(e.target) : null;
                 this.getSelectedFacility();
@@ -114,11 +114,12 @@ define([
                     // 'billingProFlag': this.viewModel.allBillingProvider == 'true' ? true : false,
                     // 'userIds': $('#ddlUsersOption').val() == 'S' ? usersArray : '',
                     // 'userName': $('#ddlUsersOption').val() == 'S' ? userNameArray : ''
-                    
+
                     'facilityIds': this.selectedFacilityList ? this.selectedFacilityList : [],
                     'allFacilities': this.viewModel.allFacilities ? this.viewModel.allFacilities : '',
-                    'sDate': '2018-06-23'
-                   
+                    'sDate': '2018-06-23',
+                    'openInNewTab': this.viewModel.openInNewTab
+
                 };
             }
         });
