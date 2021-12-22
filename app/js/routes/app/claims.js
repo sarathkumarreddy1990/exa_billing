@@ -25,7 +25,7 @@ define([
 
             showInvoiceReport: function (invoiceNo) {                
                 var paperClaim = new PaperClaim();
-                paperClaim.print('direct_invoice', [1], {
+                paperClaim.print('direct_invoice', [1], false, {
                     sortBy: 'service_date',
                     invoiceNo: invoiceNo,
                     showInline: true

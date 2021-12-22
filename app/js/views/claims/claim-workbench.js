@@ -708,7 +708,7 @@ define(['jquery',
                     }
                     if (billingMethodFormat === "special_form") {
                         if (insuranceProviders.length === gridElement.length) {
-                            paperClaim.print('special_form', claimIds);
+                            paperClaim.print('special_form', claimIds, false);
                             return;
                         } else {
                             commonjs.showWarning(gridElement.length === 1 ? 'messages.status.pleaseSelectClaimHavingInsurance' : 'messages.status.pleaseSelectClaimsHavingInsurance');
@@ -721,7 +721,7 @@ define(['jquery',
                             localStorage.getItem('default_paperclaim_format') === 'ORIGINAL' ?
                             'paper_claim_original' : 'paper_claim_full';
 
-                        paperClaim.print(paperClaimFormat, claimIds);
+                        paperClaim.print(paperClaimFormat, claimIds, false);
                         return;
                     }
 
@@ -740,13 +740,13 @@ define(['jquery',
                             self.printInvoiceClaim('direct_invoice', claimIds, sortBy)
                             return;
                         } else if (invoiceNo && invoiceNo[0] && invoiceNo[0].length > 0) {
-                            paperClaim.print('direct_invoice', claimIds, {
+                            paperClaim.print('direct_invoice', claimIds, false, {
                                 sortBy: sortBy,
                                 invoiceNo: invoiceNo[0]
                             });
                             return;
                         } else {
-                            paperClaim.print('direct_invoice', claimIds, {
+                            paperClaim.print('direct_invoice', claimIds, false, {
                                 sortBy: sortBy,
                                 invoiceNo: invoiceNo[0]
                             });
@@ -755,7 +755,7 @@ define(['jquery',
                     }
 
                     if (existingBillingMethod === 'patient_payment') {
-                        paperClaim.print('patient_invoice', claimIds, {
+                        paperClaim.print('patient_invoice', claimIds, false, {
                             sortBy: 'patient_name'
                         });
                         return;
@@ -1063,7 +1063,7 @@ define(['jquery',
                                         }
                                     });
 
-                                    paperClaimNested.print(invoice_type, printerClaimids, {
+                                    paperClaimNested.print(invoice_type, printerClaimids, false, {
                                         sortBy: sortBy
                                     });
                                 });

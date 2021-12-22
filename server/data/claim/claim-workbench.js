@@ -179,7 +179,8 @@ module.exports = {
             claim_status,
             claimDetails,
             templateType,
-            success_claimID
+            success_claimID,
+            is_invoice_inquiry
         } = params;
 
         let getClaimsDetails = SQL` ,claim_details as (
@@ -282,7 +283,7 @@ module.exports = {
                                                         THEN (SELECT NEXTVAL('billing.invoice_no_seq'))
                                                      END,
                                         submitted_dt=timezone(get_facility_tz(bc.facility_id::int), now()::timestamp)
-                                    WHERE bc.id = ANY(${success_claimID})
+                                    WHERE bc.id = ANY(${success_claimID}) AND NOT ${is_invoice_inquiry}
                                     AND bc.billing_method IN ('direct_billing', 'paper_claim')
                                     RETURNING *,
                                     (SELECT row_to_json(old_row) FROM (
