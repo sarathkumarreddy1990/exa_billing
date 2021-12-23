@@ -1011,7 +1011,6 @@ const util = {
 
             }
 
-            
             let flag = filterObj.studyInformation.flag;
 
             if (flag) {
