@@ -121,6 +121,7 @@ const ahsmodule = {
         }
 
         let submitResponse = await ahs.saveAddedClaims(args);
+        let updateAHSClaimNumbers = await ahs.updateAHSClaimNumbers(args);
 
         const {
             dir_path,
