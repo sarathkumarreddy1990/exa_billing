@@ -105,7 +105,7 @@ const colModel = [
     {
         name: 'can_ahs_claim_no',
         searchFlag: '%',
-        searchColumns: ['billing.can_ahs_get_claim_number(claims.id)']
+        searchColumns: ['claims.can_ahs_claim_number']
     },
     {
         name: 'policy_number',
@@ -301,7 +301,7 @@ const api = {
             case 'followup_date': return 'claim_followups.followup_date::text';
             case 'current_illness_date': return 'claims.current_illness_date::text';
             case 'claim_no': return 'claims.id';
-            case 'can_ahs_claim_no': return 'billing.can_ahs_get_claim_number(claims.id)';
+            case 'can_ahs_claim_no': return 'claims.can_ahs_claim_number';
             case 'policy_number': return 'patient_insurances.policy_number';
             case 'group_number': return 'patient_insurances.group_number';
             case 'payer_type':
@@ -630,7 +630,7 @@ const api = {
         } else if (args.billingRegionCode === 'can_BC') {
             stdcolumns.push('billing.can_bc_get_claim_sequence_numbers(claims.id) AS can_bc_claim_sequence_numbers');
         } else if (args.billingRegionCode === 'can_AB') {
-            stdcolumns.push('billing.can_ahs_get_claim_number(claims.id) AS can_ahs_claim_no');
+            stdcolumns.push('claims.can_ahs_claim_number AS can_ahs_claim_no');
         } else if (args.billingRegionCode === 'can_MB') {
             stdcolumns.push(`claims.can_mhs_microfilm_no`);
         }
@@ -705,6 +705,7 @@ const api = {
             ORDER BY FinalClaims.number
             `
             ;
+
         return await query(sql, params);
     },
 
