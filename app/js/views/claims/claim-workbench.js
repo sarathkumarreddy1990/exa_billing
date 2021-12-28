@@ -339,7 +339,8 @@ define(['jquery',
                     showConformanceTesting: app.province_alpha_2_code === 'ON' && app.ohipConfig.showConformanceTesting,
                     gadget: '',
                     customStudyStatus: [],
-                    customOrderStatus: []
+                    customOrderStatus: [],
+                    customStudyFlag: []
                 }));
 
                 if (queryString && !queryString.target && commonjs.getParameterByName(queryString).admin && commonjs.getParameterByName(queryString).admin == 1) {

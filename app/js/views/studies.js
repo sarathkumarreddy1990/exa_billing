@@ -10,7 +10,8 @@ define(['jquery',
     'models/study-filters',
     'grid',
     'shared/fields',
-    'views/claims/index'],
+    'views/claims/index',
+    'sweetalert2'],
     function ($,
               Immutable,
               _,
@@ -23,7 +24,8 @@ define(['jquery',
               modelStudyFilter,
               StudyGrid,
               ListFields,
-              claimsView) {
+              claimsView,
+              swal2) {
         var MergeQueueBase = Immutable.Record({
             'filterIndexSet': Immutable.OrderedSet(),
             /**
@@ -199,7 +201,11 @@ define(['jquery',
                 "click #btnStudiesRefreshAll": "refreshAllStudies",
                 "click #btnStudiesCompleteRefresh": "completeRefresh",
                 "click #btnClearAllStudy": "clearAllSelectedRows",
-                "click #btnSelectAllStudy": "selectAllRows"
+                "click #btnSelectAllStudy": "selectAllRows",
+                "click #btnCancelStudyFlag": "cancelStudyFlagFilter",
+                "click #btnStudyFlagApply": "applyStudyFlagFilter",
+                "change #chkStudyFlag": "chooseStatusForFilter",
+                "change #chkAllStudyFlag": "chooseStatusForFilter"
             },
 
             initialize: function (options) {
@@ -264,7 +270,8 @@ define(['jquery',
                     billing_region_code: app.billingRegionCode,
                     gadget: '',
                     customOrderStatus: app.customOrderStatus,
-                    customStudyStatus: app.customStudyStatus
+                    customStudyStatus: app.customStudyStatus,
+                    customStudyFlag: app.studyflag
                 }));
 
                 $("#btnInsuranceClaim, #btnValidateOrder, #btnValidateExport, #btnClaimsRefresh, #btnClaimRefreshAll, #diveHomeIndex, #divStudyFooter").hide();
@@ -1482,10 +1489,114 @@ define(['jquery',
                 $('#chkStudyHeader_' + filterID).prop('checked', true);
                 commonjs.setFilter(filterID, filter);
             },
+
+            /**
+             * calls while cancel the study flag search filter 
+             */
+            cancelStudyFlagFilter: function () {
+                var self = this;
+                $("#divStudyFlag").hide();
+                var $studyFlag = self.selectStudyFlagGridColumn();
+                var studyFlagFilter = $('#divStudyFlag').find('input[type=checkbox]:checked');
+
+                if (studyFlagFilter && studyFlagFilter.length) {
+                    swal2.fire({
+                        type: 'warning',
+                        titleText: i18n.get('messages.confirm.worklist.clearFilterAreYouSure'),
+                        showCancelButton: true,
+                        onOpen: function (e) {
+                            // in billing display css is globally applied to label tag
+                            $('.swal2-checkbox').addClass('dispaly-none-important');
+                        }
+                    }).then(function (res) {
+                        if (res.value) {
+                            $studyFlag.val('');
+                            studyFlagFilter.prop('checked', false);
+                            commonjs.setFilter(commonjs.currentStudyFilter, function (filter) {
+                                return filter;
+                            });
+                            self.refreshStudies();
+                        }
+                    });
+                }
+            },
+
+            /**
+             * calls when click study flag apply-filter
+             */
+            applyStudyFlagFilter: function () {
+                var self = this;
+                var divID = '#divStudyFlag';
+                var $studyFlag = self.selectStudyFlagGridColumn();
+                var flagId = [];
+                var flagDesc = [];
+                $(divID + " .status:checked").each(function (index, obj) {
+                    flagId.push($(this).attr('data-id'));
+                    flagDesc.push($(this).attr('data-value'));
+                });
+
+                $studyFlag.val(flagDesc.join());
+                $studyFlag.attr('data-value', flagId.join());
+
+                commonjs.setFilter(commonjs.currentStudyFilter, function (filter) {
+                    return filter;
+                });
+                self.refreshStudies(true);
+
+                $('#divStudyFlag').hide();
+            },
+
+            /**
+             * select study flag grid column
+             * @returns {object} - jQuery data/object
+             */
+             selectStudyFlagGridColumn: function () {
+                return $('#tblGrid' + commonjs.currentStudyFilter)
+                    .closest("div.ui-jqgrid-view")
+                    .children("div.ui-jqgrid-hdiv")
+                    .find('#gs_study_flags');
+            },
+
+            /**
+             * Bind study flag fliter in Grid
+             * @param {object} $studyFlag  - jQuery object
+             */
+            bindStudyFlagFilter: function ($studyFlag) {
+                $studyFlag.off('click').click(function (e) {
+                    var $studyFlagElement = $('#divStudyFlag');
+                    $studyFlagElement.show();
+                    $studyFlagElement.find('input[type=checkbox]').removeAttr('checked');
+                    $studyFlagElement.css({
+                        "top": $studyFlag.offset().top + 25 + "px",
+                        "left": $studyFlag.offset().left + "px"
+                    });
+
+                    var filter = commonjs.loadedStudyFilters.get(commonjs.currentStudyFilter);
+                    var filterColumn = filter && filter.pager.get('FilterCol');
+                    var filterIndex = _.findIndex(filterColumn, function (o) { return o == 'study_flags'; });
+                    var filterData = filter && filter.pager.get('FilterData') && filter.pager.get('FilterData')[filterIndex];
+                    var flagList = filterData && filterData.split(',') || [];
+
+                    flagList.forEach(function (item) {
+                        $studyFlagElement.find('input[type=checkbox][value="' + item + '"]').prop("checked", true);
+                    })
+                    $('#chkStudyFlag').prop('checked', $('#ulStudyFlags .status').length == $('#ulStudyFlags .status:checked').length);
+                    e.stopPropagation();
+                });
+            },
+
             initializeStatusCodes: function (gridObj, tabtype) {
                 var self = this;
                 $('.statusMenu').hide();
                 $('#divStatusSearch').find('input[type=checkbox]:checked').removeAttr('checked');
+                var $studyFlag = $(gridObj.options.gridelementid)
+                    .closest("div.ui-jqgrid-view")
+                    .children("div.ui-jqgrid-hdiv")
+                    .find('#gs_study_flags');
+                $studyFlag.prop("readonly", true);
+                $studyFlag.css('cursor', 'pointer');
+
+                self.bindStudyFlagFilter($studyFlag);
 
                 var sch_date = $(gridObj.options.gridelementid).closest("div.ui-jqgrid-view")
                     .children("div.ui-jqgrid-hdiv").find('#gs_scheduled_dt');
@@ -1546,6 +1657,9 @@ define(['jquery',
                 else {
                     $('#chkAllStatus').prop('checked', false);
                 }
+
+                var enabled = $('#divStudyFlag .status').length == $('#divStudyFlag .status:checked').length;
+                $('#chkStudyFlag, #chkAllStudyFlag').prop('checked', enabled);
             },
             scrolleventStudies1: function (filterid, divId, studyStatus) {
                 var self = this;
@@ -1628,6 +1742,10 @@ define(['jquery',
                     case 'chkAppointmentStatus':
                         checkBoxContainerID = 'ulAppointmentStatus';
                     break;
+                    case 'chkStudyFlag':
+                    case 'chkAllStudyFlag':
+                        checkBoxContainerID = 'ulStudyFlags';
+                        break;
                 }
                 $('#' + checkBoxContainerID + ' :checkbox').prop("checked", $(e.target || e.srcElement).prop("checked"));
                 if ($('#divStatusSearch .status').length == $('#divStatusSearch .status:checked').length) {

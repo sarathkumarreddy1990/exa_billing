@@ -113,9 +113,9 @@ const colModel = [
         searchFlag: '%'
     },
     {
-        name: 'study_flag',
-        searchColumns: [`studies.study_info->'study_flag_id'`],
-        searchFlag: '='
+        name: 'study_flags',
+        searchColumns: ["flags.study_flags"],
+        searchFlag: 'study_flags'
     },
     {
         name: 'priority',
@@ -450,7 +450,6 @@ const api = {
                 }
 
                 return 'study_status.status_desc';
-            case 'study_flag': return 'study_flags.description';
             case 'priority': return 'studies.priority';
             case 'modalities':
                 if (screenName == 'Orders') {
@@ -630,6 +629,16 @@ const api = {
             `;
         }
 
+        if (tables.flags) {
+            r += `
+                LEFT JOIN LATERAL (
+                    SELECT
+                        ARRAY_AGG(saf.flag_id) AS study_flags
+                    FROM study_assigned_flags saf
+                    WHERE saf.study_id = studies.id
+                ) AS flags ON TRUE `;
+        }
+
         if(tables.study_cpt){
             r += `
                 LEFT JOIN LATERAL (
@@ -720,9 +729,6 @@ const api = {
             CASE studies.study_status WHEN 'TE' THEN 'INC'
             ELSE studies.study_status END = study_status.status_code AND studies.facility_id = study_status.facility_id) `;}
 
-        if (tables.study_flags){ r += ` LEFT JOIN study_flags
-        ON study_flags.id = (studies.study_info->'study_flag_id')::int `;}
-
         if (tables.report_delivery){
             r += `
                 LEFT JOIN LATERAL (
@@ -803,9 +809,8 @@ const api = {
 
         // ADDING A NEW WORKLIST COLUMN <-- Search for this
         let stdcolumns = [
-            'study_flags.description AS study_flag',
-            'study_flags.color_code AS study_color_code',
             // Studies Table
+            'flags.study_flags',
             'studies.id as study_id',
             'studies.linked_study_id',
             `studies.study_info-> 'Check-InDt'
@@ -1103,7 +1108,7 @@ const api = {
 
         //studyfilterdata.getUserWLFilters(filter_options, function (err, response) {
 
-        const filter = response.rows[0] ||{};
+        const filter = response.rows[0] || {};
 
         const {
             joined_filter_info

@@ -105,6 +105,18 @@ const util = {
                     return isKey ? ` NOT ${field} = ${value}` : ` NOT ${field} = '${value}'`;
             }
         }
+        else if (Filter === 'study_flags') {
+            let filter_ids = value && value.map(obj => Number(obj.id));
+
+            switch (condition) {
+                case `Is`:
+                    return ` = ANY(ARRAY[ ${filter_ids.join(', ')} ]) `;
+                case `IsNot`:
+                    return `<> ALL(ARRAY[ ${filter_ids.join(', ')} ]) OR saf.flag_id IS NULL `;
+                default:
+                    return ``;
+            }
+        }
         else {
             switch (condition) {
                 case 'Is':
@@ -970,33 +982,6 @@ const util = {
                     }
                 }
 
-                if (filterObj.studyInformation.flag) {
-                    let obj = filterObj.studyInformation.flag;
-                    let l = obj.list.length;
-                    let flagQuery = '';
-
-                    if (l > 0) {
-
-                        for (let i = 0; i < l; i++) {
-                            if (obj.list[i].text) {
-                                if (i == 0) {
-                                    flagQuery += ' study_flags.description' + util.getConditionalOperator(obj.condition, obj.list[i].text, false, '');
-                                }
-                                else {
-                                    flagQuery += util.getConditionalRelationOperator(obj.condition) + ' study_flags.description' + util.getConditionalOperator(obj.condition, obj.list[i].text, false, '');
-                                }
-                            }
-
-                        }
-
-                        if (obj.condition == 'IsNot') {
-                            flagQuery += 'OR ( study_flags.description) is null';
-                        }
-
-                        query += util.getRelationOperator(query) + '(' + flagQuery + ')';
-                    }
-                }
-
                 if (filterObj.studyInformation.institution) {
 
                     let obj = filterObj.studyInformation.institution;
@@ -1024,6 +1009,33 @@ const util = {
                     }
                 }
 
+            }
+
+            let flag = filterObj.studyInformation.flag;
+
+            if (flag) {
+                let len = flag.list.length;
+                let comparison = ``;
+
+                if (len) {
+                    comparison += ` AND ( saf.flag_id ${util.getConditionalOperator(flag.condition, flag.list, false, 'study_flags')} ) `;
+
+                    let flagFilter = `
+                        EXISTS (
+                            SELECT
+                                  s.id AS study_id
+                                , ARRAY_AGG(saf.flag_id) AS flag_id
+                            FROM 
+                                studies s
+                            LEFT JOIN study_assigned_flags saf ON saf.study_id = s.id
+                            WHERE s.id = studies.id
+                            ${comparison}
+                            GROUP BY s.id
+                        )
+                    `;
+
+                    query += util.getRelationOperator(query) + `( ${flagFilter} )`;
+                }
             }
 
             if (filterObj.options && !filterObj.options.statOverride && statOverride && query) {
