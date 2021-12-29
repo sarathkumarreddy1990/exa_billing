@@ -922,7 +922,7 @@ module.exports = {
                 ${whereQuery})
                 SELECT
                     ROW_NUMBER () OVER (ORDER BY invoice_no) AS id
-                    , invoice_no AS invoice_no
+                    , invoice_no::INT AS invoice_no
                     , timezone(public.get_facility_tz(facility_id::INT), MAX(date)::TIMESTAMP) AS invoice_date
                     , SUM(bill_fee) AS invoice_bill_fee
                     , SUM(payment) AS invoice_payment

@@ -307,7 +307,7 @@ const api = {
             case 'ordering_facility_contact_id': return 'ordering_facility_contacts.id';
             case 'facility_name': return 'facilities.facility_name';
             case 'billing_fee': return 'bgct.charges_bill_fee_total';
-            case 'invoice_no': return 'claims.invoice_no';
+            case 'invoice_no': return 'claims.invoice_no::INT';
             case 'billing_method': return 'claims.billing_method';
             case 'modalities': return 'studies.modalities';
             case 'followup_date': return 'claim_followups.followup_date::text';
