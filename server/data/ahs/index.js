@@ -189,6 +189,18 @@ const ahsData = {
         return (await query(sql.text, sql.values)).rows;
     },
 
+    updateAHSClaimNumbers: async ({claimIds}) => {
+        const sql = SQL`
+            UPDATE billing.claims bc
+            SET can_ahs_claim_number = billing.can_ahs_get_claim_number(ids)
+            FROM UNNEST(${claimIds}::BIGINT[]) ids
+            WHERE bc.id = ids
+            RETURNING id, can_ahs_claim_number
+        `;
+
+        return await query(sql.text, sql.values);
+    },
+
     saveAddedClaims: async function (args) {
 
         const {
@@ -393,7 +405,7 @@ const ahsData = {
                         inserted_efc.batch_number                    AS batch_number,
                         inserted_efc.can_ahs_year_source_code        AS year_source_code,
                         inserted_efc.sequence_number                 AS sequence_number,
-                        public.get_can_ahs_mod10_for_claim_sequence_number(
+                        billing.get_can_ahs_mod10_for_claim_sequence_number(
                             inserted_efc.sequence_number :: INT8
                         )                                            AS check_digit,
 
