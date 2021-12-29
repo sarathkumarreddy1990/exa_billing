@@ -225,7 +225,8 @@ define([
                     'countryCode': app.country_alpha_3_code,
                     'insuranceIds': this.viewModel.insuranceIds || '',
                     'insuranceOption': this.viewModel.insuranceOption || '',
-                    'insuranceGroupIds': this.viewModel.insuranceGroupIds || ''
+                    'insuranceGroupIds': this.viewModel.insuranceGroupIds || '',
+                    'openInNewTab': this.viewModel.openInNewTab
                 };
             }
         });

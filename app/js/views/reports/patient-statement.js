@@ -221,7 +221,8 @@ define([
                     patientLastnameTo: this.viewModel.patientLastnameTo,
                     logInClaimInquiry: $('#chkLogInClaimInquiry').prop('checked'),
                     countryCode: app.country_alpha_3_code,
-                    mailTo:  this.viewModel.mailTo
+                    mailTo:  this.viewModel.mailTo,
+                    openInNewTab: this.viewModel.openInNewTab
                 };
             },
 

@@ -249,7 +249,8 @@ define(['jquery',
                     'insuranceIds': this.viewModel.insuranceIds,
                     'insuranceOption': this.viewModel.insuranceOption || '',
                     'insuranceGroupIds': this.viewModel.insuranceGroupIds,
-                    'allInsuranceGroup': this.viewModel.allInsGrpSelection || ''
+                    'allInsuranceGroup': this.viewModel.allInsGrpSelection || '',
+                    'openInNewTab': this.viewModel.openInNewTab
                 }
                 return urlParams;
             }

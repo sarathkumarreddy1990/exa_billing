@@ -342,7 +342,8 @@ define([
                     insurancePayerTypeOption: $('#ddlClaimSelectBoxes').val() || '',
 
                     'userIds': $('#ddlUsersOption').val() == 'S' ? usersArray : '',
-                    'userName': $('#ddlUsersOption').val() == 'S' ? userNameArray : ''
+                    'userName': $('#ddlUsersOption').val() == 'S' ? userNameArray : '',
+                    openInNewTab: this.viewModel.openInNewTab
 
                 };
             },

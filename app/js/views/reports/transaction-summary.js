@@ -164,7 +164,8 @@ define([
                     'billingProvider': this.selectedBillingProList ? this.selectedBillingProList : [],
                     'allBillingProvider': this.viewModel.allBillingProvider ? this.viewModel.allBillingProvider : '',
                     'billingProFlag': this.viewModel.allBillingProvider == 'true' ? true : false,
-                    'totalByMonthOrDay' : this.viewModel.totalByMonthOrDay ? this.viewModel.totalByMonthOrDay : false
+                    'totalByMonthOrDay' : this.viewModel.totalByMonthOrDay ? this.viewModel.totalByMonthOrDay : false,
+                    'openInNewTab': this.viewModel.openInNewTab
                 };
             }
         });

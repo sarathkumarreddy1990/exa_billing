@@ -138,7 +138,8 @@ define([
                         reportName = "patient-invoice";
                         var urlParams = {
                                 claimIds: claimInfo.claimID,
-                                sDate: '2018-06-23'
+                                sDate: '2018-06-23',
+                                openInNewTab: this.viewModel.openInNewTab
 
                         }
                     }
@@ -146,7 +147,8 @@ define([
                         var reportName = "payment-invoice";
                         var urlParams = {
                                 claimIds: claimInfo.claimID,
-                                sDate: '2018-06-23'
+                                sDate: '2018-06-23',
+                                openInNewTab: this.viewModel.openInNewTab
                         }
                     }
                 else {
@@ -159,7 +161,8 @@ define([
                                 billingProviderIds: claimInfo.billingProId,
                                 sDate: moment().format('MM/DD/YYYY'),
                                 billingComments: claimInfo.billingComments,
-                                claimIds: claimInfo.selectedClaimIds || []
+                                claimIds: claimInfo.selectedClaimIds || [],
+                                openInNewTab: this.viewModel.openInNewTab
                         }
                     }
                 $('#divPageLoading').hide();

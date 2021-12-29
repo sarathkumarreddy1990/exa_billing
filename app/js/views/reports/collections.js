@@ -175,7 +175,8 @@ define
                     'allBillingProvider': this.viewModel.allBillingProvider || '',
                     'billingProFlag': this.viewModel.allBillingProvider == 'true' ? true : false,
                     'claimsToCollections': this.viewModel.claimsToCollections,
-                    'country_alpha_3_code': this.viewModel.country_alpha_3_code
+                    'country_alpha_3_code': this.viewModel.country_alpha_3_code,
+                    'openInNewTab': this.viewModel.openInNewTab
                 }
                 return urlParams;
             }
