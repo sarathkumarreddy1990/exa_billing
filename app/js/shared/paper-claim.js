@@ -40,7 +40,7 @@ define([
                 },
             };
 
-            this.print = function (templateType, claimIDs, options) {
+            this.print = function (templateType, claimIDs, is_invoice_inquiry, options) {
                 var self = this;
                 var win = null;
 
@@ -97,8 +97,8 @@ define([
                             if (discardedIDs.length > 0 && !options.showInline) {
                                 commonjs.showWarning('Unable to process few claims - ' + discardedIDs.toString());
                             }
-
-                            self.updateClaimStatus(processedIDs, templateType, options, function (err, response) {
+                            
+                            self.updateClaimStatus(processedIDs, templateType, is_invoice_inquiry, options, function (err, response) {
                                 var invoiceNo = response && response.invoice_no || '';
                                 claimData[0].invoiceNo = invoiceNo;
                                 return self.preparePdfWorker(templateType, template, claimData);
@@ -267,7 +267,7 @@ define([
                 });
             };
 
-            this.updateClaimStatus = function (claimIDs, templateType, options, callback) {
+            this.updateClaimStatus = function (claimIDs, templateType, is_invoice_inquiry, options, callback) {
 
                 $.ajax({
                     url: '/exa_modules/billing/claim_workbench/update_claim_status',
@@ -275,7 +275,8 @@ define([
                     data: {
                         claimIds: claimIDs.toString(),
                         templateType: templateType,
-                        payerType:options.payerType
+                        payerType:options.payerType,
+                        is_invoice_inquiry: is_invoice_inquiry
                     }, success: function (data, response) {
                         $("#btnClaimsRefresh").click();
                         data = _.reject(data, { id: null });

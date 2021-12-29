@@ -657,7 +657,8 @@ define([
                             },
                             customAction: function (rowID, e) {
                                 var gridData = $('#tblInvoiceGrid').jqGrid('getRowData', rowID);
-                                self.printInvoice(gridData.claim_ids);
+                                var is_invoice_inquiry = true
+                                self.printInvoice(gridData.claim_ids, is_invoice_inquiry);
                             }
                         }
 
@@ -738,9 +739,9 @@ define([
 
             },
 
-            printInvoice: function(claimids) {
+            printInvoice: function(claimids , is_invoice_inquiry) {
                 claimids =  claimids && claimids.split(',')
-                paperClaim.print( 'direct_invoice', claimids );
+                paperClaim.print( 'direct_invoice', claimids, is_invoice_inquiry);
             },
 
             showPatientClaimsLogGrid: function (claimID, patientId) {
@@ -1648,7 +1649,7 @@ define([
             },
 
             showPaperClaim: function (format, claimId, insuranceProviderId, payerType) {
-                paperClaim.print(format, claimId, {
+                paperClaim.print(format, claimId, false, {
                     payerType: payerType,
                     payerId: insuranceProviderId
                 });
