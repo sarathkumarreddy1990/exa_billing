@@ -396,6 +396,14 @@ define(['jquery',
                 }); // end _.each
             },
 
+            /**
+             * clear filter's checkbox while refresh and switch tab
+             */
+            clearCheckedFilter: function () {
+                $('#divStatusSearch').find('input[type=checkbox]:checked').prop('checked', false);
+                $('#divStudyFlag').find('input[type=checkbox]:checked').prop('checked', false);
+            },
+
             setFiltertabs: function (filters) {
                 var self = this;
                 commonjs.showLoading('Fetching data..');
@@ -592,7 +600,7 @@ define(['jquery',
                             $('#tblGrid' + dataContainerValue).first().children().first().addClass('dg-body');
                             $uiJQHTableKids.first().height('40px');
                             $uiJQHTableKids.last().css('line-height', '2');
-                            $('#divStatusSearch').find('input[type=checkbox]:checked').prop('checked',false)
+                            self.clearCheckedFilter();
 
                            fastdom.measure(function () {
                                if ( this.getState('isScrolling') === true || this.getState('isMeasuring') === true ) {
@@ -1381,7 +1389,7 @@ define(['jquery',
                             filter.customGridTable.jqGrid('GridUnload');
                             commonjs.setFilter(null, null);
                             self.setTabContents(fid, isprior, isDicomSearch, isRisOrderSearch, showEncOnly);
-                            $('#divStatusSearch').find('input[type=checkbox]:checked').prop('checked',false)
+                            self.clearCheckedFilter();
                             commonjs.hideLoading();
                         }
                     },
