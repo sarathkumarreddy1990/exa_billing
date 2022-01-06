@@ -156,7 +156,8 @@ const ahsData = {
                 LEFT JOIN public.provider_contacts pc_app ON pc_app.id = bc.rendering_provider_contact_id
                 LEFT JOIN public.provider_contacts pc_c ON pc_c.id = bc.referring_provider_contact_id
                 LEFT JOIN public.facilities f ON f.id = bc.facility_id
-                LEFT JOIN public.patient_insurances ppi  ON ppi.id = bc.primary_patient_insurance_id
+                LEFT JOIN billing.claim_patient_insurances bcpi ON bcpi.claim_id = bc.id AND bcpi.coverage_level = 'primary'
+                LEFT JOIN public.patient_insurances ppi  ON ppi.id = bcpi.patient_insurance_id
                 LEFT JOIN public.insurance_providers pip ON pip.id = ppi.insurance_provider_id
                 LEFT JOIN LATERAL (
                     WITH bci AS (
@@ -849,12 +850,12 @@ const ahsData = {
                 ${companyId},
                 ${file_store_id},
                 ${created_dt},
-                CASE 
+                CASE
                     WHEN EXISTS (
                             SELECT 1
                             FROM billing.edi_files
                             WHERE file_md5 = ${file_md5}
-                        ) 
+                        )
                     THEN 'duplicate'
                     ELSE 'pending'
                 END,

@@ -109,16 +109,24 @@ module.exports = {
         SELECT *
         FROM   (SELECT Unnest(pi_ids)      patient_insurance_id,
                     Unnest(payer_types) payer_type
-                FROM   (SELECT array[ primary_patient_insurance_id,
-                    secondary_patient_insurance_id,
-                    tertiary_patient_insurance_id]
-                    AS pi_ids,
-                    array[ 'primary_insurance', 'secondary_insurance',
-                    'tertiary_insurance']
-                    AS
-                    payer_types
-                        FROM   billing.claims bc
-                        WHERE  bc.id = ${claim_id}
+                FROM (
+                    SELECT
+                        ARRAY[
+                            primary_patient_insurance_id,
+                            secondary_patient_insurance_id,
+                            tertiary_patient_insurance_id
+                        ] AS pi_ids,
+                        ARRAY[ 'primary_insurance', 'secondary_insurance', 'tertiary_insurance'] AS payer_types
+                    FROM   billing.claims bc
+                    LEFT JOIN LATERAL (
+                        SELECT
+                            MAX(patient_insurance_id) FILTER (WHERE coverage_level = 'primary') AS primary_patient_insurance_id
+                            , MAX(patient_insurance_id) FILTER (WHERE coverage_level = 'secondary') AS secondary_patient_insurance_id
+                            , MAX(patient_insurance_id) FILTER (WHERE coverage_level = 'tertiary') AS tertiary_patient_insurance_id
+                        FROM billing.claim_patient_insurances bcpi
+                        WHERE bcpi.claim_id = bc.id
+                    ) insurances ON TRUE
+                    WHERE  bc.id = ${claim_id}
                     ) x) y
         WHERE  y.patient_insurance_id IS NOT NULL
     )
@@ -745,16 +753,21 @@ module.exports = {
                     FROM billing.claims
                     INNER JOIN patients ON claims.patient_id = patients.id
                     INNER JOIN LATERAL billing.get_claim_payments(claims.id, false) bgcp ON TRUE
+                    LEFT JOIN LATERAL (
+                        SELECT
+                            CASE claims.payer_type
+                                WHEN 'primary_insurance' THEN MAX(patient_insurance_id) FILTER (WHERE coverage_level = 'primary')
+                                WHEN 'secondary_insurance' THEN MAX(patient_insurance_id) FILTER (WHERE coverage_level = 'secondary')
+                                WHEN 'tertiary_insurance' THEN MAX(patient_insurance_id) FILTER (WHERE coverage_level = 'tertiary')
+                            END AS patient_insurance
+                        FROM billing.claim_patient_insurances
+                        WHERE claim_id = claims.id
+                    ) AS pat_claim_ins ON TRUE
                     LEFT JOIN provider_contacts  ON provider_contacts.id=claims.referring_provider_contact_id
                     LEFT JOIN providers as ref_provider ON ref_provider.id = provider_contacts.provider_id
                     LEFT JOIN provider_contacts as rendering_pro_contact ON rendering_pro_contact.id=claims.rendering_provider_contact_id
                     LEFT JOIN providers as render_provider ON render_provider.id = rendering_pro_contact.provider_id
-                    LEFT JOIN patient_insurances ON patient_insurances.id =
-                        (  CASE payer_type
-                        WHEN 'primary_insurance' THEN primary_patient_insurance_id
-                        WHEN 'secondary_insurance' THEN secondary_patient_insurance_id
-                        WHEN 'tertiary_insurance' THEN tertiary_patient_insurance_id
-                        END)
+                    LEFT JOIN patient_insurances ON patient_insurances.id = pat_claim_ins.patient_insurance
                     LEFT JOIN insurance_providers ON patient_insurances.insurance_provider_id = insurance_providers.id
                     LEFT JOIN public.ordering_facility_contacts pofc ON pofc.id = claims.ordering_facility_contact_id
                     LEFT JOIN public.ordering_facilities pof ON pof.id = pofc.ordering_facility_id
@@ -794,33 +807,46 @@ module.exports = {
                 break;
             case 'primary_insurance':
                 selectDetails = ' ppi.insurance_provider_id AS insurance_provider_id, bc.payer_type ';
-                joinQuery = ` INNER JOIN LATERAL (
+
+                joinQuery = `
+                        LEFT JOIN billing.claim_patient_insurances bcpi ON bcpi.claim_id = bc.id AND bcpi.coverage_level = 'primary'
+                        INNER JOIN LATERAL (
                             SELECT id
                             FROM public.patient_insurances ppi
                             INNER JOIN	get_payer_details gpd ON gpd.insurance_provider_id = ppi.insurance_provider_id
-                          ) ppi ON TRUE `;
-                whereQuery = ` AND bc.payer_type = 'primary_insurance' AND bc.primary_patient_insurance_id = ppi.id`;
-                joinCondition = 'INNER JOIN public.patient_insurances ppi ON ppi.id = bc.primary_patient_insurance_id';
+                        ) ppi ON TRUE `;
+
+                whereQuery = ` AND bc.payer_type = 'primary_insurance' AND bcpi.patient_insurance_id = ppi.id`;
+                joinCondition = 'INNER JOIN public.patient_insurances ppi ON ppi.id = bcpi.patient_insurance_id';
+
                 break;
             case 'secondary_insurance':
                 selectDetails = ' ppi.insurance_provider_id AS insurance_provider_id, bc.payer_type ';
-                joinQuery = ` INNER JOIN LATERAL (
+
+                joinQuery = `
+                        LEFT JOIN billing.claim_patient_insurances bcsi ON bcsi.claim_id = bc.id AND bcsi.coverage_level = 'secondary'
+                        INNER JOIN LATERAL (
                             SELECT id
                             FROM public.patient_insurances ppi
                             INNER JOIN    get_payer_details gpd ON gpd.insurance_provider_id = ppi.insurance_provider_id
-                          ) ppi ON TRUE `;
-                whereQuery = ` AND bc.payer_type = 'secondary_insurance' AND bc.secondary_patient_insurance_id = ppi.id`;
-                joinCondition = 'INNER JOIN public.patient_insurances ppi ON ppi.id = bc.secondary_patient_insurance_id';
+                        ) ppi ON TRUE `;
+
+                whereQuery = ` AND bc.payer_type = 'secondary_insurance' AND bcsi.patient_insurance_id = ppi.id`;
+                joinCondition = 'INNER JOIN public.patient_insurances ppi ON ppi.id = bcsi.patient_insurance_id';
                 break;
             case 'tertiary_insurance':
                 selectDetails = ' ppi.insurance_provider_id AS insurance_provider_id, bc.payer_type ';
-                joinQuery = ` INNER JOIN LATERAL (
+
+                joinQuery = `
+                        LEFT JOIN billing.claim_patient_insurances bcti ON bcti.claim_id = bc.id AND bcti.coverage_level = 'tertiary'
+                        INNER JOIN LATERAL (
                             SELECT id
                             FROM public.patient_insurances ppi
                             INNER JOIN    get_payer_details gpd ON gpd.insurance_provider_id = ppi.insurance_provider_id
                           ) ppi ON TRUE `;
-                whereQuery = ` AND bc.payer_type = 'tertiary_insurance' AND  bc.tertiary_patient_insurance_id = ppi.id`;
-                joinCondition = 'INNER JOIN public.patient_insurances ppi ON ppi.id = bc.tertiary_patient_insurance_id';
+
+                whereQuery = ` AND bc.payer_type = 'tertiary_insurance' AND  bcti.patient_insurance_id = ppi.id`;
+                joinCondition = 'INNER JOIN public.patient_insurances ppi ON ppi.id = bcti.patient_insurance_id';
                 break;
             case 'referring_provider':
                 selectDetails = ' bc.referring_provider_contact_id AS referring_provider_contact_id, bc.payer_type ';

@@ -24,7 +24,7 @@ WITH claim_data AS(
     ),
     patient_insurance AS (
         SELECT
-            CASE coverage_level
+            CASE bcpi.coverage_level
 						WHEN 'primary' THEN 'P'
 						WHEN 'secondary' THEN 'S'
                         WHEN 'tertiary' THEN 'T' END AS cov_level,
@@ -34,14 +34,14 @@ WITH claim_data AS(
             group_number AS group_no,
             ip.insurance_name  AS company_name
         FROM
-            patient_insurances pis
+            billing.claim_patient_insurances bcpi
+        LEFT JOIN public.patient_insurances pis ON pis.id = bcpi.patient_insurance_id
         INNER JOIN insurance_providers AS ip ON ip.id = pis.insurance_provider_id
         INNER JOIN billing.claims bc ON bc.patient_id = pis.patient_id
         INNER JOIN claim_data cd ON cd.claim_id = bc.id
         INNER JOIN facilities f ON f.id = bc.facility_id
         WHERE TRUE
         <% if(selectedClaimIds) { %> AND <% print(selectedClaimIds); } %>
-        AND (bc.primary_patient_insurance_id = pis.id OR bc.secondary_patient_insurance_id = pis.id OR bc.tertiary_patient_insurance_id = pis.id)
         ORDER BY cov_level
     ),
     billing_comments AS
@@ -190,13 +190,19 @@ WITH claim_data AS(
            WHERE bc.patient_id = p.id
            <% if(selectedClaimIds) { %> AND <% print(selectedClaimIds); } %>
         ) std ON TRUE
-         LEFT JOIN public.patient_insurances pi on pi.id = (CASE WHEN  bc.payer_type = 'primary_insurance' THEN
-         primary_patient_insurance_id
-   WHEN  bc.payer_type = 'secondary_insurance' THEN
-         secondary_patient_insurance_id
-   WHEN  bc.payer_type = 'tertiary_insurance' THEN
-         tertiary_patient_insurance_id
-   END)),
+        LEFT JOIN LATERAL (
+            SELECT
+                CASE bc.payer_type
+                    WHEN 'primary_insurance' THEN MAX(patient_insurance_id) FILTER (WHERE coverage_level = 'primary')
+                    WHEN 'secondary_insurance' THEN MAX(patient_insurance_id) FILTER (WHERE coverage_level = 'secondary')
+                    WHEN 'tertiary_insurance' THEN MAX(patient_insurance_id) FILTER (WHERE coverage_level = 'tertiary')
+                END AS patient_insurance
+            FROM billing.claim_patient_insurances
+            WHERE claim_id = bc.id
+        ) AS pat_claim_ins ON TRUE
+        LEFT JOIN public.patient_insurances pi ON pi.id = pat_claim_ins.patient_insurance
+        ),
+
    guarantor_cte AS (
     SELECT
       mpid,

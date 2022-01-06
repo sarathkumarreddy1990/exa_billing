@@ -16,13 +16,21 @@ WITH agg_claim AS(
         , bc.id AS claim_id
         , payer_type
         , (SELECT claim_balance_total FROM billing.get_claim_totals(bc.id)) as claim_balance
-        , primary_patient_insurance_id
-        , secondary_patient_insurance_id
-        , tertiary_patient_insurance_id
+        , claim_pat_ins.primary_patient_insurance_id
+        , claim_pat_ins.secondary_patient_insurance_id
+        , claim_pat_ins.tertiary_patient_insurance_id
     FROM
     	billing.claims bc
     INNER JOIN public.facilities f ON f.id = bc.facility_id
-    LEFT JOIN public.patient_insurances ppi ON ppi.id = bc.primary_patient_insurance_id
+    LEFT JOIN LATERAL (
+        SELECT
+            MAX(patient_insurance_id) FILTER (WHERE coverage_level = 'primary') AS primary_patient_insurance_id,
+            MAX(patient_insurance_id) FILTER (WHERE coverage_level = 'secondary') AS secondary_patient_insurance_id,
+            MAX(patient_insurance_id) FILTER (WHERE coverage_level = 'tertiary') AS tertiary_patient_insurance_id
+        FROM billing.claim_patient_insurances bcpi
+        WHERE bcpi.claim_id = bc.id
+    ) claim_pat_ins ON TRUE
+    LEFT JOIN public.patient_insurances ppi ON ppi.id = claim_pat_ins.primary_patient_insurance_id
     LEFT JOIN public.insurance_providers pip ON pip.id = ppi.insurance_provider_id
     LEFT JOIN public.insurance_provider_payer_types pippt ON pippt.id = pip.provider_payer_type_id
     LEFT JOIN public.ordering_facility_contacts pofc ON pofc.id = bc.ordering_facility_contact_id
@@ -37,14 +45,24 @@ WITH agg_claim AS(
 , ins_paid as (
     SELECT DISTINCT bc.claim_id,
          bp.insurance_provider_id,
-        COALESCE( bc.primary_patient_insurance_id = ppi.id AND ppi.insurance_provider_id = bp.insurance_provider_id, false) is_primary,
-        COALESCE( bc.secondary_patient_insurance_id = ppi.id AND ppi.insurance_provider_id = bp.insurance_provider_id, false) is_secondary,
-        COALESCE( bc.tertiary_patient_insurance_id = ppi.id AND ppi.insurance_provider_id = bp.insurance_provider_id, false) is_tertiary
+        COALESCE(pat_ins.primary_patient_insurance_id = ppi.id AND ppi.insurance_provider_id = bp.insurance_provider_id, false) is_primary,
+        COALESCE(pat_ins.secondary_patient_insurance_id = ppi.id AND ppi.insurance_provider_id = bp.insurance_provider_id, false) is_secondary,
+        COALESCE(pat_ins.tertiary_patient_insurance_id = ppi.id AND ppi.insurance_provider_id = bp.insurance_provider_id, false) is_tertiary
     FROM agg_claim bc
          INNER JOIN billing.charges bch ON  bch.claim_id = bc.claim_id
          INNER JOIN billing.payment_applications bpa ON  bpa.charge_id = bch.id
          INNER JOIN billing.payments bp ON  bp.id = bpa.payment_id
-         LEFT JOIN public.patient_insurances ppi ON ppi.id IN ( bc.primary_patient_insurance_id, bc.secondary_patient_insurance_id, bc.tertiary_patient_insurance_id )
+         LEFT JOIN LATERAL (
+            SELECT
+                MAX(bcpi.patient_insurance_id) FILTER (WHERE bcpi.coverage_level = 'primary') AS primary_patient_insurance_id,
+                MAX(bcpi.patient_insurance_id) FILTER (WHERE bcpi.coverage_level = 'secondary') AS secondary_patient_insurance_id,
+                MAX(bcpi.patient_insurance_id) FILTER (WHERE bcpi.coverage_level = 'tertiary') AS tertiary_patient_insurance_id,
+                bcpi.patient_insurance_id
+            FROM billing.claim_patient_insurances bcpi
+            WHERE bcpi.claim_id = bc.claim_id
+            GROUP BY bcpi.patient_insurance_id
+         ) pat_ins ON TRUE
+         LEFT JOIN public.patient_insurances ppi ON ppi.id = pat_ins.patient_insurance_id
      WHERE bp.payer_type = 'insurance'
 )
 , paid_insurance AS (
@@ -229,7 +247,7 @@ LEFT JOIN sec_ins_payment ON  agg_claim.claim_id = sec_ins_payment.claim_id
 LEFT JOIN ter_ins_payment ON agg_claim.claim_id = ter_ins_payment.claim_id
 LEFT JOIN total_credit ON agg_claim.claim_id = total_credit.claim_id
 LEFT JOIN charge_details ON agg_claim.claim_id = charge_details.claim_id
-LEFT JOIN patient_payment ON agg_claim.claim_id = patient_payment.claim_id    
+LEFT JOIN patient_payment ON agg_claim.claim_id = patient_payment.claim_id
 `);
 
 const api = {

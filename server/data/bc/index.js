@@ -412,7 +412,8 @@ const bcData = {
                         INNER JOIN orders o ON o.id = s.order_id
                         INNER JOIN facilities f ON s.facility_id = f.id
                         INNER JOIN patients p ON p.id = s.patient_id
-                        INNER JOIN patient_insurances pi ON pi.id = o.primary_patient_insurance_id
+                        INNER JOIN order_patient_insurances opi ON opi.order_id = o.id AND opi.coverage_level = 'primary'
+                        INNER JOIN patient_insurances pi ON pi.id = opi.patient_insurance_id
                         INNER JOIN insurance_providers ip ON ip.id = pi.insurance_provider_id
                         INNER JOIN billing.facility_settings bfs ON bfs.facility_id = f.id
                         INNER JOIN billing.providers bp ON bp.id = bfs.default_provider_id

@@ -197,10 +197,18 @@ module.exports = {
 
         if (params.customArgs.payerType == 'insurance') {
             joinQuery = `
-        LEFT  JOIN public.patient_insurances AS pip ON pip.id = CASE WHEN bc.payer_type = 'primary_insurance' THEN bc.primary_patient_insurance_id
-                                                WHEN bc.payer_type = 'secondary_insurance' THEN bc.secondary_patient_insurance_id
-                                                WHEN bc.payer_type = 'tertiary_insurance' THEN bc.tertiary_patient_insurance_id
-                                        END`;
+                LEFT JOIN LATERAL (
+                    SELECT
+                        CASE bc.payer_type
+                            WHEN 'primary_insurance' THEN MAX(patient_insurance_id) FILTER (WHERE coverage_level = 'primary')
+                            WHEN 'secondary_insurance' THEN MAX(patient_insurance_id) FILTER (WHERE coverage_level = 'secondary')
+                            WHEN 'tertiary_insurance' THEN MAX(patient_insurance_id) FILTER (WHERE coverage_level = 'tertiary')
+                        END AS patient_insurance
+                    FROM billing.claim_patient_insurances
+                    WHERE claim_id = bc.id
+                ) AS pat_claim_ins ON TRUE
+                LEFT  JOIN public.patient_insurances AS pip ON pip.id = pat_claim_ins.patient_insurance`;
+
 
             paymentWhereQuery = paymentWhereQuery + ` AND pip.insurance_provider_id = ${params.customArgs.payerId} `;
         }
@@ -454,9 +462,9 @@ module.exports = {
                     SELECT bc.patient_id,
                             bc.facility_id,
                             bc.billing_notes,
-                            bc.primary_patient_insurance_id AS primary,
-                            bc.secondary_patient_insurance_id AS secondary,
-                            bc.tertiary_patient_insurance_id AS tertiary,
+                            pat_claim_ins.primary_patient_insurance_id AS primary,
+                            pat_claim_ins.secondary_patient_insurance_id AS secondary,
+                            pat_claim_ins.tertiary_patient_insurance_id AS tertiary,
 
                             of.id AS order_facility_id,
                             bc.referring_provider_contact_id,
@@ -480,9 +488,18 @@ module.exports = {
                         LEFT JOIN public.patients ON patients.id = bc.patient_id
                         LEFT JOIN public.facilities ON facilities.id = bc.facility_id
 
-                        LEFT  JOIN public.patient_insurances AS pip ON pip.id = bc.primary_patient_insurance_id
-                        LEFT  JOIN public.patient_insurances AS sip ON sip.id = bc.secondary_patient_insurance_id
-                        LEFT  JOIN public.patient_insurances AS tip ON tip.id = bc.tertiary_patient_insurance_id
+                        LEFT JOIN LATERAL(
+                            SELECT
+                                MAX(patient_insurance_id) FILTER (WHERE coverage_level = 'primary') AS primary_patient_insurance_id,
+                                MAX(patient_insurance_id) FILTER (WHERE coverage_level = 'secondary') AS secondary_patient_insurance_id,
+                                MAX(patient_insurance_id) FILTER (WHERE coverage_level = 'tertiary') AS tertiary_patient_insurance_id
+                            FROM billing.claim_patient_insurances
+                            WHERE claim_id = bc.id
+                        ) AS pat_claim_ins ON TRUE
+
+                        LEFT  JOIN public.patient_insurances AS pip ON pip.id = pat_claim_ins.primary_patient_insurance_id
+                        LEFT  JOIN public.patient_insurances AS sip ON sip.id = pat_claim_ins.secondary_patient_insurance_id
+                        LEFT  JOIN public.patient_insurances AS tip ON tip.id = pat_claim_ins.tertiary_patient_insurance_id
 
                         LEFT JOIN public.insurance_providers pips ON pips.id = pip.insurance_provider_id
                         LEFT JOIN public.insurance_providers sips ON sips.id = sip.insurance_provider_id
