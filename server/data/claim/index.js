@@ -137,16 +137,20 @@ module.exports = {
                                 , modifiers.modifier4_id AS m4
                                 , string_to_array(regexp_replace(study_cpt_info->'diagCodes_pointer', '[^0-9,]', '', 'g'),',')::int[] AS icd_pointers
                                 , (CASE WHEN (${params.isMobileBillingEnabled} AND (SELECT billing_type from get_study_date) = 'facility') THEN
-                                            billing.get_computed_bill_fee(null, cpt_codes.id, modifiers.modifier1_id, modifiers.modifier2_id, modifiers.modifier3_id, modifiers.modifier4_id, 'billing', 'ordering_facility', (SELECT ordering_facility_contact_id FROM get_study_date), o.facility_id)::NUMERIC
+                                            billing.get_computed_bill_fee(null, cpt_codes.id, modifiers.modifier1_id, modifiers.modifier2_id, modifiers.modifier3_id, modifiers.modifier4_id, 'billing', 'ordering_facility',
+                                            (SELECT ordering_facility_contact_id FROM get_study_date), o.facility_id)::NUMERIC
                                         WHEN (select id from beneficiary_details) IS NOT NULL THEN
-                                            billing.get_computed_bill_fee(null,cpt_codes.id,modifiers.modifier1_id,modifiers.modifier2_id,modifiers.modifier3_id,modifiers.modifier4_id,'billing','primary_insurance',(select id from beneficiary_details), o.facility_id)::NUMERIC
+                                            billing.get_computed_bill_fee(null,cpt_codes.id,modifiers.modifier1_id,modifiers.modifier2_id,modifiers.modifier3_id,modifiers.modifier4_id,'billing','primary_insurance',
+                                            (select id from beneficiary_details), o.facility_id)::NUMERIC
                                         ELSE
                                             billing.get_computed_bill_fee(null,cpt_codes.id,modifiers.modifier1_id,modifiers.modifier2_id,modifiers.modifier3_id,modifiers.modifier4_id,'billing','patient',${params.patient_id},o.facility_id)::NUMERIC
                                         END) as bill_fee
                                 , (CASE WHEN (${params.isMobileBillingEnabled} AND (SELECT billing_type from get_study_date) = 'facility') THEN
-                                            billing.get_computed_bill_fee(null, cpt_codes.id, modifiers.modifier1_id, modifiers.modifier2_id, modifiers.modifier3_id, modifiers.modifier4_id, 'allowed', 'ordering_facility', (SELECT ordering_facility_contact_id FROM get_study_date), o.facility_id)::NUMERIC
+                                            billing.get_computed_bill_fee(null, cpt_codes.id, modifiers.modifier1_id, modifiers.modifier2_id, modifiers.modifier3_id, modifiers.modifier4_id, 'allowed', 'ordering_facility',
+                                            (SELECT ordering_facility_contact_id FROM get_study_date), o.facility_id)::NUMERIC
                                         WHEN (select id from beneficiary_details) IS NOT NULL THEN
-                                            billing.get_computed_bill_fee(null,cpt_codes.id,modifiers.modifier1_id,modifiers.modifier2_id,modifiers.modifier3_id,modifiers.modifier4_id,'allowed','primary_insurance',(select id from beneficiary_details), o.facility_id)::NUMERIC
+                                            billing.get_computed_bill_fee(null,cpt_codes.id,modifiers.modifier1_id,modifiers.modifier2_id,modifiers.modifier3_id,modifiers.modifier4_id,'allowed','primary_insurance',
+                                            (select id from beneficiary_details), o.facility_id)::NUMERIC
                                         ELSE
                                             billing.get_computed_bill_fee(null,cpt_codes.id,modifiers.modifier1_id,modifiers.modifier2_id,modifiers.modifier3_id,modifiers.modifier4_id,'allowed','patient',${params.patient_id},o.facility_id)::NUMERIC
                                         END) as allowed_fee
