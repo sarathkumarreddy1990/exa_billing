@@ -14,12 +14,18 @@ WITH study_cte AS (
       ps.id AS study_id,
       ps.modality_id,
       bc.claim_dt::DATE,
-      unnest(ARRAY [ bc.primary_patient_insurance_id, bc.secondary_patient_insurance_id, bc.tertiary_patient_insurance_id ]) AS patient_insurance_id
+      UNNEST(pat_ins.patient_insurance_ids) AS patient_insurance_id
     FROM
       public.studies AS ps
       INNER JOIN billing.charges_studies bcs ON bcs.study_id = ps.id
       INNER JOIN billing.charges bch ON bch.id = bcs.charge_id
       INNER JOIN billing.claims bc ON bc.id = bch.claim_id
+      LEFT JOIN LATERAL (
+          SELECT
+            ARRAY_AGG(patient_insurance_id) AS patient_insurance_ids
+          FROM billing.claim_patient_insurances bcpi
+          WHERE bcpi.claim_id = bc.id
+      ) pat_ins ON TRUE
       <% if (billingProID) { %> INNER JOIN billing.providers bp ON bp.id = bc.billing_provider_id <% } %>
     WHERE ps.deleted_dt is null
     AND ps.accession_no NOT ILIKE '%.c'
@@ -146,7 +152,7 @@ const api = {
      * This method is called by controller pipline after report data is initialized (common lookups are available).
      */
     getReportData: (initialReportData) => {
-        initialReportData.report.params.allStudyStatuses = initialReportData.report.params.allStudyStatuses === 'true';       
+        initialReportData.report.params.allStudyStatuses = initialReportData.report.params.allStudyStatuses === 'true';
 
         return Promise.join(
             dataHelper.getReportInfo({ids: initialReportData.report.params.studyStatusCodes, codeName: 'code', columnName: 'name',

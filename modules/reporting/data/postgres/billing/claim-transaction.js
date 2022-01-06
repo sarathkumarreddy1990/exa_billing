@@ -33,7 +33,8 @@ WITH claim_details AS(
     LEFT JOIN billing.payment_applications bpa ON bpa.charge_id = bch.id
     LEFT JOIN billing.payments bp ON bp.id = bpa.payment_id
     <% if (cptCodeLists) { %>   inner join cpt_codes cc on cc.id = bch.cpt_id  <% } %>
-    LEFT JOIN public.patient_insurances ppi ON ppi.id =  bc.primary_patient_insurance_id
+    LEFT JOIN billing.claim_patient_insurances bcpi ON bcpi.claim_id = bc.id AND bcpi.coverage_level = 'primary'
+    LEFT JOIN public.patient_insurances ppi  ON ppi.id = bcpi.patient_insurance_id
     LEFT JOIN public.insurance_providers pip ON pip.id = ppi.insurance_provider_id
     LEFT JOIN public.provider_contacts ppc ON ppc.id = bc.referring_provider_contact_id
     LEFT JOIN public.providers pr ON  pr.id = ppc.provider_id
@@ -65,7 +66,8 @@ WITH claim_details AS(
     GROUP BY bch.id
    ) cd on cd.charge_id = obch.id
     INNER JOIN public.patients opp on opp.id = obc.patient_id
-    LEFT JOIN public.patient_insurances oppi ON oppi.id =  obc.primary_patient_insurance_id
+    LEFT JOIN billing.claim_patient_insurances bcpi ON bcpi.claim_id = obc.id AND bcpi.coverage_level = 'primary'
+    LEFT JOIN public.patient_insurances oppi ON oppi.id = bcpi.patient_insurance_id
     LEFT JOIN public.insurance_providers opip ON opip.id = oppi.insurance_provider_id
     LEFT JOIN public.provider_contacts oppc ON oppc.id = obc.referring_provider_contact_id
     LEFT JOIN public.providers opr ON  opr.id = oppc.provider_id

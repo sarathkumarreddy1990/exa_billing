@@ -97,7 +97,7 @@ module.exports = {
 									, 'payer_city', p.patient_info->'c1City'
 									, 'payer_state', p.patient_info->'c1State'
 									, 'payer_zip_code', p.patient_info->'c1Zip' ) END AS payer_info
-									, bc.primary_patient_insurance_id
+									, bci.patient_insurance_id AS primary_patient_insurance_id
 									, p_ip.insurance_info->'Address1' AS "p_insurance_pro_address1"
 									, p_ip.insurance_info->'City' AS "p_insurance_pro_city"
 									, p_ip.insurance_info->'PayerID' AS "p_insurance_pro_payerID"
@@ -105,7 +105,7 @@ module.exports = {
 									, p_ip.insurance_info->'ZipCode' AS "p_insurance_pro_zipCode"
 									, p_ip.insurance_info->'ZipPlus' AS "p_insurance_pro_zipPlus"
 									, p_ip.insurance_name AS "p_insurance_pro_companyName"
-									, bc.secondary_patient_insurance_id
+									, bsi.patient_insurance_id AS secondary_patient_insurance_id
 									, s_ip.insurance_info->'Address1' AS "s_insurance_pro_address1"
 									, s_ip.insurance_info->'City' AS "s_insurance_pro_city"
 									, s_ip.insurance_info->'PayerID' AS "s_insurance_pro_payerID"
@@ -113,7 +113,7 @@ module.exports = {
 									, s_ip.insurance_info->'ZipCode' AS "s_insurance_pro_zipCode"
 									, s_ip.insurance_info->'ZipPlus' AS "s_insurance_pro_zipPlus"
 									, s_ip.insurance_name AS "s_insurance_pro_companyName"
-									, bc.tertiary_patient_insurance_id
+									, bti.patient_insurance_id AS tertiary_patient_insurance_id
 									, t_ip.insurance_info->'Address1' AS "t_insurance_pro_address1"
 									, t_ip.insurance_info->'City' AS "t_insurance_pro_city"
 									, t_ip.insurance_info->'PayerID' AS "t_insurance_pro_payerID"
@@ -182,9 +182,12 @@ module.exports = {
 					LEFT JOIN public.places_of_service pos ON pos.id = bc.place_of_service_id
 					LEFT JOIN public.ordering_facility_contacts pofc ON pofc.id = bc.ordering_facility_contact_id
 					LEFT JOIN public.ordering_facilities pof ON pof.id = pofc.ordering_facility_id
-					LEFT JOIN public.patient_insurances p_pi on p_pi.id = bc.primary_patient_insurance_id
-					LEFT JOIN public.patient_insurances s_pi on s_pi.id = bc.secondary_patient_insurance_id
-					LEFT JOIN public.patient_insurances t_pi on t_pi.id = bc.tertiary_patient_insurance_id
+					LEFT JOIN billing.claim_patient_insurances bci ON bci.claim_id = bc.id AND bci.coverage_level = 'primary'
+					LEFT JOIN billing.claim_patient_insurances bsi ON bsi.claim_id = bc.id AND bsi.coverage_level = 'secondary'
+					LEFT JOIN billing.claim_patient_insurances bti ON bti.claim_id = bc.id AND bti.coverage_level = 'tertiary'
+					LEFT JOIN public.patient_insurances p_pi on p_pi.id = bci.patient_insurance_id
+					LEFT JOIN public.patient_insurances s_pi on s_pi.id = bsi.patient_insurance_id
+					LEFT JOIN public.patient_insurances t_pi on t_pi.id = bti.patient_insurance_id
 					LEFT JOIN public.insurance_providers p_ip on p_ip.id = p_pi.insurance_provider_id
 					LEFT JOIN public.insurance_providers s_ip on s_ip.id = s_pi.insurance_provider_id
 					LEFT JOIN public.insurance_providers t_ip on t_ip.id = t_pi.insurance_provider_id
@@ -658,9 +661,9 @@ module.exports = {
 					LEFT JOIN billing.insurance_provider_details  other_ins_details ON other_ins_details.insurance_provider_id = patient_insurances.insurance_provider_id
 									WHERE  patient_insurances.id =
 						(  CASE COALESCE(${params.payerType}, payer_type)
-						WHEN 'primary_insurance' THEN secondary_patient_insurance_id
-						WHEN 'secondary_insurance' THEN primary_patient_insurance_id
-						WHEN 'tertiary_insurance' THEN primary_patient_insurance_id
+						WHEN 'primary_insurance' THEN pat_claim_ins.secondary_patient_insurance_id
+						WHEN 'secondary_insurance' THEN pat_claim_ins.primary_patient_insurance_id
+						WHEN 'tertiary_insurance' THEN pat_claim_ins.primary_patient_insurance_id
 						END) )
 					as otherSubscriber),
 					(SELECT Json_agg(Row_to_json(OtherPayer)) "OtherPayer"
@@ -683,9 +686,9 @@ module.exports = {
 										LEFT JOIN public.insurance_provider_payer_types pippt ON pippt.id = insurance_providers.provider_payer_type_id
 									WHERE  patient_insurances.id =
 						(  CASE COALESCE(${params.payerType}, payer_type)
-						WHEN 'primary_insurance' THEN secondary_patient_insurance_id
-						WHEN 'secondary_insurance' THEN primary_patient_insurance_id
-						WHEN 'tertiary_insurance' THEN primary_patient_insurance_id
+						WHEN 'primary_insurance' THEN pat_claim_ins.secondary_patient_insurance_id
+						WHEN 'secondary_insurance' THEN pat_claim_ins.primary_patient_insurance_id
+						WHEN 'tertiary_insurance' THEN pat_claim_ins.primary_patient_insurance_id
 						END) )
 					as OtherPayer),
 
@@ -726,7 +729,7 @@ module.exports = {
                     insurance_info->'PayerID' as "claimPayerID",
                     (SELECT insurance_info->'PayerID' FROM    patient_insurances p_pi
                     INNER JOIN  insurance_providers ON insurance_providers.id=insurance_provider_id
-                    WHERE  p_pi.id = claims.primary_patient_insurance_id) as "payerID",
+                    WHERE p_pi.id = pat_claim_ins.primary_patient_insurance_id) as "payerID",
 					(CASE coverage_level
 						WHEN 'primary' THEN 'P'
 						WHEN 'secondary' THEN 'S'
@@ -761,7 +764,7 @@ module.exports = {
 											(SELECT
 												insurance_provider_id
 											FROM public.patient_insurances
-											WHERE id = ANY(ARRAY[claims.tertiary_patient_insurance_id,claims.secondary_patient_insurance_id])
+											WHERE id = ANY(ARRAY[pat_claim_ins.tertiary_patient_insurance_id,pat_claim_ins.secondary_patient_insurance_id])
 											AND insurance_provider_id <> payments.insurance_provider_id)
 											 ) AS CAS )
 											FROM  billing.cas_payment_application_details
@@ -778,7 +781,7 @@ module.exports = {
                                         AND payments.insurance_provider_id NOT IN
                                         (SELECT insurance_provider_id
 						FROM public.patient_insurances
-										WHERE id = ANY(ARRAY[claims.tertiary_patient_insurance_id,claims.secondary_patient_insurance_id])
+                        WHERE id = ANY(ARRAY[pat_claim_ins.tertiary_patient_insurance_id,pat_claim_ins.secondary_patient_insurance_id])
 										AND insurance_provider_id <> payments.insurance_provider_id)
                                         ) AS lineAdjudication)
 					FROM billing.charges
@@ -818,11 +821,19 @@ module.exports = {
 					INNER JOIN facilities ON facilities.id=claims.facility_id
                     INNER JOIN patients ON patients.id=claims.patient_id
                     LEFT JOIN billing.delay_reasons bdr ON bdr.id = claims.delay_reason_id
-					LEFT JOIN    patient_insurances pi  ON  pi.id =
-											(  CASE COALESCE(${params.payerType}, payer_type)
-											WHEN 'primary_insurance' THEN primary_patient_insurance_id
-											WHEN 'secondary_insurance' THEN secondary_patient_insurance_id
-											WHEN 'tertiary_insurance' THEN tertiary_patient_insurance_id
+                    LEFT JOIN LATERAL(
+                        SELECT
+                            MAX(patient_insurance_id) FILTER (WHERE coverage_level = 'primary') AS primary_patient_insurance_id,
+                            MAX(patient_insurance_id) FILTER (WHERE coverage_level = 'secondary') AS secondary_patient_insurance_id,
+                            MAX(patient_insurance_id) FILTER (WHERE coverage_level = 'tertiary') AS tertiary_patient_insurance_id
+                        FROM billing.claim_patient_insurances bci
+                        WHERE claim_id = claims.id
+                    ) AS pat_claim_ins ON true
+                    LEFT JOIN patient_insurances pi ON pi.id =
+											( CASE COALESCE(${params.payerType}, payer_type)
+											WHEN 'primary_insurance' THEN pat_claim_ins.primary_patient_insurance_id
+											WHEN 'secondary_insurance' THEN pat_claim_ins.secondary_patient_insurance_id
+											WHEN 'tertiary_insurance' THEN pat_claim_ins.tertiary_patient_insurance_id
 											END)
                                             LEFT JOIN  insurance_providers ON insurance_providers.id=insurance_provider_id
                                             LEFT JOIN billing.insurance_provider_details ON insurance_provider_details.insurance_provider_id = insurance_providers.id

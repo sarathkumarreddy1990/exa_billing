@@ -187,35 +187,25 @@ module.exports = {
     },
     /* Query for Insurance Provider in Study Filter */
     insuranceStudyProviderName: () => {
-        return ` array_remove((
+        return ` (
             SELECT
                array_agg(insp.insurance_name) AS insurance_name
-            FROM
-               patient_insurances AS pat_ins
-               LEFT JOIN
-                  insurance_providers AS insp
-                  ON pat_ins.insurance_provider_id = insp.id
-            WHERE
-               pat_ins.id = orders.primary_patient_insurance_id
-               OR pat_ins.id = orders.secondary_patient_insurance_id
-               OR pat_ins.id = orders.tertiary_patient_insurance_id
-               AND insp.insurance_name IS NOT NULL LIMIT 1 ), null) `;
+            FROM order_patient_insurances opi
+            INNER JOIN patient_insurances AS pat_ins ON pat_ins.id = opi.patient_insurance_id
+            LEFT JOIN insurance_providers AS insp ON pat_ins.insurance_provider_id = insp.id
+            WHERE opi.order_id = orders.id
+            AND insp.insurance_name IS NOT NULL) `;
     },
     /* Query For Insurance Provider In Claim Filter */
     insuranceClaimProviderName: () => {
-        return ` array_remove((
+        return `(
             SELECT
-               array_agg(insp.insurance_name) AS insurance_name
-            FROM
-               patient_insurances AS pat_ins
-               LEFT JOIN
-                  insurance_providers AS insp
-                  ON pat_ins.insurance_provider_id = insp.id
-            WHERE
-               pat_ins.id = primary_patient_insurance_id
-               OR pat_ins.id = secondary_patient_insurance_id
-               OR pat_ins.id = tertiary_patient_insurance_id
-               AND insp.insurance_name IS NOT NULL LIMIT 1 ), null) `;
+               ARRAY_AGG(insp.insurance_name) AS insurance_name
+            FROM billing.claim_patient_insurances cpi
+            LEFT JOIN patient_insurances AS pat_ins ON pat_ins.id = cpi.patient_insurance_id
+            LEFT JOIN insurance_providers AS insp ON pat_ins.insurance_provider_id = insp.id
+            WHERE cpi.claim_id = claims.id
+               AND insp.insurance_name IS NOT NULL) `;
     },
     /* Query For Insurance Group Drop Down in Claim Filter */
     insuranceProviderClaimGroup: () => {
