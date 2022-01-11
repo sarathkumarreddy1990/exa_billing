@@ -407,7 +407,7 @@ module.exports = {
             , file_id: params.file_id
         });
 
-        if (existsInsurance && existsInsurance.rows && existsInsurance.rows.length) {
+        if (existsInsurance && existsInsurance.rows && existsInsurance.rows.length === 1) {
 
             payerDetails.type = 'exists';
             payerDetails.payer_id = existsInsurance.rows[0].id;
