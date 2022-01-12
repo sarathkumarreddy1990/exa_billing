@@ -625,7 +625,7 @@ define('grid', [
                         return false;
                     }
                     commonjs.showDialog({
-                        'header': commonjs.geti18NString('shared.fields.invoices') + ' ' +  commonjs.geti18NString('shared.fields.payerName') + ': ' + gridData.payer_name ,
+                        'header': commonjs.geti18NString('shared.fields.invoices') + ' ' +  commonjs.geti18NString('shared.fields.payerName') + ': ' + gridData.hidden_payer_name ,
                         'width': '95%',
                         'height': '80%',
                         'needShrink': true
@@ -1005,11 +1005,11 @@ define('grid', [
             var icon_width = 24;
             colName = colName.concat([
                 ('<input type="checkbox" i18nt="billing.payments.selectAllStudies" id="chkStudyHeader_' + filterID + '" class="chkheader" onclick="commonjs.checkMultiple(event)" />'),
-                '','','','','', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', 'Assigned To', '', ''
+                '','','','','', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', 'Assigned To', '', '', ''
             ]);
 
             i18nName = i18nName.concat([
-                '','','','','', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '','', '', 'billing.claims.assignedTo', '', ''
+                '','','','','', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '','', '', 'billing.claims.assignedTo', '', '', ''
             ]);
 
             colModel = colModel.concat([
@@ -1592,6 +1592,18 @@ define('grid', [
                 {
                     name: 'claim_resubmission_flag',
                     hidden: true
+                },
+                {
+                    name: 'hidden_payer_name',
+                    width: 20,
+                    sortable: false,
+                    resizable: false,
+                    search: false,
+                    hidden: true,
+                    isIconCol: true,
+                    formatter: function (cellvalue, options, rowObject) {
+                        return rowObject.payer_name || "";
+                    }
                 }
             ]);
 
