@@ -88,7 +88,7 @@ block content
                             a.dropdown-item(href='#setup/supporting_text/list' class='aSupportingText', i18n='shared.screens.setup.supportingText')
                         .dropdown-divider
                         a.dropdown-item(href='#setup/validations/all' class='aBillingValidations', i18n='shared.screens.setup.billingValidations')
-                        if (['can_AB', 'can_ON'].indexOf(billingRegionCode) === -1)
+                        if (['can_ON'].indexOf(billingRegionCode) === -1)
                             a.dropdown-item(href='#setup/edi_templates/all' class='aEDITemplate', i18n='shared.screens.setup.ediTemplates')
                             a.dropdown-item(href='#setup/edi_clearinghouses/list' class='aEDIClearingHouses', i18n='shared.screens.setup.ediClearingHouses')
                         a.dropdown-item(href='#setup/insurance_x12_mapping/list' class='aInsuranceX12Mapping', i18n='shared.screens.setup.insuranceMapping')
