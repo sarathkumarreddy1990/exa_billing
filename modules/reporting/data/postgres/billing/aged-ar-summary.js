@@ -152,7 +152,7 @@ aged_ar_summary_details AS(
  <%} else {%>
     LEFT JOIN LATERAL (
         SELECT
-            CASE claims.payer_type
+            CASE bc.payer_type
                 WHEN 'primary_insurance' THEN MAX(patient_insurance_id) FILTER (WHERE coverage_level = 'primary')
                 WHEN 'secondary_insurance' THEN MAX(patient_insurance_id) FILTER (WHERE coverage_level = 'secondary')
                 WHEN 'tertiary_insurance' THEN MAX(patient_insurance_id) FILTER (WHERE coverage_level = 'tertiary')
@@ -273,7 +273,7 @@ aged_ar_summary_details AS(
      <%} else {%>
         LEFT JOIN LATERAL (
             SELECT
-                CASE claims.payer_type
+                CASE bc.payer_type
                     WHEN 'primary_insurance' THEN MAX(patient_insurance_id) FILTER (WHERE coverage_level = 'primary')
                     WHEN 'secondary_insurance' THEN MAX(patient_insurance_id) FILTER (WHERE coverage_level = 'secondary')
                     WHEN 'tertiary_insurance' THEN MAX(patient_insurance_id) FILTER (WHERE coverage_level = 'tertiary')
