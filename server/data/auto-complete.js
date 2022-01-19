@@ -58,7 +58,6 @@ module.exports = {
         return await query(insur_sql);
     },
     getProviders: async function (params) {
-
         let provider_search = ` AND (p.full_name ILIKE '%${params.q}%' OR p.provider_code ILIKE '%${params.q}%' ) `;
 
         const sql_provider = SQL`
@@ -130,6 +129,24 @@ module.exports = {
             .append(SQL` OFFSET ${((page - 1) * pageSize)}`);
 
         return await query(icd_sql);
+    },
+
+    getProviderSkillCodes: async function (args) {
+
+        const sql = SQL`
+            SELECT
+                psc.provider_id,
+                psc.skill_code_id AS id,
+                sc.code,
+                sc.description
+            FROM
+                provider_skill_codes psc
+            INNER JOIN skill_codes sc ON psc.skill_code_id = sc.id
+            LEFT JOIN provider_contacts pc ON pc.provider_id = psc.provider_id
+            WHERE
+            pc.id = ${args.reading_physician_id};
+        `;
+        return await query(sql);
     },
 
     getInsurances: async function (params) {
