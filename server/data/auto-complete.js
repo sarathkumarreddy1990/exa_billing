@@ -134,17 +134,17 @@ module.exports = {
     getProviderSkillCodes: async function (args) {
 
         const sql = SQL`
-                        SELECT
-                            psc.provider_id,
-                            psc.skill_code_id AS id,
-                            sc.code,
-                            sc.description
-                        FROM
-                            provider_skill_codes psc
-                        INNER JOIN skill_codes sc ON psc.skill_code_id = sc.id
-                        LEFT JOIN provider_contacts pc ON pc.provider_id = psc.provider_id
-                        WHERE
-                            pc.id = ${args.reading_physician_id};
+            SELECT
+                psc.provider_id,
+                psc.skill_code_id AS id,
+                sc.code,
+                sc.description
+            FROM
+                provider_skill_codes psc
+            INNER JOIN skill_codes sc ON psc.skill_code_id = sc.id
+            LEFT JOIN provider_contacts pc ON pc.provider_id = psc.provider_id
+            WHERE
+            pc.id = ${args.reading_physician_id};
         `;
         return await query(sql);
     },

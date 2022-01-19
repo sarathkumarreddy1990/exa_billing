@@ -2797,7 +2797,6 @@ define(['jquery',
                 }
             },
             clearProviderSkillCodes: function () {
-                var self = this;
                 $('#select2-ddlSkillCodes-container').html(self.usermessage.selectSkillCodes);
                 $("#ddlSkillCodes").attr('value', '');
             },
@@ -2897,6 +2896,7 @@ define(['jquery',
                         self.ACSelect.readPhy.Desc = res.full_name;
                         self.ACSelect.readPhy.Code = res.provider_code;
                         self.ACSelect.readPhy.contact_id = res.provider_contact_id;
+                        self.clearProviderSkillCodes();
                     } else {
                         self.ACSelect.refPhy.ID = res.id;
                         self.ACSelect.refPhy.Desc = res.full_name;
@@ -2910,7 +2910,6 @@ define(['jquery',
                             }, null);
                         }
                     }
-                    self.clearProviderSkillCodes()
                     return res.full_name + ' ' + res.npi_no;
                 }
             },
@@ -2927,7 +2926,7 @@ define(['jquery',
                             return {
                                 page: params.page || 1,
                                 q: params.term || '',
-                                reading_physician_id: self.ACSelect.readPhy.ID || 0,
+                                reading_physician_id: self.ACSelect.readPhy.contact_id || 0,
                                 pageSize: 10,
                                 sortField: "psc.skill_code_id",
                                 sortOrder: "asc",
@@ -4014,7 +4013,7 @@ define(['jquery',
                     billing_provider_id: $('#ddlBillingProvider option:selected').val() != '' ? parseInt($('#ddlBillingProvider option:selected').val()) : null,
                     delay_reason_id: delayReasonId != '' ? parseInt(delayReasonId) : null,
                     rendering_provider_contact_id: self.ACSelect && self.ACSelect.readPhy ? self.ACSelect.readPhy.contact_id : null,
-                    can_ahs_skill_code_id: self.ACSelect && self.ACSelect.skillCodes? self.ACSelect.skillCodes.ID :null,
+                    can_ahs_skill_code_id: self.ACSelect && self.ACSelect.skillCodes? self.ACSelect.skillCodes.ID : null,
                     referring_provider_contact_id: self.ACSelect && self.ACSelect.refPhy ? self.ACSelect.refPhy.contact_id : null,
                     ordering_facility_contact_id: self.ordering_facility_contact_id || null,
                     place_of_service_id: ["can_AB", "can_MB", "can_ON"].indexOf(app.billingRegionCode) === -1 && $('#ddlPOSType option:selected').val() != '' ? parseInt($('#ddlPOSType option:selected').val()) : null,

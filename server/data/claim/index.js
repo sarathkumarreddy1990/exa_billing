@@ -644,6 +644,8 @@ module.exports = {
                     , c.patient_id
                     , c.billing_provider_id
                     , c.rendering_provider_contact_id
+                    , c.can_ahs_skill_code_id
+                    , psc.code AS skill_code
                     , c.referring_provider_contact_id
                     , c.ordering_facility_contact_id
                     , c.primary_patient_insurance_id
@@ -1004,6 +1006,7 @@ module.exports = {
                         LEFT JOIN public.ordering_facilities pof ON pof.id = pofc.ordering_facility_id
                         LEFT JOIN public.facilities f ON c.facility_id = f.id
                         LEFT JOIN billing.claim_status cst ON cst.id = c.claim_status_id
+                        LEFT JOIN public.skill_codes psc ON psc.id = c.can_ahs_skill_code_id
                     WHERE
                         c.id = ${id}`;
 
