@@ -2797,7 +2797,7 @@ define(['jquery',
                 }
             },
             clearProviderSkillCodes: function () {
-                $('#select2-ddlSkillCodes-container').html(self.usermessage.selectSkillCodes);
+                $('#select2-ddlSkillCodes-container').html(this.usermessage.selectSkillCodes);
                 $("#ddlSkillCodes").attr('value', '');
             },
 
