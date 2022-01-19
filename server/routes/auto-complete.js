@@ -19,6 +19,12 @@ router.get('/providers', async function (req, res) {
     httpHandler.sendRows(req, res, data);
 });
 
+router.get('/getProviderSkillCodes', async function (req, res) {
+    const data = await autoCompleteController.getProviderSkillCodes(req.query);
+    httpHandler.sendRows(req, res, data);
+});
+
+
 router.get('/icd_codes', async function (req, res) {
     const data = await autoCompleteController.getICDcodes(req.query);
     httpHandler.sendRows(req, res, data);

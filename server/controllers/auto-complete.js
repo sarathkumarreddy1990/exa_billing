@@ -10,6 +10,9 @@ module.exports = {
     getProviders: function (params) {
         return data.getProviders(params);
     },
+    getProviderSkillCodes: function (params) {
+        return data.getProviderSkillCodes(params);
+    },
     getICDcodes: function (params) {
         return data.getICDcodes(params);
     },

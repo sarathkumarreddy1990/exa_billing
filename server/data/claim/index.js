@@ -258,7 +258,9 @@ module.exports = {
                                         facilities.can_ahs_business_arrangement AS can_ahs_business_arrangement_facility,
                                         studies_details.can_ahs_locum_arrangement_provider,
                                         studies_details.nature_of_injury_code_id,
-                                        studies_details.area_of_injury_code_id
+                                        studies_details.area_of_injury_code_id,
+                                        studies_details.can_ahs_skill_code_id,
+                                        studies_details.skill_code as skill_code
                                         , COALESCE(NULLIF((SELECT split_types IS NOT NULL FROM census_fee_charges_details), FALSE), (SELECT billing_type from get_study_date) = 'split') AS is_split_claim
                                     FROM
                                         orders
@@ -334,9 +336,12 @@ module.exports = {
                                                 nature_of_injury_code_id,
                                                 area_of_injury_code_id,
                                                 sca.authorization_no,
-                                                s.study_info->'refDescription' AS referring_pro_study_desc
+                                                s.study_info->'refDescription' AS referring_pro_study_desc,
+                                                s.can_ahs_skill_code_id,
+                                                sc.code AS skill_code
                                             FROM
                                                 public.studies s
+                                                LEFT JOIN public.skill_codes sc ON sc.id =s.can_ahs_skill_code_id
                                                 LEFT JOIN public.study_transcriptions st ON st.study_id = s.id
                                                 LEFT JOIN public.study_cpt cpt ON cpt.study_id = s.id
                                                 LEFT JOIN public.study_cpt_authorizations sca ON (
@@ -1139,7 +1144,7 @@ module.exports = {
             countFlag,
             pageNo,
             pageSize
-        } = args
+        } = args;
 
         let joinQuery = `
             INNER JOIN billing.charges ch ON ch.claim_id = c.id
@@ -1158,6 +1163,7 @@ module.exports = {
                     COUNT(DISTINCT c.id) AS claims_total_records
                 FROM billing.claims c
                 `;
+
             sql.append(joinQuery);
             sql.append(whereQuery);
         } else {

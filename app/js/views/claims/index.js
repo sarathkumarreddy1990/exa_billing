@@ -71,7 +71,7 @@ define(['jquery',
             federalTaxId: '',
             enableInsuranceEligibility: '',
             tradingPartnerId: '',
-            ACSelect: { refPhy: {}, readPhy: {} },
+            ACSelect: { refPhy: {}, readPhy: {}, skillCodes: {} },
             icd9to10Template : _.template(icd9to10Template),
             responsible_list: [
                 { payer_type: "PPP", payer_type_name: "patient", payer_id: null, payer_name: null },
@@ -88,7 +88,8 @@ define(['jquery',
                 selectOrdFacility: 'Select Ordering Facility',
                 selectCarrier: '',
                 selectcptcode: "Select Cpt Code",
-                selectcptdescription: "Select Cpt Description"
+                selectcptdescription: "Select Cpt Description",
+                selectSkillCodes:"Select Skill Code"
             },
             patientsPager: null,
             cszFieldMap: [{
@@ -736,6 +737,7 @@ define(['jquery',
                 self.setProviderAutoComplete('RF'); // referring provider auto complete
                 self.setDiagCodesAutoComplete();
                 self.setOrderingFacilityAutoComplete();
+                self.setSkillCodesAutoComplete();
                 self.initWCBCodesAutoComplete('wcbNatureOfInjury');
                 self.initWCBCodesAutoComplete('wcbAreaOfInjury');
                 if (!self.isEdit)
@@ -1154,6 +1156,7 @@ define(['jquery',
                     renderingProviderFullName +=  ' ' + renderingProviderNpi;
                 }
 
+                var skillCode = claim_data.skill_code || self.usermessage.selectSkillCodes;
                 var renderingProvider = renderingProviderFullName || self.usermessage.selectStudyReadPhysician;
                 var orderingFacility = claim_data.ordering_facility_name || claim_data.service_facility_name || self.usermessage.selectOrdFacility;
                 var referringProviderNpi;
@@ -1189,6 +1192,7 @@ define(['jquery',
                 $('#ddlDelayReasons').val(claim_data.delay_reason_id || '');
                 $('#ddlFacility').val(claim_data.facility_id || '');
                 $('#select2-ddlRenderingProvider-container').html(renderingProvider);
+                $('#select2-ddlSkillCodes-container').html(skillCode);
                 $('#select2-ddlReferringProvider-container').html(referringProvider);
                 $('#select2-ddlOrdFacility-container').html(self.ordering_facility_name);
 
@@ -2792,6 +2796,11 @@ define(['jquery',
                     $('#divSelCptDescription_' + rowIndex).remove();
                 }
             },
+            clearProviderSkillCodes: function () {
+                var self = this;
+                $('#select2-ddlSkillCodes-container').html(self.usermessage.selectSkillCodes);
+                $("#ddlSkillCodes").attr('value', '');
+            },
 
             setCptValues: function (rowIndex, res, duration, units, fee, type) {
                 $('#lblCptCode_' + rowIndex)
@@ -2901,7 +2910,53 @@ define(['jquery',
                             }, null);
                         }
                     }
+                    self.clearProviderSkillCodes()
                     return res.full_name + ' ' + res.npi_no;
+                }
+            },
+
+            setSkillCodesAutoComplete: function () {
+                var self = this;
+
+                $("#ddlSkillCodes").select2({
+                    ajax: {
+                        url: "/exa_modules/billing/autoCompleteRouter/getProviderSkillCodes",
+                        dataType: 'json',
+                        delay: 250,
+                        data: function ( params ) {
+                            return {
+                                page: params.page || 1,
+                                q: params.term || '',
+                                reading_physician_id: self.ACSelect.readPhy.ID || 0,
+                                pageSize: 10,
+                                sortField: "psc.skill_code_id",
+                                sortOrder: "asc",
+                                company_id: app.companyID
+                            };
+                        },
+                        processResults: function (data, params) {
+                            return commonjs.getTotalRecords(data, params);
+                        },
+                        cache: true
+                    },
+                    escapeMarkup: function (markup) { return markup; },
+                    minimumInputLength: 0,
+                    templateResult: formatRepo,
+                    templateSelection: formatRepoSelection
+                });
+                function formatRepo(repo) {
+                    if (repo.loading) {
+                        return repo.text;
+                    }
+                    var markup = "<table class='ref-result' style='width: 100%'><tr>";
+                    markup += "<td><div><b>" + repo.code + "</b></div>";
+                    markup += "</td></tr></table>"
+                    return markup;
+                }
+                function formatRepoSelection(res) {
+                    self.ACSelect.skillCodes.ID = res.id;
+                    self.ACSelect.skillCodes.code = res.code;
+                    return res.code;
                 }
             },
 
@@ -3959,6 +4014,7 @@ define(['jquery',
                     billing_provider_id: $('#ddlBillingProvider option:selected').val() != '' ? parseInt($('#ddlBillingProvider option:selected').val()) : null,
                     delay_reason_id: delayReasonId != '' ? parseInt(delayReasonId) : null,
                     rendering_provider_contact_id: self.ACSelect && self.ACSelect.readPhy ? self.ACSelect.readPhy.contact_id : null,
+                    can_ahs_skill_code_id: self.ACSelect && self.ACSelect.skillCodes? self.ACSelect.skillCodes.ID :null,
                     referring_provider_contact_id: self.ACSelect && self.ACSelect.refPhy ? self.ACSelect.refPhy.contact_id : null,
                     ordering_facility_contact_id: self.ordering_facility_contact_id || null,
                     place_of_service_id: ["can_AB", "can_MB", "can_ON"].indexOf(app.billingRegionCode) === -1 && $('#ddlPOSType option:selected').val() != '' ? parseInt($('#ddlPOSType option:selected').val()) : null,
@@ -5597,7 +5653,7 @@ define(['jquery',
                     $('#txtClaimCreatedDt').empty();
                     $('#ddlFacility option:contains("Select")').prop("selected", true);
                     $('#ddlBillingProvider option:contains("Select")').prop("selected", true);
-                    $('#ddlRenderingProvider, #ddlReferringProvider, #ddlOrdFacility').empty();
+                    $('#ddlRenderingProvider, #ddlReferringProvider, #ddlOrdFacility, #ddlSkillCodes').empty();
                     $('#ddlPOSType option:contains("Select")').prop("selected", true);
                     $('#ddlMultipleDiagCodes').find('option').remove();
                 }
