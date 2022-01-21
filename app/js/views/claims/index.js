@@ -63,6 +63,7 @@ define(['jquery',
             patientClaimTemplate: _.template(patientClaimTemplate),
             updateResponsibleList: [],
             chargeModel: [],
+            providerSkillCodesCount:0,
             claimICDLists: [],
             existingPrimaryInsurance: [],
             existingSecondaryInsurance: [],
@@ -2897,6 +2898,7 @@ define(['jquery',
                         self.ACSelect.readPhy.Code = res.provider_code;
                         self.ACSelect.readPhy.contact_id = res.provider_contact_id;
                         self.clearProviderSkillCodes();
+                        self.toggleSkillCodeSection();
                     } else {
                         self.ACSelect.refPhy.ID = res.id;
                         self.ACSelect.refPhy.Desc = res.full_name;
@@ -2911,6 +2913,26 @@ define(['jquery',
                         }
                     }
                     return res.full_name + ' ' + res.npi_no;
+                }
+            },
+            toggleSkillCodeSection: function () {
+                var self = this;
+                if (self.ACSelect.readPhy.contact_id > 0) {
+                    $.ajax({
+                        type: 'GET',
+                        url: '/getProviderSkillCodes',
+                        data: {
+                            reading_physician_id: self.ACSelect.readPhy.contact_id
+                        },
+                        success: function (data, response) {
+                            var skillCodes = data && data.result || [];
+                            self.providerSkillCodesCount = skillCodes.length;
+                            if (skillCodes.length === 1) {
+                                $('#select2-ddlSkillCodes-container').html(skillCodes[0].code);
+                                self.ACSelect.skillCodes.ID = skillCodes[0].skill_code_id;
+                            }
+                        }
+                    })
                 }
             },
 
@@ -2928,12 +2950,13 @@ define(['jquery',
                                 q: params.term || '',
                                 reading_physician_id: self.ACSelect.readPhy.contact_id || 0,
                                 pageSize: 10,
-                                sortField: "psc.skill_code_id",
+                                sortField: "sc.code",
                                 sortOrder: "asc",
                                 company_id: app.companyID
                             };
                         },
                         processResults: function (data, params) {
+                            self.providerSkillCodesCount = data[0].total_records;
                             return commonjs.getTotalRecords(data, params);
                         },
                         cache: true
@@ -3999,6 +4022,16 @@ define(['jquery',
                 if (app.country_alpha_3_code !== 'can' && (self.is_tertiary_available || self.terClaimInsID)) {
                     claim_model.insurances.push(teritiary_insurance_details);
                 }
+                var can_ahs_skill_code_id = null;
+
+                if (app.billingRegionCode === 'can_AB' && (currentPayer_type === "PIP" && self.priInsCode === "WCB")) {
+                    can_ahs_skill_code_id = self.ACSelect && self.ACSelect.skillCodes ? self.ACSelect.skillCodes.ID : null;
+                }
+
+                if (app.billingRegionCode === 'can_AB' && (currentPayer_type === "PIP" && self.priInsCode === "AHS")) {
+                    can_ahs_skill_code_id = self.providerSkillCodesCount > 1 && self.ACSelect && self.ACSelect.skillCodes
+                                            ? self.ACSelect.skillCodes.ID : null;
+                }
 
                 var can_ahs_pay_to_code = $('#ddlPayToCode').val();
                 var claim_status_id = ~~$('#ddlClaimStatus').val() || null;
@@ -4013,7 +4046,7 @@ define(['jquery',
                     billing_provider_id: $('#ddlBillingProvider option:selected').val() != '' ? parseInt($('#ddlBillingProvider option:selected').val()) : null,
                     delay_reason_id: delayReasonId != '' ? parseInt(delayReasonId) : null,
                     rendering_provider_contact_id: self.ACSelect && self.ACSelect.readPhy ? self.ACSelect.readPhy.contact_id : null,
-                    can_ahs_skill_code_id: self.ACSelect && self.ACSelect.skillCodes? self.ACSelect.skillCodes.ID : null,
+                    can_ahs_skill_code_id: can_ahs_skill_code_id || null,
                     referring_provider_contact_id: self.ACSelect && self.ACSelect.refPhy ? self.ACSelect.refPhy.contact_id : null,
                     ordering_facility_contact_id: self.ordering_facility_contact_id || null,
                     place_of_service_id: ["can_AB", "can_MB", "can_ON"].indexOf(app.billingRegionCode) === -1 && $('#ddlPOSType option:selected').val() != '' ? parseInt($('#ddlPOSType option:selected').val()) : null,
