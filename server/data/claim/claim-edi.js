@@ -219,7 +219,7 @@ module.exports = {
 			relationship_status.description as subscriber_relationship,
 			claims.id as claim_id,
 			insurance_name,
-			coverage_level,
+			claim_ins.coverage_level,
             (SELECT (Row_to_json(header)) "header"
 
 				FROM (
@@ -341,7 +341,7 @@ module.exports = {
 														SELECT Json_agg(Row_to_json(subscriber)) subscriber
 														FROM  (
 														SELECT
-														(CASE coverage_level
+														(CASE claim_ins.coverage_level
 															WHEN 'primary' THEN 'P'
 															WHEN 'secondary' THEN 'S'
 															WHEN 'tertiary' THEN 'T' END) as "claimResponsibleParty",
@@ -515,7 +515,7 @@ module.exports = {
 										to_char(unable_to_work_to_date, 'YYYYMMDD')  as "hospitailizationToDateFormat",
 										pof.state_license_number as "stateLicenseNo",
 										pof.clia_number as "cliaNumber",
-                                        (CASE coverage_level
+                                        (CASE claim_ins.coverage_level
                                             WHEN 'primary' THEN 'P'
                                             WHEN 'secondary' THEN 'S'
                                             WHEN 'tertiary' THEN 'T' END) as "claimResponsibleParty",
@@ -601,10 +601,10 @@ module.exports = {
 										(SELECT
 											subscriber_firstname as "lastName",
 											subscriber_firstname as "firstName",
-											(CASE coverage_level
-												WHEN 'primary' THEN 'P'
-												WHEN 'secondary' THEN 'S'
-												WHEN 'tertiary' THEN 'T' END) as "otherClaimResponsibleParty",
+											(CASE claim_ins.coverage_level
+												WHEN 'primary' THEN 'S'
+												WHEN 'secondary' THEN 'P'
+												WHEN 'tertiary' THEN 'P' END) as "otherClaimResponsibleParty",
 									( SELECT
 
 										(  CASE UPPER(description)
@@ -647,7 +647,7 @@ module.exports = {
 					assign_benefits_to_patient as "acceptAssignment",
 					subscriber_dob::text as "dob",
                     to_char(subscriber_dob, 'YYYYMMDD')  as "dobFormat",
-                    (CASE pi.coverage_level
+                    (CASE claim_ins.coverage_level
                         WHEN 'primary' THEN 'P'
                         WHEN 'secondary' THEN 'S'
                         WHEN 'tertiary' THEN 'T' END) as "claimResponsibleParty",
@@ -730,7 +730,7 @@ module.exports = {
                     (SELECT insurance_info->'PayerID' FROM    patient_insurances p_pi
                     INNER JOIN  insurance_providers ON insurance_providers.id=insurance_provider_id
                     WHERE p_pi.id = pat_claim_ins.primary_patient_insurance_id) as "payerID",
-					(CASE coverage_level
+					(CASE claim_ins.coverage_level
 						WHEN 'primary' THEN 'P'
 						WHEN 'secondary' THEN 'S'
 						WHEN 'tertiary' THEN 'T' END) as "claimResponsibleParty",
@@ -829,6 +829,14 @@ module.exports = {
                         FROM billing.claim_patient_insurances bci
                         WHERE claim_id = claims.id
                     ) AS pat_claim_ins ON true
+                    LEFT JOIN LATERAL (
+                        SELECT
+                        (CASE COALESCE(${params.payerType}, payer_type)
+                        WHEN 'primary_insurance' THEN 'primary'
+                        WHEN 'secondary_insurance' THEN 'secondary'
+                        WHEN 'tertiary_insurance' THEN 'tertiary'
+                        END) AS coverage_level
+                    ) AS claim_ins ON true
                     LEFT JOIN patient_insurances pi ON pi.id =
 											( CASE COALESCE(${params.payerType}, payer_type)
 											WHEN 'primary_insurance' THEN pat_claim_ins.primary_patient_insurance_id
