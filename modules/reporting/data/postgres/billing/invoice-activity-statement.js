@@ -99,7 +99,7 @@ claim_details AS(
     INNER JOIN billing.providers bp ON bp.id = bc.billing_provider_id
     LEFT JOIN LATERAL (
         SELECT
-            CASE claims.payer_type
+            CASE bc.payer_type
                 WHEN 'primary_insurance' THEN MAX(patient_insurance_id) FILTER (WHERE coverage_level = 'primary')
                 WHEN 'secondary_insurance' THEN MAX(patient_insurance_id) FILTER (WHERE coverage_level = 'secondary')
                 WHEN 'tertiary_insurance' THEN MAX(patient_insurance_id) FILTER (WHERE coverage_level = 'tertiary')
