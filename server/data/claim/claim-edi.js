@@ -829,13 +829,13 @@ module.exports = {
                         FROM billing.claim_patient_insurances bci
                         WHERE claim_id = claims.id
                     ) AS pat_claim_ins ON true
-					LEFT JOIN LATERAL ( 
-						SELECT
-						(CASE COALESCE(${params.payerType}, payer_type)
-						WHEN 'primary_insurance' THEN 'primary'
-						WHEN 'secondary_insurance' THEN 'secondary'
-						WHEN 'tertiary_insurance' THEN 'tertiary'
-						END) AS coverage_level
+                    LEFT JOIN LATERAL (
+                        SELECT
+                        (CASE COALESCE(${params.payerType}, payer_type)
+                        WHEN 'primary_insurance' THEN 'primary'
+                        WHEN 'secondary_insurance' THEN 'secondary'
+                        WHEN 'tertiary_insurance' THEN 'tertiary'
+                        END) AS coverage_level
 					) AS claim_ins ON true
                     LEFT JOIN patient_insurances pi ON pi.id =
 											( CASE COALESCE(${params.payerType}, payer_type)
