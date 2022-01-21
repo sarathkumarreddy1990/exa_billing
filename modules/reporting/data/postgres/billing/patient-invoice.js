@@ -2,7 +2,7 @@ const _ = require('lodash')
     , Promise = require('bluebird')
     , db = require('../db')
     , dataHelper = require('../dataHelper')
-    , queryBuilder = require('../queryBuilder')
+    , queryBuilder = require('../queryBuilder')    
     , logger = require('../../../../../logger');
 
 // generate query template ***only once*** !!!

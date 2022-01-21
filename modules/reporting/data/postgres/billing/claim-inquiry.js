@@ -184,9 +184,9 @@ const claimInquiryDataSetQueryTemplate = _.template(`
                 LEFT JOIN billing.claim_patient_insurances bci ON bci.claim_id = bc.id AND bci.coverage_level = 'primary'
                 LEFT JOIN billing.claim_patient_insurances bsi ON bsi.claim_id = bc.id AND bsi.coverage_level = 'secondary'
                 LEFT JOIN billing.claim_patient_insurances bti ON bti.claim_id = bc.id AND bti.coverage_level = 'tertiary'
-                LEFT JOIN public.patient_insurances p_pi on p_pi.id = bci.patient_insurance_id
-                LEFT JOIN public.patient_insurances s_pi on s_pi.id = bsi.patient_insurance_id
-                LEFT JOIN public.patient_insurances t_pi on t_pi.id = bti.patient_insurance_id
+                LEFT JOIN public.patient_insurances p_pi ON p_pi.id = bci.patient_insurance_id
+                LEFT JOIN public.patient_insurances s_pi ON s_pi.id = bsi.patient_insurance_id
+                LEFT JOIN public.patient_insurances t_pi ON t_pi.id = bti.patient_insurance_id
                 LEFT JOIN public.insurance_providers p_ip ON p_ip.id = p_pi.insurance_provider_id
                 LEFT JOIN public.insurance_providers s_ip ON s_ip.id = s_pi.insurance_provider_id
                 LEFT JOIN public.insurance_providers t_ip ON t_ip.id = t_pi.insurance_provider_id

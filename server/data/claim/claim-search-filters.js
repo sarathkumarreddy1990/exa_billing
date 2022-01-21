@@ -487,7 +487,7 @@ const api = {
 
             r += ' LEFT JOIN insurance_providers payer_insurance ON patient_insurances.insurance_provider_id = payer_insurance.id ';
             r += ' LEFT JOIN billing.insurance_provider_details ON insurance_provider_details.insurance_provider_id = payer_insurance.id ';
-            r += ' LEFT JOIN   billing.edi_clearinghouses ON  billing.edi_clearinghouses.id=insurance_provider_details.clearing_house_id';
+            r += ' LEFT JOIN billing.edi_clearinghouses ON  billing.edi_clearinghouses.id=insurance_provider_details.clearing_house_id';
         }
 
         if (tables.ordering_facilities || tables.ordering_facility_contacts) {

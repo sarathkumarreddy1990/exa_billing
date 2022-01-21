@@ -1286,9 +1286,11 @@ module.exports = {
         }
 
         let description = `${payer} Deleted from claim ${claim_id}, Responsible and Billing method changed to patient `;
-        let sql = SQL`WITH delete_claim_patient_insurances AS (
-            DELETE FROM billing.claim_patient_insurances WHERE claim_id = ${claim_id} AND coverage_level = ${payer_type.split('_')[0]}
-        ), update_claim AS(
+        let sql = SQL`
+        WITH delete_claim_patient_insurances AS (
+                DELETE FROM billing.claim_patient_insurances
+                WHERE claim_id = ${claim_id} AND coverage_level = ${payer_type.split('_')[0]}
+        ), update_claim AS (
             UPDATE billing.claims
                 SET
                 payer_type =

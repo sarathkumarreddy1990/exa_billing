@@ -837,12 +837,13 @@ module.exports = {
                         WHEN 'tertiary_insurance' THEN 'tertiary'
                         END) AS coverage_level
                     ) AS claim_ins ON true
-                    LEFT JOIN patient_insurances pi ON pi.id =
-											( CASE COALESCE(${params.payerType}, payer_type)
-											WHEN 'primary_insurance' THEN pat_claim_ins.primary_patient_insurance_id
-											WHEN 'secondary_insurance' THEN pat_claim_ins.secondary_patient_insurance_id
-											WHEN 'tertiary_insurance' THEN pat_claim_ins.tertiary_patient_insurance_id
-											END)
+                    LEFT JOIN patient_insurances pi ON pi.id = (
+												CASE COALESCE(${params.payerType}, payer_type)
+													WHEN 'primary_insurance' THEN pat_claim_ins.primary_patient_insurance_id
+													WHEN 'secondary_insurance' THEN pat_claim_ins.secondary_patient_insurance_id
+													WHEN 'tertiary_insurance' THEN pat_claim_ins.tertiary_patient_insurance_id
+												END
+											)
                                             LEFT JOIN  insurance_providers ON insurance_providers.id=insurance_provider_id
                                             LEFT JOIN billing.insurance_provider_details ON insurance_provider_details.insurance_provider_id = insurance_providers.id
                                             LEFT JOIN relationship_status ON  subscriber_relationship_id =relationship_status.id
