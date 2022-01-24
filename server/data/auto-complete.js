@@ -131,22 +131,33 @@ module.exports = {
         return await query(icd_sql);
     },
 
-    getProviderSkillCodes: async function (args) {
-
-        const sql = SQL`
+    getProviderSkillCodes: async function (params) {
+        let skill_code_search = ` AND (sc.code ILIKE '%${params.q}%' ) `;
+        const skill_code_sql = SQL`
             SELECT
                 psc.provider_id,
                 psc.skill_code_id AS id,
                 sc.code,
-                sc.description
+                sc.description,
+                COUNT(1) OVER (range unbounded preceding) AS total_records
             FROM
                 provider_skill_codes psc
             INNER JOIN skill_codes sc ON psc.skill_code_id = sc.id
             LEFT JOIN provider_contacts pc ON pc.provider_id = psc.provider_id
             WHERE
-            pc.id = ${args.reading_physician_id};
+                pc.id = ${params.reading_physician_id}
         `;
-        return await query(sql);
+
+        if (params.q != '') {
+            skill_code_sql.append(skill_code_search);
+        }
+
+        skill_code_sql.append(SQL` ORDER BY  ${params.sortField} `)
+            .append(params.sortOrder)
+            .append(SQL` LIMIT ${params.pageSize}`)
+            .append(SQL` OFFSET ${((params.page - 1) * params.pageSize)}`);
+
+        return await query(skill_code_sql);
     },
 
     getInsurances: async function (params) {
