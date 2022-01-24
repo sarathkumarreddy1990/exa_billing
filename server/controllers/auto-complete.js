@@ -47,6 +47,10 @@ module.exports = {
         return data.getWCBCodes(params);
     },
 
+    getPatientAltAccounts: (params) => {
+        return data.getPatientAltAccounts(params);
+    },
+
     getOrderingFacilities: data.getOrderingFacilities,
 
     getOrderingFacilityContacts: data.getOrderingFacilityContacts,

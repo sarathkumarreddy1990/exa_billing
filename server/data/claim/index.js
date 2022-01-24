@@ -633,7 +633,8 @@ module.exports = {
     getClaimData: async (params) => {
 
         const {
-            id
+            id,
+            patient_id
         } = params;
 
         const get_claim_sql = SQL`
@@ -643,6 +644,7 @@ module.exports = {
                     , c.facility_id
                     , c.patient_id
                     , c.billing_provider_id
+                    , c.can_issuer_id
                     , c.rendering_provider_contact_id
                     , c.can_ahs_skill_code_id
                     , psc.code AS skill_code
@@ -701,6 +703,21 @@ module.exports = {
                     , p.birth_date::text AS patient_dob
                     , p.full_name AS patient_name
                     , p.gender AS patient_gender
+                    , (
+                        SELECT
+                            jsonb_agg(jsonb_build_object(
+                                'issuer_id', paa.issuer_id,
+                                'issuer_type', i_.issuer_type,
+                                'alt_account_no', paa.alt_account_no,
+                                'is_primary', paa.is_primary,
+                                'id', paa.id,
+                                'country_alpha_3_code', paa.country_alpha_3_code,
+                                'province_alpha_2_code', paa.province_alpha_2_code
+                            ))
+                        FROM patient_alt_accounts paa
+                        INNER JOIN issuers i_ ON paa.issuer_id = i_.id
+                        WHERE patient_id = ${patient_id}
+                    ) AS patient_alt_acc_nos
                     , (SELECT alt_account_no FROM patient_alt_accounts LEFT JOIN issuers i ON i.id = issuer_id WHERE patient_id = p.id AND i.issuer_type = 'uli_phn' AND province_alpha_2_code = 'ab' LIMIT 1) AS can_ahs_uli_phn
                     , get_patient_alerts_to_jsonb(p.id, TRUE) AS alerts
                     , p.patient_info

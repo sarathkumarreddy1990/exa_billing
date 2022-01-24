@@ -596,5 +596,34 @@ module.exports = {
                             AND pof.company_id = ${company_id}
                         `;
         return await query(sql);
-    }
+    },
+
+    getPatientAltAccounts: async (params) => {
+        let {
+            filterQuery,
+            sortField,
+            sortOrder,
+            pageSize,
+            page,
+        } = params;
+
+        const sql = SQL`
+            SELECT
+                paa.id
+                , paa.issuer_id
+                , i.issuer_type
+                , paa.alt_account_no
+                , paa.is_primary
+                , paa.country_alpha_3_code
+                , paa.province_alpha_2_code
+            FROM patient_alt_accounts paa
+            INNER JOIN issuers i ON paa.issuer_id = i.id
+        `;
+
+        sql.append(filterQuery)
+            .append(` ORDER BY ${sortField} ${sortOrder} LIMIT ${pageSize} OFFSET `)
+            .append(((page - 1) * pageSize));
+
+        return await query(sql);
+    },
 };
