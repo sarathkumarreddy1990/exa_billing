@@ -2928,7 +2928,7 @@ define(['jquery',
                             var skillCodes = data && data.result || [];
                             self.providerSkillCodesCount = skillCodes.length;
                             if (skillCodes.length === 1) {
-                                $('#select2-ddlSkillCodes-container').html(skillCodes[0].code);
+                                $('#select2-ddlSkillCodes-container').text(skillCodes[0].code);
                                 self.ACSelect.skillCodes.ID = skillCodes[0].skill_code_id;
                             }
                         }
@@ -2956,7 +2956,7 @@ define(['jquery',
                             };
                         },
                         processResults: function (data, params) {
-                            self.providerSkillCodesCount = data[0].total_records;
+                            self.providerSkillCodesCount = data[0] && data[0].total_records ? data[0].total_records : 0;
                             return commonjs.getTotalRecords(data, params);
                         },
                         cache: true
