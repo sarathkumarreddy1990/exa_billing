@@ -6831,11 +6831,17 @@ define(['jquery',
             getDefaultPatientAltAccNo: function (patientAltAccNos) {
                 var defaultPatientAltAccNo = "";
                 if (patientAltAccNos) {
-                    var issuerIds = [3, 4, 1, 2]; // issuer type order
+                    // If the patient has a registration number issuer type this should always be the default used on the claim.
+                    // The priority for the issuer id's
+                    // Registration Number - id = 3
+                    // Registration Number(parent / guardian) - id = 4
+                    // ULI / PHN - id = 1
+                    // ULI / PHN(parent / guardian) - id = 2
+                    var issuerIds = [3, 4, 1, 2];
                     for (var index = 0; index < issuerIds.length; index++) {
                         var issuerId = issuerIds[index];
                         defaultPatientAltAccNo = this.getDefaultPatientAltAccNoById(patientAltAccNos, issuerId);
-                        if(defaultPatientAltAccNo) {
+                        if (defaultPatientAltAccNo) {
                             break;
                         }
                     }
