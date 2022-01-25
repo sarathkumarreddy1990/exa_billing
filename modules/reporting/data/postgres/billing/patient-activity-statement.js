@@ -190,16 +190,7 @@ WITH claim_data AS(
            WHERE bc.patient_id = p.id
            <% if(selectedClaimIds) { %> AND <% print(selectedClaimIds); } %>
         ) std ON TRUE
-        LEFT JOIN LATERAL (
-            SELECT
-                CASE bc.payer_type
-                    WHEN 'primary_insurance' THEN MAX(patient_insurance_id) FILTER (WHERE coverage_level = 'primary')
-                    WHEN 'secondary_insurance' THEN MAX(patient_insurance_id) FILTER (WHERE coverage_level = 'secondary')
-                    WHEN 'tertiary_insurance' THEN MAX(patient_insurance_id) FILTER (WHERE coverage_level = 'tertiary')
-                END AS patient_insurance
-            FROM billing.claim_patient_insurances
-            WHERE claim_id = bc.id
-        ) AS pat_claim_ins ON TRUE
+        ${commonIndex.getClaimPatientInsurances('bc')}
         LEFT JOIN public.patient_insurances pi ON pi.id = pat_claim_ins.patient_insurance
         ),
 

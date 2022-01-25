@@ -828,7 +828,7 @@ module.exports = {
                             MAX(patient_insurance_id) FILTER (WHERE coverage_level = 'tertiary') AS tertiary_patient_insurance_id
                         FROM billing.claim_patient_insurances bci
                         WHERE claim_id = claims.id
-                    ) AS pat_claim_ins ON true
+                    ) AS pat_claim_ins ON TRUE
                     LEFT JOIN LATERAL (
                         SELECT
                         (CASE COALESCE(${params.payerType}, payer_type)

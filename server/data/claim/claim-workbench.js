@@ -1,6 +1,9 @@
 const SearchFilter = require('./claim-search-filters');
 const { SQL, query, queryWithAudit, queryRows } = require('../index');
 const filterValidator = require('./../filter-validator')();
+const {
+    getClaimPatientInsurances
+} = require('../../shared/index');
 
 module.exports = {
 
@@ -194,16 +197,7 @@ module.exports = {
                     WHEN 'rendering_provider' THEN render_provider.full_name
                     WHEN 'patient' THEN patients.full_name        END)   || '(' || COALESCE(${payerType}, payer_type) ||')' as note
                 FROM billing.claims
-                LEFT JOIN LATERAL (
-                    SELECT
-                        CASE COALESCE(${payerType}, claims.payer_type)
-                            WHEN 'primary_insurance' THEN MAX(patient_insurance_id) FILTER (WHERE coverage_level = 'primary')
-                            WHEN 'secondary_insurance' THEN MAX(patient_insurance_id) FILTER (WHERE coverage_level = 'secondary')
-                            WHEN 'tertiary_insurance' THEN MAX(patient_insurance_id) FILTER (WHERE coverage_level = 'tertiary')
-                        END AS patient_insurance
-                    FROM billing.claim_patient_insurances
-                    WHERE claim_id = claims.id
-                ) AS pat_claim_ins ON TRUE
+                ${getClaimPatientInsurances('claims', payerType)}
                 LEFT JOIN patient_insurances ON patient_insurances.id = pat_claim_ins.patient_insurance
                 INNER JOIN patients ON claims.patient_id = patients.id
                 LEFT JOIN insurance_providers ON patient_insurances.insurance_provider_id = insurance_providers.id

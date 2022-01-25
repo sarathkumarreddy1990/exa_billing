@@ -1,5 +1,8 @@
 const { query, SQL } = require('./../index');
 const moment = require('moment');
+const {
+    getClaimPatientInsurances
+} = require('../../shared/index');
 
 module.exports = {
 
@@ -197,16 +200,7 @@ module.exports = {
 
         if (params.customArgs.payerType == 'insurance') {
             joinQuery = `
-                LEFT JOIN LATERAL (
-                    SELECT
-                        CASE bc.payer_type
-                            WHEN 'primary_insurance' THEN MAX(patient_insurance_id) FILTER (WHERE coverage_level = 'primary')
-                            WHEN 'secondary_insurance' THEN MAX(patient_insurance_id) FILTER (WHERE coverage_level = 'secondary')
-                            WHEN 'tertiary_insurance' THEN MAX(patient_insurance_id) FILTER (WHERE coverage_level = 'tertiary')
-                        END AS patient_insurance
-                    FROM billing.claim_patient_insurances
-                    WHERE claim_id = bc.id
-                ) AS pat_claim_ins ON TRUE
+                ${getClaimPatientInsurances('bc')}
                 LEFT  JOIN public.patient_insurances AS pip ON pip.id = pat_claim_ins.patient_insurance`;
 
 

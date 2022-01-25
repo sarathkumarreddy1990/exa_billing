@@ -5,6 +5,9 @@ const dataHelper = require('../dataHelper');
 const queryBuilder = require('../queryBuilder');
 const logger = require('../../../../../logger');
 const moment = require('moment');
+const {
+    getClaimPatientInsurances
+} = require('../../../../../server/shared/index');
 
 // generate query template ***only once*** !!!
 
@@ -150,16 +153,7 @@ aged_ar_summary_details AS(
     LEFT JOIN billing.claim_patient_insurances bcpi ON bcpi.claim_id = bc.id AND bcpi.coverage_level = 'primary'
     LEFT JOIN public.patient_insurances ppi  ON ppi.id = bcpi.patient_insurance_id
  <%} else {%>
-    LEFT JOIN LATERAL (
-        SELECT
-            CASE bc.payer_type
-                WHEN 'primary_insurance' THEN MAX(patient_insurance_id) FILTER (WHERE coverage_level = 'primary')
-                WHEN 'secondary_insurance' THEN MAX(patient_insurance_id) FILTER (WHERE coverage_level = 'secondary')
-                WHEN 'tertiary_insurance' THEN MAX(patient_insurance_id) FILTER (WHERE coverage_level = 'tertiary')
-            END AS patient_insurance
-        FROM billing.claim_patient_insurances
-        WHERE claim_id = bc.id
-    ) AS pat_claim_ins ON TRUE
+    ${getClaimPatientInsurances('bc')}
     LEFT JOIN public.patient_insurances ppi ON ppi.id = pat_claim_ins.patient_insurance
  <% } %>
  LEFT JOIN public.insurance_providers pip ON pip.id = ppi.insurance_provider_id
@@ -271,16 +265,7 @@ aged_ar_summary_details AS(
         LEFT JOIN billing.claim_patient_insurances bcpi ON bcpi.claim_id = bc.id AND bcpi.coverage_level = 'primary'
         LEFT JOIN public.patient_insurances ppi  ON ppi.id = bcpi.patient_insurance_id
      <%} else {%>
-        LEFT JOIN LATERAL (
-            SELECT
-                CASE bc.payer_type
-                    WHEN 'primary_insurance' THEN MAX(patient_insurance_id) FILTER (WHERE coverage_level = 'primary')
-                    WHEN 'secondary_insurance' THEN MAX(patient_insurance_id) FILTER (WHERE coverage_level = 'secondary')
-                    WHEN 'tertiary_insurance' THEN MAX(patient_insurance_id) FILTER (WHERE coverage_level = 'tertiary')
-                END AS patient_insurance
-            FROM billing.claim_patient_insurances
-            WHERE claim_id = bc.id
-        ) AS pat_claim_ins ON TRUE
+        ${getClaimPatientInsurances('bc')}
         LEFT JOIN patient_insurances ppi ON ppi.id = pat_claim_ins.patient_insurance
      <% } %>
     LEFT JOIN public.insurance_providers pip ON pip.id = ppi.insurance_provider_id
@@ -412,16 +397,7 @@ aged_ar_summary_details AS(
             LEFT JOIN billing.claim_patient_insurances bcpi ON bcpi.claim_id = bc.id AND bcpi.coverage_level = 'primary'
             LEFT JOIN public.patient_insurances ppi ON ppi.id = bcpi.patient_insurance_id
          <%} else {%>
-            LEFT JOIN LATERAL (
-                SELECT
-                    CASE bc.payer_type
-                        WHEN 'primary_insurance' THEN MAX(patient_insurance_id) FILTER (WHERE coverage_level = 'primary')
-                        WHEN 'secondary_insurance' THEN MAX(patient_insurance_id) FILTER (WHERE coverage_level = 'secondary')
-                        WHEN 'tertiary_insurance' THEN MAX(patient_insurance_id) FILTER (WHERE coverage_level = 'tertiary')
-                    END AS patient_insurance
-                FROM billing.claim_patient_insurances
-                WHERE claim_id = bc.id
-            ) AS pat_claim_ins ON TRUE
+            ${getClaimPatientInsurances('bc')}
             LEFT JOIN public.patient_insurances ppi ON ppi.id = pat_claim_ins.patient_insurance
          <% } %>
         LEFT JOIN public.insurance_providers pip ON pip.id = ppi.insurance_provider_id
@@ -632,6 +608,7 @@ const api = {
         // 2 - geenrate query to execute
         const query = agedARSummaryDataSetQueryTemplate(queryContext.templateData);
         // 3a - get the report data and return a promise
+        console.log(query, queryContext.queryParams);
         return db.queryForReportData(query, queryContext.queryParams);
     },
 

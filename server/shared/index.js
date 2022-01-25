@@ -212,6 +212,21 @@ module.exports = {
         return `ARRAY[insurance_provider_payer_types.description]`;
     },
 
+    getClaimPatientInsurances: (tableName, payerType) => {
+        let table_name = tableName || 'bc';
+        return `
+        LEFT JOIN LATERAL (
+            SELECT
+                CASE COALESCE(${payerType || null}, ${table_name}.payer_type)
+                    WHEN 'primary_insurance' THEN MAX(patient_insurance_id) FILTER (WHERE coverage_level = 'primary')
+                    WHEN 'secondary_insurance' THEN MAX(patient_insurance_id) FILTER (WHERE coverage_level = 'secondary')
+                    WHEN 'tertiary_insurance' THEN MAX(patient_insurance_id) FILTER (WHERE coverage_level = 'tertiary')
+                END AS patient_insurance
+            FROM billing.claim_patient_insurances
+            WHERE claim_id = ${table_name}.id
+        ) AS pat_claim_ins ON TRUE `;
+    },
+
     getLocaleDate: function (date, locale) {
         if (!date) {
             return null;

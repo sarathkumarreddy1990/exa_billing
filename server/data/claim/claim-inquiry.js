@@ -5,6 +5,9 @@ const {
 } = require('../index');
 const queryMakers = require('./../query-maker-map');
 const generator = queryMakers.get('date');
+const {
+    getClaimPatientInsurances
+} = require('../../shared/index');
 
 module.exports = {
     getData: async (params) => {
@@ -753,16 +756,7 @@ module.exports = {
                     FROM billing.claims
                     INNER JOIN patients ON claims.patient_id = patients.id
                     INNER JOIN LATERAL billing.get_claim_payments(claims.id, false) bgcp ON TRUE
-                    LEFT JOIN LATERAL (
-                        SELECT
-                            CASE claims.payer_type
-                                WHEN 'primary_insurance' THEN MAX(patient_insurance_id) FILTER (WHERE coverage_level = 'primary')
-                                WHEN 'secondary_insurance' THEN MAX(patient_insurance_id) FILTER (WHERE coverage_level = 'secondary')
-                                WHEN 'tertiary_insurance' THEN MAX(patient_insurance_id) FILTER (WHERE coverage_level = 'tertiary')
-                            END AS patient_insurance
-                        FROM billing.claim_patient_insurances
-                        WHERE claim_id = claims.id
-                    ) AS pat_claim_ins ON TRUE
+                    ${getClaimPatientInsurances('claims')}
                     LEFT JOIN provider_contacts  ON provider_contacts.id=claims.referring_provider_contact_id
                     LEFT JOIN providers as ref_provider ON ref_provider.id = provider_contacts.provider_id
                     LEFT JOIN provider_contacts as rendering_pro_contact ON rendering_pro_contact.id=claims.rendering_provider_contact_id
