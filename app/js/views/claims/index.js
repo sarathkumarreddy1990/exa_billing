@@ -72,7 +72,7 @@ define(['jquery',
             federalTaxId: '',
             enableInsuranceEligibility: '',
             tradingPartnerId: '',
-            ACSelect: { refPhy: {}, readPhy: {}, skillCodes: {} },
+            ACSelect: { refPhy: {}, readPhy: {}, skillCodes: {}, patientAltAccNo: {} },
             icd9to10Template : _.template(icd9to10Template),
             responsible_list: [
                 { payer_type: "PPP", payer_type_name: "patient", payer_id: null, payer_name: null },
@@ -741,6 +741,7 @@ define(['jquery',
                 self.setSkillCodesAutoComplete();
                 self.initWCBCodesAutoComplete('wcbNatureOfInjury');
                 self.initWCBCodesAutoComplete('wcbAreaOfInjury');
+                self.setPatientAltAccountsAutoComplete(); // Patient alternate account number /
                 if (!self.isEdit)
                     self.bindExistingPatientInsurance(doHide);
             },
@@ -804,7 +805,8 @@ define(['jquery',
                     type: 'GET',
                     url: '/exa_modules/billing/claims/claim',
                     data: {
-                        id: claim_Id
+                        id: claim_Id,
+                        patient_id: options.patient_id
                     },
                     success: function (model, response) {
 
@@ -828,6 +830,7 @@ define(['jquery',
                             self.paymentList = claimDetails.payment_details || [];
                             self.billing_method = claimDetails.billing_method;
                             self.phn = claimDetails.phn_acc_no;
+                            self.patient_alt_acc_nos = claimDetails.patient_alt_acc_nos;
                             self.canAhsEncounterNo = claimDetails.can_ahs_encounter_no || 1;
                             $('.claimProcess').prop('disabled', false);
                             $('#btnSaveClaim').prop('disabled', false);
@@ -1188,6 +1191,12 @@ define(['jquery',
                 self.ordering_facility_name = orderingFacility;
                 self.ordering_facility_contact_id = claim_data.ordering_facility_contact_id || claim_data.service_facility_contact_id || null;
                 self.billing_type = claim_data.billing_type || 'global';
+                var patientAltAaccNo;
+                if (claim_data.patient_alt_acc_nos && app.country_alpha_3_code === 'can') {
+                    patientAltAaccNo = claim_data.can_issuer_id
+                        ? self.getDefaultPatientAltAccNoById(claim_data.patient_alt_acc_nos, claim_data.can_issuer_id)
+                        : self.getDefaultPatientAltAccNo(claim_data.patient_alt_acc_nos);
+                }
 
                 $('#ddlBillingProvider').val(claim_data.fac_billing_provider_id || claim_data.billing_provider_id || '');
                 $('#ddlDelayReasons').val(claim_data.delay_reason_id || '');
@@ -1196,6 +1205,7 @@ define(['jquery',
                 $('#select2-ddlSkillCodes-container').html(skillCode);
                 $('#select2-ddlReferringProvider-container').html(referringProvider);
                 $('#select2-ddlOrdFacility-container').html(self.ordering_facility_name);
+                $('#select2-ddlPhnUli-container').html(patientAltAaccNo);
 
                 // Alberta
                 if ( claim_data.can_ahs_pay_to_code ) {
@@ -4097,7 +4107,10 @@ define(['jquery',
                     is_split_claim: app.isMobileBillingEnabled && self.is_split_claim,
                     order_id: self.options && self.options.order_id,
                     is_mobile_billing_enabled: app.isMobileBillingEnabled,
-                    can_ahs_encounter_no: $('#txtEncounterNo').val()
+                    can_ahs_encounter_no: $('#txtEncounterNo').val(),
+                    can_issuer_id: self.ACSelect && self.ACSelect.patientAltAccNo
+                        ? self.ACSelect.patientAltAccNo.issuer_id
+                        : null,
                 };
 
                 // Pay-to Details are only saved when Pay-to Code is Other
@@ -5685,7 +5698,7 @@ define(['jquery',
                     $('#txtClaimCreatedDt').empty();
                     $('#ddlFacility option:contains("Select")').prop("selected", true);
                     $('#ddlBillingProvider option:contains("Select")').prop("selected", true);
-                    $('#ddlRenderingProvider, #ddlReferringProvider, #ddlOrdFacility, #ddlSkillCodes').empty();
+                    $('#ddlRenderingProvider, #ddlReferringProvider, #ddlOrdFacility, #ddlSkillCodes, #ddlPhnUli').empty();
                     $('#ddlPOSType option:contains("Select")').prop("selected", true);
                     $('#ddlMultipleDiagCodes').find('option').remove();
                 }
@@ -6772,6 +6785,122 @@ define(['jquery',
                         commonjs.handleXhrError(err);
                     }
                 });
+            },
+
+            setPatientAltAccountsAutoComplete: function () {
+                if (app.country_alpha_3_code !== 'can') {
+                    return;
+                }
+
+                var self = this;
+                $("#ddlPhnUli").select2({
+                    ajax: {
+                        url: "/exa_modules/billing/autoCompleteRouter/patientAltAccounts",
+                        dataType: 'json',
+                        delay: 250,
+                        data: function (params) {
+                            return {
+                                page: params.page || 1,
+                                q: params.term || '',
+                                pageSize: 10,
+                                sortField: "id",
+                                sortOrder: "desc",
+                                company_id: app.companyID,
+                                filterQuery: ` WHERE patient_id = ${self.cur_patient_id}`
+                            };
+                        },
+                        processResults: function (data, params) {
+                            return commonjs.getTotalRecords(data, params);
+                        },
+                        cache: true
+                    },
+                    placeholder: self.usermessage.selectStudyReadPhysician,
+                    escapeMarkup: function (markup) { return markup; },
+                    minimumInputLength: 0,
+                    templateResult: formatRepo,
+                    templateSelection: formatRepoSelection
+                });
+                function formatRepo(repo) {
+                    if (repo.loading) {
+                        return repo.text;
+                    }
+
+                    var issuerType = self.getIssuerType(parseInt(repo.issuer_id) - 1);
+                    var markup = "<table><tr>";
+                    markup += "<td><div>" + issuerType + ", " + repo.alt_account_no + "</div>";
+                    markup += "</td></tr></table>";
+                    return markup;
+                }
+                function formatRepoSelection(res) {
+                    if (res.issuer_id && res.alt_account_no) {
+                        self.ACSelect.patientAltAccNo.issuer_id = res.issuer_id;
+                        self.ACSelect.patientAltAccNo.alt_account_no = res.alt_account_no;
+                        var issuerType = res.issuer_id
+                            ? self.getIssuerType(parseInt(res.issuer_id) - 1)
+                            : res.issuer_id;
+
+                        return issuerType + ', ' + res.alt_account_no;
+                    }
+
+                    return "";
+                }
+            },
+
+            getIssuerType: function (index) {
+                if (index >= 0) {
+                    var issuerTypes = [
+                        'ULI/PHN',
+                        'ULI/PHN (parent/guardian)',
+                        'Registration Number',
+                        'Registration Number (parent/guardian)'
+                    ];
+
+                    return issuerTypes[index];
+                }
+
+                return '';
+            },
+
+            getDefaultPatientAltAccNo: function (patientAltAccNos) {
+                var defaultPatientAltAccNo = "";
+                if (patientAltAccNos) {
+                    // If the patient has a registration number issuer type this should always be the default used on the claim.
+                    // The priority for the issuer id's
+                    // Registration Number - id = 3
+                    // Registration Number(parent / guardian) - id = 4
+                    // ULI / PHN - id = 1
+                    // ULI / PHN(parent / guardian) - id = 2
+                    var issuerIds = [3, 4, 1, 2];
+                    for (var index = 0; index < issuerIds.length; index++) {
+                        var issuerId = issuerIds[index];
+                        defaultPatientAltAccNo = this.getDefaultPatientAltAccNoById(patientAltAccNos, issuerId);
+                        if (defaultPatientAltAccNo) {
+                            break;
+                        }
+                    }
+                }
+
+                return defaultPatientAltAccNo;
+            },
+
+            getDefaultPatientAltAccNoById: function (patientAltAccNos, issuerId) {
+                if (patientAltAccNos) {
+                    var patientAltAccNo = patientAltAccNos.find(function (patientAltAccNo) {
+                        return patientAltAccNo.issuer_id === issuerId;
+                    });
+
+                    if (patientAltAccNo) {
+                        var issuerType = patientAltAccNo.issuer_id
+                            ? this.getIssuerType(parseInt(patientAltAccNo.issuer_id) - 1)
+                            : patientAltAccNo.issuer_id;
+                        defaultPatientAltAccNo = issuerType + ', ' + patientAltAccNo.alt_account_no;
+                        this.ACSelect.patientAltAccNo.issuer_id = patientAltAccNo.issuer_id;
+                        this.ACSelect.patientAltAccNo.alt_account_no = patientAltAccNo.alt_account_no;
+                        return defaultPatientAltAccNo;
+                    }
+                }
+
+                return "";
             }
 
         });
