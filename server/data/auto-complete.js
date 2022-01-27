@@ -611,7 +611,7 @@ module.exports = {
 
     getPatientAltAccounts: async (params) => {
         let {
-            filterQuery,
+            patient_id,
             sortField,
             sortOrder,
             pageSize,
@@ -631,9 +631,17 @@ module.exports = {
             INNER JOIN issuers i ON paa.issuer_id = i.id
         `;
 
-        sql.append(filterQuery)
-            .append(` ORDER BY ${sortField} ${sortOrder} LIMIT ${pageSize} OFFSET `)
-            .append(((page - 1) * pageSize));
+        sql.append(SQL` WHERE patient_id = ${patient_id} `);
+        if (sortField && sortOrder) {
+            sql.append(SQL` ORDER BY `)
+                .append(sortField)
+                .append(SQL` `)
+                .append(sortOrder);
+        }
+
+        if (pageSize && page) {
+            sql.append(SQL` LIMIT ${pageSize} OFFSET ${((page - 1) * pageSize)} `);
+        }
 
         return await query(sql);
     },

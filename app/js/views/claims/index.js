@@ -6806,7 +6806,7 @@ define(['jquery',
                                 sortField: "id",
                                 sortOrder: "desc",
                                 company_id: app.companyID,
-                                filterQuery: ` WHERE patient_id = ${self.cur_patient_id}`
+                                patient_id: self.cur_patient_id
                             };
                         },
                         processResults: function (data, params) {
