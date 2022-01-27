@@ -97,7 +97,7 @@ claim_details AS(
     INNER JOIN public.facilities f ON f.id = bc.facility_id
     INNER JOIN public.patients pp ON pp.id = bc.patient_id
     INNER JOIN billing.providers bp ON bp.id = bc.billing_provider_id
-    ${commonIndex.getClaimPatientInsurances('bc')}
+    ${commonIndex.getClaimPatientInsuranceId('bc')}
     LEFT JOIN public.patient_insurances ppi ON ppi.id = pat_claim_ins.patient_insurance
     LEFT JOIN public.insurance_providers pip ON pip.id = ppi.insurance_provider_id
     LEFT JOIN public.ordering_facility_contacts ofc ON ofc.id = bc.ordering_facility_contact_id

@@ -5,7 +5,7 @@ const _ = require('lodash')
     , queryBuilder = require('../queryBuilder')
     , logger = require('../../../../../logger');
 const {
-    getClaimPatientInsurances
+    getClaimPatientInsuranceId
 } = require('../../../../../server/shared/index');
 
 // generate query template ***only once*** !!!
@@ -123,7 +123,7 @@ WITH claim_data as(
          INNER JOIN billing_comments pc on pc.id = bc.id
          INNER JOIN billing.providers bp on bp.id = bc.billing_provider_id
          INNER JOIN facilities f on f.id = bc.facility_id
-         ${getClaimPatientInsurances('bc')}
+         ${getClaimPatientInsuranceId('bc')}
          LEFT JOIN public.patient_insurances pi ON pi.id = pat_claim_ins.patient_insurance
          WHERE 1= 1
            <% if (billingProviderIds) { %>AND <% print(billingProviderIds); } %>

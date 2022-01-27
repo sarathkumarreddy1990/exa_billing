@@ -2,6 +2,7 @@ const SearchFilter = require('./claim-search-filters');
 const { SQL, query, queryWithAudit, queryRows } = require('../index');
 const filterValidator = require('./../filter-validator')();
 const {
+    getClaimPatientInsuranceId,
     getClaimPatientInsurances
 } = require('../../shared/index');
 
@@ -197,7 +198,7 @@ module.exports = {
                     WHEN 'rendering_provider' THEN render_provider.full_name
                     WHEN 'patient' THEN patients.full_name        END)   || '(' || COALESCE(${payerType}, payer_type) ||')' as note
                 FROM billing.claims
-                ${getClaimPatientInsurances('claims', payerType)}
+                ${getClaimPatientInsuranceId('claims', payerType)}
                 LEFT JOIN patient_insurances ON patient_insurances.id = pat_claim_ins.patient_insurance
                 INNER JOIN patients ON claims.patient_id = patients.id
                 LEFT JOIN insurance_providers ON patient_insurances.insurance_provider_id = insurance_providers.id
@@ -410,9 +411,9 @@ module.exports = {
                             c.patient_id
                             , c.facility_id
                             , c.referring_provider_contact_id
-                            , pat_claim_ins.primary_patient_insurance_id
-                            , pat_claim_ins.secondary_patient_insurance_id
-                            , pat_claim_ins.tertiary_patient_insurance_id
+                            , claim_ins.primary_patient_insurance_id
+                            , claim_ins.secondary_patient_insurance_id
+                            , claim_ins.tertiary_patient_insurance_id
                             , c.ordering_facility_contact_id
                             , pof.name AS ordering_facility_name
                             , pofc.location
@@ -428,17 +429,10 @@ module.exports = {
                         FROM
                             billing.claims c
                         INNER JOIN public.patients p ON p.id = c.patient_id
-                        LEFT JOIN LATERAL(
-                            SELECT
-                                MAX(patient_insurance_id) FILTER (WHERE coverage_level = 'primary') AS primary_patient_insurance_id,
-                                MAX(patient_insurance_id) FILTER (WHERE coverage_level = 'secondary') AS secondary_patient_insurance_id,
-                                MAX(patient_insurance_id) FILTER (WHERE coverage_level = 'tertiary') AS tertiary_patient_insurance_id
-                            FROM billing.claim_patient_insurances
-                            WHERE claim_id = c.id
-                        ) AS pat_claim_ins ON TRUE
-                        LEFT JOIN public.patient_insurances cpi ON cpi.id = pat_claim_ins.primary_patient_insurance_id
-                        LEFT JOIN public.patient_insurances csi ON csi.id = pat_claim_ins.secondary_patient_insurance_id
-                        LEFT JOIN public.patient_insurances cti ON cti.id = pat_claim_ins.tertiary_patient_insurance_id
+                        ${getClaimPatientInsurances('c')}
+                        LEFT JOIN public.patient_insurances cpi ON cpi.id = claim_ins.primary_patient_insurance_id
+                        LEFT JOIN public.patient_insurances csi ON csi.id = claim_ins.secondary_patient_insurance_id
+                        LEFT JOIN public.patient_insurances cti ON cti.id = claim_ins.tertiary_patient_insurance_id
                         LEFT JOIN public.insurance_providers ipp ON ipp.id = cpi.insurance_provider_id
                         LEFT JOIN public.insurance_providers ips ON ips.id = csi.insurance_provider_id
                         LEFT JOIN public.insurance_providers ipt ON ipt.id = cti.insurance_provider_id
@@ -693,19 +687,12 @@ module.exports = {
                     FROM billing.claims bc
                     INNER JOIN billing.charges ch ON ch.claim_id = bc.id
                     LEFT JOIN public.patients p ON p.id = bc.patient_id
-                    LEFT JOIN LATERAL(
-                        SELECT
-                            MAX(patient_insurance_id) FILTER (WHERE coverage_level = 'primary') AS primary_patient_insurance_id,
-                            MAX(patient_insurance_id) FILTER (WHERE coverage_level = 'secondary') AS secondary_patient_insurance_id,
-                            MAX(patient_insurance_id) FILTER (WHERE coverage_level = 'tertiary') AS tertiary_patient_insurance_id
-                        FROM billing.claim_patient_insurances
-                        WHERE claim_id = bc.id
-                    ) AS pat_claim_ins ON TRUE
-                    LEFT JOIN public.patient_insurances ppi ON ppi.id = pat_claim_ins.primary_patient_insurance_id
+                    ${getClaimPatientInsurances('bc')}
+                    LEFT JOIN public.patient_insurances ppi ON ppi.id = claim_ins.primary_patient_insurance_id
                     LEFT JOIN public.insurance_providers pip on pip.id = ppi.insurance_provider_id
-                    LEFT JOIN public.patient_insurances spi ON spi.id = pat_claim_ins.secondary_patient_insurance_id
+                    LEFT JOIN public.patient_insurances spi ON spi.id = claim_ins.secondary_patient_insurance_id
                     LEFT JOIN public.insurance_providers sip on sip.id = spi.insurance_provider_id
-                    LEFT JOIN public.patient_insurances tpi ON tpi.id = pat_claim_ins.tertiary_patient_insurance_id
+                    LEFT JOIN public.patient_insurances tpi ON tpi.id = claim_ins.tertiary_patient_insurance_id
                     LEFT JOIN public.insurance_providers tip on tip.id = tpi.insurance_provider_id
                     LEFT JOIN public.ordering_facility_contacts pofc ON pofc.id = bc.ordering_facility_contact_id
                     LEFT JOIN public.ordering_facilities pof ON pof.id = pofc.ordering_facility_id
@@ -819,20 +806,13 @@ module.exports = {
                     , (SELECT claim_count FROM invalid_claim) AS invalid_claim_count
                 FROM billing.claims bc
                 INNER JOIN billing.claim_status ON claim_status.id = bc.claim_status_id
-                LEFT JOIN LATERAL(
-                    SELECT
-                        MAX(patient_insurance_id) FILTER (WHERE coverage_level = 'primary') AS primary_patient_insurance_id,
-                        MAX(patient_insurance_id) FILTER (WHERE coverage_level = 'secondary') AS secondary_patient_insurance_id,
-                        MAX(patient_insurance_id) FILTER (WHERE coverage_level = 'tertiary') AS tertiary_patient_insurance_id
-                    FROM billing.claim_patient_insurances
-                    WHERE claim_id = bc.id
-                ) AS pat_claim_ins ON TRUE
-                LEFT JOIN patient_insurances ON patient_insurances.id =
-                    (CASE payer_type
-                        WHEN 'primary_insurance' THEN pat_claim_ins.primary_patient_insurance_id
-                        WHEN 'secondary_insurance' THEN pat_claim_ins.secondary_patient_insurance_id
-                        WHEN 'tertiary_insurance' THEN pat_claim_ins.tertiary_patient_insurance_id
-                    END)
+                LEFT JOIN billing.claim_patient_insurances bcpi ON bcpi.claim_id = bc.id
+                    AND bc.payer_type = CASE bcpi.coverage_level
+                                            WHEN 'primary' THEN 'primary_insurance'
+                                            WHEN 'secondary' THEN 'secondary_insurance'
+                                            WHEN 'tertiary' THEN 'tertiary_insurance'
+                                       END
+                LEFT JOIN public.patient_insurances ON patient_insurances.id = bcpi.patient_insurance_id
                 LEFT JOIN insurance_providers ON patient_insurances.insurance_provider_id = insurance_providers.id
                 LEFT JOIN billing.insurance_provider_details ON insurance_provider_details.insurance_provider_id = insurance_providers.id
                 WHERE bc.id = ANY(${claimIds}) `;

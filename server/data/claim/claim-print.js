@@ -1,6 +1,6 @@
 const { SQL, query } = require('../index');
 const {
-    getClaimPatientInsurances
+    getClaimPatientInsuranceId
 } = require('../../shared/index');
 
 module.exports = {
@@ -68,7 +68,7 @@ module.exports = {
                 INNER JOIN public.patients pp ON pp.id = bc.patient_id
                 INNER JOIN billing.providers bp ON bp.id = bc.billing_provider_id
                 INNER JOIN public.companies com ON com.id = bc.company_id
-                ${getClaimPatientInsurances('bc')}
+                ${getClaimPatientInsuranceId('bc')}
                 LEFT JOIN public.patient_insurances ppi ON ppi.id = pat_claim_ins.patient_insurance
                 LEFT JOIN public.insurance_providers pip ON pip.id = ppi.insurance_provider_id
                 LEFT JOIN public.ordering_facility_contacts pofc ON pofc.id = bc.ordering_facility_contact_id

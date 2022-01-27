@@ -6,7 +6,7 @@ const {
 const queryMakers = require('./../query-maker-map');
 const generator = queryMakers.get('date');
 const {
-    getClaimPatientInsurances
+    getClaimPatientInsuranceId, getClaimPatientInsurances
 } = require('../../shared/index');
 
 module.exports = {
@@ -115,21 +115,15 @@ module.exports = {
                 FROM (
                     SELECT
                         ARRAY[
-                            primary_patient_insurance_id,
-                            secondary_patient_insurance_id,
-                            tertiary_patient_insurance_id
+                            claim_ins.primary_patient_insurance_id,
+                            claim_ins.secondary_patient_insurance_id,
+                            claim_ins.tertiary_patient_insurance_id
                         ] AS pi_ids,
                         ARRAY[ 'primary_insurance', 'secondary_insurance', 'tertiary_insurance'] AS payer_types
-                    FROM   billing.claims bc
-                    LEFT JOIN LATERAL (
-                        SELECT
-                            MAX(patient_insurance_id) FILTER (WHERE coverage_level = 'primary') AS primary_patient_insurance_id
-                            , MAX(patient_insurance_id) FILTER (WHERE coverage_level = 'secondary') AS secondary_patient_insurance_id
-                            , MAX(patient_insurance_id) FILTER (WHERE coverage_level = 'tertiary') AS tertiary_patient_insurance_id
-                        FROM billing.claim_patient_insurances bcpi
-                        WHERE bcpi.claim_id = bc.id
-                    ) insurances ON TRUE
-                    WHERE  bc.id = ${claim_id}
+                    FROM billing.claims bc `
+            .append(getClaimPatientInsurances('bc'))
+            .append(`
+                    WHERE bc.id = ${claim_id}
                     ) x) y
         WHERE  y.patient_insurance_id IS NOT NULL
     )
@@ -150,7 +144,8 @@ module.exports = {
             ORDER BY pi.coverage_level ASC
             ) AS ins
         )
-    SELECT * FROM  claim_details, payment_details, icd_details, insurance_details, patient_details  `;
+    SELECT * FROM  claim_details, payment_details, icd_details, insurance_details, patient_details `);
+    
         return await query(sql);
     },
 
@@ -755,8 +750,9 @@ module.exports = {
                         ,claims.billing_provider_id
                     FROM billing.claims
                     INNER JOIN patients ON claims.patient_id = patients.id
-                    INNER JOIN LATERAL billing.get_claim_payments(claims.id, false) bgcp ON TRUE
-                    ${getClaimPatientInsurances('claims')}
+                    INNER JOIN LATERAL billing.get_claim_payments(claims.id, false) bgcp ON TRUE `
+            .append(getClaimPatientInsuranceId('claims'))
+            .append(`
                     LEFT JOIN provider_contacts  ON provider_contacts.id=claims.referring_provider_contact_id
                     LEFT JOIN providers as ref_provider ON ref_provider.id = provider_contacts.provider_id
                     LEFT JOIN provider_contacts as rendering_pro_contact ON rendering_pro_contact.id=claims.rendering_provider_contact_id
@@ -767,7 +763,7 @@ module.exports = {
                     LEFT JOIN public.ordering_facilities pof ON pof.id = pofc.ordering_facility_id
                     LEFT JOIN billing.claim_status  ON claim_status.id=claims.claim_status_id
                     WHERE patients.id = ${patientId}
-                    `;
+                    `);
 
         if (billProvWhereQuery) {
             sql.append(billProvWhereQuery);

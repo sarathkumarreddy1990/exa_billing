@@ -212,7 +212,7 @@ module.exports = {
         return `ARRAY[insurance_provider_payer_types.description]`;
     },
 
-    getClaimPatientInsurances: (tableName, payerType) => {
+    getClaimPatientInsuranceId: (tableName, payerType) => {
         let table_name = tableName || 'bc';
         return `
         LEFT JOIN LATERAL (
@@ -225,6 +225,21 @@ module.exports = {
             FROM billing.claim_patient_insurances
             WHERE claim_id = ${table_name}.id
         ) AS pat_claim_ins ON TRUE `;
+    },
+
+    getClaimPatientInsurances: (tableName, columnName) => {
+        let table_name = tableName || 'bc';
+        let column_name = columnName || 'id';
+
+        return `
+            LEFT JOIN LATERAL (
+                SELECT
+                    MAX(bcpi.patient_insurance_id) FILTER (WHERE bcpi.coverage_level = 'primary') AS primary_patient_insurance_id,
+                    MAX(bcpi.patient_insurance_id) FILTER (WHERE bcpi.coverage_level = 'secondary') AS secondary_patient_insurance_id,
+                    MAX(bcpi.patient_insurance_id) FILTER (WHERE bcpi.coverage_level = 'tertiary') AS tertiary_patient_insurance_id
+                FROM billing.claim_patient_insurances bcpi
+                WHERE bcpi.claim_id = ${table_name}.${column_name || 'id'}
+            ) AS claim_ins ON TRUE `;
     },
 
     getLocaleDate: function (date, locale) {

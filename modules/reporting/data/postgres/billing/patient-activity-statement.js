@@ -190,7 +190,7 @@ WITH claim_data AS(
            WHERE bc.patient_id = p.id
            <% if(selectedClaimIds) { %> AND <% print(selectedClaimIds); } %>
         ) std ON TRUE
-        ${commonIndex.getClaimPatientInsurances('bc')}
+        ${commonIndex.getClaimPatientInsuranceId('bc')}
         LEFT JOIN public.patient_insurances pi ON pi.id = pat_claim_ins.patient_insurance
         ),
 

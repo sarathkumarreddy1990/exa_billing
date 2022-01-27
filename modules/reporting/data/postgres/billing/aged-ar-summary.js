@@ -6,7 +6,7 @@ const queryBuilder = require('../queryBuilder');
 const logger = require('../../../../../logger');
 const moment = require('moment');
 const {
-    getClaimPatientInsurances
+    getClaimPatientInsuranceId
 } = require('../../../../../server/shared/index');
 
 // generate query template ***only once*** !!!
@@ -151,9 +151,9 @@ aged_ar_summary_details AS(
  INNER JOIN public.facilities pf ON pf.id = bc.facility_id
  <% if(incPatDetail == 'true') { %>
     LEFT JOIN billing.claim_patient_insurances bcpi ON bcpi.claim_id = bc.id AND bcpi.coverage_level = 'primary'
-    LEFT JOIN public.patient_insurances ppi  ON ppi.id = bcpi.patient_insurance_id
+    LEFT JOIN public.patient_insurances ppi ON ppi.id = bcpi.patient_insurance_id
  <%} else {%>
-    ${getClaimPatientInsurances('bc')}
+    ${getClaimPatientInsuranceId('bc')}
     LEFT JOIN public.patient_insurances ppi ON ppi.id = pat_claim_ins.patient_insurance
  <% } %>
  LEFT JOIN public.insurance_providers pip ON pip.id = ppi.insurance_provider_id
@@ -263,9 +263,9 @@ aged_ar_summary_details AS(
     INNER JOIN public.facilities pf ON pf.id = bc.facility_id
     <% if(incPatDetail == 'true') { %>
         LEFT JOIN billing.claim_patient_insurances bcpi ON bcpi.claim_id = bc.id AND bcpi.coverage_level = 'primary'
-        LEFT JOIN public.patient_insurances ppi  ON ppi.id = bcpi.patient_insurance_id
+        LEFT JOIN public.patient_insurances ppi ON ppi.id = bcpi.patient_insurance_id
      <%} else {%>
-        ${getClaimPatientInsurances('bc')}
+        ${getClaimPatientInsuranceId('bc')}
         LEFT JOIN patient_insurances ppi ON ppi.id = pat_claim_ins.patient_insurance
      <% } %>
     LEFT JOIN public.insurance_providers pip ON pip.id = ppi.insurance_provider_id
@@ -397,7 +397,7 @@ aged_ar_summary_details AS(
             LEFT JOIN billing.claim_patient_insurances bcpi ON bcpi.claim_id = bc.id AND bcpi.coverage_level = 'primary'
             LEFT JOIN public.patient_insurances ppi ON ppi.id = bcpi.patient_insurance_id
          <%} else {%>
-            ${getClaimPatientInsurances('bc')}
+            ${getClaimPatientInsuranceId('bc')}
             LEFT JOIN public.patient_insurances ppi ON ppi.id = pat_claim_ins.patient_insurance
          <% } %>
         LEFT JOIN public.insurance_providers pip ON pip.id = ppi.insurance_provider_id

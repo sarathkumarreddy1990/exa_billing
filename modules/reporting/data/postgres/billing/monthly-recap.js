@@ -5,6 +5,10 @@ const _ = require('lodash')
     , queryBuilder = require('../queryBuilder')
     , logger = require('../../../../../logger');
 
+const {
+    getClaimPatientInsurances
+} = require('../../../../../server/shared/index');
+
 // generate query template ***only once*** !!!
 
 const claimActivityDataSetQueryTemplate = _.template(`
@@ -16,21 +20,14 @@ WITH agg_claim AS(
         , bc.id AS claim_id
         , payer_type
         , (SELECT claim_balance_total FROM billing.get_claim_totals(bc.id)) as claim_balance
-        , claim_pat_ins.primary_patient_insurance_id
-        , claim_pat_ins.secondary_patient_insurance_id
-        , claim_pat_ins.tertiary_patient_insurance_id
+        , claim_ins.primary_patient_insurance_id
+        , claim_ins.secondary_patient_insurance_id
+        , claim_ins.tertiary_patient_insurance_id
     FROM
     	billing.claims bc
     INNER JOIN public.facilities f ON f.id = bc.facility_id
-    LEFT JOIN LATERAL (
-        SELECT
-            MAX(patient_insurance_id) FILTER (WHERE coverage_level = 'primary') AS primary_patient_insurance_id,
-            MAX(patient_insurance_id) FILTER (WHERE coverage_level = 'secondary') AS secondary_patient_insurance_id,
-            MAX(patient_insurance_id) FILTER (WHERE coverage_level = 'tertiary') AS tertiary_patient_insurance_id
-        FROM billing.claim_patient_insurances bcpi
-        WHERE bcpi.claim_id = bc.id
-    ) claim_pat_ins ON TRUE
-    LEFT JOIN public.patient_insurances ppi ON ppi.id = claim_pat_ins.primary_patient_insurance_id
+    ${getClaimPatientInsurances('bc')}
+    LEFT JOIN public.patient_insurances ppi ON ppi.id = claim_ins.primary_patient_insurance_id
     LEFT JOIN public.insurance_providers pip ON pip.id = ppi.insurance_provider_id
     LEFT JOIN public.insurance_provider_payer_types pippt ON pippt.id = pip.provider_payer_type_id
     LEFT JOIN public.ordering_facility_contacts pofc ON pofc.id = bc.ordering_facility_contact_id
@@ -44,25 +41,16 @@ WITH agg_claim AS(
   )
 , ins_paid as (
     SELECT DISTINCT bc.claim_id,
-         bp.insurance_provider_id,
-        COALESCE(pat_ins.primary_patient_insurance_id = ppi.id AND ppi.insurance_provider_id = bp.insurance_provider_id, false) is_primary,
-        COALESCE(pat_ins.secondary_patient_insurance_id = ppi.id AND ppi.insurance_provider_id = bp.insurance_provider_id, false) is_secondary,
-        COALESCE(pat_ins.tertiary_patient_insurance_id = ppi.id AND ppi.insurance_provider_id = bp.insurance_provider_id, false) is_tertiary
+        bp.insurance_provider_id,
+        COALESCE(claim_ins.primary_patient_insurance_id = ppi.id AND ppi.insurance_provider_id = bp.insurance_provider_id, false) is_primary,
+        COALESCE(claim_ins.secondary_patient_insurance_id = ppi.id AND ppi.insurance_provider_id = bp.insurance_provider_id, false) is_secondary,
+        COALESCE(claim_ins.tertiary_patient_insurance_id = ppi.id AND ppi.insurance_provider_id = bp.insurance_provider_id, false) is_tertiary
     FROM agg_claim bc
          INNER JOIN billing.charges bch ON  bch.claim_id = bc.claim_id
          INNER JOIN billing.payment_applications bpa ON  bpa.charge_id = bch.id
          INNER JOIN billing.payments bp ON  bp.id = bpa.payment_id
-         LEFT JOIN LATERAL (
-            SELECT
-                MAX(bcpi.patient_insurance_id) FILTER (WHERE bcpi.coverage_level = 'primary') AS primary_patient_insurance_id,
-                MAX(bcpi.patient_insurance_id) FILTER (WHERE bcpi.coverage_level = 'secondary') AS secondary_patient_insurance_id,
-                MAX(bcpi.patient_insurance_id) FILTER (WHERE bcpi.coverage_level = 'tertiary') AS tertiary_patient_insurance_id,
-                bcpi.patient_insurance_id
-            FROM billing.claim_patient_insurances bcpi
-            WHERE bcpi.claim_id = bc.claim_id
-            GROUP BY bcpi.patient_insurance_id
-         ) pat_ins ON TRUE
-         LEFT JOIN public.patient_insurances ppi ON ppi.id = pat_ins.patient_insurance_id
+         ${getClaimPatientInsurances('bc', 'claim_id')}
+         LEFT JOIN public.patient_insurances ppi ON ppi.id IN ( claim_ins.primary_patient_insurance_id, claim_ins.secondary_patient_insurance_id, claim_ins.tertiary_patient_insurance_id )
      WHERE bp.payer_type = 'insurance'
 )
 , paid_insurance AS (
@@ -336,6 +324,7 @@ const api = {
         // 2 - geenrate query to execute
         const query = claimActivityDataSetQueryTemplate(queryContext.templateData);
         // 3a - get the report data and return a promise
+        console.log(query, queryContext.queryParams);
         return db.queryForReportData(query, queryContext.queryParams);
     },
 

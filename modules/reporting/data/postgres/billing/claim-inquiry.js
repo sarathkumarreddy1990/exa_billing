@@ -6,7 +6,7 @@ const queryBuilder = require('../queryBuilder');
 const logger = require('../../../../../logger');
 const moment = require('moment');
 const {
-    getClaimPatientInsurances
+    getClaimPatientInsuranceId
 } = require('../../../../../server/shared/index');
 // generate query template ***only once*** !!!
 const claimInquiryDataSetQueryTemplate = _.template(`
@@ -150,7 +150,7 @@ const claimInquiryDataSetQueryTemplate = _.template(`
                 WHERE <% print(paymentUserIds) %>
             ) user_claim_ids ON user_claim_ids.claim_id = bc.id
             <% } %>
-            ${getClaimPatientInsurances('bc')}
+            ${getClaimPatientInsuranceId('bc')}
             LEFT JOIN public.patient_insurances ppi ON ppi.id = pat_claim_ins.patient_insurance
             INNER JOIN LATERAL (
                 SELECT
@@ -264,7 +264,7 @@ const claimInquiryDataSetQueryTemplate1 = _.template(`
                     WHERE <% print(paymentUserIds) %>
             ) user_claim_ids ON user_claim_ids.claim_id = bc.id
             <% } %>
-            ${getClaimPatientInsurances('bc')}
+            ${getClaimPatientInsuranceId('bc')}
             LEFT JOIN public.patient_insurances ppi ON ppi.id = pat_claim_ins.patient_insurance
             LEFT JOIN public.insurance_providers ip ON ip.id = ppi.insurance_provider_id
             INNER JOIN LATERAL (

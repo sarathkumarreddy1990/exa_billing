@@ -1,4 +1,5 @@
 const { query, queryRows, SQL } = require('../index');
+const { getClaimPatientInsurances } = require('../../shared/index');
 
 module.exports = {
 
@@ -646,9 +647,9 @@ module.exports = {
                     , c.rendering_provider_contact_id
                     , c.referring_provider_contact_id
                     , c.ordering_facility_contact_id
-                    , pat_claim_ins.primary_patient_insurance_id
-                    , pat_claim_ins.secondary_patient_insurance_id
-                    , pat_claim_ins.tertiary_patient_insurance_id
+                    , claim_ins.primary_patient_insurance_id
+                    , claim_ins.secondary_patient_insurance_id
+                    , claim_ins.tertiary_patient_insurance_id
                     , c.place_of_service_id
                     , c.billing_code_id
                     , c.billing_class_id
@@ -986,18 +987,12 @@ module.exports = {
                     , COALESCE(c.encounter_no, 1)::SMALLINT AS can_ahs_encounter_no
                     FROM
                         billing.claims c
-                        INNER JOIN public.patients p ON p.id = c.patient_id
-                        LEFT JOIN LATERAL(
-                            SELECT
-                                MAX(patient_insurance_id) FILTER (WHERE coverage_level = 'primary') AS primary_patient_insurance_id,
-                                MAX(patient_insurance_id) FILTER (WHERE coverage_level = 'secondary') AS secondary_patient_insurance_id,
-                                MAX(patient_insurance_id) FILTER (WHERE coverage_level = 'tertiary') AS tertiary_patient_insurance_id
-                            FROM billing.claim_patient_insurances
-                            WHERE claim_id = c.id
-                        ) AS pat_claim_ins ON TRUE
-                        LEFT JOIN public.patient_insurances cpi ON cpi.id = pat_claim_ins.primary_patient_insurance_id
-                        LEFT JOIN public.patient_insurances csi ON csi.id = pat_claim_ins.secondary_patient_insurance_id
-                        LEFT JOIN public.patient_insurances cti ON cti.id = pat_claim_ins.tertiary_patient_insurance_id
+                        INNER JOIN public.patients p ON p.id = c.patient_id `
+            .append(getClaimPatientInsurances('c'))
+            .append(`
+                        LEFT JOIN public.patient_insurances cpi ON cpi.id = claim_ins.primary_patient_insurance_id
+                        LEFT JOIN public.patient_insurances csi ON csi.id = claim_ins.secondary_patient_insurance_id
+                        LEFT JOIN public.patient_insurances cti ON cti.id = claim_ins.tertiary_patient_insurance_id
                         LEFT JOIN public.insurance_providers ipp ON ipp.id = cpi.insurance_provider_id
                         LEFT JOIN public.insurance_providers ips ON ips.id = csi.insurance_provider_id
                         LEFT JOIN public.insurance_providers ipt ON ipt.id = cti.insurance_provider_id
@@ -1010,7 +1005,7 @@ module.exports = {
                         LEFT JOIN public.facilities f ON c.facility_id = f.id
                         LEFT JOIN billing.claim_status cst ON cst.id = c.claim_status_id
                     WHERE
-                        c.id = ${id}`;
+                        c.id = ${id}`);
 
         return await query(get_claim_sql);
     },

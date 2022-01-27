@@ -5,6 +5,7 @@ const moment = require('moment');
 const { query, SQL } = require('./../index');
 const util = require('./../util');
 const _ = require('lodash');
+const { getClaimPatientInsurances } = require('../../shared');
 
 const colModel = [
     {
@@ -460,18 +461,11 @@ const api = {
         }
 
         if (tables.insurance_provider_payer_types || tables.ins_prov || tables.patient_insurances || tables.payer_insurance || tables.edi_clearinghouses || tables.as_eligibility_status) {
-            r += ` LEFT JOIN LATERAL (
-                        SELECT
-                            MAX(patient_insurance_id) FILTER (WHERE coverage_level = 'primary') AS primary_patient_insurance_id,
-                            MAX(patient_insurance_id) FILTER (WHERE coverage_level = 'secondary') AS secondary_patient_insurance_id,
-                            MAX(patient_insurance_id) FILTER (WHERE coverage_level = 'tertiary') AS tertiary_patient_insurance_id
-                        FROM billing.claim_patient_insurances
-                        WHERE claim_id = claims.id
-                    ) AS pat_claim_ins ON TRUE `;
+            r += getClaimPatientInsurances('claims');
         }
 
         if (tables.insurance_provider_payer_types || tables.ins_prov) {
-            r += ` LEFT JOIN patient_insurances ins_prov_pat_ins ON ins_prov_pat_ins.id = pat_claim_ins.primary_patient_insurance_id
+            r += ` LEFT JOIN patient_insurances ins_prov_pat_ins ON ins_prov_pat_ins.id = claim_ins.primary_patient_insurance_id
                    LEFT JOIN insurance_providers ins_prov ON ins_prov.id = ins_prov_pat_ins.insurance_provider_id
                    LEFT JOIN insurance_provider_payer_types  ON insurance_provider_payer_types.id = ins_prov.provider_payer_type_id `;
         }
@@ -479,9 +473,9 @@ const api = {
         if (tables.patient_insurances || tables.payer_insurance || tables.edi_clearinghouses) {
             r += ` LEFT JOIN patient_insurances ON patient_insurances.id =
                         ( CASE payer_type
-                            WHEN 'primary_insurance' THEN pat_claim_ins.primary_patient_insurance_id
-                            WHEN 'secondary_insurance' THEN pat_claim_ins.secondary_patient_insurance_id
-                            WHEN 'tertiary_insurance' THEN pat_claim_ins.tertiary_patient_insurance_id
+                            WHEN 'primary_insurance' THEN claim_ins.primary_patient_insurance_id
+                            WHEN 'secondary_insurance' THEN claim_ins.secondary_patient_insurance_id
+                            WHEN 'tertiary_insurance' THEN claim_ins.tertiary_patient_insurance_id
                           END
                         )`;
 
@@ -632,7 +626,7 @@ const api = {
                             id = 1
                      ) = 'can'
                 THEN
-                    public.get_eligibility_status(pat_claim_ins.primary_patient_insurance_id, claims.claim_dt)
+                    public.get_eligibility_status(claim_ins.primary_patient_insurance_id, claims.claim_dt)
                 ELSE
                     null
             END AS as_eligibility_status`,
