@@ -238,7 +238,7 @@ module.exports = {
                     MAX(bcpi.patient_insurance_id) FILTER (WHERE bcpi.coverage_level = 'secondary') AS secondary_patient_insurance_id,
                     MAX(bcpi.patient_insurance_id) FILTER (WHERE bcpi.coverage_level = 'tertiary') AS tertiary_patient_insurance_id
                 FROM billing.claim_patient_insurances bcpi
-                WHERE bcpi.claim_id = ${table_name}.${column_name || 'id'}
+                WHERE bcpi.claim_id = ${table_name}.${column_name}
             ) AS claim_ins ON TRUE `;
     },
 
