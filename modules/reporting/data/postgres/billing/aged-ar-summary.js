@@ -5,6 +5,9 @@ const dataHelper = require('../dataHelper');
 const queryBuilder = require('../queryBuilder');
 const logger = require('../../../../../logger');
 const moment = require('moment');
+const {
+    getClaimPatientInsuranceId
+} = require('../../../../../server/shared/index');
 
 // generate query template ***only once*** !!!
 
@@ -48,7 +51,7 @@ aged_ar_summary_details AS(
     <% if (facilityIds) { %> MAX(pf.facility_name) <% } else  { %> 'All'::text <% } %> AS "Facility",
     <% if(incPatDetail == 'true') { %>
          CASE
-            WHEN primary_patient_insurance_id IS NOT NULL THEN
+            WHEN bcpi.patient_insurance_id IS NOT NULL THEN
                 'Primary Insurance'
             ELSE
                 '-- No payer --'
@@ -65,7 +68,7 @@ aged_ar_summary_details AS(
     <% } %>
     <% if(incPatDetail == 'true') { %>
         CASE
-            WHEN primary_patient_insurance_id IS NOT NULL THEN
+            WHEN bcpi.patient_insurance_id IS NOT NULL THEN
                 pip.insurance_name
         ELSE
             CASE
@@ -147,17 +150,14 @@ aged_ar_summary_details AS(
  INNER JOIN public.patients pp ON pp.id = bc.patient_id
  INNER JOIN public.facilities pf ON pf.id = bc.facility_id
  <% if(incPatDetail == 'true') { %>
-    LEFT JOIN public.patient_insurances ppi ON ppi.id = primary_patient_insurance_id
+    LEFT JOIN billing.claim_patient_insurances bcpi ON bcpi.claim_id = bc.id AND bcpi.coverage_level = 'primary'
+    LEFT JOIN public.patient_insurances ppi ON ppi.id = bcpi.patient_insurance_id
  <%} else {%>
-    LEFT JOIN public.patient_insurances ppi ON ppi.id =
-        CASE
-            WHEN payer_type = 'primary_insurance' THEN primary_patient_insurance_id
-            WHEN payer_type = 'secondary_insurance' THEN secondary_patient_insurance_id
-            WHEN payer_type = 'tertiary_insurance' THEN tertiary_patient_insurance_id
-        END
+    ${getClaimPatientInsuranceId('bc')}
+    LEFT JOIN public.patient_insurances ppi ON ppi.id = pat_claim_ins.patient_insurance
  <% } %>
  LEFT JOIN public.insurance_providers pip ON pip.id = ppi.insurance_provider_id
- LEFT JOIN public.insurance_provider_payer_types pippt ON pippt.id = pip.provider_payer_type_id 
+ LEFT JOIN public.insurance_provider_payer_types pippt ON pippt.id = pip.provider_payer_type_id
  LEFT JOIN public.ordering_facility_contacts ofc ON ofc.id = bc.ordering_facility_contact_id
  LEFT JOIN public.ordering_facilities pof ON pof.id = ofc.ordering_facility_id
  LEFT JOIN public.provider_contacts ppc ON ppc.id = bc.referring_provider_contact_id
@@ -181,7 +181,7 @@ aged_ar_summary_details AS(
         'All'::text  as "Facility",
         <% if(incPatDetail == 'true') { %>
           CASE
-             WHEN primary_patient_insurance_id IS NOT NULL THEN 'Primary Insurance'
+             WHEN bcpi.patient_insurance_id IS NOT NULL THEN 'Primary Insurance'
              ELSE '-- No payer --'  END AS "Responsible Party",
         <%} else {%>
           CASE
@@ -262,14 +262,11 @@ aged_ar_summary_details AS(
     INNER JOIN public.patients pp ON pp.id = bc.patient_id
     INNER JOIN public.facilities pf ON pf.id = bc.facility_id
     <% if(incPatDetail == 'true') { %>
-        LEFT JOIN public.patient_insurances ppi ON ppi.id = primary_patient_insurance_id
+        LEFT JOIN billing.claim_patient_insurances bcpi ON bcpi.claim_id = bc.id AND bcpi.coverage_level = 'primary'
+        LEFT JOIN public.patient_insurances ppi ON ppi.id = bcpi.patient_insurance_id
      <%} else {%>
-        LEFT JOIN public.patient_insurances ppi ON ppi.id =
-            CASE
-                WHEN payer_type = 'primary_insurance' THEN primary_patient_insurance_id
-                WHEN payer_type = 'secondary_insurance' THEN secondary_patient_insurance_id
-                WHEN payer_type = 'tertiary_insurance' THEN tertiary_patient_insurance_id
-            END
+        ${getClaimPatientInsuranceId('bc')}
+        LEFT JOIN patient_insurances ppi ON ppi.id = pat_claim_ins.patient_insurance
      <% } %>
     LEFT JOIN public.insurance_providers pip ON pip.id = ppi.insurance_provider_id
     LEFT JOIN public.insurance_provider_payer_types pippt ON pippt.id = pip.provider_payer_type_id
@@ -397,14 +394,11 @@ aged_ar_summary_details AS(
         INNER JOIN public.patients pp ON pp.id = bc.patient_id
         INNER JOIN public.facilities pf ON pf.id = bc.facility_id
         <% if(incPatDetail == 'true') { %>
-            LEFT JOIN public.patient_insurances ppi ON ppi.id = primary_patient_insurance_id
+            LEFT JOIN billing.claim_patient_insurances bcpi ON bcpi.claim_id = bc.id AND bcpi.coverage_level = 'primary'
+            LEFT JOIN public.patient_insurances ppi ON ppi.id = bcpi.patient_insurance_id
          <%} else {%>
-            LEFT JOIN public.patient_insurances ppi ON ppi.id =
-                CASE
-                    WHEN payer_type = 'primary_insurance' THEN primary_patient_insurance_id
-                    WHEN payer_type = 'secondary_insurance' THEN secondary_patient_insurance_id
-                    WHEN payer_type = 'tertiary_insurance' THEN tertiary_patient_insurance_id
-                END
+            ${getClaimPatientInsuranceId('bc')}
+            LEFT JOIN public.patient_insurances ppi ON ppi.id = pat_claim_ins.patient_insurance
          <% } %>
         LEFT JOIN public.insurance_providers pip ON pip.id = ppi.insurance_provider_id
         LEFT JOIN public.insurance_provider_payer_types pippt ON pippt.id = pip.provider_payer_type_id
@@ -614,6 +608,7 @@ const api = {
         // 2 - geenrate query to execute
         const query = agedARSummaryDataSetQueryTemplate(queryContext.templateData);
         // 3a - get the report data and return a promise
+        console.log(query, queryContext.queryParams);
         return db.queryForReportData(query, queryContext.queryParams);
     },
 

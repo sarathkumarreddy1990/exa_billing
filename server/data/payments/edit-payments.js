@@ -1,5 +1,9 @@
 const { query, SQL } = require('./../index');
 const moment = require('moment');
+const {
+    getClaimPatientInsuranceId,
+    getClaimPatientInsurances
+} = require('../../shared/index');
 
 module.exports = {
 
@@ -197,10 +201,9 @@ module.exports = {
 
         if (params.customArgs.payerType == 'insurance') {
             joinQuery = `
-        LEFT  JOIN public.patient_insurances AS pip ON pip.id = CASE WHEN bc.payer_type = 'primary_insurance' THEN bc.primary_patient_insurance_id
-                                                WHEN bc.payer_type = 'secondary_insurance' THEN bc.secondary_patient_insurance_id
-                                                WHEN bc.payer_type = 'tertiary_insurance' THEN bc.tertiary_patient_insurance_id
-                                        END`;
+                ${getClaimPatientInsuranceId('bc')}
+                LEFT  JOIN public.patient_insurances AS pip ON pip.id = pat_claim_ins.patient_insurance`;
+
 
             paymentWhereQuery = paymentWhereQuery + ` AND pip.insurance_provider_id = ${params.customArgs.payerId} `;
         }
@@ -454,9 +457,9 @@ module.exports = {
                     SELECT bc.patient_id,
                             bc.facility_id,
                             bc.billing_notes,
-                            bc.primary_patient_insurance_id AS primary,
-                            bc.secondary_patient_insurance_id AS secondary,
-                            bc.tertiary_patient_insurance_id AS tertiary,
+                            claim_ins.primary_patient_insurance_id AS primary,
+                            claim_ins.secondary_patient_insurance_id AS secondary,
+                            claim_ins.tertiary_patient_insurance_id AS tertiary,
 
                             of.id AS order_facility_id,
                             bc.referring_provider_contact_id,
@@ -480,9 +483,10 @@ module.exports = {
                         LEFT JOIN public.patients ON patients.id = bc.patient_id
                         LEFT JOIN public.facilities ON facilities.id = bc.facility_id
 
-                        LEFT  JOIN public.patient_insurances AS pip ON pip.id = bc.primary_patient_insurance_id
-                        LEFT  JOIN public.patient_insurances AS sip ON sip.id = bc.secondary_patient_insurance_id
-                        LEFT  JOIN public.patient_insurances AS tip ON tip.id = bc.tertiary_patient_insurance_id
+                        ${getClaimPatientInsurances('bc')}
+                        LEFT  JOIN public.patient_insurances AS pip ON pip.id = claim_ins.primary_patient_insurance_id
+                        LEFT  JOIN public.patient_insurances AS sip ON sip.id = claim_ins.secondary_patient_insurance_id
+                        LEFT  JOIN public.patient_insurances AS tip ON tip.id = claim_ins.tertiary_patient_insurance_id
 
                         LEFT JOIN public.insurance_providers pips ON pips.id = pip.insurance_provider_id
                         LEFT JOIN public.insurance_providers sips ON sips.id = sip.insurance_provider_id

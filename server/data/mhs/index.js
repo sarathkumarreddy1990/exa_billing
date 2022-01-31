@@ -537,7 +537,8 @@ const mhsData = {
                       ) bch ON bch.claim_id = bc.id
             INNER JOIN public.facilities pf ON bc.facility_id = pf.id
             LEFT JOIN public.provider_contacts ppc ON ppc.id = pf.can_mb_medical_director_provider_id
-            LEFT JOIN public.patient_insurances ppi ON ppi.id = bc.primary_patient_insurance_id
+            LEFT JOIN billing.claim_patient_insurances cpi ON cpi.claim_id = bc.id AND cpi.coverage_level = 'primary'
+            LEFT JOIN public.patient_insurances ppi ON ppi.id = cpi.patient_insurance_id
             LEFT JOIN public.insurance_providers pip ON pip.id = ppi.insurance_provider_id
             WHERE bc.id = ANY(${claimIds})`;
 
