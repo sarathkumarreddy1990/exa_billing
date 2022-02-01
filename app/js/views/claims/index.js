@@ -5821,6 +5821,10 @@ define(['jquery',
                 $('#select2-ddlOrdFacility-container').html(service_facility_name);
                 $('#select2-ddlReferringProvider-container').html(self.usermessage.selectStudyRefProvider);
 
+                var claimDate = commonjs.getConvertedFacilityTime(app.currentdate, '', 'L', app.facilityID);
+                $("#txtClaimCreatedDt").val(claimDate);
+                $("#txtClaimCreatedDt").prop('disabled', true);
+
                 // Claim w/o charge code  -- end
 
                 setTimeout(function () {
