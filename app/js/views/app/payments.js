@@ -606,8 +606,7 @@ define(['jquery',
                     filterByDateType: 'accounting_date',
                     sortOrder: self.pager.get("SortOrder"),
                     sortField: self.pager.get("SortField"),
-                    paymentStatus: paymentStatus,
-                    manualTosPayment: true
+                    paymentStatus: paymentStatus
                 };
 
                 if (filterCol.indexOf('accounting_date') === -1) {
