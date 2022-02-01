@@ -632,7 +632,7 @@ const ahsData = {
                         LIMIT 1
                     ) st ON TRUE
                     LEFT JOIN public.companies comp
-                        ON comp.id = s.company_id
+                        ON comp.id = 1
                     LEFT JOIN public.provider_contacts pc_app
                         ON pc_app.id = bc.rendering_provider_contact_id
                     LEFT JOIN public.providers p_app

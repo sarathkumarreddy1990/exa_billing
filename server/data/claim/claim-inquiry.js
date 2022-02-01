@@ -738,6 +738,7 @@ module.exports = {
                             WHEN payer_type  = 'patient' THEN patients.full_name        END) AS payer_name
                         , claim_dt
                         , claims.facility_id
+                        , claims.created_dt
                         , claim_status.description as claim_status
                         , bgcp.adjustments_applied_total
                         , bgcp.payment_patient_total AS total_patient_payment
