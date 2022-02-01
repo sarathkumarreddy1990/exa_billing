@@ -67,8 +67,9 @@ module.exports = {
                 INNER JOIN public.facilities f ON f.id = bc.facility_id
                 INNER JOIN public.patients pp ON pp.id = bc.patient_id
                 INNER JOIN billing.providers bp ON bp.id = bc.billing_provider_id
-                INNER JOIN public.companies com ON com.id = bc.company_id
-                ${getClaimPatientInsuranceId('bc')}
+                INNER JOIN public.companies com ON com.id = bc.company_id `
+            .append(getClaimPatientInsuranceId('bc'))
+            .append(SQL`
                 LEFT JOIN public.patient_insurances ppi ON ppi.id = pat_claim_ins.patient_insurance
                 LEFT JOIN public.insurance_providers pip ON pip.id = ppi.insurance_provider_id
                 LEFT JOIN public.ordering_facility_contacts pofc ON pofc.id = bc.ordering_facility_contact_id
@@ -78,7 +79,7 @@ module.exports = {
                 LEFT JOIN public.get_issuer_details(pp.id, 'uli_phn') gid ON TRUE
                 WHERE  bc.id = ANY(${params.claimIds})
 
-            `
+            `)
             .append(` ORDER BY ${params.sortBy}) ,`)
             .append( SQL`
 			charge_details as(
