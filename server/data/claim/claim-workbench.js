@@ -197,8 +197,9 @@ module.exports = {
                     WHEN 'referring_provider' THEN ref_provider.full_name
                     WHEN 'rendering_provider' THEN render_provider.full_name
                     WHEN 'patient' THEN patients.full_name        END)   || '(' || COALESCE(${payerType}, payer_type) ||')' as note
-                FROM billing.claims
-                ${getClaimPatientInsuranceId('claims', payerType)}
+                FROM billing.claims`
+            .append(getClaimPatientInsuranceId('claims', payerType))
+            .append(SQL`
                 LEFT JOIN patient_insurances ON patient_insurances.id = pat_claim_ins.patient_insurance
                 INNER JOIN patients ON claims.patient_id = patients.id
                 LEFT JOIN insurance_providers ON patient_insurances.insurance_provider_id = insurance_providers.id
@@ -209,8 +210,8 @@ module.exports = {
                 LEFT JOIN provider_contacts as rendering_pro_contact ON rendering_pro_contact.id=claims.rendering_provider_contact_id
                 LEFT JOIN providers as render_provider ON render_provider.id=rendering_pro_contact.provider_id
 
-                WHERE claims.id= ANY (${success_claimID}) )
-        `;
+                WHERE claims.id= ANY(${success_claimID}) )
+        `);
 
         let claimComments =
             SQL` , claim_details AS (
@@ -428,8 +429,9 @@ module.exports = {
                             , f.facility_name
                         FROM
                             billing.claims c
-                        INNER JOIN public.patients p ON p.id = c.patient_id
-                        ${getClaimPatientInsurances('c')}
+                        INNER JOIN public.patients p ON p.id = c.patient_id`
+            .append(getClaimPatientInsurances('c'))
+            .append(`
                         LEFT JOIN public.patient_insurances cpi ON cpi.id = claim_ins.primary_patient_insurance_id
                         LEFT JOIN public.patient_insurances csi ON csi.id = claim_ins.secondary_patient_insurance_id
                         LEFT JOIN public.patient_insurances cti ON cti.id = claim_ins.tertiary_patient_insurance_id
@@ -443,7 +445,7 @@ module.exports = {
                         LEFT JOIN public.ordering_facilities pof ON pof.id = pofc.ordering_facility_id
                         LEFT JOIN public.facilities f ON f.id = c.facility_id
                         WHERE
-                            c.id = ${params.id}`;
+                            c.id = ${params.id}`);
 
         return await query(sql);
 
