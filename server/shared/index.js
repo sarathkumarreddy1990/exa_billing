@@ -214,10 +214,11 @@ module.exports = {
 
     getClaimPatientInsuranceId: (tableName, payerType) => {
         let table_name = tableName || 'bc';
+        let payer_type = payerType || null;
         return `
         LEFT JOIN LATERAL (
             SELECT
-                CASE COALESCE(${payerType || null}, ${table_name}.payer_type)
+                CASE COALESCE('${payer_type}', ${table_name}.payer_type)
                     WHEN 'primary_insurance' THEN MAX(patient_insurance_id) FILTER (WHERE coverage_level = 'primary')
                     WHEN 'secondary_insurance' THEN MAX(patient_insurance_id) FILTER (WHERE coverage_level = 'secondary')
                     WHEN 'tertiary_insurance' THEN MAX(patient_insurance_id) FILTER (WHERE coverage_level = 'tertiary')
