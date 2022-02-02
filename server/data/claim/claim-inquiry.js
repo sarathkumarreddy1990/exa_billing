@@ -808,7 +808,10 @@ module.exports = {
                         ) ppi ON TRUE `;
 
                 whereQuery = ` AND bc.payer_type = 'primary_insurance' AND bcpi.patient_insurance_id = ppi.id`;
-                joinCondition = 'INNER JOIN public.patient_insurances ppi ON ppi.id = bcpi.patient_insurance_id';
+
+                joinCondition = `
+                    INNER JOIN billing.claim_patient_insurances bcpi ON bcpi.claim_id = bc.id AND bcpi.coverage_level = 'primary'
+                    INNER JOIN public.patient_insurances ppi ON ppi.id = bcpi.patient_insurance_id `;
 
                 break;
             case 'secondary_insurance':
@@ -823,7 +826,11 @@ module.exports = {
                         ) ppi ON TRUE `;
 
                 whereQuery = ` AND bc.payer_type = 'secondary_insurance' AND bcsi.patient_insurance_id = ppi.id`;
-                joinCondition = 'INNER JOIN public.patient_insurances ppi ON ppi.id = bcsi.patient_insurance_id';
+
+                joinCondition = `
+                    INNER JOIN billing.claim_patient_insurances bcpi ON bcsi.claim_id = bc.id AND bcsi.coverage_level = 'primary'
+                    INNER JOIN public.patient_insurances ppi ON ppi.id = bcsi.patient_insurance_id `;
+
                 break;
             case 'tertiary_insurance':
                 selectDetails = ' ppi.insurance_provider_id AS insurance_provider_id, bc.payer_type ';
@@ -837,7 +844,11 @@ module.exports = {
                           ) ppi ON TRUE `;
 
                 whereQuery = ` AND bc.payer_type = 'tertiary_insurance' AND  bcti.patient_insurance_id = ppi.id`;
-                joinCondition = 'INNER JOIN public.patient_insurances ppi ON ppi.id = bcti.patient_insurance_id';
+
+                joinCondition = `
+                    INNER JOIN billing.claim_patient_insurances bcti ON bcti.claim_id = bc.id AND bcti.coverage_level = 'primary'
+                    INNER JOIN public.patient_insurances ppi ON ppi.id = bcti.patient_insurance_id `;
+
                 break;
             case 'referring_provider':
                 selectDetails = ' bc.referring_provider_contact_id AS referring_provider_contact_id, bc.payer_type ';
@@ -934,7 +945,7 @@ module.exports = {
                 FROM billing.claims bc
                 ${joinQuery}
                 INNER JOIN LATERAL (SELECT * FROM billing.get_claim_totals(bc.id)) claim_totals ON true
-                WHERE 	bc.invoice_no IS NOT NULL
+                WHERE bc.invoice_no IS NOT NULL
                 AND bc.billing_method = 'direct_billing'
                 ${whereQuery})
                 SELECT
