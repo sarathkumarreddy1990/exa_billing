@@ -60,7 +60,7 @@ define([
             "desc":"Secondary Insurance"
         },
         {
-            "code":"teritary_insurance",
+            "code":"tertiary_insurance",
             "desc":"Tertiary Insurance"
         }
     ];
@@ -1199,7 +1199,7 @@ define([
                                         var opt = document.createElement('option');
                                         opt.text = 'InsProvClaim' + " " + insProvClaim[i].condition + " " + insProvClaim[i].value;
                                         opt.value = insProvClaim[i].condition + '~' + insProvClaim[i].value;
-                                        $("input:radio[name=insProvClaim][value=" + insProvClaim[i].condition + "]").prop('checked', true);
+                                        $("input:radio[name=InsProvClaim][value=" + insProvClaim[i].condition + "]").prop('checked', true);
                                         $('#listClaimInsurance').append(opt);
                                     }
 
@@ -1428,7 +1428,7 @@ define([
                 var insProvClaim = [];
                 $('#listClaimInsurance option').each(function (i, selected) {
                     var jsonInsProvclaim = {};
-                    var condition = $(selected).val().split("~")[0];
+                    var condition = $('input[name=InsProvClaim]:checked').val();
                     var InsProvClaim = $(selected).val().split("~")[1];
                     jsonInsProvclaim.condition = condition;
                     jsonInsProvclaim.value = InsProvClaim;

@@ -213,8 +213,6 @@ module.exports = {
                   ON pat_ins.insurance_provider_id = insp.id
             WHERE
                pat_ins.id = primary_patient_insurance_id
-               OR pat_ins.id = secondary_patient_insurance_id
-               OR pat_ins.id = tertiary_patient_insurance_id
                AND insp.insurance_name IS NOT NULL LIMIT 1 ), null) `;
     },
     /* Query For Insurance Group Drop Down in Claim Filter */
