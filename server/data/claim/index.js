@@ -260,7 +260,9 @@ module.exports = {
                                         facilities.can_ahs_business_arrangement AS can_ahs_business_arrangement_facility,
                                         studies_details.can_ahs_locum_arrangement_provider,
                                         studies_details.nature_of_injury_code_id,
-                                        studies_details.area_of_injury_code_id
+                                        studies_details.area_of_injury_code_id,
+                                        studies_details.can_ahs_skill_code_id,
+                                        studies_details.skill_code as skill_code
                                         , COALESCE(NULLIF((SELECT split_types IS NOT NULL FROM census_fee_charges_details), FALSE), (SELECT billing_type from get_study_date) = 'split') AS is_split_claim
                                     FROM
                                         orders
@@ -336,9 +338,12 @@ module.exports = {
                                                 nature_of_injury_code_id,
                                                 area_of_injury_code_id,
                                                 sca.authorization_no,
-                                                s.study_info->'refDescription' AS referring_pro_study_desc
+                                                s.study_info->'refDescription' AS referring_pro_study_desc,
+                                                s.can_ahs_skill_code_id,
+                                                sc.code AS skill_code
                                             FROM
                                                 public.studies s
+                                                LEFT JOIN public.skill_codes sc ON sc.id =s.can_ahs_skill_code_id
                                                 LEFT JOIN public.study_transcriptions st ON st.study_id = s.id
                                                 LEFT JOIN public.study_cpt cpt ON cpt.study_id = s.id
                                                 LEFT JOIN public.study_cpt_authorizations sca ON (
@@ -634,7 +639,8 @@ module.exports = {
     getClaimData: async (params) => {
 
         const {
-            id
+            id,
+            patient_id
         } = params;
 
         const get_claim_sql = SQL`
@@ -644,7 +650,10 @@ module.exports = {
                     , c.facility_id
                     , c.patient_id
                     , c.billing_provider_id
+                    , c.can_issuer_id
                     , c.rendering_provider_contact_id
+                    , c.can_ahs_skill_code_id
+                    , psc.code AS skill_code
                     , c.referring_provider_contact_id
                     , c.ordering_facility_contact_id
                     , claim_ins.primary_patient_insurance_id
@@ -697,6 +706,21 @@ module.exports = {
                     , p.birth_date::text AS patient_dob
                     , p.full_name AS patient_name
                     , p.gender AS patient_gender
+                    , (
+                        SELECT
+                            jsonb_agg(jsonb_build_object(
+                                'issuer_id', paa.issuer_id,
+                                'issuer_type', i_.issuer_type,
+                                'alt_account_no', paa.alt_account_no,
+                                'is_primary', paa.is_primary,
+                                'id', paa.id,
+                                'country_alpha_3_code', paa.country_alpha_3_code,
+                                'province_alpha_2_code', paa.province_alpha_2_code
+                            ))
+                        FROM patient_alt_accounts paa
+                        INNER JOIN issuers i_ ON paa.issuer_id = i_.id
+                        WHERE patient_id = ${patient_id}
+                    ) AS patient_alt_acc_nos
                     , (SELECT alt_account_no FROM patient_alt_accounts LEFT JOIN issuers i ON i.id = issuer_id WHERE patient_id = p.id AND i.issuer_type = 'uli_phn' AND province_alpha_2_code = 'ab' LIMIT 1) AS can_ahs_uli_phn
                     , get_patient_alerts_to_jsonb(p.id, TRUE) AS alerts
                     , p.patient_info
@@ -1004,6 +1028,7 @@ module.exports = {
                         LEFT JOIN public.ordering_facilities pof ON pof.id = pofc.ordering_facility_id
                         LEFT JOIN public.facilities f ON c.facility_id = f.id
                         LEFT JOIN billing.claim_status cst ON cst.id = c.claim_status_id
+                        LEFT JOIN public.skill_codes psc ON psc.id = c.can_ahs_skill_code_id
                     WHERE
                         c.id = ${id}`);
 
@@ -1144,7 +1169,7 @@ module.exports = {
             countFlag,
             pageNo,
             pageSize
-        } = args
+        } = args;
 
         let joinQuery = `
             INNER JOIN billing.charges ch ON ch.claim_id = c.id
@@ -1163,6 +1188,7 @@ module.exports = {
                     COUNT(DISTINCT c.id) AS claims_total_records
                 FROM billing.claims c
                 `;
+
             sql.append(joinQuery);
             sql.append(whereQuery);
         } else {
