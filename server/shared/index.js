@@ -205,7 +205,8 @@ module.exports = {
             LEFT JOIN patient_insurances AS pat_ins ON pat_ins.id = cpi.patient_insurance_id
             LEFT JOIN insurance_providers AS insp ON pat_ins.insurance_provider_id = insp.id
             WHERE cpi.claim_id = claims.id
-               AND insp.insurance_name IS NOT NULL) `;
+            AND cpi.coverage_level = 'primary'
+            AND insp.insurance_name IS NOT NULL) `;
     },
     /* Query For Insurance Group Drop Down in Claim Filter */
     insuranceProviderClaimGroup: () => {
