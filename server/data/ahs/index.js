@@ -397,6 +397,35 @@ const ahsData = {
                     FROM
                         patient_id_nums pin
                 ),
+                oop_claim_info AS (
+                    SELECT
+                        nums.patient_id,
+                        CASE
+                            WHEN nums.service_recipient_phn IS NOT NULL AND nums.service_recipient_phn_province = 'AB'
+                            AND (
+                                nums.service_recipient_registration_number IS NULL
+                                OR (
+                                    nums.service_recipient_registration_number_province = 'AB'
+                                    AND nums.service_recipient_registration_number IS NOT NULL
+                                )
+                            )
+                            THEN nums.service_recipient_phn
+                            ELSE NULL
+                        END AS service_recipient_phn,
+                        CASE
+                            WHEN nums.service_recipient_registration_number IS NOT NULL
+                            AND (
+                                nums.service_recipient_phn IS NULL OR nums.service_recipient_phn_province != 'AB'
+                                OR (
+                                    nums.service_recipient_phn_province = 'AB'
+                                    AND nums.service_recipient_registration_number_province != 'AB'
+                                )
+                            )
+                            THEN nums.service_recipient_registration_number
+                            ELSE NULL
+                        END AS service_recipient_registration_number
+                    FROM nums
+                ),
                 claim_info AS (
                     SELECT
                         bc.id                                        AS claim_id,
@@ -416,16 +445,16 @@ const ahsData = {
                         pc_app.can_prid                             AS service_provider_prid,
                         sc.code                                         AS skill_code,
 
-                        nums.service_recipient_phn,
+                        oci.service_recipient_phn,
                         nums.service_recipient_phn_province,
                         nums.service_recipient_parent_phn,
                         nums.service_recipient_parent_phn_province,
-                        nums.service_recipient_registration_number,
+                        oci.service_recipient_registration_number,
                         nums.service_recipient_registration_number_province,
                         nums.service_recipient_parent_registration_number,
                         nums.service_recipient_parent_registration_number_province,
                         CASE
-                            WHEN nums.service_recipient_phn IS NOT NULL
+                            WHEN oci.service_recipient_phn IS NOT NULL
                             THEN NULL
                             ELSE JSONB_BUILD_OBJECT(
                                 'person_type', 'RECP',
@@ -650,6 +679,8 @@ const ahsData = {
                         ON p.id = bc.patient_id
                     LEFT JOIN nums
                         ON nums.patient_id = p.id
+                    LEFT JOIN oop_claim_info oci
+                        ON nums.patient_id = oci.patient_id 
                     LEFT JOIN public.cpt_codes cpt
                         ON cpt.id = bch.cpt_id
                     LEFT JOIN public.facilities f
