@@ -51,6 +51,8 @@ const getSaveClaimParams = async (params) => {
         companyId,
         userId,
         claim_dt,
+        order_id,
+        study_id
     } = params;
     params.claim_date = params.claim_dt;
 
@@ -156,7 +158,9 @@ const getSaveClaimParams = async (params) => {
             wcb_injury_area_code: claim_details.area_of_injury_code_id || null,
             wcb_injury_nature_code: claim_details.nature_of_injury_code_id || null,
             billing_type,
-            ord_fac_place_of_service: claim_details.ord_fac_place_of_service
+            ord_fac_place_of_service: claim_details.ord_fac_place_of_service,
+            order_id,
+            study_id
         },
 
         insurances,
@@ -1029,6 +1033,8 @@ module.exports = {
                 from: 'claimCreation',
                 study_ids: studyId,
                 claim_status_id: row.claim_status_id,
+                order_id: orderId,
+                study_id: studyId
             };
 
             const saveClaimParams = await getSaveClaimParams(baseParams);

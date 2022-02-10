@@ -1,4 +1,5 @@
 const { query, queryRows, SQL } = require('../index');
+const { getClaimPatientInsurances } = require('../../shared/index');
 
 module.exports = {
 
@@ -33,9 +34,10 @@ module.exports = {
                         professional_modifier AS (
                             SELECT id FROM modifiers WHERE code = '26'
                         ), order_level_beneficiary AS (
-                            SELECT ARRAY[COALESCE(primary_patient_insurance_id, '0')::bigint, COALESCE(secondary_patient_insurance_id, '0')::bigint, COALESCE(tertiary_patient_insurance_id, '0')::bigint] AS patient_ins_id
-                            FROM public.orders
-                            WHERE primary_patient_insurance_id IS NOT NULL AND id = (SELECT order_id FROM get_study_date)
+                            SELECT
+                                ARRAY_AGG(patient_insurance_id) AS patient_ins_id
+                            FROM public.order_patient_insurances oppi
+                            WHERE oppi.order_id = (SELECT order_id FROM get_study_date)
                         ), beneficiary_details AS (
                             SELECT
                                 pi.id
@@ -102,12 +104,12 @@ module.exports = {
                                         public.patient_insurances
                                     WHERE
                                         patient_id = ( SELECT COALESCE(NULLIF(patient_id,'0'),'0')::NUMERIC FROM get_study_date ) AND (valid_to_date >= ( SELECT COALESCE(study_dt,now())::DATE FROM  get_study_date ) OR valid_to_date IS NULL)
-                                        AND CASE WHEN EXISTS(SELECT patient_ins_id FROM order_level_beneficiary) THEN patient_insurances.id = ANY(SELECT UNNEST(patient_ins_id) FROM order_level_beneficiary) ELSE TRUE END
+                                        AND CASE WHEN (SELECT patient_ins_id IS NOT NULL FROM order_level_beneficiary) THEN patient_insurances.id = ANY(SELECT UNNEST(patient_ins_id) FROM order_level_beneficiary) ELSE TRUE END
                                         GROUP BY coverage_level
                                 ) as expiry ON TRUE
                                 WHERE
                                     pi.patient_id = ( SELECT COALESCE(NULLIF(patient_id,'0'),'0')::NUMERIC FROM get_study_date )  AND (expiry.valid_to_date = pi.valid_to_date OR expiry.valid_to_date IS NULL) AND expiry.coverage_level = pi.coverage_level
-                                    AND CASE WHEN EXISTS(SELECT patient_ins_id FROM order_level_beneficiary) THEN pi.id = ANY(SELECT UNNEST(patient_ins_id) FROM order_level_beneficiary) ELSE TRUE END
+                                    AND CASE WHEN (SELECT patient_ins_id IS NOT NULL FROM order_level_beneficiary) THEN pi.id = ANY(SELECT UNNEST(patient_ins_id) FROM order_level_beneficiary) ELSE TRUE END
                                     ORDER BY pi.id ASC
                                 ) ins
                                 WHERE  ins.rank = 1
@@ -258,7 +260,9 @@ module.exports = {
                                         facilities.can_ahs_business_arrangement AS can_ahs_business_arrangement_facility,
                                         studies_details.can_ahs_locum_arrangement_provider,
                                         studies_details.nature_of_injury_code_id,
-                                        studies_details.area_of_injury_code_id
+                                        studies_details.area_of_injury_code_id,
+                                        studies_details.can_ahs_skill_code_id,
+                                        studies_details.skill_code as skill_code
                                         , COALESCE(NULLIF((SELECT split_types IS NOT NULL FROM census_fee_charges_details), FALSE), (SELECT billing_type from get_study_date) = 'split') AS is_split_claim
                                     FROM
                                         orders
@@ -334,9 +338,12 @@ module.exports = {
                                                 nature_of_injury_code_id,
                                                 area_of_injury_code_id,
                                                 sca.authorization_no,
-                                                s.study_info->'refDescription' AS referring_pro_study_desc
+                                                s.study_info->'refDescription' AS referring_pro_study_desc,
+                                                s.can_ahs_skill_code_id,
+                                                sc.code AS skill_code
                                             FROM
                                                 public.studies s
+                                                LEFT JOIN public.skill_codes sc ON sc.id =s.can_ahs_skill_code_id
                                                 LEFT JOIN public.study_transcriptions st ON st.study_id = s.id
                                                 LEFT JOIN public.study_cpt cpt ON cpt.study_id = s.id
                                                 LEFT JOIN public.study_cpt_authorizations sca ON (
@@ -404,12 +411,12 @@ module.exports = {
 
         const sql = SQL`WITH
                 order_level_beneficiary AS (
-                    SELECT ARRAY[COALESCE(primary_patient_insurance_id, '0')::bigint, COALESCE(secondary_patient_insurance_id, '0')::bigint, COALESCE(tertiary_patient_insurance_id, '0')::bigint] AS patient_ins_id
-                    FROM public.orders
-                    WHERE primary_patient_insurance_id IS NOT NULL
-                    AND id = ANY(${params.order_ids})
-                    ORDER BY id ASC
-                    LIMIT 1
+                    SELECT
+                        opi.patient_insurance_id,
+                        opi.coverage_level
+                    FROM order_patient_insurances  opi
+                    WHERE opi.order_id = ANY(${params.order_ids})
+                    ORDER BY opi.order_id ASC
                 ),
                 beneficiary_details as (
                         SELECT
@@ -422,14 +429,13 @@ module.exports = {
                             , ip.insurance_info->'Address1' AS ins_pri_address
                             , ip.insurance_info->'PhoneNo' AS ins_phone_no
                             , ip.insurance_code
-                            , pi.coverage_level
                             , pi.subscriber_relationship_id
                             , pi.valid_from_date
                             , pi.valid_to_date
                             , pi.subscriber_employment_status_id
                             , pi.subscriber_dob::text
                             , pi.medicare_insurance_type_code
-                            , pi.coverage_level
+                            , COALESCE(olb.coverage_level, pi.coverage_level) AS coverage_level
                             , pi.policy_number
                             , pi.group_name
                             , pi.group_number
@@ -453,13 +459,18 @@ module.exports = {
                             public.patient_insurances pi
                         INNER JOIN public.insurance_providers ip ON ip.id= pi.insurance_provider_id
                         LEFT JOIN billing.insurance_provider_details ipd on ipd.insurance_provider_id = ip.id
+                        LEFT JOIN order_level_beneficiary olb ON TRUE
                         WHERE pi.patient_id = ${params.patient_id}
                         AND EXISTS ( SELECT
                                         1
                                     FROM public.patient_insurances i_pi
                                     WHERE (i_pi.valid_to_date >= (${params.claim_date})::DATE OR i_pi.valid_to_date IS NULL)
                                     AND i_pi.id = pi.id)
-                        AND CASE WHEN EXISTS(SELECT patient_ins_id FROM order_level_beneficiary) THEN pi.id = ANY(SELECT UNNEST(patient_ins_id) FROM order_level_beneficiary) ELSE TRUE END
+                        AND CASE
+                                WHEN EXISTS(SELECT 1 FROM order_level_beneficiary)
+                                THEN pi.id = olb.patient_insurance_id
+                                ELSE TRUE
+                            END
                         ORDER BY id ASC
                 ),
                 existing_insurance as (
@@ -628,7 +639,8 @@ module.exports = {
     getClaimData: async (params) => {
 
         const {
-            id
+            id,
+            patient_id
         } = params;
 
         const get_claim_sql = SQL`
@@ -638,12 +650,15 @@ module.exports = {
                     , c.facility_id
                     , c.patient_id
                     , c.billing_provider_id
+                    , c.can_issuer_id
                     , c.rendering_provider_contact_id
+                    , c.can_ahs_skill_code_id
+                    , psc.code AS skill_code
                     , c.referring_provider_contact_id
                     , c.ordering_facility_contact_id
-                    , c.primary_patient_insurance_id
-                    , c.secondary_patient_insurance_id
-                    , c.tertiary_patient_insurance_id
+                    , claim_ins.primary_patient_insurance_id
+                    , claim_ins.secondary_patient_insurance_id
+                    , claim_ins.tertiary_patient_insurance_id
                     , c.place_of_service_id
                     , c.billing_code_id
                     , c.billing_class_id
@@ -670,9 +685,6 @@ module.exports = {
                     , c.service_by_outside_lab
                     , c.payer_type
                     , c.claim_status_id
-                    , c.primary_patient_insurance_id
-                    , c.secondary_patient_insurance_id
-                    , c.tertiary_patient_insurance_id
                     , c.xmin as claim_row_version
                     , c.can_ahs_pay_to_code
                     , c.can_ahs_pay_to_uli
@@ -694,6 +706,21 @@ module.exports = {
                     , p.birth_date::text AS patient_dob
                     , p.full_name AS patient_name
                     , p.gender AS patient_gender
+                    , (
+                        SELECT
+                            jsonb_agg(jsonb_build_object(
+                                'issuer_id', paa.issuer_id,
+                                'issuer_type', i_.issuer_type,
+                                'alt_account_no', paa.alt_account_no,
+                                'is_primary', paa.is_primary,
+                                'id', paa.id,
+                                'country_alpha_3_code', paa.country_alpha_3_code,
+                                'province_alpha_2_code', paa.province_alpha_2_code
+                            ))
+                        FROM patient_alt_accounts paa
+                        INNER JOIN issuers i_ ON paa.issuer_id = i_.id
+                        WHERE patient_id = ${patient_id}
+                    ) AS patient_alt_acc_nos
                     , (SELECT alt_account_no FROM patient_alt_accounts LEFT JOIN issuers i ON i.id = issuer_id WHERE patient_id = p.id AND i.issuer_type = 'uli_phn' AND province_alpha_2_code = 'ab' LIMIT 1) AS can_ahs_uli_phn
                     , get_patient_alerts_to_jsonb(p.id, TRUE) AS alerts
                     , p.patient_info
@@ -984,10 +1011,12 @@ module.exports = {
                     , COALESCE(c.encounter_no, 1)::SMALLINT AS can_ahs_encounter_no
                     FROM
                         billing.claims c
-                        INNER JOIN public.patients p ON p.id = c.patient_id
-                        LEFT JOIN public.patient_insurances cpi ON cpi.id = c.primary_patient_insurance_id
-                        LEFT JOIN public.patient_insurances csi ON csi.id = c.secondary_patient_insurance_id
-                        LEFT JOIN public.patient_insurances cti ON cti.id = c.tertiary_patient_insurance_id
+                        INNER JOIN public.patients p ON p.id = c.patient_id `
+            .append(getClaimPatientInsurances('c'))
+            .append(`
+                        LEFT JOIN public.patient_insurances cpi ON cpi.id = claim_ins.primary_patient_insurance_id
+                        LEFT JOIN public.patient_insurances csi ON csi.id = claim_ins.secondary_patient_insurance_id
+                        LEFT JOIN public.patient_insurances cti ON cti.id = claim_ins.tertiary_patient_insurance_id
                         LEFT JOIN public.insurance_providers ipp ON ipp.id = cpi.insurance_provider_id
                         LEFT JOIN public.insurance_providers ips ON ips.id = csi.insurance_provider_id
                         LEFT JOIN public.insurance_providers ipt ON ipt.id = cti.insurance_provider_id
@@ -999,8 +1028,9 @@ module.exports = {
                         LEFT JOIN public.ordering_facilities pof ON pof.id = pofc.ordering_facility_id
                         LEFT JOIN public.facilities f ON c.facility_id = f.id
                         LEFT JOIN billing.claim_status cst ON cst.id = c.claim_status_id
+                        LEFT JOIN public.skill_codes psc ON psc.id = c.can_ahs_skill_code_id
                     WHERE
-                        c.id = ${id}`;
+                        c.id = ${id}`);
 
         return await query(get_claim_sql);
     },
@@ -1139,7 +1169,7 @@ module.exports = {
             countFlag,
             pageNo,
             pageSize
-        } = args
+        } = args;
 
         let joinQuery = `
             INNER JOIN billing.charges ch ON ch.claim_id = c.id
@@ -1158,6 +1188,7 @@ module.exports = {
                     COUNT(DISTINCT c.id) AS claims_total_records
                 FROM billing.claims c
                 `;
+
             sql.append(joinQuery);
             sql.append(whereQuery);
         } else {
@@ -1276,21 +1307,13 @@ module.exports = {
         }
 
         let description = `${payer} Deleted from claim ${claim_id}, Responsible and Billing method changed to patient `;
-        let sql = SQL`WITH update_claim AS(
+        let sql = SQL`
+        WITH delete_claim_patient_insurances AS (
+                DELETE FROM billing.claim_patient_insurances
+                WHERE claim_id = ${claim_id} AND coverage_level = ${payer_type.split('_')[0]}
+        ), update_claim AS (
             UPDATE billing.claims
                 SET
-                primary_patient_insurance_id =
-                    CASE ${payer_type}
-                     WHEN 'primary_insurance' THEN NULL ELSE primary_patient_insurance_id
-                    END,
-                secondary_patient_insurance_id =
-                    CASE ${payer_type}
-                        WHEN 'secondary_insurance' THEN NULL ELSE secondary_patient_insurance_id
-                    END,
-                tertiary_patient_insurance_id =
-                    CASE ${payer_type}
-                        WHEN 'tertiary_insurance' THEN NULL ELSE tertiary_patient_insurance_id
-                    END,
                 payer_type =
                     CASE ${is_current_responsible}
                         WHEN 'true' THEN 'patient' ELSE payer_type

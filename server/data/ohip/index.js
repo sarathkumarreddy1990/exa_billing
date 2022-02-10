@@ -482,7 +482,7 @@ const updateClaimStatus = async (args) => {
                         WHERE i_bc.id = claims.id) old_row
                     ) old_values
                 )
-                SELECT 
+                SELECT
                     us.id AS claim_id
                     , us.claim_status_id
                     , billing.create_audit (
@@ -495,10 +495,10 @@ const updateClaimStatus = async (args) => {
                         ${clientIp},
                         json_build_object(
                             'old_values', COALESCE(us.old_values, '{}'),
-                            'new_values', ( 
-                                    SELECT 
-                                        row_to_json(temp_row)::jsonb - 'old_values'::text 
-                                    FROM 
+                            'new_values', (
+                                    SELECT
+                                        row_to_json(temp_row)::jsonb - 'old_values'::text
+                                    FROM
                                         ( SELECT * FROM update_status i_us where i_us.id = us.id) temp_row)
                         )::jsonb,
                         ${userId}
@@ -1101,7 +1101,7 @@ const OHIPDataAPI = {
                         pip.insurance_code AS "paymentProgram"
                     FROM public.patient_insurances ppi
                     INNER JOIN public.insurance_providers pip ON pip.id = ppi.insurance_provider_id
-                    WHERE ppi.id = bc.primary_patient_insurance_id) insurance_details
+                    WHERE ppi.id = cpi.patient_insurance_id) insurance_details
                 ) insurance_details,
                 (
                     SELECT json_agg(row_to_json(charge_items))
@@ -1158,6 +1158,7 @@ const OHIPDataAPI = {
             INNER JOIN billing.providers bp ON bp.id = bc.billing_provider_id
             INNER JOIN public.facilities pf ON pf.id = bc.facility_id
             INNER JOIN billing.get_claim_totals(bc.id) bgct ON TRUE
+            LEFT JOIN billing.claim_patient_insurances cpi ON cpi.claim_id = bc.id AND cpi.coverage_level = 'primary'
             LEFT JOIN public.ordering_facility_contacts pofc ON pofc.id = bc.ordering_facility_contact_id
             LEFT JOIN public.ordering_facilities pof ON pof.id = pofc.ordering_facility_id
             LEFT JOIN public.places_of_service ppos ON ppos.id = pf.place_of_service_id

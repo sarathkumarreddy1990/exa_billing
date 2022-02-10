@@ -97,12 +97,8 @@ claim_details AS(
     INNER JOIN public.facilities f ON f.id = bc.facility_id
     INNER JOIN public.patients pp ON pp.id = bc.patient_id
     INNER JOIN billing.providers bp ON bp.id = bc.billing_provider_id
-    LEFT JOIN public.patient_insurances ppi ON
-                ppi.id = CASE
-                            WHEN payer_type = 'primary_insurance' THEN primary_patient_insurance_id
-                            WHEN payer_type = 'secondary_insurance' THEN secondary_patient_insurance_id
-                            WHEN payer_type = 'tertiary_insurance' THEN tertiary_patient_insurance_id
-                          END
+    ${commonIndex.getClaimPatientInsuranceId('bc')}
+    LEFT JOIN public.patient_insurances ppi ON ppi.id = pat_claim_ins.patient_insurance
     LEFT JOIN public.insurance_providers pip ON pip.id = ppi.insurance_provider_id
     LEFT JOIN public.ordering_facility_contacts ofc ON ofc.id = bc.ordering_facility_contact_id
     LEFT JOIN public.ordering_facilities pof ON pof.id = ofc.ordering_facility_id
@@ -265,30 +261,36 @@ const api = {
                 filters.joinQuery = ` INNER JOIN LATERAL (
                             SELECT id
                             FROM public.patient_insurances ppi
-                            INNER JOIN	get_payer_details gpd ON gpd.insurance_provider_id = ppi.insurance_provider_id
+                            INNER JOIN get_payer_details gpd ON gpd.insurance_provider_id = ppi.insurance_provider_id
                           ) ppi ON TRUE `;
-                filters.whereQuery = ` AND bc.payer_type = 'primary_insurance' AND bc.primary_patient_insurance_id = ppi.id`;
-                filters.joinCondition = 'INNER JOIN public.patient_insurances ppi ON ppi.id = bc.primary_patient_insurance_id';
+                filters.whereQuery = ` AND bc.payer_type = 'primary_insurance' AND bcpi.patient_insurance_id = ppi.id `;
+                filters.joinCondition = `
+                    INNER JOIN billing.claim_patient_insurances bcpi ON bcpi.claim_id = bc.id AND bcpi.coverage_level = 'primary'
+                    INNER JOIN public.patient_insurances ppi ON ppi.id = bcpi.patient_insurance_id `;
                 break;
             case 'secondary_insurance':
                 filters.selectDetails = ' ppi.insurance_provider_id AS insurance_provider_id, bc.payer_type ';
                 filters.joinQuery = ` INNER JOIN LATERAL (
                             SELECT id
                             FROM public.patient_insurances ppi
-                            INNER JOIN    get_payer_details gpd ON gpd.insurance_provider_id = ppi.insurance_provider_id
+                            INNER JOIN get_payer_details gpd ON gpd.insurance_provider_id = ppi.insurance_provider_id
                           ) ppi ON TRUE `;
-                filters.whereQuery = ` AND bc.payer_type = 'secondary_insurance' AND bc.secondary_patient_insurance_id = ppi.id`;
-                filters.joinCondition = 'INNER JOIN public.patient_insurances ppi ON ppi.id = bc.secondary_patient_insurance_id';
+                filters.whereQuery = `AND bc.payer_type = 'secondary_insurance' AND bcsi.patient_insurance_id = ppi.id `;
+                filters.joinCondition = `
+                    INNER JOIN billing.claim_patient_insurances bcsi ON bcsi.claim_id = bc.id AND bcsi.coverage_level = 'secondary'
+                    INNER JOIN public.patient_insurances ppi ON ppi.id = bcsi.patient_insurance_id `;
                 break;
             case 'tertiary_insurance':
                 filters.selectDetails = ' ppi.insurance_provider_id AS insurance_provider_id, bc.payer_type ';
                 filters.joinQuery = ` INNER JOIN LATERAL (
                             SELECT id
                             FROM public.patient_insurances ppi
-                            INNER JOIN    get_payer_details gpd ON gpd.insurance_provider_id = ppi.insurance_provider_id
+                            INNER JOIN get_payer_details gpd ON gpd.insurance_provider_id = ppi.insurance_provider_id
                           ) ppi ON TRUE `;
-                filters.whereQuery = ` AND bc.payer_type = 'tertiary_insurance' AND  bc.tertiary_patient_insurance_id = ppi.id`;
-                filters.joinCondition = 'INNER JOIN public.patient_insurances ppi ON ppi.id = bc.tertiary_patient_insurance_id';
+                filters.whereQuery = ` AND bc.payer_type = 'tertiary_insurance' AND bcti.patient_insurance_id = ppi.id `;
+                filters.joinCondition = `
+                    INNER JOIN billing.claim_patient_insurances bcti ON bcti.claim_id = bc.id AND bcti.coverage_level = 'tertiary'
+                    INNER JOIN public.patient_insurances ppi ON ppi.id = bcti.patient_insurance_id `;
                 break;
             case 'referring_provider':
                 filters.selectDetails = ' bc.referring_provider_contact_id AS referring_provider_contact_id, bc.payer_type ';

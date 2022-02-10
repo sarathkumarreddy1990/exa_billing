@@ -23,7 +23,8 @@ WITH claim_details AS (
      INNER JOIN billing.payment_applications bpa on bpa.payment_id = bp.id
      INNER JOIN billing.charges bch on bch.id = bpa.charge_id
      INNER JOIN billing.claims bc on bc.id = bch.claim_id
-     INNER JOIN public.patient_insurances ppi ON ppi.id =  bc.primary_patient_insurance_id
+     LEFT JOIN billing.claim_patient_insurances bcpi ON bcpi.claim_id = bc.id AND bcpi.coverage_level = 'primary'
+     LEFT JOIN public.patient_insurances ppi  ON ppi.id = bcpi.patient_insurance_id
      ORDER BY payment_id
     ),
     payment_summary AS (
@@ -77,7 +78,8 @@ WITH claim_details AS (
      INNER JOIN billing.providers bp ON bp.id = bc.billing_provider_id
      LEFT JOIN billing.charges_studies bcs ON bcs.charge_id = bch.id
      LEFT JOIN public.studies pss on pss.id = bcs.study_id
-     INNER JOIN public.patient_insurances AS ppi ON ppi.id =  bc.primary_patient_insurance_id
+     LEFT JOIN billing.claim_patient_insurances bcpi ON bcpi.claim_id = bc.id AND bcpi.coverage_level = 'primary'
+     LEFT JOIN public.patient_insurances ppi ON ppi.id = bcpi.patient_insurance_id
      LEFT JOIN payment_summary ps ON ps.charge_id = bch.id
      LEFT JOIN public.insurance_providers pip ON pip.id = ppi.insurance_provider_id
      LEFT JOIN public.insurance_provider_payer_types pippt ON pippt.id = pip.provider_payer_type_id
