@@ -422,6 +422,11 @@ WITH claim_data AS(
           , 'PatientGuarantorCity'        AS c44
           , 'PatientGuarantorState'       AS c45
           , 'PatientGuarantorZip'         AS c46
+          <% if (billingPayers === 'true') { %>
+            , 1 AS c47
+          <% } else { %>
+            , 0 AS c47
+          <% } %>
           UNION
           -- Coverage Info
         <% if (billingPayers === "true")  { %>
@@ -479,6 +484,7 @@ WITH claim_data AS(
         , null
         , null
         , null
+        , 0
       FROM patient_insurance
       <% } else if (billingPayers === "false") { %>
         SELECT
@@ -535,6 +541,7 @@ WITH claim_data AS(
         , null
         , null
         , null
+        , 0
       FROM patient_insurance
       <% } %>
 
@@ -594,6 +601,7 @@ WITH claim_data AS(
               , null
               , null
               , null
+              , 0
               FROM sum_statement_credit_cte
               UNION
 
@@ -653,6 +661,7 @@ WITH claim_data AS(
               , guarantor_city
               , guarantor_state
               , guarantor_zip
+              , 0
               FROM detail_cte
               UNION
 
@@ -712,6 +721,7 @@ WITH claim_data AS(
           , null
           , null
           , null
+          , 0
           FROM detail_cte
           UNION
 
@@ -770,6 +780,7 @@ WITH claim_data AS(
           , null
           , null
           , null
+          , 0
           FROM sum_encounter_cte
           UNION
 
@@ -828,6 +839,7 @@ WITH claim_data AS(
           , null
           , null
           , null
+          , 0
           FROM statement_cte
 
           UNION
@@ -886,6 +898,7 @@ WITH claim_data AS(
               , null
               , null
               , null
+              , 0
               FROM statement_cte
 
         UNION
@@ -945,6 +958,7 @@ WITH claim_data AS(
             , null
             , null
             , null
+            , 0
             FROM
             billing_provider_cte
         <% } else if (billingAddressTaxNpi === "false") { %>
@@ -1002,6 +1016,7 @@ WITH claim_data AS(
             , null
             , null
             , null
+            , 0
             FROM
             billing_provider_cte
         <% } %>
@@ -1062,6 +1077,7 @@ WITH claim_data AS(
             , c44
             , c45
             , c46
+            , c47
           <% } else { %>
             , null
             , -1
@@ -1070,6 +1086,7 @@ WITH claim_data AS(
             , null
             , null
             , null
+            , 0
           <% } %>
           FROM all_cte
           ORDER BY
