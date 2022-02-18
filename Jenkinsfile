@@ -1,24 +1,93 @@
-@Library("kmha-infrastructure") _
+@Library("kmha-infrastructure@feature/devops-78-exa-platform-support") _
 import com.kmha.exa.builders.BaseBuilder
 import com.kmha.exa.builders.BillingBuilder
 
-properties ([
-  disableConcurrentBuilds(),
-  [$class: 'jenkins.model.BuildDiscarderProperty',
-   strategy: [$class: 'LogRotator',
-              numToKeepStr: '50',
-              artifactNumToKeepStr: '20']],
-  parameters ([
-    booleanParam(name: "UPLOAD_ARTIFACTS",
-                 defaultValue: false,
-                 description: "Upload artifacts to file servers?"),
-    choiceParam(name: "DEBUG_LEVEL",
-                choices: ["0", "1", "2", "3"],
-                description: "Debug level; 0=less verbose, 3=most verbose")
-  ])
-])
+// -------------------
+// This code dynamically looks at the build results of the following
+// job
+def getBuildJob(final String jobName) {
+  def buildJob = null
+  Hudson.instance.getAllItems(Job.class).each {
+    if (it.fullName == jobName) {
+      buildJob = it
+    }
+  }
+  return buildJob
+}
 
-node('windows2016-node-14.15.1') {
+def getAllBuildNumbers(Job job) {
+  // "default" is used when this job is auto-triggered by the VersionMgr jobs
+  // and will be handled as a no-op.
+  def buildNumbers = []
+  (job.getBuilds()).each {
+    def status = it.getBuildStatusSummary().message
+    if ((status.contains("stable") || status.contains("normal")) &&
+         it.displayName.contains(".")) {
+      buildNumbers.add(it.displayName)
+    }
+  }
+  // "default" is used when this job is auto-triggered by the VersionMgr jobs
+  // and will be handled as a no-op.
+  buildNumbers.add(env.BRANCH_NAME)
+  buildNumbers.add("default")
+  return buildNumbers
+}
+// -------------------
+
+final String branch = env.BRANCH_NAME.replaceAll("/", "%2F")
+if(branch.contains("release")) {
+  def BUILD_JOB_NAME = "EXA-Platform/VersionMgr/manage-version/$branch"
+  Job buildJob = getBuildJob(BUILD_JOB_NAME)
+  def buildNumbers = null
+  if (buildJob) {
+    buildNumbers = getAllBuildNumbers(buildJob)
+  }
+  properties ([
+    disableConcurrentBuilds(),
+    [$class: 'jenkins.model.BuildDiscarderProperty',
+     strategy: [$class: 'LogRotator',
+                numToKeepStr: '50',
+                artifactNumToKeepStr: '20']],
+    parameters ([
+      choiceParam(name: "VERSION_CHOICE",
+                  choices: buildNumbers,
+                  description: "Version from $BUILD_JOB_NAME"),
+      stringParam(name: "VERSION_PASSEDIN",
+                  description: "Passed-in version. Note this will override VERSION_CHOICE."),
+      booleanParam(name: "UPLOAD_ARTIFACTS",
+                   defaultValue: false,
+                   description: "Upload artifacts to file servers?"),
+      choiceParam(name: "DEBUG_LEVEL",
+                  choices: ["0", "1", "2", "3"],
+                  description: "Debug level; 0=less verbose, 3=most verbose")
+    ])
+  ])
+}
+else {
+  properties ([
+    disableConcurrentBuilds(),
+    [$class: 'jenkins.model.BuildDiscarderProperty',
+     strategy: [$class: 'LogRotator',
+                numToKeepStr: '50',
+                artifactNumToKeepStr: '20']],
+    parameters ([
+      stringParam(name: "VERSION_PASSEDIN",
+                  defaultValue: env.BRANCH_NAME,
+                  description: "Passed-in version. Note this will override VERSION_CHOICE."),
+      booleanParam(name: "UPLOAD_ARTIFACTS",
+                   defaultValue: false,
+                   description: "Upload artifacts to file servers?"),
+      choiceParam(name: "DEBUG_LEVEL",
+                  choices: ["0", "1", "2", "3"],
+                  description: "Debug level; 0=less verbose, 3=most verbose")
+    ])
+  ])
+}
+node('exa-windows-builder') {
+  if(env.VERSION_CHOICE && env.VERSION_CHOICE == "default" &&
+     !env.VERSION_PASSEDIN.trim()) {
+    println "For testing only!"
+  }
   def wb = new BillingBuilder()
   wb.buildAndArchiveArtifact()
 }
