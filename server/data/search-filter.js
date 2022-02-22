@@ -108,6 +108,10 @@ const colModel = [
         searchColumns: ['patients.account_no'],
         searchFlag: '%'
     },
+    {   name: 'cpt_codes',
+        searchColumns: ['studies.cpt_codes'],
+        searchFlag: 'arrayString'
+    },
     {
         name: 'institution',
         searchFlag: '%'

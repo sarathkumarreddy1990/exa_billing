@@ -199,7 +199,7 @@ define([ 'backbone', 'immutable', 'moment', 'shared/utils' ], function ( Backbon
                 }
             }
             return flag_design.join(' ');
-        };                                            
+        };
 
         var modalityRoomValue = commonjs.makeValue(app.modality_room, ":All;", "id", "modality_room_name");
         var reportQueueValue = commonjs.makeValue(app.report_queue_status, ":All;", "code", "description");
@@ -1430,10 +1430,10 @@ define([ 'backbone', 'immutable', 'moment', 'shared/utils' ], function ( Backbon
                 "i18n_name": "shared.fields.cptCodes",
                 "field_info": {
                     "custom_name": "CPT Codes",
-                    "name": "studies.cpt_codes",
+                    "name": "cpt_codes",
                     "width": 200,
-                    "search": false,
-                    "sortable": false,
+                    "search": true,
+                    "sortable": true,
                     "defaultValue": "",
                     "formatter": function ( cellvalue, options, rowobject ) {
                         return Array.isArray(rowobject.cpt_codes) ?
