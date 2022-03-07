@@ -4,6 +4,7 @@ const filterValidator = require('./filter-validator')();
 const moment = require('moment');
 const { query, SQL } = require('./index');
 const util = require('./util');
+const _ = require('lodash');
 
 const SHOW_DELETED_STUDIES_DEFAULT = false;
 
@@ -1121,7 +1122,7 @@ const api = {
         const filter_query = joined_filter_info && util.getCombinedQuery(joined_filter_info, args.user_id, args.statOverride) || '';
         const newFilter = Object.assign(filter, { filter_query });
 
-        newFilter.perms_filter = util.getStudyFilterQuery(filter.perm_filter, args.user_id, args.statOverride);
+        newFilter.perms_filter = await util.getStudyFilterQuery(filter.perms_filter, args.user_id, args.statOverride);
 
         let responseUserSetting=[newFilter];
 
@@ -1188,6 +1189,12 @@ const api = {
                 statOverride = !statOverride && perms_filter && perms_filter.options && perms_filter.options.statOverride || statOverride;
 
                 whereClause.permission_filter = AND(whereClause.permission_filter, api.getSettingsFilter());
+
+                if (!_.isEmpty(userSetting.user_details) && userSetting.user_details) {
+                    if (userSetting.user_details.user_type != 'SU' && userSetting.user_details.all_facilities != true) {
+                        whereClause.permission_filter = AND(whereClause.permission_filter, ` studies.facility_id = ANY(ARRAY[${userSetting.user_details.facilities}]) `);
+                    }
+                }
 
                 if (userSetting.userDetails) { // this is permissions based on use facilities [why base on orders vs studies facility_id ??]
                     if (userSetting.userDetails.user_type != 'SU' && userSetting.userDetails.all_facilities != true) {

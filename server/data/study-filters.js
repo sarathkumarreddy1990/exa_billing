@@ -21,15 +21,40 @@ module.exports = {
     },
 
     getUserWLFilters: async function (args) {
-        const sqlQuery = SQL `
+        let sqlQuery;
+
+        if(args.id > 0) {
+            sqlQuery = SQL `
                         SELECT
-                            filter_info  AS perm_filter,
+                            filter_info  AS perms_filter,
                             grid_filters.*
                         FROM
                             billing.grid_filters
                         WHERE
                             grid_filters.id = ${args.id} `;
 
+        } else {
+            sqlQuery = SQL`
+                        SELECT
+                            worklist_filter_info    AS perms_filter,
+                            row_to_json(u.*)        AS user_details
+                        FROM
+                            public.user_settings
+                        JOIN LATERAL (
+                            SELECT
+                                user_type,
+                                facilities,
+                                default_facility_id,
+                                all_facilities,
+                                user_group_id
+                            FROM users
+                            WHERE id = user_id
+                        ) u ON TRUE
+                        WHERE
+                            user_id = ${args.user_id}
+            `;
+        }
+        
         return await query(sqlQuery);
     }
 };
