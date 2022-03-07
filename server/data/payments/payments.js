@@ -46,7 +46,8 @@ module.exports = {
             default_facility_id,
             notes,
             account_no,
-            country_code
+            country_code,
+            user_details
         } = params;
 
         if (paymentStatus) {
@@ -123,6 +124,12 @@ module.exports = {
 
         if (facility_name) {
             whereQuery.push(`payments.facility_id = ${facility_name} `); //eg:facility_name =1 for search column
+        }
+
+        if (Object.keys(user_details).length !== 0) {
+            if (user_details.user_type !== 'SU' && user_details.all_facilities !== true) {
+                whereQuery.push(`payments.facility_id = ANY(ARRAY[${user_details.facilities}]) `);
+            }
         }
 
         if (from === 'patient_claim') {
@@ -1719,7 +1726,7 @@ module.exports = {
                 FROM
                     billing.charges AS c
                 INNER JOIN billing.claims AS cl ON c.claim_id = cl.id
-                INNER join billing.get_claim_totals(cl.id) bgct ON TRUE	
+                INNER join billing.get_claim_totals(cl.id) bgct ON TRUE
                 WHERE c.claim_id = ${id}
                 GROUP BY c.claim_id,cl.patient_id, bgct.claim_balance_total
              )
@@ -1821,7 +1828,7 @@ module.exports = {
                 INNER JOIN billing.charges bch ON bch.claim_id = bc.id
                 INNER JOIN public.cpt_codes pcc on pcc.id = bch.cpt_id
                 INNER JOIN LATERAL billing.get_charge_other_payment_adjustment(bch.id) bgct ON TRUE
-                WHERE bc.id = ${id} AND cb.claim_balance_total != 0::money 
+                WHERE bc.id = ${id} AND cb.claim_balance_total != 0::money
             )
             -- --------------------------------------------------------------------------------------------------------------
             -- Formatting charge lineItems for credit adjustment. Create payment application
@@ -1847,7 +1854,7 @@ module.exports = {
             -- Formatting charge lineItems for debit adjustment. Create payment application
             -- --------------------------------------------------------------------------------------------------------------
 	        , debit_adjustment_charges AS (
-                SELECT 
+                SELECT
                     billing.create_payment_applications(
                         payment_id
                         , charge_id
