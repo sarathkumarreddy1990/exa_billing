@@ -127,8 +127,7 @@ module.exports = {
         }
 
         if (Object.keys(user_details).length !== 0) {
-
-            if (user_details.user_type != 'SU' && user_details.all_facilities != true) {
+            if (user_details.user_type !== 'SU' && user_details.all_facilities !== true) {
                 whereQuery.push(`payments.facility_id = ANY(ARRAY[${user_details.facilities}]) `);
             }
         }

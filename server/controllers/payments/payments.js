@@ -8,7 +8,7 @@ module.exports = {
 
     getPayments: async function (params) {
         const response = await studyfilterdata.getUserWLFilters({user_id: params.userId});
-        params.user_details = (response.rows[0] && response.rows[0].user_details) || {};
+        params.user_details = (response.rows && response.rows.length > 0) ? response.rows[0].user_details : {};
         return params && params.id ? data.getPayment(params) : data.getPayments(params);
     },
 

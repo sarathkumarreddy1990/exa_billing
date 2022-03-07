@@ -1190,8 +1190,8 @@ const api = {
 
                 whereClause.permission_filter = AND(whereClause.permission_filter, api.getSettingsFilter());
 
-                if (!_.isEmpty(userSetting.user_details) && userSetting.user_details) {
-                    if (userSetting.user_details.user_type != 'SU' && userSetting.user_details.all_facilities != true) {
+                if (!_.isEmpty(userSetting.user_details)) {
+                    if (userSetting.user_details.user_type !== 'SU' && userSetting.user_details.all_facilities !== true) {
                         whereClause.permission_filter = AND(whereClause.permission_filter, ` studies.facility_id = ANY(ARRAY[${userSetting.user_details.facilities}]) `);
                     }
                 }

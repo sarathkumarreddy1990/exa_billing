@@ -485,7 +485,7 @@ const api = {
             r += ` LEFT JOIN ordering_facility_contacts ON ordering_facility_contacts.id = claims.ordering_facility_contact_id
                    LEFT JOIN ordering_facilities ON ordering_facilities.id = ordering_facility_contacts.ordering_facility_id`;
         }
-        
+
         if (tables.billing_codes) { r += '  LEFT JOIN billing.billing_codes ON claims.billing_code_id = billing_codes.id '; }
 
         if (tables.billing_classes) { r += '  LEFT JOIN billing.billing_classes ON claims.billing_class_id = billing_classes.id '; }
@@ -872,8 +872,8 @@ const api = {
                     }
                 }
 
-                if (!_.isEmpty (userSetting.user_details) && userSetting.user_details) {
-                    if (userSetting.user_details.user_type != 'SU' && userSetting.user_details.all_facilities != true) {
+                if (!_.isEmpty(userSetting.user_details)) {
+                    if (userSetting.user_details.user_type !== 'SU' && userSetting.user_details.all_facilities !== true) {
                         whereClause.permission_filter = AND(whereClause.permission_filter, ` claims.facility_id = ANY(ARRAY[${userSetting.user_details.facilities}]) `);
                     }
                 }
