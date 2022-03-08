@@ -2,10 +2,13 @@ const data = require('../../data/payments/payments');
 const eraData = require('../../data/era/index');
 const logger = require('../../../logger');
 const _ = require('lodash');
+const studyfilterdata = require('../../data/study-filters');
 
 module.exports = {
 
-    getPayments: function (params) {
+    getPayments: async function (params) {
+        const response = await studyfilterdata.getUserWLFilters({user_id: params.userId});
+        params.user_details = (response.rows && response.rows.length > 0) ? response.rows[0].user_details : {};
         return params && params.id ? data.getPayment(params) : data.getPayments(params);
     },
 

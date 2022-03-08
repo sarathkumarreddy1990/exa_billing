@@ -488,6 +488,7 @@ const api = {
             r += ` LEFT JOIN ordering_facility_contacts ON ordering_facility_contacts.id = claims.ordering_facility_contact_id
                    LEFT JOIN ordering_facilities ON ordering_facilities.id = ordering_facility_contacts.ordering_facility_id`;
         }
+
         if (tables.billing_codes) { r += '  LEFT JOIN billing.billing_codes ON claims.billing_code_id = billing_codes.id '; }
 
         if (tables.billing_classes) { r += '  LEFT JOIN billing.billing_classes ON claims.billing_class_id = billing_classes.id '; }
@@ -837,10 +838,9 @@ const api = {
         // } = filter;
 
         // const filter_query = joined_filter_info && api.getCombinedQuery(joined_filter_info) || '';
-        const newFilter = {};
 
-        newFilter.perms_filter = util.getClaimFilterQuery(filter.perm_filter, 'claims', args.user_id, args.statOverride);
-        let responseUserSetting = [newFilter];
+        filter.perms_filter = util.getClaimFilterQuery(filter.perms_filter, 'claims', args.user_id, args.statOverride);
+        let responseUserSetting = [filter];
 
         let permission_query = SQL`
             -- permission query
@@ -872,6 +872,12 @@ const api = {
                     if (userSetting.userDetails.user_type != 'SU' && userSetting.userDetails.all_facilities != true) {
 
                         whereClause.permission_filter = AND(whereClause.permission_filter, ` claims.facility_id = ANY(ARRAY[${userSetting.userDetails.facilities}]) `);
+                    }
+                }
+
+                if (!_.isEmpty(userSetting.user_details)) {
+                    if (userSetting.user_details.user_type !== 'SU' && userSetting.user_details.all_facilities !== true) {
+                        whereClause.permission_filter = AND(whereClause.permission_filter, ` claims.facility_id = ANY(ARRAY[${userSetting.user_details.facilities}]) `);
                     }
                 }
 
@@ -911,6 +917,7 @@ const api = {
                 api.setBalanceFilterFlag(args, colModel);
             }
             // Prevents DB function for filtering claim balance & Payment_id -- start
+
             let paymentIdFilter ='';
 
             if (args.isClaimBalanceTotal && args.filterCol && args.filterCol.indexOf('claim_balance') > -1) {
@@ -928,6 +935,7 @@ const api = {
                 }
             }
             // End
+
             const response = await filterValidator.generateQuery(colModel, args.filterCol, args.filterData, query_options);
             args.filterQuery = response;
             args.filterQuery += paymentIdFilter; // Append payment_id filter WHERE Condition
@@ -979,6 +987,7 @@ const api = {
             filterElements.splice(colIndex, 1);
             filterData.splice(colIndex, 1);
         }
+
         args.filterCol = JSON.stringify(filterElements);
         args.filterData = JSON.stringify(filterData);
     }
