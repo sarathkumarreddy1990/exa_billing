@@ -34,14 +34,23 @@ def getAllBuildNumbers(Job job) {
 }
 // -------------------
 
+Job buildJob = null
+buildNumbers = null
+BUILD_JOB_NAME = null
+boolean extendedProperties = false
 final String branch = env.BRANCH_NAME.replaceAll("/", "%2F")
 if(branch.contains("release")) {
-  def BUILD_JOB_NAME = "EXA-Platform/VersionMgr/manage-version/$branch"
-  Job buildJob = getBuildJob(BUILD_JOB_NAME)
-  def buildNumbers = null
+  BUILD_JOB_NAME = "EXA-Platform/VersionMgr/manage-version/$branch"
+  buildJob = getBuildJob(BUILD_JOB_NAME)
   if (buildJob) {
     buildNumbers = getAllBuildNumbers(buildJob)
+    if (buildNumbers) {
+      extendedProperties = true
+    }
   }
+}
+
+if (extendedProperties) {
   properties ([
     disableConcurrentBuilds(),
     [$class: 'jenkins.model.BuildDiscarderProperty',
@@ -83,6 +92,7 @@ else {
     ])
   ])
 }
+
 node('exa-windows-builder') {
   if(env.VERSION_CHOICE && env.VERSION_CHOICE == "default" &&
      !env.VERSION_PASSEDIN.trim()) {
