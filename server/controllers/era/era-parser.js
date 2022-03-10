@@ -343,14 +343,7 @@ module.exports = {
 
         _.map(lineItemsByGroup, items => {
 
-            let is_denied_claim_status = false
-            _.filter(items, val => {
-                if (val.payment === 0 &&
-                    (val.adjustment === 0 || val.adjustment === val.bill_fee)
-                ) {
-                    return is_denied_claim_status = true;
-                }
-            });
+            const is_denied_claim_status = items.some(val => val.payment === 0 && (val.adjustment === 0 || val.adjustment === val.bill_fee));
 
             if (is_denied_claim_status) {
                 items = items.map(item => {
