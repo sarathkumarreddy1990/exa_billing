@@ -343,7 +343,6 @@ module.exports = {
 
         for (let i in lineItemsByGroup) {
             let items = lineItemsByGroup[i];
-            const totalAdjustment = _.sumBy(items, 'cas_total_amt');
 
             //get and push reporting line items
             let reportingCharges = await data.getReportingCharges(items[0], payer_details.payer_id);
@@ -352,7 +351,17 @@ module.exports = {
                 groupedLineItems = groupedLineItems.concat(reportingCharges);
             }
 
-            if (_.sumBy(items, 'payment') == 0 && (totalAdjustment == _.sumBy(items, 'bill_fee') || totalAdjustment == 0)) {
+            let is_denied_claim_status = false
+
+            _.filter(items, val => {
+                if (val.payment === 0 &&
+                    (val.adjustment === 0 || val.adjustment === val.bill_fee)
+                ) {
+                    return is_denied_claim_status = true;
+                }
+            });
+
+            if (is_denied_claim_status) {
                 items = items.map(item => {
                     item.claim_status_code = 4;
                     return item;
