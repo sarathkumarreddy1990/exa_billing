@@ -23,7 +23,7 @@ const gitTag = parseGitTag();
 // Map to hold Git info from Git tag
 const gitTagInfoMap = new Map();
 
-const build_version = [gitTag, version, getTagDate()].join('_');
+const build_version = [gitTag, version, getTagDate(), getTagHash()].join('_');
 const build_file_name = `${pkg.name}_${build_version}.zip`;
 
 function parseGitTag() {
@@ -38,6 +38,11 @@ function parseGitTag() {
 function getTagDate() {
   getGitInfoFromGitTag();
   return gitTagInfoMap.get("date");
+}
+
+function getTagHash() {
+  getGitInfoFromGitTag();
+  return gitTagInfoMap.get("hash");
 }
 
 function getGitInfoFromGitTag() {
