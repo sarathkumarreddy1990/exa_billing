@@ -326,6 +326,7 @@ module.exports = {
                         LEFT JOIN public.facilities f ON f.id = pf.facility_id AND pf.is_default
                         WHERE
                             pi.patient_id = ${params.patient_id}
+                            AND (pi.valid_to_date >= (${params.claim_date})::DATE OR pi.valid_to_date IS NULL)
                         ORDER BY pi.id asc
                 )
                 SELECT
@@ -695,6 +696,7 @@ module.exports = {
                         INNER JOIN public.insurance_providers ip ON ip.id = pi.insurance_provider_id
                         WHERE
                             pi.patient_id = c.patient_id
+                            AND (pi.valid_to_date >= c.claim_dt OR pi.valid_to_date IS NULL)
                         ORDER BY pi.coverage_level,pi.id ASC
                       ) existing_insurance) AS existing_insurance
                     , (
