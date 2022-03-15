@@ -342,6 +342,7 @@ function formatRedForm(claimData, servicelineList, pageBrk) {
     serviceFacNPI = serviceFac && serviceFac.NPINO || "";
     pos = claimDet && claimDet.POS || "";
     billType = claimDet && claimDet.billingType || "";
+    let claimNotes =  getSubstring(claimDet, 65).split('\n').join(' ');
 
     if (pos === "12") {
         patientDet.fullName = "PRIVATE HOME" ;
@@ -762,7 +763,9 @@ function formatRedForm(claimData, servicelineList, pageBrk) {
                         }
                     ],
                     [
-                        { text: '', colSpan: 9 },
+                        {
+                            text: claimNotes || "", colSpan: 9
+                        },
                         {}, {}, {}, {}, {}, {}, {}, {},
                         {
                             text: (claimDet.outSideLab || (billType.toString().toUpperCase() === "SPLIT_P")) ? '√' : ' ', alignment: 'center', margin:[-3,0,0,0]
