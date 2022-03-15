@@ -329,6 +329,7 @@ function formatRedForm(claimData, servicelineList, pageBrk) {
     claimDet = subscriberDet && subscriberDet.claim && subscriberDet.claim[0] || "";
     serviceFac =  claimDet && claimDet.servicefacility && claimDet.servicefacility[0] || "";
     pos = claimDet && claimDet.POS || "";
+    let claimNotes =  getSubstring(claimDet, 65).split('\n').join(' ');
 
     if (pos === "12") {
         patientDet.fullName = "PRIVATE HOME" ;
@@ -745,7 +746,9 @@ function formatRedForm(claimData, servicelineList, pageBrk) {
                         }
                     ],
                     [
-                        { text: '', colSpan: 9 },
+                        {
+                            text: claimNotes || "", colSpan: 9
+                        },
                         {}, {}, {}, {}, {}, {}, {}, {},
                         { text: ((claimDet.outSideLab != null) && claimDet.outSideLab) ? '√' : ' ', alignment: 'center', margin:[-3,0,0,0] }, {},
                         { text: ((claimDet.outSideLab != null) && !claimDet.outSideLab) ? '√' : ' ', alignment: 'center', margin:[-12,0,0,0] },
