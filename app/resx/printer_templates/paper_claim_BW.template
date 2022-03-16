@@ -769,6 +769,7 @@ function formatSingleClaim(claimData, servicelineList) {
     serviceFacNPI = serviceFac && serviceFac.NPINO || "";
     pos = claimDet && claimDet.POS || "";
     billType = claimDet && claimDet.billingType || "";
+    let claimNotes = getKeyTrimValue(claimDet, 'claimNotes', 65).split('\n').join(' ');
 
     if (pos === "12") {
         patientDet.fullName = "PRIVATE HOME" ;
@@ -1764,7 +1765,7 @@ function formatSingleClaim(claimData, servicelineList) {
                         }, {},{}
                     ],
                     [
-                        {text:"", colSpan:4},{},{},{},
+                        { text: claimNotes || "", colSpan: 4 },{},{},{},
                         {
                             style: 'Ans',
                             margin: [-8,0,0,0],
