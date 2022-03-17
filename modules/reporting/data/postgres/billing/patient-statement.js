@@ -89,7 +89,7 @@ WITH claim_data AS (
     ORDER BY charge_id ASC
     ),
 
-    main_detail_cte as (
+    detailed_cte  as (
     SELECT
         p.id as pid,
         bc.id as claim_id,
@@ -155,7 +155,9 @@ WITH claim_data AS (
             ELSE 0::MONEY
             END) * (CASE WHEN type IN('payment','adjustment') THEN -1
             ELSE 1
-            END)) OVER (PARTITION BY bc.id) AS claim_sum_amount
+            END)) OVER (PARTITION BY bc.id) AS claim_sum_amount,
+            bc.claim_dt,
+            p.birth_date
     FROM public.patients p
     INNER JOIN billing.claims bc on bc.patient_id = p.id
     INNER JOIN billing_comments pc on pc.id = bc.id
@@ -171,10 +173,100 @@ WITH claim_data AS (
     <% } %>
 
     ORDER BY first_name),
-
+    patient_claim_details AS(
+        SELECT
+            pid AS patient_id,
+            max(claim_dt) AS study_date
+        FROM detailed_cte	
+        GROUP BY pid
+    ),	
+    main_detail_cte AS (
+        SELECT
+            *,
+            date_part('year', age(pcd.study_date, dc.birth_date)::interval) AS age
+        FROM patient_claim_details pcd
+        INNER JOIN detailed_cte dc ON pcd.patient_id = dc.pid
+    ),
+    guarantor_cte AS (
+        SELECT 
+            mpid, 
+            pgid, 
+            guarantor_address1,
+            guarantor_address2,
+            guarantor_city,
+            guarantor_state,
+            guarantor_zip,
+            guarantor_full_name,
+            RANK () OVER ( 
+                PARTITION BY mpid
+                    ORDER BY pgid DESC
+                ) pg_rank 
+        FROM (
+            SELECT
+                mdc.pid AS mpid,
+                pg.id AS pgid,
+                pg.guarantor_info->'address1' AS guarantor_address1,
+                pg.guarantor_info->'address2' AS guarantor_address2,
+                pg.guarantor_info->'city' AS guarantor_city,
+                pg.guarantor_info->'state' AS guarantor_state,
+                pg.guarantor_info->'zip' AS guarantor_zip,
+                get_full_name(pg.guarantor_info->'lastName',pg.guarantor_info->'firstName',pg.guarantor_info->'mi','',pg.guarantor_info->'suffix') as guarantor_full_name
+            FROM main_detail_cte mdc
+            INNER JOIN patient_guarantors pg on pg.patient_id = mdc.pid AND pg.deleted_dt IS NULL
+        ) pgs
+    ),
+    main_detail_ext_cte AS (
+        SELECT
+            pid,
+            claim_id,
+            sum_amount,
+            first_name,
+            middle_name,
+            last_name,
+            full_name,
+            account_no,
+            address1,
+            address2,
+            city,
+            state,
+            zip,
+            enc_date,
+            description,
+            code,
+            enc_id,
+            row_flag,
+            amount,
+            charge,
+            payment,
+            adjustment,
+            billing_provider_name,
+            billing_proaddress1,
+            billing_proaddress2,
+            billing_procity,
+            billing_prostate,
+            billing_prozip,
+            billing_zip_plus,
+            billing_phoneno,
+            study_date,
+            age,
+            payment_type,
+            sort_order,
+            charge_id,
+            claim_sum_amount,
+            gc.guarantor_full_name,
+            gc.guarantor_address1,
+            gc.guarantor_address2,
+            gc.guarantor_city,
+            gc.guarantor_state,
+            gc.guarantor_zip
+        FROM main_detail_cte mdc
+        LEFT JOIN guarantor_cte gc ON gc.mpid = mdc.pid
+        WHERE COALESCE(pg_rank,1) = 1
+        ORDER BY first_name
+    ),
     detail_cte AS (
         SELECT *
-        FROM main_detail_cte
+        FROM main_detail_ext_cte
         WHERE ( CASE
                     WHEN payment_type = 'adjustment' THEN amount != 0::money
                     ELSE true
@@ -182,6 +274,7 @@ WITH claim_data AS (
         AND sum_amount >=  <%= minAmount  %>::MONEY
         AND sum_amount != 0::MONEY
         AND claim_sum_amount != 0::MONEY
+        ORDER BY first_name
     ),
 
     <% if (logInClaimInquiry === 'true') { %>
@@ -211,7 +304,7 @@ WITH claim_data AS (
         pid,
         max(enc_date::date) FILTER (WHERE payment_type = ANY (ARRAY['payment','adjustment'])) payment_type_date1,
         max(enc_date::date) FILTER (WHERE payment_type = 'charge')  payment_type_date2
-    FROM main_detail_cte
+    FROM main_detail_ext_cte
     WHERE payment_type  = ANY (ARRAY['payment','adjustment' ,'charge'] )
     GROUP BY pid
     ),
@@ -292,6 +385,13 @@ WITH claim_data AS (
     , 'Over90'             AS c24
     , 'Over120'            AS c25
     , 'BillingMessage'     AS c26
+    , 'GuarantorName'               AS c27
+    , 'Age'                         AS c28
+    , 'PatientGuarantorAddress1'    AS c29
+    , 'PatientGuarantorAddress2'    AS c30
+    , 'PatientGuarantorCity'        AS c31
+    , 'PatientGuarantorState'       AS c32
+    , 'PatientGuarantorZip'         AS c33
     , -1                   AS pid
     , -1                   AS enc_id
     , null::date           AS enc_date
@@ -313,6 +413,13 @@ WITH claim_data AS (
     , billing_zip_plus
     , billing_phoneno
     , to_char(<%= statementDate %>::date, '<%= dateFormat %>')
+    , null
+    , null
+    , null
+    , null
+    , null
+    , null
+    , null
     , null
     , null
     , null
@@ -372,6 +479,13 @@ WITH claim_data AS (
     , null
     , null
     , null
+    , null
+    , null
+    , null
+    , null
+    , null
+    , null
+    , null
     , pid
     , enc_id
     , enc_date::date AS enc_date
@@ -402,6 +516,13 @@ WITH claim_data AS (
     , null
     , 'Encounter Total'
     , coalesce(enc_total_amount::text,'0.00')
+    , null
+    , null
+    , null
+    , null
+    , null
+    , null
+    , null
     , null
     , null
     , null
@@ -450,6 +571,13 @@ WITH claim_data AS (
     , over90_amount::text
     , over120_amount::text
     , billing_msg
+    , null
+    , null
+    , null
+    , null
+    , null
+    , null
+    , null
     , pid
     , null
     , null
@@ -495,6 +623,23 @@ WITH claim_data AS (
     , c24
     , c25
     , c26
+    <% if (countryCode === 'usa') { %>
+        , c27
+        , c28
+        , c29
+        , c30
+        , c31
+        , c32
+        , c33
+    <% } else { %> 
+        , null
+        , -1
+        , null
+        , null
+        , null
+        , null
+        , null
+    <% } %>
     <%= rowFlag %>
     <%= encounterAmount %>
     <%= statementFlag %>
@@ -639,7 +784,8 @@ const api = {
             patientLastnameTo: null,
             userId: null,
             reportFormat: null,
-            logInClaimInquiry: null
+            logInClaimInquiry: null,
+            countryCode: null
         };
 
         filters.userId = reportParams.userId;
@@ -714,6 +860,13 @@ const api = {
               , null
               , null
               , null
+              , null
+              , null
+              , null
+              , null
+              , null
+              , null
+              , null
               , pid
               , 0
               , null
@@ -755,6 +908,13 @@ const api = {
               , null
               , null
               , null
+              , guarantor_full_name
+              , age::text
+              , guarantor_address1
+              , guarantor_address2
+              , guarantor_city
+              , guarantor_state
+              , guarantor_zip
               , pid
               , 0
               , null
@@ -779,6 +939,13 @@ const api = {
             , billing_zip_plus
             , billing_phoneno
             , to_char('${reportParams.sDate}'::date, '${reportParams.dateFormat}')
+            , null
+            , null
+            , null
+            , null
+            , null
+            , null
+            , null
             , null
             , null
             , null
@@ -836,6 +1003,13 @@ const api = {
             , null
             , null
             , billing_msg
+            , null
+            , null
+            , null
+            , null
+            , null
+            , null
+            , null
             , pid
             , null
             , null
@@ -900,6 +1074,7 @@ const api = {
         }
 
         filters.dateFormat = reportParams.dateFormat;
+        filters.countryCode = reportParams.countryCode;
         return {
             queryParams: params,
             templateData: filters
