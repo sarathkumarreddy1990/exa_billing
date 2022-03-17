@@ -100,7 +100,8 @@ define([
                         billingComments: claimInfo.billingComments,
                         billingAddressTaxNpi: claimInfo.billingAddressTaxNpi,
                         claimId : claimInfo.claimID,
-                        claimIds: claimInfo.selectedClaimIds || []
+                        claimIds: claimInfo.selectedClaimIds || [],
+                        countryCode: app.country_alpha_3_code
                     }
                 }
 
