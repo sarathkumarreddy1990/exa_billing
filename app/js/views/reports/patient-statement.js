@@ -177,6 +177,7 @@ define([
                     patientLastnameFrom: this.viewModel.patientLastnameFrom,
                     patientLastnameTo: this.viewModel.patientLastnameTo,
                     logInClaimInquiry: $('#chkLogInClaimInquiry').prop('checked'),
+                    openInNewTab: this.viewModel.openInNewTab,
                     countryCode: app.country_alpha_3_code
                 };
             },
