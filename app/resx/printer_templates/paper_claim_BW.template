@@ -178,8 +178,8 @@ function getWCValues(claimData, servicelineList) {
                             { text:'', fillColor: '#808080', border: [false, false, false, false]},
                             { text:'', fillColor: '#808080', border: [false, false, false, false]},
                             { text:'', fillColor: '#808080', border: [false, false, false, false]},
-                            { text:'OB', fillColor: '#808080', border: [false, false, false, false]},
-                            { text: claimData.subscriber[0].claim[0].renderingProvider && claimData.subscriber[0].claim[0].renderingProvider[0].licenseNo ? (claimData.subscriber[0].claim[0].renderingProvider[0].licenseNo.toString().substring(0,12)) : '', fillColor: '#808080', border: [false, false, true, false]}
+                            {text: 'ZZ', alignment: 'center' , border: [true, false, true, true]},
+                            {text: claimData.subscriber[0].claim[0].renderingProvider && claimData.subscriber[0].claim[0].renderingProvider[0].taxonomyCode ? getKeyTrimValue( claimData.subscriber[0].claim[0].renderingProvider[0], 'taxonomyCode', 12) : '' , border: [true, false, true, true]}
                         ]
                     );
                 } else {
@@ -203,8 +203,8 @@ function getWCValues(claimData, servicelineList) {
                             {text:'', fillColor: '#808080', border: [false, false, false, false]},
                             {text:'', fillColor: '#808080', border: [false, false, false, false]},
                             {text:'', fillColor: '#808080', border: [false, false, false, false]},
-                            {text:' ', fillColor: '#808080', border: [false, false, false, false]},
-                            {text:' ', fillColor: '#808080', border: [false, false, true, false]
+                            {text: 'ZZ', alignment: 'center' , border: [true, false, true, true]},
+                            {text: claimData.subscriber[0].claim[0].renderingProvider && claimData.subscriber[0].claim[0].renderingProvider[0].taxonomyCode ? getKeyTrimValue( claimData.subscriber[0].claim[0].renderingProvider[0], 'taxonomyCode', 12) : '' , border: [true, false, true, true]
                             }
                         ]
                     );
@@ -230,8 +230,8 @@ function getWCValues(claimData, servicelineList) {
                         {text:'', fillColor: '#808080', border: [false, false, false, false]},
                         {text:'', fillColor: '#808080', border: [false, false, false, false]},
                         {text:'', fillColor: '#808080', border: [false, false, false, false]},
-                        {text:' ', fillColor: '#808080', border: [false, false, false, false]},
-                        {text:' ', fillColor: '#808080', border: [false, false, true, false]
+                        {text: 'ZZ', alignment: 'center' , border: [true, false, true, true]},
+                        {text: claimData.subscriber[0].claim[0].renderingProvider && claimData.subscriber[0].claim[0].renderingProvider[0].taxonomyCode ? getKeyTrimValue( claimData.subscriber[0].claim[0].renderingProvider[0], 'taxonomyCode', 12) : '' , border: [true, false, true, true]
                         }
                     ]
                 );
@@ -1146,7 +1146,7 @@ function formatSingleClaim(claimData, servicelineList) {
                     ],
                     [
                         {text: "17.NAME OF REFERRING PROVIDER OR OTHER SOURCE", rowSpan:2},
-                        {text: "17a",fillColor: '#808080'},{text:"", fillColor: '#808080'},{text:"", fillColor: '#808080'},
+                        {text: "17a"},{text:""},{text:""},
                         {text: "18.HOSPITALIZATION DATES RELATED TO CURRENT SERVICES", colSpan:2, rowSpan:2}, {}
                     ],
                     [
@@ -1355,7 +1355,7 @@ function formatSingleClaim(claimData, servicelineList) {
                             }, layout: 'noBorders', border: [true, true, false, true]
                         },
                         {text:"a."},{text:"b.", fillColor: '#808080'},
-                        {text:"a."},{text:"b.", fillColor: '#808080', colSpan:2},{}
+                        {text:"a."},{text:"b.",colSpan:2},{}
                     ]
                 ],
             }
@@ -1740,8 +1740,12 @@ function formatSingleClaim(claimData, servicelineList) {
                                 widths:[40, 70 ],
                                 body: [
                                     [
-                                        {text:"NPI", margin:[4,0,0,0]},
-                                        {text: claimData.subscriber && claimData.subscriber[0].claim && claimData.subscriber[0].claim[0].referringProvider ? getKeyTrimValue(claimData.subscriber[0].claim[0].referringProvider[0], 'NPINO', 17) : ''},
+                                        {text:"ZZ", margin:[4,-15,0,0]},
+                                        {text: claimData.subscriber && claimData.subscriber[0].claim && claimData.subscriber[0].claim[0].referringProvider ? getKeyTrimValue(claimData.subscriber[0].claim[0].referringProvider[0], 'taxonomyCode', 17) : '', margin:[-5,-15,0,0]},
+                                    ],
+                                    [
+                                        {text:"NPI", margin:[5,-6,0,0]},
+                                        {text: claimData.subscriber && claimData.subscriber[0].claim && claimData.subscriber[0].claim[0].referringProvider ? getKeyTrimValue(claimData.subscriber[0].claim[0].referringProvider[0], 'NPINO', 17) : '', margin:[-5,-7,0,0]},
                                     ]
                                 ]
                             },layout: 'noBorders'
@@ -1957,7 +1961,7 @@ function formatSingleClaim(claimData, servicelineList) {
                         { text: getSubstring(serviceFacNPI, 10), margin:[0,-12, 0 ,0] },
                         { text:"", margin:[5, -12,0,0] },
                         { text: claimData.billingProvider && claimData.billingProvider.npiNo ? getKeyTrimValue(claimData.billingProvider, 'npiNo', 10) : '', margin:[10,-12, 0 ,0] },
-                        { text: claimData.billingProvider && claimData.billingProvider.payerAssignedProviderID ? getKeyTrimValue(claimData.billingProvider, 'payerAssignedProviderID', 14) : '', margin:[7,-12, 0 ,0], colSpan:2 }, {}
+                        { text: claimData.billingProvider && claimData.billingProvider.taxonomyCode ? ("ZZ\t"+getKeyTrimValue(claimData.billingProvider, 'taxonomyCode', 14)) : '', margin:[7,-12, 0 ,0], colSpan:2 }, {}
                     ]
                 ]
 
