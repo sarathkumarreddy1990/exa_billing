@@ -329,7 +329,7 @@ function formatRedForm(claimData, servicelineList, pageBrk) {
     claimDet = subscriberDet && subscriberDet.claim && subscriberDet.claim[0] || "";
     serviceFac =  claimDet && claimDet.servicefacility && claimDet.servicefacility[0] || "";
     pos = claimDet && claimDet.POS || "";
-    let claimNotes =  getSubstring(claimDet, 65).split('\n').join(' ');
+    let claimNotes = getSubstring(claimDet.claimNotes, 65).split('\n').join(' ');
 
     if (pos === "12") {
         patientDet.fullName = "PRIVATE HOME" ;
