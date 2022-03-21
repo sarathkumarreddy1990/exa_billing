@@ -342,7 +342,7 @@ function formatRedForm(claimData, servicelineList, pageBrk) {
     serviceFacNPI = serviceFac && serviceFac.NPINO || "";
     pos = claimDet && claimDet.POS || "";
     billType = claimDet && claimDet.billingType || "";
-    let claimNotes =  getSubstring(claimDet, 65).split('\n').join(' ');
+    let claimNotes = getSubstring(claimDet.claimNotes, 65).split('\n').join(' ');
 
     if (pos === "12") {
         patientDet.fullName = "PRIVATE HOME" ;
