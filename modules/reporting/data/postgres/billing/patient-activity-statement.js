@@ -604,6 +604,13 @@ WITH claim_data AS(
               , null
               , null
               , null
+              , null
+              , null
+              , null
+              , null
+              , null
+              , null
+              , null
               , 0
               FROM sum_statement_credit_cte
               UNION
@@ -842,6 +849,13 @@ WITH claim_data AS(
           , null
           , null
           , null
+          , null
+          , null
+          , null
+          , null
+          , null
+          , null
+          , null
           , 0
           FROM statement_cte
 
@@ -885,6 +899,13 @@ WITH claim_data AS(
               , 6
               , 99   AS sort_order
               , 2
+              , null
+              , null
+              , null
+              , null
+              , null
+              , null
+              , null
               , null
               , null
               , null

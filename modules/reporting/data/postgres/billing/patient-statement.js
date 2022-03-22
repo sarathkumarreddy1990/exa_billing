@@ -605,6 +605,13 @@ WITH claim_data AS (
     , null
     , null
     , null
+    , null
+    , null
+    , null
+    , null
+    , null
+    , null
+    , null
     <% if (reportFormat === 'html' || reportFormat === 'pdf') {%>
     , null
     , null
@@ -1056,6 +1063,13 @@ const api = {
             , billing_zip_plus
             , billing_phoneno
             , to_char('${reportParams.sDate}'::date, '${reportParams.dateFormat}')
+            , null
+            , null
+            , null
+            , null
+            , null
+            , null
+            , null
             , null
             , null
             , null
