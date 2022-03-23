@@ -478,7 +478,7 @@ const ahsData = {
                         cpt.display_code                             AS health_service_code,
                         CASE
                             WHEN s.hospital_admission_dt IS NULL
-                                THEN TO_CHAR(timezone(f.time_zone, s.study_dt)::date, 'YYYYMMDD')
+                                THEN TO_CHAR(timezone(f.time_zone, bc.claim_dt)::date, 'YYYYMMDD')
                                 ELSE TO_CHAR(s.hospital_admission_dt, 'YYYYMMDD')
                         END                                          AS service_start_date,
                         bc.encounter_no AS encounter_number,
@@ -684,7 +684,7 @@ const ahsData = {
                     LEFT JOIN public.cpt_codes cpt
                         ON cpt.id = bch.cpt_id
                     LEFT JOIN public.facilities f
-                        ON f.id = s.facility_id
+                        ON f.id = bc.facility_id
 
                     LEFT JOIN LATERAL (
                         WITH bci AS (
