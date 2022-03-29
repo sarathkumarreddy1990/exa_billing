@@ -149,7 +149,8 @@ define(['jquery',
             },
 
             showForm: function (id) {
-                var self = this;
+                this.pendingNewCptId = '';
+                this.pendingNewModifierId = '';
                 this.renderForm(id);
             },
 
@@ -364,10 +365,8 @@ define(['jquery',
             },
 
             refreshTags: function() {
-                var self = this;
-                console.log('refreshing tags')
-                self.expandCptLabels();
-                self.expandModifierLabels();
+                this.expandCptLabels();
+                this.expandModifierLabels();
             },
 
             // BEGIN LABEL FUNCTIONS
