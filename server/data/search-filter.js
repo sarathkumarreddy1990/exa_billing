@@ -155,7 +155,7 @@ const colModel = [
     },
     {
         name: 'patient_age',
-        searchColumns: ['get_dicom_age(extract(days FROM (studies.study_dt - patients.birth_date))::integer)'],
+        searchColumns: ['get_dicom_age(to_facility_date(studies.facility_id, studies.study_dt), patients.birth_date)'],
         searchFlag: '%'
     },
     {
@@ -858,7 +858,7 @@ const api = {
             'studies.no_of_series',
             'studies.stat_level',
             //'studies.patient_age', // TODO: remove column from db
-            `get_dicom_age(extract(days from (studies.study_dt - patients.birth_date))::integer)
+            `get_dicom_age(to_facility_date(studies.facility_id, studies.study_dt), patients.birth_date)
                 AS patient_age`,
             'studies.modalities',
             'studies.has_unread_dicoms', // TODO: What is this !!
