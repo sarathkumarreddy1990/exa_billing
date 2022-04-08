@@ -375,7 +375,7 @@ function formatRedForm(claimData, servicelineList, pageBrk) {
         serviceFacDet = getAddressDetails(patientDet, 'zipPlus');
     } else if (billType.toString().toUpperCase() === "SPLIT_P") {
         renderingProv.fullName = renderingProv.lastName+', '+renderingProv.firstName;
-        serviceFacDet = getAddressDetails(renderingProv);
+        serviceFacDet = getAddressDetails(renderingProv, 'zipPlus');
         serviceFacNPI = renderingProv && renderingProv.NPINO || "";
     } else {
         serviceFacDet = getAddressDetails(serviceFac, 'zipPlus');

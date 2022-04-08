@@ -794,7 +794,7 @@ function formatSingleClaim(claimData, servicelineList) {
         ServiceFacDet = getAddressDetails(patientDet, 'zipPlus');
     } else if (billType.toString().toUpperCase() === "SPLIT_P") {
         renderingProv.fullName = renderingProv.lastName+', '+renderingProv.firstName;
-        ServiceFacDet = getAddressDetails(renderingProv);
+        ServiceFacDet = getAddressDetails(renderingProv, 'zipPlus');
         serviceFacNPI = renderingProv && renderingProv.NPINO || "";
     } else {
         ServiceFacDet = getAddressDetails(serviceFac, 'zipPlus');
