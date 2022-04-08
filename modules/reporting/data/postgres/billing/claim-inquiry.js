@@ -150,7 +150,16 @@ const claimInquiryDataSetQueryTemplate = _.template(`
                 WHERE <% print(paymentUserIds) %>
             ) user_claim_ids ON user_claim_ids.claim_id = bc.id
             <% } %>
-            ${getClaimPatientInsuranceId('bc')}
+            LEFT JOIN LATERAL (
+                SELECT
+                    CASE bc.payer_type
+                        WHEN 'primary_insurance' THEN MAX(patient_insurance_id) FILTER (WHERE coverage_level = 'primary')
+                        WHEN 'secondary_insurance' THEN MAX(patient_insurance_id) FILTER (WHERE coverage_level = 'secondary')
+                        WHEN 'tertiary_insurance' THEN MAX(patient_insurance_id) FILTER (WHERE coverage_level = 'tertiary')
+                    END AS patient_insurance
+                FROM billing.claim_patient_insurances
+                WHERE claim_id = bc.id
+            ) AS pat_claim_ins ON TRUE
             LEFT JOIN public.patient_insurances ppi ON ppi.id = pat_claim_ins.patient_insurance
             INNER JOIN LATERAL (
                 SELECT
@@ -264,7 +273,16 @@ const claimInquiryDataSetQueryTemplate1 = _.template(`
                     WHERE <% print(paymentUserIds) %>
             ) user_claim_ids ON user_claim_ids.claim_id = bc.id
             <% } %>
-            ${getClaimPatientInsuranceId('bc')}
+            LEFT JOIN LATERAL (
+                SELECT
+                    CASE bc.payer_type
+                        WHEN 'primary_insurance' THEN MAX(patient_insurance_id) FILTER (WHERE coverage_level = 'primary')
+                        WHEN 'secondary_insurance' THEN MAX(patient_insurance_id) FILTER (WHERE coverage_level = 'secondary')
+                        WHEN 'tertiary_insurance' THEN MAX(patient_insurance_id) FILTER (WHERE coverage_level = 'tertiary')
+                    END AS patient_insurance
+                FROM billing.claim_patient_insurances
+                WHERE claim_id = bc.id
+            ) AS pat_claim_ins ON TRUE
             LEFT JOIN public.patient_insurances ppi ON ppi.id = pat_claim_ins.patient_insurance
             LEFT JOIN public.insurance_providers ip ON ip.id = ppi.insurance_provider_id
             INNER JOIN LATERAL (
