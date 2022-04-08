@@ -713,8 +713,8 @@ function getAddressDetails(claimData, zipPlus) {
                     {text: claimData &&
                         (
                             claimData.zipCode
-                            ? (getCityStatePincode(claimData, "city", "state", "zipCode", zipPlus, 34))
-                            : (getCityStatePincode(claimData, "city", "state", "zip", zipPlus, 34))
+                                ? (getCityStatePincode(claimData, "city", "state", "zipCode", zipPlus, 34))
+                                : (getCityStatePincode(claimData, "city", "state", "zip", zipPlus, 34))
                         ), margin: [0,-5, 0, 0]
                     }
                 ],
@@ -734,8 +734,8 @@ function getAddressDetails(claimData, zipPlus) {
                     {text: claimData &&
                         (
                             claimData.zipCode
-                            ? (getCityStatePincode(claimData, "city", "state", "zipCode", zipPlus, 34))
-                            : (getCityStatePincode(claimData, "city", "state", "zip", zipPlus, 34))
+                                ? (getCityStatePincode(claimData, "city", "state", "zipCode", zipPlus, 34))
+                                : (getCityStatePincode(claimData, "city", "state", "zip", zipPlus, 34))
                         ), margin: [0,-5, 0, 0]
                     }
                 ],
