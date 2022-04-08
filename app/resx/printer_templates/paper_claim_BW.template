@@ -36,7 +36,14 @@ function getTrimmedPhoneNo(data) {
 }
 
 function getCityStatePincode(data, city, state, zip, len) {
-    return getSubstring(( (data && data[city] ? data[city] : '') + ' ' + (data && data[state] ? data[state] : '') + ' ' + (data && data[zip] ? data[zip] : '')), len);
+    return getSubstring(
+        (
+            (data && data[city] || '') + ' '
+            + (data && data[state] || '') + ' '
+            + (data && data[zip] || '')
+            + (data && data[zipPlus] || '')
+        ), len
+    );
 }
 
 function getSubstring(str, len) {
@@ -688,7 +695,7 @@ function getHeaderDetails(claimData) {
     return details;
 }
 
-function getAddressDetails(claimData) {
+function getAddressDetails(claimData, zipPlus) {
     let details = [];
     if(claimData){
         claimData.fullName = claimData.fullName || claimData.lastName;
@@ -701,7 +708,13 @@ function getAddressDetails(claimData) {
                     {text: ( claimData.addressLine2 ? (((claimData.addressLine1?(claimData.addressLine1+ ', '):'')  + claimData.addressLine2).toString().toUpperCase().substring(0, 30))  : ''), margin: [0,-5, 0, 0]}
                 ],
                 [
-                    {text: claimData && ( claimData.zipCode ? (getCityStatePincode(claimData, "city", "state", "zipCode", 30)) : (getCityStatePincode(claimData, "city", "state", "zip", 30))), margin: [0,-5, 0, 0]}
+                    {text: claimData &&
+                        (
+                            claimData.zipCode
+                                ? (getCityStatePincode(claimData, "city", "state", "zipCode", zipPlus, 34))
+                                : (getCityStatePincode(claimData, "city", "state", "zip", zipPlus, 34))
+                        ), margin: [0,-5, 0, 0]
+                    }
                 ],
                 [
                     {text: ' ', margin: [0,-5, 0, 0]}
@@ -716,7 +729,13 @@ function getAddressDetails(claimData) {
                     {text: (claimData ? getKeyTrimValue(claimData, 'addressLine1', 30) : ' '), margin: [0,-5, 0, 0]}
                 ],
                 [
-                    {text: claimData && ( claimData.zipCode ? (getCityStatePincode(claimData, "city", "state", "zipCode", 30)) : (getCityStatePincode(claimData, "city", "state", "zip", 30))), margin: [0,-5, 0, 0]}
+                    {text: claimData &&
+                        (
+                            claimData.zipCode
+                                ? (getCityStatePincode(claimData, "city", "state", "zipCode", zipPlus, 34))
+                                : (getCityStatePincode(claimData, "city", "state", "zip", zipPlus, 34))
+                        ), margin: [0,-5, 0, 0]
+                    }
                 ],
                 [
                     {text: ' ', margin: [0,-5, 0, 0]}
@@ -767,16 +786,16 @@ function formatSingleClaim(claimData, servicelineList) {
 
     if (pos === "12") {
         patientDet.fullName = "PRIVATE HOME" ;
-        ServiceFacDet = getAddressDetails(patientDet);
+        ServiceFacDet = getAddressDetails(patientDet, 'zipPlus');
     } else {
-        ServiceFacDet = getAddressDetails(serviceFac);
+        ServiceFacDet = getAddressDetails(serviceFac, 'zipPlus');
     }
 
     if(!claimData.subscriber[0].isPrintBillingProviderAddress) {
-	    BillingProDet = getAddressDetails(claimData.payToProvider);
+	    BillingProDet = getAddressDetails(claimData.payToProvider, 'zip_code_plus');
 	    BillingPh = claimData.payToProvider ? getTrimmedPhoneNo(getKeyTrimValue(claimData.payToProvider, 'phoneNo', 13)): ' ';
 	} else {
-	    BillingProDet = getAddressDetails(claimData.billingProvider);
+	    BillingProDet = getAddressDetails(claimData.billingProvider, 'zip_code_plus');
 	    BillingPh = claimData.billingProvider ? getTrimmedPhoneNo(getKeyTrimValue(claimData.billingProvider, 'phoneNo', 13)):' ';
 	}
     let totalPaid = getClaimResponsible(claimData);
