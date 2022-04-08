@@ -213,6 +213,15 @@ WITH claim_data AS (
                 get_full_name(pg.guarantor_info->'lastName',pg.guarantor_info->'firstName',pg.guarantor_info->'mi','',pg.guarantor_info->'suffix') as guarantor_full_name
             FROM main_detail_cte mdc
             INNER JOIN patient_guarantors pg on pg.patient_id = mdc.pid AND pg.deleted_dt IS NULL
+            GROUP BY
+                mpid
+              , pgid
+              , guarantor_address1
+              , guarantor_address2
+              , guarantor_city
+              , guarantor_state
+              , guarantor_zip
+              , guarantor_full_name
         ) pgs
     ),
     main_detail_ext_cte AS (
