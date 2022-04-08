@@ -371,7 +371,7 @@ module.exports = {
 										policy_number  as "policyNo",
 										pi.group_name as "planName",
 										group_number as "groupNumber",
-										(CASE WHEN coverage_level = 'secondary' THEN pi.medicare_insurance_type_code
+										(CASE WHEN ins_coverage_level.coverage_level = 'secondary' THEN pi.medicare_insurance_type_code
 											ELSE ''
 										END) as "insuranceTypeCode",
 										insurance_provider_details.claim_filing_indicator_code as "claimFilingCode",
