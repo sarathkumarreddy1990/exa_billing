@@ -46,6 +46,17 @@ function getSubstring(str, len) {
     return (str.length > 0) ? str.toUpperCase().substring(0, len) : '';
 }
 
+function getCityStatePincode(data, city, state, zip, zipPlus, len) {
+    return getSubstring(
+         (
+            (data && data[city] || '') + ' '
+            + (data && data[state] || '') + ' '
+            + (data && data[zip] || '')
+            + (data && data[zipPlus] || '')
+        ), len
+    );
+}
+
 function getDecimalPointsValue(data) {
     return getSubstring(
         (
@@ -286,7 +297,7 @@ function getHeaderDetails(claimData) {
     return details;
 }
 
-function getAddressDetails(claimData) {
+function getAddressDetails(claimData, zipPlus) {
     let details = [];
     if(claimData){
         claimData.fullName = claimData.fullName || claimData.lastName;
@@ -294,14 +305,29 @@ function getAddressDetails(claimData) {
             details.push(
                 (getSubstring(claimData.fullName, 30)) + '\n' +
                 (
-                    ( claimData.addressLine2 ? (getSubstring(((claimData.addressLine1?(claimData.addressLine1+ ', '):'')  + claimData.addressLine2),30))  : '') + '\n' + (getSubstring((claimData.city ? ( (claimData.city) +  ( claimData.state ? (' ' + claimData.state) : ' ') + ( claimData.zipCode ? ' ' +claimData.zipCode: (claimData.zip?' ' + claimData.zip : ' ' ) ) ): ' '), 30))
+                    ( claimData.addressLine2
+                        ? (getSubstring(((claimData.addressLine1
+                            ?(claimData.addressLine1+ ', ')
+                            :'')  + claimData.addressLine2),30))
+                        : ''
+                    ) + '\n' +
+                    (claimData.zipCode
+                        ? (getCityStatePincode(claimData, "city", "state", "zipCode", zipPlus, 34))
+                        : (getCityStatePincode(claimData, "city", "state", "zip", zipPlus, 34))
+                    )
                 )
             );
         } else {
             details.push(
                 (getSubstring(claimData.fullName, 30)) + '\n' +
                 (
-                    (claimData.addressLine1 ? getSubstring(claimData.addressLine1, 30) : '') + '\n' + getSubstring(((claimData.city ? ( (claimData.city.toString().toUpperCase()) +  ( claimData.state ? (' ' + claimData.state.toString().toUpperCase()) : ' ') + ( claimData.zipCode ? ' ' +claimData.zipCode: (claimData.zip?' ' + claimData.zip : ' ' ) ) ): ' ')), 30)
+                    (claimData.addressLine1
+                        ? getSubstring(claimData.addressLine1, 30)
+                        : '') + '\n'
+                        + (claimData.zipCode
+                            ? (getCityStatePincode(claimData, "city", "state", "zipCode", zipPlus, 34))
+                            : (getCityStatePincode(claimData, "city", "state", "zip", zipPlus, 34))
+                        )
                 )
             );
         }
@@ -344,20 +370,20 @@ function formatRedForm(claimData, servicelineList, pageBrk) {
 
     if (pos === "12") {
         patientDet.fullName = "PRIVATE HOME" ;
-        serviceFacDet = getAddressDetails(patientDet);
+        serviceFacDet = getAddressDetails(patientDet, 'zipPlus');
     } else if (billType.toString().toUpperCase() === "SPLIT_P") {
         renderingProv.fullName = renderingProv.lastName+', '+renderingProv.firstName;
-        serviceFacDet = getAddressDetails(renderingProv);
+        serviceFacDet = getAddressDetails(renderingProv, 'zipPlus');
         serviceFacNPI = renderingProv && renderingProv.NPINO || "";
     } else {
-        serviceFacDet = getAddressDetails(serviceFac);
+        serviceFacDet = getAddressDetails(serviceFac, 'zipPlus');
     }
 
     if(!claimData.subscriber[0].isPrintBillingProviderAddress) {
-	    BillingProDet = getAddressDetails(claimData.payToProvider);
+	    BillingProDet = getAddressDetails(claimData.payToProvider, 'zip_code_plus');
 	    BillingPh = claimData.payToProvider && claimData.payToProvider.phoneNo ? (getph(getSubstring(claimData.payToProvider.phoneNo, 13))) : '';
 	} else {
-	    BillingProDet = getAddressDetails(claimData.billingProvider);
+	    BillingProDet = getAddressDetails(claimData.billingProvider, 'zip_code_plus');
 	    BillingPh = claimData.billingProvider && claimData.billingProvider.phoneNo ? (getph(getSubstring(claimData.billingProvider.phoneNo, 13))) : '';
 	}
     return ([
