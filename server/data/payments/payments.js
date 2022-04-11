@@ -1312,8 +1312,9 @@ module.exports = {
                       FROM
                         billing.claims
                         INNER JOIN patients p ON p.id = claims.patient_id
-                        INNER JOIN LATERAL billing.get_claim_totals(claims.id) bgct ON TRUE
-                        WHERE p.id = ${patientId}
+                        INNER JOIN LATERAL billing.get_claim_payments(claims.id, FALSE) bgct ON TRUE
+                        WHERE claims.payer_type = 'patient'
+                        AND p.id = ${patientId}
                         AND bgct.claim_balance_total != 0::money
                         ORDER BY claims.id ASC `;
         } else {
@@ -1333,6 +1334,7 @@ module.exports = {
                     FROM
                     billing.claims c
                     INNER JOIN patients p ON p.id = c.patient_id
+                    WHERE c.payer_type = 'patient'
                 )
                 ,claim_charge_fee AS (
                     SELECT
@@ -1451,7 +1453,8 @@ module.exports = {
                 INNER JOIN patients AS p ON p.id = cl.patient_id
                 INNER JOIN public.cpt_codes AS pc ON pc.id = c.cpt_id
                 LEFT OUTER JOIN billing.charges_studies AS cs ON c.id = cs.charge_id
-                GROUP BY c.claim_id,cl.patient_id
+                WHERE cl.payer_type = 'patient'
+                GROUP BY c.claim_id, cl.patient_id
              )
             -- --------------------------------------------------------------------------------------------------------------
             -- Claim payments list.
