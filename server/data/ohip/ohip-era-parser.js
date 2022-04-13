@@ -74,6 +74,7 @@ module.exports = {
     getOHIPLineItemsAndClaims: async (ohipJson, params) => {
 
         let lineItems = [];
+        let claimComments = [];
         let cas_reason_group_details = await data.getcasReasonGroupCodes(params);
         cas_reason_group_details = cas_reason_group_details.rows && cas_reason_group_details.rows.length ? cas_reason_group_details.rows[0] : {};
 
@@ -145,10 +146,18 @@ module.exports = {
                         is_debit: isDebit,
                         code: adjustment_code,
                         claim_index: claim_index,
-                        is_exa_claim: isExaClaim
+                        is_exa_claim: isExaClaim,
+                        original_reference: claim.claimNumber || '',
                     };
 
                     lineItems.push(item);
+                });
+
+                claimComments.push({
+                    claim_number: claim.accountingNumber,
+                    is_exa_claim: isExaClaim,
+                    note: `${claim.claimNumber} - Payment received via MCEDT-EBS`,
+                    type: 'auto'
                 });
             }
         });
@@ -184,7 +193,7 @@ module.exports = {
 
         return {
             lineItems: groupedLineItems,
-            claimComments: [],
+            claimComments,
             audit_details: auditDetails
         };
 
