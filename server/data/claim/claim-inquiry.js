@@ -828,7 +828,7 @@ module.exports = {
                 whereQuery = ` AND bc.payer_type = 'secondary_insurance' AND bcsi.patient_insurance_id = ppi.id`;
 
                 joinCondition = `
-                    INNER JOIN billing.claim_patient_insurances bcpi ON bcsi.claim_id = bc.id AND bcsi.coverage_level = 'primary'
+                    INNER JOIN billing.claim_patient_insurances bcsi ON bcsi.claim_id = bc.id AND bcsi.coverage_level = 'secondary'
                     INNER JOIN public.patient_insurances ppi ON ppi.id = bcsi.patient_insurance_id `;
 
                 break;
@@ -846,7 +846,7 @@ module.exports = {
                 whereQuery = ` AND bc.payer_type = 'tertiary_insurance' AND  bcti.patient_insurance_id = ppi.id`;
 
                 joinCondition = `
-                    INNER JOIN billing.claim_patient_insurances bcti ON bcti.claim_id = bc.id AND bcti.coverage_level = 'primary'
+                    INNER JOIN billing.claim_patient_insurances bcti ON bcti.claim_id = bc.id AND bcti.coverage_level = 'tertiary'
                     INNER JOIN public.patient_insurances ppi ON ppi.id = bcti.patient_insurance_id `;
 
                 break;

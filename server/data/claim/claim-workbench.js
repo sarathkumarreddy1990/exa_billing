@@ -197,9 +197,17 @@ module.exports = {
                     WHEN 'referring_provider' THEN ref_provider.full_name
                     WHEN 'rendering_provider' THEN render_provider.full_name
                     WHEN 'patient' THEN patients.full_name        END)   || '(' || COALESCE(${payerType}, payer_type) ||')' as note
-                FROM billing.claims`
-            .append(getClaimPatientInsuranceId('claims', payerType))
-            .append(SQL`
+                FROM billing.claims           
+                LEFT JOIN LATERAL (
+                    SELECT
+                        CASE COALESCE(${payerType}, claims.payer_type)
+                            WHEN 'primary_insurance' THEN MAX(patient_insurance_id) FILTER (WHERE coverage_level = 'primary')
+                            WHEN 'secondary_insurance' THEN MAX(patient_insurance_id) FILTER (WHERE coverage_level = 'secondary')
+                            WHEN 'tertiary_insurance' THEN MAX(patient_insurance_id) FILTER (WHERE coverage_level = 'tertiary')
+                        END AS patient_insurance
+                    FROM billing.claim_patient_insurances
+                    WHERE claim_id = claims.id
+                ) AS pat_claim_ins ON TRUE 
                 LEFT JOIN patient_insurances ON patient_insurances.id = pat_claim_ins.patient_insurance
                 INNER JOIN patients ON claims.patient_id = patients.id
                 LEFT JOIN insurance_providers ON patient_insurances.insurance_provider_id = insurance_providers.id
@@ -210,8 +218,8 @@ module.exports = {
                 LEFT JOIN provider_contacts as rendering_pro_contact ON rendering_pro_contact.id=claims.rendering_provider_contact_id
                 LEFT JOIN providers as render_provider ON render_provider.id=rendering_pro_contact.provider_id
 
-                WHERE claims.id= ANY(${success_claimID}) )
-        `);
+                WHERE claims.id= ANY(${success_claimID}) 
+        )`;
 
         let claimComments =
             SQL` , claim_details AS (
@@ -688,8 +696,9 @@ module.exports = {
                                 END as payer
                     FROM billing.claims bc
                     INNER JOIN billing.charges ch ON ch.claim_id = bc.id
-                    LEFT JOIN public.patients p ON p.id = bc.patient_id
-                    ${getClaimPatientInsurances('bc')}
+                    LEFT JOIN public.patients p ON p.id = bc.patient_id `
+                   .append(getClaimPatientInsurances('bc'))
+                   .append(`
                     LEFT JOIN public.patient_insurances ppi ON ppi.id = claim_ins.primary_patient_insurance_id
                     LEFT JOIN public.insurance_providers pip on pip.id = ppi.insurance_provider_id
                     LEFT JOIN public.patient_insurances spi ON spi.id = claim_ins.secondary_patient_insurance_id
@@ -703,7 +712,7 @@ module.exports = {
                     WHERE bc.id = ANY(${claimIDs})
                     GROUP BY
                           payer_name
-                        , payer`;
+                        , payer `);
 
         return query(sql);
     },
