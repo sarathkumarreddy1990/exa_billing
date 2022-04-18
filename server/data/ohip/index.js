@@ -1526,6 +1526,7 @@ const OHIPDataAPI = {
                                 bc.id AS claim_id,
                                 application_details.cpt_code,
                                 application_details.duplicate,
+                                application_details.is_exa_claim,
                                 application_details.index,
                                 application_details.claim_status_code,
                                 application_details.original_reference,
@@ -1544,6 +1545,8 @@ const OHIPDataAPI = {
                                 application_details.claim_status,
                                 bc.claim_status_id,
                                 bc.patient_id,
+                                bc.invoice_no,
+                                application_details.claim_number,
                                 cs.code AS claim_payment_status,
                                 charges.charge_id
                             FROM application_details
@@ -1580,6 +1583,9 @@ const OHIPDataAPI = {
                                 fcc.claim_status_code,
                                 fcc.payment,
                                 fcc.original_reference,
+                                fcc.invoice_no,
+                                fcc.claim_number,
+                                fcc.is_exa_claim,
                                 fcc.service_date,
                                 fcc.code,
                                 fcc.claim_status,
@@ -1628,7 +1634,7 @@ const OHIPDataAPI = {
                                 ,created_dt
                             )
                             SELECT
-                                claim_number
+                                mc.claim_id
                                 ,note
                                 ,type
                                 ,${paymentDetails.created_by}
@@ -1636,11 +1642,14 @@ const OHIPDataAPI = {
                             FROM
                                 json_to_recordset(${JSON.stringify(claimComments)}) AS claim_notes
                                 (
-                                    claim_number bigint
-                                    ,note text
-                                    ,type text
+                                    claim_number TEXT
+                                    , note TEXT
+                                    , type TEXT
                                 )
-                            WHERE EXISTS ( SELECT claim_id FROM matched_claims WHERE claim_id = claim_notes.claim_number LIMIT 1 )
+                            INNER JOIN matched_claims mc ON (
+                                LPAD(mc.claim_id::TEXT, 11, '0') =  LPAD(TRIM(claim_notes.claim_number), 11, '0') OR 
+                                (NOT mc.is_exa_claim AND LPAD(mc.invoice_no, 11, '0') = LPAD(TRIM(claim_notes.claim_number), 11, '0'))
+                            )
                             RETURNING id AS claim_comment_id
                         )
                         ------------------------------------------------------------

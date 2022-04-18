@@ -55,13 +55,20 @@ const ahsData = {
                                         , created_by
                                         , created_dt
                                     )
-                                    VALUES (
-                                          ${claimNote}
+                                    SELECT
+                                        (COALESCE(ahs_claim_number, '') 
+                                            || CASE WHEN ahs_claim_number IS NOT NULL THEN ' - ' ELSE '' END
+                                            || ${claimNote}
+                                        )
                                         , 'auto'
-                                        , UNNEST(${claimIds}::int[])
+                                        , claim_id
                                         , ${userId}
                                         , now()
-                                    ) RETURNING *
+                                    FROM UNNEST(
+                                        ${claimIds}::int[]
+                                    ) claim_id
+                                    LEFT JOIN billing.can_ahs_get_claim_number(claim_id) ahs_claim_number ON TRUE
+                                    RETURNING *
                                 )
                                 UPDATE
                                     billing.claims
