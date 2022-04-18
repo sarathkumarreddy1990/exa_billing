@@ -213,26 +213,26 @@ WITH claim_data AS (
                    ORDER BY pgid DESC
                 ) pg_rank
         FROM (
-                SELECT
-                    mdc.pid AS mpid,
-                    pg.id AS pgid,
-                    pg.guarantor_info->'address1' AS guarantor_address1,
-                    pg.guarantor_info->'address2' AS guarantor_address2,
-                    pg.guarantor_info->'city' AS guarantor_city,
-                    pg.guarantor_info->'state' AS guarantor_state,
-                    pg.guarantor_info->'zip' AS guarantor_zip,
-                    get_full_name(pg.guarantor_info->'lastName',pg.guarantor_info->'firstName',pg.guarantor_info->'mi','',pg.guarantor_info->'suffix') as guarantor_full_name
-                FROM main_detail_cte mdc
-                INNER JOIN patient_guarantors pg on pg.patient_id = mdc.pid AND pg.deleted_dt IS NULL
-                GROUP BY
-                      mpid
-                    , pgid
-                    , guarantor_address1
-                    , guarantor_address2
-                    , guarantor_city
-                    , guarantor_state
-                    , guarantor_zip
-                    , guarantor_full_name
+            SELECT
+                mdc.pid AS mpid,
+                pg.id AS pgid,
+                pg.guarantor_info->'address1' AS guarantor_address1,
+                pg.guarantor_info->'address2' AS guarantor_address2,
+                pg.guarantor_info->'city' AS guarantor_city,
+                pg.guarantor_info->'state' AS guarantor_state,
+                pg.guarantor_info->'zip' AS guarantor_zip,
+                get_full_name(pg.guarantor_info->'lastName',pg.guarantor_info->'firstName',pg.guarantor_info->'mi','',pg.guarantor_info->'suffix') as guarantor_full_name
+            FROM main_detail_cte mdc
+            INNER JOIN patient_guarantors pg on pg.patient_id = mdc.pid AND pg.deleted_dt IS NULL
+            GROUP BY
+                mpid
+              , pgid
+              , guarantor_address1
+              , guarantor_address2
+              , guarantor_city
+              , guarantor_state
+              , guarantor_zip
+              , guarantor_full_name
         ) pgs
     ),
     main_detail_ext_cte AS (
@@ -596,13 +596,6 @@ WITH claim_data AS (
     , null
     , 'Encounter Total'
     , coalesce(enc_total_amount::text,'0.00')
-    , null
-    , null
-    , null
-    , null
-    , null
-    , null
-    , null
     , null
     , null
     , null
@@ -1063,13 +1056,6 @@ const api = {
             , billing_zip_plus
             , billing_phoneno
             , to_char('${reportParams.sDate}'::date, '${reportParams.dateFormat}')
-            , null
-            , null
-            , null
-            , null
-            , null
-            , null
-            , null
             , null
             , null
             , null
