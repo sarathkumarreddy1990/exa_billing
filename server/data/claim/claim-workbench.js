@@ -197,7 +197,7 @@ module.exports = {
                     WHEN 'referring_provider' THEN ref_provider.full_name
                     WHEN 'rendering_provider' THEN render_provider.full_name
                     WHEN 'patient' THEN patients.full_name        END)   || '(' || COALESCE(${payerType}, payer_type) ||')' as note
-                FROM billing.claims           
+                FROM billing.claims
                 LEFT JOIN LATERAL (
                     SELECT
                         CASE COALESCE(${payerType}, claims.payer_type)
@@ -207,7 +207,7 @@ module.exports = {
                         END AS patient_insurance
                     FROM billing.claim_patient_insurances
                     WHERE claim_id = claims.id
-                ) AS pat_claim_ins ON TRUE 
+                ) AS pat_claim_ins ON TRUE
                 LEFT JOIN patient_insurances ON patient_insurances.id = pat_claim_ins.patient_insurance
                 INNER JOIN patients ON claims.patient_id = patients.id
                 LEFT JOIN insurance_providers ON patient_insurances.insurance_provider_id = insurance_providers.id
@@ -218,7 +218,7 @@ module.exports = {
                 LEFT JOIN provider_contacts as rendering_pro_contact ON rendering_pro_contact.id=claims.rendering_provider_contact_id
                 LEFT JOIN providers as render_provider ON render_provider.id=rendering_pro_contact.provider_id
 
-                WHERE claims.id= ANY(${success_claimID}) 
+                WHERE claims.id= ANY(${success_claimID})
         )`;
 
         let claimComments =
@@ -793,6 +793,7 @@ module.exports = {
                         AND s.ordering_facility_contact_id IS NULL
                         AND (ppi.valid_to_date >= COALESCE(s.study_dt, now())::DATE OR ppi.valid_to_date IS NULL)
                         AND ipd.is_split_claim_enabled IS TRUE
+                        AND ip.inactivated_dt IS NULL
                     ) SELECT
                         (SELECT invalid_split_claim_count FROM invalid_split_claim_details)
                         , (SELECT charges_count FROM invalid_charges_details)

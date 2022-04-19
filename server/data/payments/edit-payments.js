@@ -693,7 +693,7 @@ module.exports = {
                     AND EXISTS (
                         SELECT 1
                         FROM insurance_providers ip
-                        WHERE ip.is_active
+                        WHERE ip.inactivated_dt IS NULL
                         AND ip.deleted_dt IS NULL
                         AND ip.id = pi.insurance_provider_id
                     )

@@ -812,6 +812,7 @@ const api = {
                                     AND valid_to_date >= now())
                                 OR valid_to_date IS NULL)
                             AND pi.coverage_level = 'primary'
+                            AND ip.inactivated_dt IS NULL
                         ORDER BY pi.valid_to_date ASC
                         LIMIT 1
                     ) AS primary_insurance ON TRUE
