@@ -1349,6 +1349,23 @@
                     </div>
                 </div>
                 <% } %>
+                <% if(billingRegionCode === 'can_AB') { %>
+                <div class="form-group form-inline" id="conditionDevTime_div";>
+                    <label class="col-form-label control-label field-required"  i18n="order.additionalInfo.injuryDevelopOverTime"></label>
+                    <div class="col-sm-2">
+                        <div class="form-check ">
+                            <input class="form-check-input" type="checkbox" id="yesConditionDevTime" name="yes">
+                            <label class="control-label" for="yesConditionDevTime" i18n="messages.confirm.button.yes"></label>
+                        </div>
+                    </div>
+                    <div class="col-sm-1">
+                        <div class="form-check">
+                            <input class="form-check-input" type="checkbox" id="noConditionDevTime" name="no">
+                            <label class="control-label" for="noConditionDevTime" i18n="messages.confirm.button.no"></label>
+                        </div>
+                    </div>
+                </div>
+                <% } %>
                 <div class="form-group row mt-2">
                     <label for="selAccidentState" class="col-sm-3 col-form-label" i18n="order.additionalInfo.accidentState"></label>
                     <div class="col-sm-2 col-md-2">

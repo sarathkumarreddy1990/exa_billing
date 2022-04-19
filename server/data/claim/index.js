@@ -258,6 +258,7 @@ module.exports = {
                                         facilities.can_ahs_business_arrangement AS can_ahs_business_arrangement_facility,
                                         studies_details.can_ahs_locum_arrangement_provider,
                                         studies_details.nature_of_injury_code_id,
+                                        studies_details.has_condition_develop_over_time,
                                         studies_details.area_of_injury_code_id
                                         , COALESCE(NULLIF((SELECT split_types IS NOT NULL FROM census_fee_charges_details), FALSE), (SELECT billing_type from get_study_date) = 'split') AS is_split_claim
                                     FROM
@@ -333,6 +334,7 @@ module.exports = {
                                                 pc.can_locum_arrangement AS can_ahs_locum_arrangement_provider,
                                                 nature_of_injury_code_id,
                                                 area_of_injury_code_id,
+                                                has_condition_develop_over_time,
                                                 sca.authorization_no,
                                                 s.study_info->'refDescription' AS referring_pro_study_desc
                                             FROM
@@ -983,6 +985,7 @@ module.exports = {
                     ) AS payment_details
                     , c.area_of_injury_code_id
                     , c.nature_of_injury_code_id
+                    , c.has_condition_develop_over_time
                     , COALESCE(c.encounter_no, 1)::SMALLINT AS can_ahs_encounter_no
                     FROM
                         billing.claims c
@@ -1141,7 +1144,7 @@ module.exports = {
             countFlag,
             pageNo,
             pageSize
-        } = args
+        } = args;
 
         let joinQuery = `
             INNER JOIN billing.charges ch ON ch.claim_id = c.id
@@ -1160,6 +1163,7 @@ module.exports = {
                     COUNT(DISTINCT c.id) AS claims_total_records
                 FROM billing.claims c
                 `;
+            
             sql.append(joinQuery);
             sql.append(whereQuery);
         } else {
@@ -1173,8 +1177,10 @@ module.exports = {
                 FROM
                     billing.claims c
                 `;
+
             sql.append(joinQuery);
             sql.append(whereQuery);
+
             sql.append(SQL`
                 ORDER BY claim_id DESC
                 LIMIT ${pageSize}

@@ -1323,6 +1323,28 @@ define(['jquery',
                     self.wcbAreaCodeId = claim_data.area_of_injury_code_id || null;
                 }
 
+                if(app.billingRegionCode === 'can_AB') {
+                    if (claim_data.has_condition_develop_over_time) {
+                        $('#yesConditionDevTime').prop("checked",true)
+                    };
+                    if (claim_data.has_condition_develop_over_time === false) {
+                        $('#noConditionDevTime').prop("checked",true)
+                    };
+                    $('#yesConditionDevTime').off().click(function () {
+                        if ($('#yesConditionDevTime').prop("checked")) {
+                            $('#noConditionDevTime').prop('checked',false);
+                        } else {
+                            $('#noConditionDevTime').prop('checked',true);
+                        }
+                    });
+                    $('#noConditionDevTime').off().click(function () {
+                        if ($('#noConditionDevTime').prop("checked")) {
+                            $('#yesConditionDevTime').prop('checked',false);
+                        } else {
+                            $('#yesConditionDevTime').prop('checked',true);
+                        }
+                    });
+                }
                 /* Additional info end */
                 /* Billing summary start */
 
@@ -1588,9 +1610,11 @@ define(['jquery',
                 if ($('#chkEmployment').is(':checked')) {
                     $('#natureOfInjuryDiv').show();
                     $('#areaOfInjuryDiv').show();
+                    $('#conditionDevTime_div').show();
                 } else {
                     $('#natureOfInjuryDiv').hide();
                     $('#areaOfInjuryDiv').hide();
+                    $('#conditionDevTime_div').hide();
                 }
             },
 
@@ -3964,6 +3988,11 @@ define(['jquery',
                 var claim_Study_date = $('#txtClaimDate').val();
                 var delayReasonId = $('#ddlDelayReasons option:selected').val();
 
+                var hasInjuryDevelopOverTime = $('#yesConditionDevTime').prop('checked')
+                                                ? true
+                                                : $('#noConditionDevTime').prop('checked')
+                                                ? false
+                                                : null;
                 claim_model.claims = {
                     claim_id: self.claim_Id,
                     company_id: app.companyID,
@@ -4018,6 +4047,7 @@ define(['jquery',
                     can_wcb_rejected: $("#chkwcbRejected").prop('checked') || false,
                     wcb_injury_area_code: self.wcbAreaCodeId || null,
                     wcb_injury_nature_code: self.wcbNatureCodeId || null,
+                    has_condition_develop_over_time: hasInjuryDevelopOverTime,
                     billing_type: (app.isMobileBillingEnabled && self.billing_type) || 'global',
                     is_split_claim: app.isMobileBillingEnabled && self.is_split_claim,
                     order_id: self.options && self.options.order_id,
