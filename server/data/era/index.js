@@ -148,7 +148,7 @@ module.exports = {
                          FROM
                              insurance_providers
                          WHERE
-                             deleted_dt IS NULL
+                             deleted_dt IS NULL AND
                              company_id = ${params.company_id} AND
                              insurance_info->'PayerID' = ${params.payer_id}::text
                     )
