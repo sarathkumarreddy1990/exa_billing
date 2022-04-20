@@ -175,10 +175,10 @@ module.exports = {
                                 insurance_providers
                             LEFT JOIN billing.insurance_provider_details ipd on ipd.insurance_provider_id = insurance_providers.id
                             WHERE
-                                NOT has_deleted AND company_id = ${params.company_id} `; // insurance_providers.has_deleted
+                                insurance_providers.deleted_dt IS NULL AND company_id = ${params.company_id} `; // insurance_providers.has_deleted
 
         if (params.isInactive == 'false') {
-            insurance_sql.append(`AND is_active`); // insurance_providers.is_active
+            insurance_sql.append(`AND insurance_providers.inactivated_dt IS NULL`); // insurance_providers.is_active
         }
 
         if (params.q != '') {

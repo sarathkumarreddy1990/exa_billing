@@ -471,6 +471,7 @@ module.exports = {
                                 THEN pi.id = olb.patient_insurance_id
                                 ELSE TRUE
                             END
+                        AND ip.inactivated_dt IS NULL
                         ORDER BY id ASC
                 ),
                 existing_insurance as (
@@ -524,6 +525,7 @@ module.exports = {
                         WHERE
                             pi.patient_id = ${params.patient_id}
                             AND (pi.valid_to_date >= (${params.claim_date})::DATE OR pi.valid_to_date IS NULL)
+                            AND ip.inactivated_dt IS NULL
                         ORDER BY pi.id asc
                 )
                 SELECT
@@ -768,7 +770,7 @@ module.exports = {
                     , cpi.assign_benefits_to_patient AS p_assign_benefits_to_patient
                     , cpi.subscriber_dob::text AS p_subscriber_dob
                     , cpi.valid_from_date AS p_valid_from_date
-                    , cpi.valid_to_date AS p_valid_to_date
+                    , COALESCE(ipp.inactivated_dt::DATE, cpi.valid_to_date) AS p_valid_to_date
                     , cpi.medicare_insurance_type_code AS p_medicare_insurance_type_code
                     , ips.insurance_info->'Address1' AS s_address1
                     , ips.insurance_info->'PayerID' AS s_payer_id
@@ -799,7 +801,7 @@ module.exports = {
                     , csi.assign_benefits_to_patient AS s_assign_benefits_to_patient
                     , csi.subscriber_dob::text AS s_subscriber_dob
                     , csi.valid_from_date AS s_valid_from_date
-                    , csi.valid_to_date AS s_valid_to_date
+                    , COALESCE(ips.inactivated_dt::DATE, csi.valid_to_date) AS s_valid_to_date
                     , csi.medicare_insurance_type_code AS s_medicare_insurance_type_code
                     , ipt.insurance_info->'Address1' AS t_address1
                     , ipt.insurance_info->'PayerID' AS t_payer_id
@@ -830,7 +832,7 @@ module.exports = {
                     , cti.assign_benefits_to_patient AS t_assign_benefits_to_patient
                     , cti.subscriber_dob::text AS t_subscriber_dob
                     , cti.valid_from_date AS t_valid_from_date
-                    , cti.valid_to_date AS t_valid_to_date
+                    , COALESCE(ipt.inactivated_dt::DATE, cti.valid_to_date) AS t_valid_to_date
                     , cti.medicare_insurance_type_code AS t_medicare_insurance_type_code
                     , f.facility_info -> 'npino' as npi_no
                     , f.facility_info -> 'federal_tax_id' as federal_tax_id
@@ -913,6 +915,7 @@ module.exports = {
                         WHERE
                             pi.patient_id = c.patient_id
                             AND (pi.valid_to_date >= c.claim_dt OR pi.valid_to_date IS NULL)
+                            AND ip.inactivated_dt IS NULL
                         ORDER BY pi.coverage_level,pi.id ASC
                       ) existing_insurance) AS existing_insurance
                     , (
