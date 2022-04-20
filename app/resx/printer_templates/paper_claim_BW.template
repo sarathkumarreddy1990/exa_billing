@@ -37,7 +37,7 @@ function getTrimmedPhoneNo(data) {
     return data;
 }
 
-function getCityStatePincode(data, city, state, zip, len) {
+function getCityStatePincode(data, city, state, zip, zipPlus, len) {
     return getSubstring(
         (
             (data && data[city] || '') + ' '
