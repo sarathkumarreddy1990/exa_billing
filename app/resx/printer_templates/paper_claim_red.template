@@ -115,8 +115,10 @@ function getTableContents(claimData, servicelineList) {
 
             cptRows.push([
                     { text:ndc, colSpan:15, alignment:'left' }, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {},
-                    { text: 'ZZ'},
-                    { text: claimData.subscriber[0].claim[0].renderingProvider && claimData.subscriber[0].claim[0].renderingProvider[0].taxonomyCode ? getSubstring(claimData.subscriber[0].claim[0].renderingProvider[0].taxonomyCode, 12) : ''
+                    { text: claimData.subscriber[0].claimFilingCode ? (claimData.subscriber[0].claimFilingCode.toString().toUpperCase() === 'WC' ? 'OB' : '') : '' },
+                    {
+                        text: claimData.subscriber[0].claimFilingCode && (claimData.subscriber[0].claimFilingCode.toString().toUpperCase() === 'WC') &&
+                            claimData.subscriber[0].claim[0].renderingProvider && claimData.subscriber[0].claim[0].renderingProvider[0].licenseNo ? getSubstring(claimData.subscriber[0].claim[0].renderingProvider[0].licenseNo, 12) : '  '
                     }
                 ],
                 [
@@ -754,17 +756,12 @@ function formatRedForm(claimData, servicelineList, pageBrk) {
                                 ("DN\t"+getSubstring(getName(claimData.subscriber[0].claim[0].referringProvider[0]), 26)) : '', colSpan: 4
                         },
                         {}, {}, {}, {},
-
-                        {
-                            text: claimData.subscriber && claimData.subscriber[0].claim && claimData.subscriber[0].claim[0].referringProvider &&
-                                claimData.subscriber[0].claim[0].referringProvider[0].taxonomyCode ?
-                                getSubstring(claimData.subscriber[0].claim[0].referringProvider[0].taxonomyCode, 17) : '',
-                        },//NPI
+                        { text: '' },//NPI
                         {
                             text: claimData.subscriber && claimData.subscriber[0].claim && claimData.subscriber[0].claim[0].referringProvider &&
                                 claimData.subscriber[0].claim[0].referringProvider[0].NPINO ?
-                                getSubstring(claimData.subscriber[0].claim[0].referringProvider[0].NPINO, 17) : '', margin:[-54,11,0,0]
-                        },{},{},{},
+                                getSubstring(claimData.subscriber[0].claim[0].referringProvider[0].NPINO, 17) : '', colSpan: 3
+                        }, {}, {}, {},
                         {
                             text: claimData.subscriber && claimData.subscriber[0].claim && claimData.subscriber[0].claim[0].hospitailizationFromDate ?
                                 ((claimData.subscriber[0].claim[0].hospitailizationFromDate).toString().substring(5,7)) : ''
@@ -976,7 +973,7 @@ function formatRedForm(claimData, servicelineList, pageBrk) {
                         { text: getSubstring(serviceFacNPI, 10) },
                         { text: '' },
                         { text: claimData.billingProvider && claimData.billingProvider.npiNo ? getSubstring(claimData.billingProvider.npiNo, 10) : '' },
-                        { text: claimData.billingProvider && claimData.billingProvider.taxonomyCode ? ("ZZ"+getSubstring(claimData.billingProvider.taxonomyCode, 14)) : '' }
+                        { text: claimData.billingProvider && claimData.billingProvider.payerAssignedProviderID ? getSubstring(claimData.billingProvider.payerAssignedProviderID, 14) : '' }
                     ]
                 ],
             }, layout: 'noBorders', pageBreak: pageBrk,
