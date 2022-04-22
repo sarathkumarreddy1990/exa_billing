@@ -93,8 +93,9 @@ const paymentRealizationRateAnalysisQueryTemplate = _.template(`
           LEFT JOIN providers AS ref_provider ON ref_provider.id=provider_contacts.id
           LEFT JOIN provider_contacts AS rendering_pro_contact ON rendering_pro_contact.id = bc.rendering_provider_contact_id
           LEFT JOIN providers AS render_provider ON render_provider.id=rendering_pro_contact.id
-          LEFT JOIN patient_insurances ON patient_insurances.id = bc.primary_patient_insurance_id
-          LEFT JOIN insurance_providers ON insurance_providers.id = patient_insurances.insurance_provider_id
+          LEFT JOIN billing.claim_patient_insurances bcpi ON bcpi.claim_id = bc.id AND bcpi.coverage_level = 'primary'
+          LEFT JOIN public.patient_insurances ppi ON ppi.id = bcpi.patient_insurance_id
+          LEFT JOIN insurance_providers ON insurance_providers.id = ppi.insurance_provider_id
           LEFT JOIN public.ordering_facility_contacts ofc ON ofc.id = bc.ordering_facility_contact_id
           LEFT JOIN public.ordering_facilities pof ON pof.id = ofc.ordering_facility_id
           LEFT JOIN insurance_provider_payer_types ippt ON ippt.id = insurance_providers.provider_payer_type_id

@@ -10,6 +10,9 @@ module.exports = {
     getProviders: function (params) {
         return data.getProviders(params);
     },
+    getProviderSkillCodes: function (params) {
+        return data.getProviderSkillCodes(params);
+    },
     getICDcodes: function (params) {
         return data.getICDcodes(params);
     },
@@ -42,6 +45,10 @@ module.exports = {
 
     getWCBCodes: (params) => {
         return data.getWCBCodes(params);
+    },
+
+    getPatientAltAccounts: (params) => {
+        return data.getPatientAltAccounts(params);
     },
 
     getOrderingFacilities: data.getOrderingFacilities,

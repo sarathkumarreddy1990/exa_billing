@@ -26,11 +26,6 @@ define([
 
             // Adds and removes region-specific UI/DOM elements (primarily ones in the .pug files)
             regionalLayoutChanges: function () {
-                if (app.billingRegionCode === 'can_AB') {
-                    $(".aEDITemplate").remove();
-                    $(".aEDIClearingHouses").remove();
-                }
-
                 if (app.billingRegionCode !== 'can_BC') {
                     $(".aSubmissionTypes").remove();
                 }

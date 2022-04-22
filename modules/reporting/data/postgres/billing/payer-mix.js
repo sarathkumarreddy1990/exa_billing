@@ -23,7 +23,8 @@ WITH payerMixDetails AS (
     INNER JOIN billing.charges bch ON bch.claim_id = bc.id
     INNER JOIN public.cpt_codes pcc ON pcc.id = bch.cpt_id
     INNER JOIN public.facilities f ON f.id = bc.facility_id
-    LEFT JOIN public.patient_insurances ppi ON ppi.id = ANY (ARRAY[bc.primary_patient_insurance_id,bc.secondary_patient_insurance_id,bc.tertiary_patient_insurance_id])
+    LEFT JOIN billing.claim_patient_insurances bcpi ON bcpi.claim_id = bc.id
+    LEFT JOIN patient_insurances AS ppi ON ppi.id = bcpi.patient_insurance_id
     LEFT JOIN public.insurance_providers pip ON pip.id= ppi.insurance_provider_id
     <% if (billingProID) { %> INNER JOIN billing.providers bp ON bp.id = bc.billing_provider_id <% } %>
     WHERE TRUE

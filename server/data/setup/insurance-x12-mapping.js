@@ -40,7 +40,7 @@ module.exports = {
                             , ch.id AS claimclearinghouse
                             , bip.payer_edi_code
                             , billing_method
-                            , ip.is_active /* public.insurance_providers.is_active */
+                            , ip.inactivated_dt IS NULL AS is_active
                             , COUNT(1) OVER (range unbounded preceding) AS total_records
                         FROM
                             public.insurance_providers ip
@@ -48,7 +48,7 @@ module.exports = {
                         LEFT JOIN billing.edi_clearinghouses ch ON ch.id = bip.clearing_house_id `;
 
         whereQuery.push('ip.deleted_dt IS NULL');
-        whereQuery.push('ip.is_active IS true'); // public.insurance_providers.is_active
+        whereQuery.push('ip.inactivated_dt IS NULL');
 
         if (whereQuery.length) {
             sql.append(SQL` WHERE `)
@@ -80,7 +80,7 @@ module.exports = {
                             , payer_edi_code AS edi_code
                             , bip.is_default_payer
                             , bip.insurance_provider_id IS NULL AS is_new
-                            , is_name_required 
+                            , is_name_required
                             , is_signature_required
                             , is_print_billing_provider_address
                             , is_split_claim_enabled
@@ -107,8 +107,8 @@ module.exports = {
             billingMethod,
             indicatorCode,
             ediCode,
-            is_default_payer,           
-            is_name_required, 
+            is_default_payer,
+            is_name_required,
             is_signature_required,
             is_print_billing_provider_address,
             is_split_claim_enabled
@@ -143,7 +143,7 @@ module.exports = {
                                 , is_default_payer
                                 , claim_filing_indicator_code
                                 , payer_edi_code
-                                , is_name_required 
+                                , is_name_required
                                 , is_signature_required
                                 , is_print_billing_provider_address
                                 , is_split_claim_enabled
@@ -171,7 +171,7 @@ module.exports = {
                                     , claim_filing_indicator_code = ${indicatorCode}
                                     , payer_edi_code = ${ediCode}
                                     , is_default_payer = ${is_default_payer}
-                                    , is_name_required = ${is_name_required} 
+                                    , is_name_required = ${is_name_required}
                                     , is_signature_required = ${is_signature_required}
                                     , is_print_billing_provider_address = ${is_print_billing_provider_address}
                                     , is_split_claim_enabled = ${is_split_claim_enabled}

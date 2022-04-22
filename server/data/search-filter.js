@@ -12,9 +12,9 @@ const colModel = [
     {
         name: 'insurance_providers'
         , searchColumns: [`(ARRAY[
-        COALESCE( (SELECT insurance_name FROM insurance_providers WHERE id IN (SELECT insurance_provider_id FROM patient_insurances WHERE id = orders.primary_patient_insurance_id) LIMIT 1), null),
-        COALESCE( (SELECT insurance_name FROM insurance_providers WHERE id IN (SELECT insurance_provider_id FROM patient_insurances WHERE id = orders.secondary_patient_insurance_id) LIMIT 1), null),
-        COALESCE( (SELECT insurance_name FROM insurance_providers WHERE id IN (SELECT insurance_provider_id FROM patient_insurances WHERE id = orders.tertiary_patient_insurance_id) LIMIT 1), null)
+            COALESCE( (SELECT insurance_name FROM insurance_providers WHERE id IN (SELECT insurance_provider_id FROM patient_insurances WHERE id = pat_order_ins.primary_patient_insurance_id) LIMIT 1), null),
+            COALESCE( (SELECT insurance_name FROM insurance_providers WHERE id IN (SELECT insurance_provider_id FROM patient_insurances WHERE id = pat_order_ins.secondary_patient_insurance_id) LIMIT 1), null),
+            COALESCE( (SELECT insurance_name FROM insurance_providers WHERE id IN (SELECT insurance_provider_id FROM patient_insurances WHERE id = pat_order_ins.tertiary_patient_insurance_id) LIMIT 1), null)
         ])`]
         , searchFlag: 'arrayString'
     },
@@ -399,10 +399,10 @@ const api = {
             case 'study_id': return 'studies.id';
             case 'claim_id': return '(SELECT claim_id FROM billing.charges_studies inner JOIN billing.charges ON charges.id= charges_studies.charge_id  WHERE study_id = studies.id LIMIT 1) ';
             case 'insurance_providers': return `(ARRAY[
-                COALESCE( (SELECT insurance_name FROM insurance_providers WHERE id IN (SELECT insurance_provider_id FROM patient_insurances WHERE id = orders.primary_patient_insurance_id) LIMIT 1), null),
-                COALESCE( (SELECT insurance_name FROM insurance_providers WHERE id IN (SELECT insurance_provider_id FROM patient_insurances WHERE id = orders.secondary_patient_insurance_id) LIMIT 1), null),
-                COALESCE( (SELECT insurance_name FROM insurance_providers WHERE id IN (SELECT insurance_provider_id FROM patient_insurances WHERE id = orders.tertiary_patient_insurance_id) LIMIT 1), null)
-                ])`;
+                COALESCE( (SELECT insurance_name FROM insurance_providers WHERE id IN (SELECT insurance_provider_id FROM patient_insurances WHERE id = pat_order_ins.primary_patient_insurance_id) LIMIT 1), null),
+                COALESCE( (SELECT insurance_name FROM insurance_providers WHERE id IN (SELECT insurance_provider_id FROM patient_insurances WHERE id = pat_order_ins.secondary_patient_insurance_id) LIMIT 1), null),
+                COALESCE( (SELECT insurance_name FROM insurance_providers WHERE id IN (SELECT insurance_provider_id FROM patient_insurances WHERE id = pat_order_ins.tertiary_patient_insurance_id) LIMIT 1), null)
+            ])`;
             case 'image_delivery': return 'imagedelivery.image_delivery';
             case 'station': return "study_info->'station'";
             case 'has_deleted': return '(studies.deleted_dt IS NOT NULL)';
@@ -575,7 +575,7 @@ const api = {
     },
     getWLQueryJoin: function (columns) {
         let tables = columns instanceof Object && columns || api.getTables(columns);
-        let imp_orders = tables.vehicles || tables.users || tables.providers || tables.auth || tables.eligibility || tables.icd_codes || tables.auth;
+        let imp_orders = tables.vehicles || tables.users || tables.providers || tables.auth || tables.eligibility || tables.icd_codes || tables.auth || tables.insurance_providers || tables.pat_order_ins;
         let imp_provider_contacts = tables.imagedelivery || tables.providers_ref;
         let imp_facilities = tables.tat;
         let r = '';
@@ -584,7 +584,19 @@ const api = {
 
         if (tables.patients) {r += ' INNER JOIN patients ON studies.patient_id = patients.id ';}
 
-        if (tables.orders || imp_orders){ r += ' INNER JOIN orders ON studies.order_id = orders.id ';}
+        if (tables.orders || imp_orders){ r +=`
+            INNER JOIN orders ON studies.order_id = orders.id
+            LEFT JOIN LATERAL(
+                SELECT
+                    MAX(patient_insurance_id) FILTER (WHERE coverage_level = 'primary') AS primary_patient_insurance_id,
+                    MAX(patient_insurance_id) FILTER (WHERE coverage_level = 'secondary') AS secondary_patient_insurance_id,
+                    MAX(patient_insurance_id) FILTER (WHERE coverage_level = 'tertiary') AS tertiary_patient_insurance_id,
+                    order_id
+                FROM order_patient_insurances opi
+                WHERE opi.order_id = orders.id
+                GROUP BY order_id
+            ) AS pat_order_ins ON TRUE `;
+        }
 
         if (tables.billing_codes || tables.billing_classes) {
             r += ` LEFT JOIN (
@@ -625,9 +637,9 @@ const api = {
                             studies.facility_id,
                             studies.modality_id,
                             ARRAY [
-                                orders.primary_patient_insurance_id,
-                                orders.secondary_patient_insurance_id,
-                                orders.tertiary_patient_insurance_id
+                                pat_order_ins.primary_patient_insurance_id,
+                                pat_order_ins.secondary_patient_insurance_id,
+                                pat_order_ins.tertiary_patient_insurance_id
                             ]
                         ) AS as_authorization
                 ) auth ON TRUE
@@ -660,7 +672,7 @@ const api = {
                             array_agg(ippt.description) FILTER (WHERE ippt.description is not null) provider_types,
                             orders.id AS order_id
                                 FROM orders
-                            LEFT JOIN patient_insurances pat_ins ON ( pat_ins.id = orders.primary_patient_insurance_id OR pat_ins.id = orders.secondary_patient_insurance_id OR pat_ins.id =  orders.tertiary_patient_insurance_id )
+                            LEFT JOIN patient_insurances pat_ins ON ( pat_ins.id = pat_order_ins.primary_patient_insurance_id OR pat_ins.id = pat_order_ins.secondary_patient_insurance_id OR pat_ins.id =  pat_order_ins.tertiary_patient_insurance_id )
                             LEFT JOIN insurance_providers insp ON pat_ins.insurance_provider_id = insp.id
                             LEFT JOIN insurance_provider_payer_types  ippt ON ippt.id = COALESCE (insp.provider_payer_type_id, 0)
                             WHERE orders.id = studies.order_id
@@ -800,6 +812,7 @@ const api = {
                                     AND valid_to_date >= now())
                                 OR valid_to_date IS NULL)
                             AND pi.coverage_level = 'primary'
+                            AND ip.inactivated_dt IS NULL
                         ORDER BY pi.valid_to_date ASC
                         LIMIT 1
                     ) AS primary_insurance ON TRUE
@@ -948,7 +961,7 @@ const api = {
             `studies.stat_level AS stat_level`,
             `order_info->'patientRoom' AS patient_room`,
             `insurance_providers.provider_types AS ins_provider_type`,
-            `(SELECT array_agg(insurance_name) FROM insurance_providers WHERE id IN (SELECT insurance_provider_id FROM patient_insurances WHERE id = orders.primary_patient_insurance_id OR id = orders.secondary_patient_insurance_id OR id = orders.tertiary_patient_insurance_id )) AS insurance_providers`,
+            `(SELECT array_agg(insurance_name) FROM insurance_providers WHERE id IN (SELECT insurance_provider_id FROM patient_insurances WHERE id = pat_order_ins.primary_patient_insurance_id  OR id = pat_order_ins.secondary_patient_insurance_id OR id = pat_order_ins.tertiary_patient_insurance_id )) AS insurance_providers`,
             `(COALESCE(eligibility.verified, false) OR COALESCE(orders.order_info->'manually_verified', 'false')::BOOLEAN)   AS eligibility_verified`,
             `eligibility.dt AS eligibility_dt`,
             `icd_codes.description AS icd_description`,
@@ -983,7 +996,7 @@ const api = {
                                 id = 1
                         ) = 'can'
                     THEN
-                        public.get_eligibility_status(orders.primary_patient_insurance_id , studies.study_dt)
+                        public.get_eligibility_status(pat_order_ins.primary_patient_insurance_id, studies.study_dt)
                     ELSE
                         null
                 END AS as_eligibility_status`

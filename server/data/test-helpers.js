@@ -39,7 +39,7 @@ module.exports = {
                         MAX(id) as id
                      FROM public.insurance_providers
                      WHERE
-                        NOT has_deleted `; // insurance_providers.has_deleted
+                        deleted_dt IS NULL `;
 
         return await query(sql);
 

@@ -55,9 +55,6 @@ module.exports = {
                                 , billing_provider_id
                                 , rendering_provider_contact_id
                                 , referring_provider_contact_id
-                                , primary_patient_insurance_id
-                                , secondary_patient_insurance_id
-                                , tertiary_patient_insurance_id
                                 , ordering_facility_contact_id
                                 , place_of_service_id
                                 , claim_status_id
@@ -93,9 +90,6 @@ module.exports = {
                                 , billing_provider_id
                                 , rendering_provider_contact_id
                                 , referring_provider_contact_id
-                                , primary_patient_insurance_id
-                                , secondary_patient_insurance_id
-                                , tertiary_patient_insurance_id
                                 , ordering_facility_contact_id
                                 , place_of_service_id
                                 , (SELECT id FROM billing.claim_status WHERE code = 'PV')
@@ -126,6 +120,18 @@ module.exports = {
                             FROM billing.claims bc
                             WHERE bc.id = ${claim_id}
                             RETURNING *, '{}'::jsonb old_values
+                        ),
+                        insert_patient_insurance AS (
+                            INSERT INTO billing.claim_patient_insurances (
+                                claim_id,
+                                patient_insurance_id,
+                                coverage_level
+                            ) SELECT
+                                (SELECT id FROM new_claim)
+                                , patient_insurance_id
+                                , coverage_level
+                            FROM billing.claim_patient_insurances
+                            WHERE claim_id = ${claim_id}
                         ),
                         update_charge AS (
                             UPDATE

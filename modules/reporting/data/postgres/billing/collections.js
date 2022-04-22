@@ -87,11 +87,14 @@ AS (
                 ORDER BY id DESC
                 LIMIT 1
             ) patient_guarantor ON TRUE
-    LEFT JOIN public.patient_insurances p_ppi ON p_ppi.id = bc.primary_patient_insurance_id
+    LEFT JOIN billing.claim_patient_insurances bci ON bci.claim_id = bc.id AND bci.coverage_level = 'primary'
+    LEFT JOIN billing.claim_patient_insurances bsi ON bsi.claim_id = bc.id AND bsi.coverage_level = 'secondary'
+    LEFT JOIN billing.claim_patient_insurances bti ON bti.claim_id = bc.id AND bti.coverage_level = 'tertiary'
+    LEFT JOIN public.patient_insurances p_ppi ON p_ppi.id = bci.patient_insurance_id
+    LEFT JOIN public.patient_insurances s_ppi ON s_ppi.id = bsi.patient_insurance_id
+    LEFT JOIN public.patient_insurances t_ppi ON t_ppi.id = bti.patient_insurance_id
     LEFT JOIN public.insurance_providers p_pip ON p_pip.id = p_ppi.insurance_provider_id
-    LEFT JOIN public.patient_insurances s_ppi ON s_ppi.id = bc.secondary_patient_insurance_id
     LEFT JOIN public.insurance_providers s_pip ON s_pip.id = s_ppi.insurance_provider_id
-    LEFT JOIN public.patient_insurances t_ppi ON t_ppi.id = bc.tertiary_patient_insurance_id
     LEFT JOIN public.insurance_providers t_pip ON t_pip.id = t_ppi.insurance_provider_id
     LEFT JOIN LATERAL(
                 SELECT
@@ -108,7 +111,7 @@ AS (
         <% if(billingProID) { %> AND <% print(billingProID); } %>
 	GROUP BY GROUPING SETS((account_number), (
         account_number
-        , claim_id
+        , bc.id
         , claim_date
         , attending_physician
         , referring_physician

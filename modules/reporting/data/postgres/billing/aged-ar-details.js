@@ -4,6 +4,9 @@ const _ = require('lodash')
     , dataHelper = require('../dataHelper')
     , queryBuilder = require('../queryBuilder');
 
+const {
+    getClaimPatientInsuranceId
+} = require('../../../../../server/shared/index');
 // generate query template ***only once*** !!!
 
 const agedARDetailsDataSetQueryTemplate = _.template(`
@@ -65,7 +68,7 @@ get_claim_details AS(
 <% } %>
 
  <% if(incPatDetail == 'true') { %>
-    CASE WHEN primary_patient_insurance_id is not null THEN 'Primary Insurance' ELSE '-No payer-'  END AS "Responsible Party",
+    CASE WHEN bcpi.patient_insurance_id IS NOT NULL THEN 'Primary Insurance' ELSE '-No payer-'  END AS "Responsible Party",
 <%} else {%>
 CASE WHEN payer_type = 'primary_insurance' THEN 'Insurance'
 WHEN payer_type = 'secondary_insurance' THEN 'Insurance'
@@ -77,7 +80,7 @@ END AS "Responsible Party",
 <% } %>
 pippt.description AS "Insurance Group",
 <% if(incPatDetail == 'true') { %>
-CASE WHEN primary_patient_insurance_id is not null THEN pip.insurance_name
+CASE WHEN bcpi.patient_insurance_id IS NOT NULL THEN pip.insurance_name
 ELSE
     CASE
         WHEN payer_type = 'secondary_insurance' THEN pip.insurance_name
@@ -142,12 +145,20 @@ COALESCE(CASE WHEN gcd.age > 90 and gcd.age <=120 THEN gcd.balance END,0::money)
  INNER JOIN public.facilities pf ON pf.id = bc.facility_id
  INNER JOIN billing.providers bpr ON bpr.id = bc.billing_provider_id
  <% if(incPatDetail == 'true') { %>
-    LEFT JOIN public.patient_insurances ppi ON ppi.id = primary_patient_insurance_id
+    LEFT JOIN billing.claim_patient_insurances bcpi ON bcpi.claim_id = bc.id AND bcpi.coverage_level = 'primary'
+    LEFT JOIN public.patient_insurances ppi ON ppi.id = bcpi.patient_insurance_id
  <%} else {%>
-    LEFT JOIN public.patient_insurances ppi ON ppi.id = CASE WHEN payer_type = 'primary_insurance' THEN primary_patient_insurance_id
-    WHEN payer_type = 'secondary_insurance' THEN secondary_patient_insurance_id
-    WHEN payer_type = 'tertiary_insurance' THEN tertiary_patient_insurance_id
-END
+    LEFT JOIN LATERAL (
+        SELECT
+            CASE bc.payer_type
+                WHEN 'primary_insurance' THEN MAX(patient_insurance_id) FILTER (WHERE coverage_level = 'primary')
+                WHEN 'secondary_insurance' THEN MAX(patient_insurance_id) FILTER (WHERE coverage_level = 'secondary')
+                WHEN 'tertiary_insurance' THEN MAX(patient_insurance_id) FILTER (WHERE coverage_level = 'tertiary')
+            END AS patient_insurance
+        FROM billing.claim_patient_insurances
+        WHERE claim_id = bc.id
+    ) AS pat_claim_ins ON TRUE
+    LEFT JOIN public.patient_insurances ppi ON ppi.id = pat_claim_ins.patient_insurance
 <% } %>
 LEFT JOIN public.insurance_providers pip ON pip.id = ppi.insurance_provider_id
  LEFT JOIN public.insurance_provider_payer_types pippt ON pippt.id = pip.provider_payer_type_id
