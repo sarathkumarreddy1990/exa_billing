@@ -698,7 +698,7 @@ module.exports = {
                     INNER JOIN billing.charges ch ON ch.claim_id = bc.id
                     LEFT JOIN public.patients p ON p.id = bc.patient_id `
                    .append(getClaimPatientInsurances('bc'))
-                   .append(`
+                   .append(SQL`
                     LEFT JOIN public.patient_insurances ppi ON ppi.id = claim_ins.primary_patient_insurance_id
                     LEFT JOIN public.insurance_providers pip on pip.id = ppi.insurance_provider_id
                     LEFT JOIN public.patient_insurances spi ON spi.id = claim_ins.secondary_patient_insurance_id
