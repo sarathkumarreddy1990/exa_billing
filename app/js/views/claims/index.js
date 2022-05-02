@@ -322,7 +322,9 @@ define(['jquery',
                         wcbAreaCode: app.wcb_area_code,
                         wcbNatureCode: app.wcb_nature_code,
                         isSplitClaim: app.isMobileBillingEnabled,
-                        delayReasons: app.delay_reasons
+                        delayReasons: app.delay_reasons,
+                        can_ab_claim_status: commonjs.can_ab_claim_status,
+                        can_ab_wcb_claim_status: commonjs.can_ab_wcb_claim_status
                     })
                 });
 
@@ -3617,6 +3619,7 @@ define(['jquery',
                             $('#chkPriAcptAsmt').prop('checked', true);
                         }
                         self.checkHealthNumberEligiblity();
+                        self.displayClaimStatusByProvider();
                         break;
                     case 'ddlSecInsurance':
                         self.secInsID = res.id;
@@ -3663,6 +3666,19 @@ define(['jquery',
 
                 if (app.billingRegionCode === 'can_BC' && self.isProviderChiropractor && res.insurance_code.toLowerCase() === 'msp') {
                     $('#ddlClaimResponsible').val('PPP');
+                }
+            },
+
+            displayClaimStatusByProvider: function() {
+                var $claimStatusOption = $('#ddlClaimStatus option');
+
+                if (app.billingRegionCode === "can_AB" && self.priInsCode.toLowerCase() === "wcb") {
+                    $claimStatusOption.hide();
+                    $($claimStatusOption + '.can_ab').show();
+                }
+                else {
+                    $claimStatusOption.show();
+                    $($claimStatusOption + '.can_ab_wcb').hide();
                 }
             },
 
@@ -3769,6 +3785,7 @@ define(['jquery',
                             }, null);
                             self.is_primary_available = true;
                             self.priClaimInsID = result.id;
+                            self.displayClaimStatusByProvider();
                             break;
 
                         case 'secondary':

@@ -189,6 +189,7 @@ define('grid', [
             var order_id = 0;
             var isbilled_status = false;
             var isUnbilled_status = false;
+            var insurance_provider = gridData.insurance_providers || '';
 
             for (var r = 0; r < selectedCount; r++) {
                 var rowId = $checkedInputs[r].parentNode.parentNode.id;
@@ -268,7 +269,9 @@ define('grid', [
 
                     // Claim status updation
                     $.each(app.claim_status, function (index, claimStatus) {
-                        if ((app.billingRegionCode === 'can_MB' && claimStatus.code === 'P77') || (app.billingRegionCode === 'can_BC' && claimStatus.code === 'OH')) {
+                        if ((app.billingRegionCode === 'can_MB' && claimStatus.code === 'P77') || (app.billingRegionCode === 'can_BC' && claimStatus.code === 'OH')
+                            || (app.billingRegionCode === "can_AB" && insurance_provider.toLocaleLowerCase() === "workers compensation board" && commonjs.can_ab_claim_status.indexOf(claimStatus.code) == -1)
+                            || (insurance_provider.toLocaleLowerCase() != "workers compensation board" && commonjs.can_ab_wcb_claim_status.indexOf(claimStatus.code) > -1)) {
                             return;
                         }
 
