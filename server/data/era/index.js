@@ -148,7 +148,7 @@ module.exports = {
                          FROM
                              insurance_providers
                          WHERE
-                             has_deleted = false AND /* insurance_providers.has_deleted */
+                             deleted_dt IS NULL AND
                              company_id = ${params.company_id} AND
                              insurance_info->'PayerID' = ${params.payer_id}::text
                     )
@@ -870,14 +870,11 @@ module.exports = {
                         SELECT
                             1
                         FROM billing.claims bcc
-                        LEFT JOIN patient_insurances pi ON (
-                            pi.id = bcc.primary_patient_insurance_id
-                            OR pi.id = bcc.secondary_patient_insurance_id
-                            OR pi.id = bcc.tertiary_patient_insurance_id
-                        )
+                        LEFT JOIN billing.claim_patient_insurances cpi ON cpi.claim_id = bcc.id
+                        LEFT JOIN patient_insurances pi ON pi.id = cpi.patient_insurance_id
                         WHERE bcc.id = ${claim_number}
                         AND pi.insurance_provider_id = ${payerId}
-                        AND pi.coverage_level IN ('secondary', 'tertiary')
+                        AND cpi.coverage_level IN ('secondary', 'tertiary')
                     )`;
         return await queryRows(sql);
     }

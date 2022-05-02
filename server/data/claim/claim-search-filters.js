@@ -5,6 +5,7 @@ const moment = require('moment');
 const { query, SQL } = require('./../index');
 const util = require('./../util');
 const _ = require('lodash');
+const { getClaimPatientInsurances } = require('../../shared');
 
 const colModel = [
     {
@@ -459,27 +460,29 @@ const api = {
                     ON true `;
         }
 
+        if (tables.insurance_provider_payer_types || tables.ins_prov || tables.patient_insurances || tables.payer_insurance || tables.edi_clearinghouses || tables.as_eligibility_status) {
+            r += getClaimPatientInsurances('claims');
+        }
 
         if (tables.insurance_provider_payer_types || tables.ins_prov) {
-            r += ` LEFT JOIN patient_insurances ins_prov_pat_ins ON ins_prov_pat_ins.id = primary_patient_insurance_id
+            r += ` LEFT JOIN patient_insurances ins_prov_pat_ins ON ins_prov_pat_ins.id = claim_ins.primary_patient_insurance_id
                    LEFT JOIN insurance_providers ins_prov ON ins_prov.id = ins_prov_pat_ins.insurance_provider_id
                    LEFT JOIN insurance_provider_payer_types  ON insurance_provider_payer_types.id = ins_prov.provider_payer_type_id `;
         }
 
         if (tables.patient_insurances || tables.payer_insurance || tables.edi_clearinghouses) {
-            r += `
-                LEFT JOIN patient_insurances ON patient_insurances.id =
-                (  CASE payer_type
-                WHEN 'primary_insurance' THEN primary_patient_insurance_id
-                WHEN 'secondary_insurance' THEN secondary_patient_insurance_id
-                WHEN 'tertiary_insurance' THEN tertiary_patient_insurance_id
-                END)`;
+            r += ` LEFT JOIN patient_insurances ON patient_insurances.id =
+                        ( CASE payer_type
+                            WHEN 'primary_insurance' THEN claim_ins.primary_patient_insurance_id
+                            WHEN 'secondary_insurance' THEN claim_ins.secondary_patient_insurance_id
+                            WHEN 'tertiary_insurance' THEN claim_ins.tertiary_patient_insurance_id
+                          END
+                        )`;
 
             r += ' LEFT JOIN insurance_providers payer_insurance ON patient_insurances.insurance_provider_id = payer_insurance.id ';
             r += ' LEFT JOIN billing.insurance_provider_details ON insurance_provider_details.insurance_provider_id = payer_insurance.id ';
             r += ' LEFT JOIN billing.edi_clearinghouses ON  billing.edi_clearinghouses.id=insurance_provider_details.clearing_house_id';
         }
-
 
         if (tables.ordering_facilities || tables.ordering_facility_contacts) {
             r += ` LEFT JOIN ordering_facility_contacts ON ordering_facility_contacts.id = claims.ordering_facility_contact_id
@@ -624,7 +627,7 @@ const api = {
                             id = 1
                      ) = 'can'
                 THEN
-                    public.get_eligibility_status(claims.primary_patient_insurance_id , claims.claim_dt)
+                    public.get_eligibility_status(claim_ins.primary_patient_insurance_id, claims.claim_dt)
                 ELSE
                     null
             END AS as_eligibility_status`,

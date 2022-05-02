@@ -58,7 +58,6 @@ module.exports = {
         return await query(insur_sql);
     },
     getProviders: async function (params) {
-
         let provider_search = ` AND (p.full_name ILIKE '%${params.q}%' OR p.provider_code ILIKE '%${params.q}%' ) `;
 
         const sql_provider = SQL`
@@ -132,6 +131,35 @@ module.exports = {
         return await query(icd_sql);
     },
 
+    getProviderSkillCodes: async function (params) {
+        let skill_code_search = ` AND (sc.code ILIKE '%${params.q}%' ) `;
+        const skill_code_sql = SQL`
+            SELECT
+                psc.provider_id,
+                psc.skill_code_id AS id,
+                sc.code,
+                sc.description,
+                COUNT(1) OVER (range unbounded preceding) AS total_records
+            FROM
+                provider_skill_codes psc
+            INNER JOIN skill_codes sc ON psc.skill_code_id = sc.id
+            LEFT JOIN provider_contacts pc ON pc.provider_id = psc.provider_id
+            WHERE
+                pc.id = ${params.reading_physician_id}
+        `;
+
+        if (params.q != '') {
+            skill_code_sql.append(skill_code_search);
+        }
+
+        skill_code_sql.append(SQL` ORDER BY  ${params.sortField} `)
+            .append(params.sortOrder)
+            .append(SQL` LIMIT ${params.pageSize}`)
+            .append(SQL` OFFSET ${((params.page - 1) * params.pageSize)}`);
+
+        return await query(skill_code_sql);
+    },
+
     getInsurances: async function (params) {
 
         let insurance_q = ` AND (insurance_name ILIKE '%${params.q}%' OR insurance_code ILIKE '%${params.q}%' ) `;
@@ -147,10 +175,10 @@ module.exports = {
                                 insurance_providers
                             LEFT JOIN billing.insurance_provider_details ipd on ipd.insurance_provider_id = insurance_providers.id
                             WHERE
-                                NOT has_deleted AND company_id = ${params.company_id} `; // insurance_providers.has_deleted
+                                insurance_providers.deleted_dt IS NULL AND company_id = ${params.company_id} `; // insurance_providers.has_deleted
 
         if (params.isInactive == 'false') {
-            insurance_sql.append(`AND is_active`); // insurance_providers.is_active
+            insurance_sql.append(`AND insurance_providers.inactivated_dt IS NULL`); // insurance_providers.is_active
         }
 
         if (params.q != '') {
@@ -579,5 +607,42 @@ module.exports = {
                             AND pof.company_id = ${company_id}
                         `;
         return await query(sql);
-    }
+    },
+
+    getPatientAltAccounts: async (params) => {
+        let {
+            patient_id,
+            sortField,
+            sortOrder,
+            pageSize,
+            page,
+        } = params;
+
+        const sql = SQL`
+            SELECT
+                paa.id
+                , paa.issuer_id
+                , i.issuer_type
+                , paa.alt_account_no
+                , paa.is_primary
+                , paa.country_alpha_3_code
+                , paa.province_alpha_2_code
+            FROM patient_alt_accounts paa
+            INNER JOIN issuers i ON paa.issuer_id = i.id
+        `;
+
+        sql.append(SQL` WHERE patient_id = ${patient_id} `);
+        if (sortField && sortOrder) {
+            sql.append(SQL` ORDER BY `)
+                .append(sortField)
+                .append(SQL` `)
+                .append(sortOrder);
+        }
+
+        if (pageSize && page) {
+            sql.append(SQL` LIMIT ${pageSize} OFFSET ${((page - 1) * pageSize)} `);
+        }
+
+        return await query(sql);
+    },
 };

@@ -529,6 +529,24 @@
                         </select>
                     </div>
                 </div>
+                <% if (billingRegionCode == 'can_AB') { %>
+                <div class="form-group row">
+                    <label for="ddlSkillCodes" class="col-sm-3 col-form-label" i18n="order.newOrder.canAhsSkillCodeId"></label>
+                    <div class="col-sm-5">
+                        <select class="form-control select-box" id="ddlSkillCodes">
+                        </select>
+                    </div>
+                </div>
+                <% } %>
+                <% if (country_alpha_3_code === 'can') { %>
+                    <div class="form-group row">
+                        <label for="ddlPhnUli" class="col-sm-3 col-form-label" i18n="shared.fields.phnuli"></label>
+                        <div class="col-sm-5">
+                            <select class="form-control select-box" id="ddlPhnUli">
+                            </select>
+                        </div>
+                    </div>
+                <% } %>
                 <div class="form-group row">
                     <label for="ddlReferringProvider" class="col-sm-3 col-form-label <% if (billingRegionCode === 'can_AB') { print('field-required') } %>" i18n="billing.claims.referringProvider"></label>
                     <div class="col-sm-5">

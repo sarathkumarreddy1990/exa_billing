@@ -19,6 +19,12 @@ router.get('/providers', async function (req, res) {
     httpHandler.sendRows(req, res, data);
 });
 
+router.get('/getProviderSkillCodes', async function (req, res) {
+    const data = await autoCompleteController.getProviderSkillCodes(req.query);
+    httpHandler.sendRows(req, res, data);
+});
+
+
 router.get('/icd_codes', async function (req, res) {
     const data = await autoCompleteController.getICDcodes(req.query);
     httpHandler.sendRows(req, res, data);
@@ -81,6 +87,11 @@ router.get('/ordering_facility_contacts', async function (req, res) {
 
 router.get('/serviceFacilities', async function (req, res) {
     const data = await autoCompleteController.getServiceFacilities(req.query);
+    httpHandler.sendRows(req, res, data);
+});
+
+router.get('/patientAltAccounts', async function (req, res) {
+    const data = await autoCompleteController.getPatientAltAccounts(req.query);
     httpHandler.sendRows(req, res, data);
 });
 
