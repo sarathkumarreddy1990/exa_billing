@@ -1411,6 +1411,7 @@ define(['jquery',
                     $('#ddlPOSType').val(["can_AB", "can_MB", "can_ON"].indexOf(app.billingRegionCode) === -1 && claim_data.place_of_service_id || '');
                     document.querySelector('#txtClaimDate').value = claim_data.claim_dt ? self.convertToTimeZone(claim_data.facility_id, claim_data.claim_dt).format('L') : '';
                     $('#txtClaimCreatedDt').val(claim_data.created_dt ? self.convertToTimeZone(claim_data.facility_id, claim_data.created_dt).format('L') : '');
+                    self.displayClaimStatusByProvider(claim_data.p_insurance_code);
                 } else {
                     var responsibleIndex = _.find(self.responsible_list, function (item) {
                         if (app.isMobileBillingEnabled && claim_data.billing_type == 'facility') {
@@ -3619,7 +3620,7 @@ define(['jquery',
                             $('#chkPriAcptAsmt').prop('checked', true);
                         }
                         self.checkHealthNumberEligiblity();
-                        self.displayClaimStatusByProvider();
+                        self.displayClaimStatusByProvider(self.priInsCode);
                         break;
                     case 'ddlSecInsurance':
                         self.secInsID = res.id;
@@ -3669,16 +3670,17 @@ define(['jquery',
                 }
             },
 
-            displayClaimStatusByProvider: function() {
-                var $claimStatusOption = $('#ddlClaimStatus option');
+            displayClaimStatusByProvider: function(primary_insurance_code) {
+                var claimStatusOption = '#ddlClaimStatus option';
 
-                if (app.billingRegionCode === "can_AB" && self.priInsCode.toLowerCase() === "wcb") {
-                    $claimStatusOption.hide();
-                    $($claimStatusOption + '.can_ab').show();
+                if (app.billingRegionCode === "can_AB" && primary_insurance_code && primary_insurance_code.toLowerCase() === "wcb") {
+                    $(claimStatusOption).hide();
+                    $(claimStatusOption + '.can_ab').show();
+                    $(claimStatusOption + '.can_ab_wcb').show();
                 }
                 else {
-                    $claimStatusOption.show();
-                    $($claimStatusOption + '.can_ab_wcb').hide();
+                    $(claimStatusOption).show();
+                    $(claimStatusOption + '.can_ab_wcb').hide();
                 }
             },
 
@@ -3785,7 +3787,7 @@ define(['jquery',
                             }, null);
                             self.is_primary_available = true;
                             self.priClaimInsID = result.id;
-                            self.displayClaimStatusByProvider();
+                            self.displayClaimStatusByProvider(self.priInsCode);
                             break;
 
                         case 'secondary':
