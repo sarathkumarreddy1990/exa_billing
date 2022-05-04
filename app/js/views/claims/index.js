@@ -1304,7 +1304,7 @@ define(['jquery',
 
                 $('input[name="outSideLab"]').prop('checked', claim_data.service_by_outside_lab);
                 $('input[name="employment"]').prop('checked', claim_data.is_employed);
-                $('input[name="conditionDevTime"][value="' + claim_data.can_wcb_did_condition_develop_over_time + '"]').prop('checked', true);
+                $('input[name="conditionDevTime"][value="' + claim_data.can_wcb_has_condition_develop_over_time + '"]').prop('checked', true);
                 $('input[name="autoAccident"]').prop('checked', claim_data.is_auto_accident);
                 $('input[name="manualReviewIndicator"]').prop('checked', claim_data.manual_review_indicator);
                 $('input[name="otherAccident"]').prop('checked', claim_data.is_other_accident);
@@ -4099,7 +4099,7 @@ define(['jquery',
                     is_auto_accident: $('#chkAutoAccident').prop('checked'),
                     is_other_accident: $('#chkOtherAccident').prop('checked'),
                     is_employed: $('#chkEmployment').prop('checked'),
-                    can_wcb_did_condition_develop_over_time: ($('#chkEmployment').prop('checked') && $('input:radio[name=conditionDevTime]:checked').val()) || null,
+                    can_wcb_has_condition_develop_over_time: ($('#chkEmployment').prop('checked') && $('input:radio[name=conditionDevTime]:checked').val()) || null,
                     accident_state: isCauseCode && $('#selAccidentState').val() || null,
                     service_by_outside_lab: $('#chkOutSideLab').prop('checked'),
                     claim_status_id: claim_status_id,
