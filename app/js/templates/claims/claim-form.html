@@ -1367,6 +1367,19 @@
                     </div>
                 </div>
                 <% } %>
+                <% if(billingRegionCode === 'can_AB') { %>
+                    <div class="form-group form-inline" id="conditionDevTime_div";>
+                        <label class="col-form-label control-label"  i18n="order.additionalInfo.conditionDevelopOverTime"></label>
+                        <div class="col-sm-3">
+                            <div>
+                                <input type="radio" name="conditionDevTime"  id="yesConditionDevTime" value="true">
+                                <label class="control-label" for="yesConditionDevTime" i18n="messages.confirm.button.yes"></label>
+                                <input type="radio" name="conditionDevTime" id="noConditionDevTime" value="false">
+                                <label class="control-label" for="noConditionDevTime" i18n="messages.confirm.button.no"></label>
+                            </div>
+                        </div>
+                    </div>
+                <% } %>
                 <div class="form-group row mt-2">
                     <label for="selAccidentState" class="col-sm-3 col-form-label" i18n="order.additionalInfo.accidentState"></label>
                     <div class="col-sm-2 col-md-2">

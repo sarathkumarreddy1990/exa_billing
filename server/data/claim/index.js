@@ -218,6 +218,7 @@ module.exports = {
                                         COALESCE(NULLIF(order_info->'oa',''), 'false')::boolean AS is_other_accident,
                                         COALESCE(NULLIF(order_info->'aa',''), 'false')::boolean AS is_auto_accident,
                                         COALESCE(NULLIF(order_info->'emp',''), 'false')::boolean AS is_employed,
+                                        COALESCE(NULLIF(order_info->'conditionDevOverTime',''), 'false')::boolean AS can_wcb_has_condition_developed_over_time,
                                         COALESCE(NULLIF(order_info->'accident_state',''), '') AS accident_state,
                                         referring_provider.ref_prov_full_name,
                                         referring_provider.referring_provider_contact_id,
@@ -684,6 +685,7 @@ module.exports = {
                     , c.is_auto_accident
                     , c.is_other_accident
                     , c.is_employed
+                    , c.can_wcb_has_condition_developed_over_time
                     , c.accident_state
                     , c.service_by_outside_lab
                     , c.payer_type
@@ -1207,8 +1209,10 @@ module.exports = {
                 FROM
                     billing.claims c
                 `;
+
             sql.append(joinQuery);
             sql.append(whereQuery);
+
             sql.append(SQL`
                 ORDER BY claim_id DESC
                 LIMIT ${pageSize}
