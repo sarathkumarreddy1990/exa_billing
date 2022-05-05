@@ -272,7 +272,8 @@ define('grid', [
                         var can_show_wcb_claim_status = (app.billingRegionCode === "can_AB" && insurance_provider.toLocaleLowerCase() === "workers compensation board"
                                                         && commonjs.can_ab_claim_status.indexOf(claimStatus.code) == -1
                                                         && commonjs.can_ab_wcb_claim_status.indexOf(claimStatus.code) == -1);
-                        var can_show_other_claim_status = (insurance_provider.toLocaleLowerCase() != "workers compensation board" && commonjs.can_ab_wcb_claim_status.indexOf(claimStatus.code) > -1);
+                        var can_show_other_claim_status = ((app.billingRegionCode != "can_AB" || insurance_provider.toLocaleLowerCase() != "workers compensation board")
+                                                        && commonjs.can_ab_wcb_claim_status.indexOf(claimStatus.code) > -1);
 
                         if ((app.billingRegionCode === 'can_MB' && claimStatus.code === 'P77') || (app.billingRegionCode === 'can_BC' && claimStatus.code === 'OH')
                             || can_show_wcb_claim_status || can_show_other_claim_status) {
