@@ -58,7 +58,18 @@ module.exports = {
         return await query(insur_sql);
     },
     getProviders: async function (params) {
-        let provider_search = ` AND (p.full_name ILIKE '%${params.q}%' OR p.provider_code ILIKE '%${params.q}%' ) `;
+        let {
+            q,
+            page,
+            pageSize,
+            sortField,
+            sortOrder,
+            company_id,
+            billingRegion,
+            provider_type
+        } = params;
+
+        let provider_search = ` AND (p.full_name ILIKE '%${q}%' OR p.provider_code ILIKE '%${q}%' ) `;
 
         const sql_provider = SQL`
             SELECT
@@ -80,20 +91,25 @@ module.exports = {
             WHERE
                 p.deleted_dt IS NULL
                 AND pc.deleted_dt IS NULL
+                AND pc.is_active
                 AND p.is_active /* public.providers.is_active */
-                AND p.company_id = ${params.company_id}
-                AND p.provider_type = ${params.provider_type}
+                AND p.company_id = ${company_id}
+                AND p.provider_type = ${provider_type}
                 AND NOT p.sys_provider -- we dont want system providers
         `; // provider_contacts.has_deleted
+
+        if (billingRegion === 'can_AB' && provider_type === 'RF') {
+            sql_provider.append(SQL` AND pc.is_primary`);
+        }
 
         if (params.q != '') {
             sql_provider.append(provider_search);
         }
 
-        sql_provider.append(SQL` ORDER BY  ${params.sortField} `)
-            .append(params.sortOrder)
-            .append(SQL` LIMIT ${params.pageSize}`)
-            .append(SQL` OFFSET ${((params.page - 1) * params.pageSize)}`);
+        sql_provider.append(SQL` ORDER BY  ${sortField} `)
+            .append(sortOrder)
+            .append(SQL` LIMIT ${pageSize}`)
+            .append(SQL` OFFSET ${((page - 1) * pageSize)}`);
 
         return await query(sql_provider);
     },
