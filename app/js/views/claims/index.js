@@ -1187,6 +1187,7 @@ define(['jquery',
                 var referringProvider = referringProviderFullName || self.usermessage.selectStudyRefProvider;
 
                 self.ACSelect.readPhy.contact_id = claim_data.rendering_provider_contact_id || claim_data.fac_rendering_provider_contact_id || null;
+                self.ACSelect.skillCodes.ID = claim_data.can_ahs_skill_code_id || null;
 
                 self.ordering_facility_id = claim_data.ordering_facility_id || claim_data.service_facility_id || null;
                 self.ordering_facility_name = orderingFacility;
@@ -2948,6 +2949,7 @@ define(['jquery',
                         success: function (data, response) {
                             var skillCodes = data && data.result || [];
                             self.providerSkillCodesCount = skillCodes.length;
+                            self.ACSelect.skillCodes.ID = null;
                             if (skillCodes.length === 1) {
                                 $('#select2-ddlSkillCodes-container').text(skillCodes[0].code);
                                 self.ACSelect.skillCodes.ID = skillCodes[0].skill_code_id;
@@ -4055,8 +4057,9 @@ define(['jquery',
                 }
 
                 if (app.billingRegionCode === 'can_AB' && (currentPayer_type === "PIP" && self.priInsCode === "AHS")) {
-                    can_ahs_skill_code_id = self.providerSkillCodesCount > 1 && self.ACSelect && self.ACSelect.skillCodes
-                                            ? self.ACSelect.skillCodes.ID : null;
+                    can_ahs_skill_code_id = (self.ACSelect && self.ACSelect.skillCodes)
+                                            ? self.ACSelect.skillCodes.ID
+                                            : null;
                 }
 
                 var can_ahs_pay_to_code = $('#ddlPayToCode').val();
