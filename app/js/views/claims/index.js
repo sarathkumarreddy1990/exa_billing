@@ -1166,17 +1166,20 @@ define(['jquery',
                 var renderingProvider = renderingProviderFullName || self.usermessage.selectStudyReadPhysician;
                 var orderingFacility = claim_data.ordering_facility_name || claim_data.service_facility_name || self.usermessage.selectOrdFacility;
                 var referringProviderNpi;
+                var is_pri_ref_contact;
 
                 if (claim_data.ordering_provider_contact_id) {
                     self.ACSelect.refPhy.contact_id = claim_data.ordering_provider_contact_id || null;
                     self.ACSelect.refPhy.Code = claim_data.ord_prov_code || null;
                     self.ACSelect.refPhy.Desc = claim_data.ord_prov_full_name;
                     referringProviderNpi = claim_data.ordering_prov_npi_no;
+                    is_pri_ref_contact = claim_data.is_pri_ord_provider;
                 } else {
                     self.ACSelect.refPhy.contact_id = claim_data.referring_provider_contact_id || null;
                     self.ACSelect.refPhy.Code = claim_data.ref_prov_code || null;
                     self.ACSelect.refPhy.Desc = claim_data.ref_prov_full_name;
                     referringProviderNpi = claim_data.referring_prov_npi_no;
+                    is_pri_ref_contact = claim_data.is_pri_ref_provider;
                 }
 
                 var referringProviderFullName = self.ACSelect.refPhy.Desc;
@@ -1185,7 +1188,15 @@ define(['jquery',
                     referringProviderFullName = referringProviderFullName + ' ' + referringProviderNpi;
                 }
 
-                var referringProvider = referringProviderFullName || self.usermessage.selectStudyRefProvider;
+                var referringProvider;
+
+                if (app.billingRegionCode !== 'can_AB') {
+                    referringProvider = referringProviderFullName || self.usermessage.selectStudyRefProvider;
+                } else {
+                    referringProvider = is_pri_ref_contact
+                        ? referringProviderFullName
+                        : self.usermessage.selectStudyRefProvider;
+                }
 
                 self.ACSelect.readPhy.contact_id = claim_data.rendering_provider_contact_id || claim_data.fac_rendering_provider_contact_id || null;
 
@@ -2874,7 +2885,8 @@ define(['jquery',
                                 pageSize: 10,
                                 sortField: "p.last_name",
                                 sortOrder: "asc",
-                                company_id: app.companyID
+                                company_id: app.companyID,
+                                billingRegion: app.billingRegionCode
                             };
                         },
                         processResults: function (data, params) {
