@@ -638,6 +638,7 @@ const api = {
                  WHEN (claims.frequency != 'corrected' OR claims.frequency IS NULL)
                  THEN 'new_claim'
               END) AS claim_action`,
+            `ins_prov.insurance_code`,
             `ins_prov.insurance_name AS insurance_providers`,
             `patient_alt_accounts.pid_alt_account`,
             `patient_alt_accounts.phn_alt_account`,

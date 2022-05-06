@@ -189,7 +189,8 @@ define('grid', [
             var order_id = 0;
             var isbilled_status = false;
             var isUnbilled_status = false;
-            var insurance_provider = gridData.insurance_providers || '';
+            var insurance_code = gridData.insurance_code || '';
+            var insurance_codes = [];
 
             for (var r = 0; r < selectedCount; r++) {
                 var rowId = $checkedInputs[r].parentNode.parentNode.id;
@@ -197,6 +198,11 @@ define('grid', [
                 var gridData = $(gridID).jqGrid('getRowData', rowId);
                 studyArray.push(rowId);
                 orderIds.push(_storeEle.order_id);
+                insurance_code = _storeEle.insurance_code && _storeEle.insurance_code.toLocaleLowerCase() || '';
+
+                if (insurance_code && insurance_codes.indexOf(insurance_code) == -1) {
+                    insurance_codes.push(insurance_code);
+                }
                 var study = {
                     study_id: rowId,
                     patient_id: gridData.hidden_patient_id,
@@ -269,14 +275,21 @@ define('grid', [
 
                     // Claim status updation
                     $.each(app.claim_status, function (index, claimStatus) {
-                        var can_show_wcb_claim_status = (app.billingRegionCode === "can_AB" && insurance_provider.toLocaleLowerCase() === "workers compensation board"
+                        var can_show_wcb_claim_status = (app.billingRegionCode === "can_AB"
+                                                        && (insurance_code.toLocaleLowerCase() === "wcb"
+                                                            || (insurance_codes.length == 1 && insurance_codes[0] === "wcb"))
                                                         && commonjs.can_ab_claim_status.indexOf(claimStatus.code) == -1
                                                         && commonjs.can_ab_wcb_claim_status.indexOf(claimStatus.code) == -1);
-                        var can_show_other_claim_status = ((app.billingRegionCode != "can_AB" || insurance_provider.toLocaleLowerCase() != "workers compensation board")
+                        var can_show_other_claim_status = ((app.billingRegionCode != "can_AB"
+                                                        || (insurance_code.toLocaleLowerCase() != "wcb"
+                                                            || (insurance_codes.length == 1 && insurance_codes[0] != "wcb")))
                                                         && commonjs.can_ab_wcb_claim_status.indexOf(claimStatus.code) > -1);
+                        var can_show_common_claim_status = (selectedCount > 1 && app.billingRegionCode === "can_AB"
+                                                        && insurance_codes.indexOf('wcb') > -1 && insurance_codes.indexOf('ahs') > -1
+                                                        && commonjs.can_ab_claim_status.indexOf(claimStatus.code) == -1);
 
                         if ((app.billingRegionCode === 'can_MB' && claimStatus.code === 'P77') || (app.billingRegionCode === 'can_BC' && claimStatus.code === 'OH')
-                            || can_show_wcb_claim_status || can_show_other_claim_status) {
+                            || can_show_wcb_claim_status || can_show_other_claim_status || can_show_common_claim_status) {
                             return;
                         }
 
