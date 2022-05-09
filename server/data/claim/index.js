@@ -221,10 +221,12 @@ module.exports = {
                                         COALESCE(NULLIF(order_info->'accident_state',''), '') AS accident_state,
                                         referring_provider.ref_prov_full_name,
                                         referring_provider.referring_provider_contact_id,
+                                        referring_provider.is_pri_ref_provider,
                                         referring_provider.specialities,
                                         referring_provider.referring_prov_npi_no,
                                         ordering_provider.ord_prov_full_name,
                                         ordering_provider.ordering_provider_contact_id,
+                                        ordering_provider.is_pri_ord_provider,
                                         ordering_provider.specialities,
                                         ordering_provider.ordering_prov_npi_no,
                                         studies_details.referring_pro_study_desc,
@@ -300,6 +302,7 @@ module.exports = {
                                         LEFT JOIN LATERAL (
                                             SELECT
                                                 pc.id AS referring_provider_contact_id,
+                                                pc.is_primary AS is_pri_ref_provider,
                                                 p.full_name AS ref_prov_full_name,
                                                 p.specialities,
                                                 p.provider_info->'NPI' AS referring_prov_npi_no
@@ -316,6 +319,7 @@ module.exports = {
                                         LEFT JOIN LATERAL (
                                             SELECT
                                                 pc.id AS ordering_provider_contact_id,
+                                                pc.is_primary AS is_pri_ord_provider,
                                                 p.full_name AS ord_prov_full_name,
                                                 p.specialities,
                                                 p.provider_info->'NPI' AS ordering_prov_npi_no
@@ -731,6 +735,7 @@ module.exports = {
                     , ref_pr.provider_code AS ref_prov_code
                     , ref_pr.provider_info->'NPI' AS referring_prov_npi_no
                     , ref_pr.specialities
+                    , ref_pc.is_primary AS is_pri_ref_provider
                     , rend_pr.full_name AS reading_phy_full_name
                     , rend_pr.provider_info->'NPI' AS rendering_prov_npi_no
                     , pof.address_line_1 AS service_facility_addressLine1
