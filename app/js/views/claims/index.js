@@ -1080,8 +1080,16 @@ define(['jquery',
                 /* Claim section start*/
 
                 var renderingProvider = claim_data.fac_reading_phy_full_name || claim_data.reading_phy_full_name || self.usermessage.selectStudyReadPhysician;
-                var referringProvider = claim_data.ref_prov_full_name || self.usermessage.selectStudyRefProvider;
                 var orderingFacility = claim_data.ordering_facility_name || claim_data.service_facility_name || self.usermessage.selectOrdFacility;
+                var referringProvider;
+
+                if (app.billingRegionCode !== 'can_AB') {
+                    referringProvider = referringProviderFullName || self.usermessage.selectStudyRefProvider;
+                } else {
+                    referringProvider = claim_data.is_pri_ref_provider
+                        ? referringProviderFullName
+                        : self.usermessage.selectStudyRefProvider;
+                }
 
                 if ( app.country_alpha_3_code === "can" && app.province_alpha_2_code === "AB" ) {
                     self.ACSelect.readPhy.contact_id = claim_data.rendering_provider_contact_id || null;
@@ -2711,7 +2719,8 @@ define(['jquery',
                                 pageSize: 10,
                                 sortField: "p.last_name",
                                 sortOrder: "asc",
-                                company_id: app.companyID
+                                company_id: app.companyID,
+                                billingRegion: app.billingRegionCode
                             };
                         },
                         processResults: function (data, params) {
