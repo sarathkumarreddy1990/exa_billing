@@ -90,6 +90,7 @@ module.exports = {
                     provider_contacts pc ON pc.provider_id = p.id
             WHERE
                 p.deleted_dt IS NULL
+                AND pc.is_active
                 AND pc.deleted_dt IS NULL
                 AND pc.is_active
                 AND p.is_active /* public.providers.is_active */
