@@ -196,7 +196,8 @@
                                 <select class="form-control select-box" id="ddlClaimStatus" style="height:32px;">
                                     <option value="">Select</option>
                                     <% _.each(claim_statuses, function(claimStatus) { %>
-                                        <option value='<%= claimStatus.id %>' data-desc='<%= claimStatus.code %>'>
+                                        <option value='<%= claimStatus.id %>' data-desc='<%= claimStatus.code %>'
+                                            class='<%= can_ab_claim_status.indexOf(claimStatus.code) > -1 ? "can_ab" : "" %><%= can_ab_wcb_claim_status.indexOf(claimStatus.code) > -1 ? " can_ab_wcb" : "" %>'>
                                             <%= claimStatus.description %>
                                         </option>
                                         <% }); %>

@@ -220,7 +220,8 @@ define('grid', [
                     billing_method: _storeEle.billing_method,
                     claim_resubmission_flag: _storeEle.claim_resubmission_flag,
                     claim_balance: _storeEle.claim_balance,
-                    claim_dt: gridData.claim_dt
+                    claim_dt: gridData.claim_dt,
+                    insurance_code: insurance_code
                 };
                 if (gridData.billed_status && gridData.billed_status.toLocaleLowerCase() == 'billed') {
                     isbilled_status = true;
@@ -2105,7 +2106,21 @@ define('grid', [
                 });
 
                 if (gridData.hidden_billing_method === 'electronic_billing') {
+                    var insurance_code;
+                    var insurance_codes = [];
+
+                    for( var i=0; i < selectedStudies.length; i++) {
+                        insurance_code = selectedStudies[i].insurance_code && selectedStudies[i].insurance_code.toLocaleLowerCase() || '';
+
+                        if (insurance_code && insurance_codes.indexOf(insurance_code) == -1) {
+                            insurance_codes.push(insurance_code);
+                        }
+                    }
                     $('#li_ul_change_claim_status').hide();
+
+                    if (insurance_codes.indexOf('wcb') > -1 && insurance_codes.indexOf('ahs') > -1) {
+                        return;
+                    }
 
                     var resubmissionFlag = selectedStudies.length === selectedStudies.filter(function (e) {
                         return isClaimGrid && e.claim_resubmission_flag;
@@ -2113,7 +2128,9 @@ define('grid', [
 
                     var validClaimStatusArray = ['APP', 'AOP', 'PIF', 'R', 'D', 'BR', 'AD', 'ADP', 'ARP', 'OH', 'PA', 'PS', 'PP'];
 
-                    if (validClaimStatusArray.indexOf(gridData.hidden_claim_status_code) !== -1 || resubmissionFlag) {
+                    if ((insurance_codes.length == 1 && insurance_codes[0] === 'ahs' && validClaimStatusArray.indexOf(gridData.hidden_claim_status_code) !== -1)
+                        || (insurance_codes.length == 1 && insurance_codes[0] === 'wcb')
+                        || resubmissionFlag) {
                         $('#li_ul_change_claim_status').show();
                     }
                 }
