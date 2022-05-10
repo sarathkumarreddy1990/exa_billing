@@ -837,6 +837,7 @@ define(['jquery',
                             $('#btnSaveClaim').prop('disabled', false);
                             /* Bind claim charge Details - start */
                             $('#tBodyCharge').empty();
+                            $('.claim-summary').remove();
                             claimDetails.claim_charges = claimDetails.claim_charges || [];
                             self.claimChargeList = [];
                             self.referralCodesList = [];
