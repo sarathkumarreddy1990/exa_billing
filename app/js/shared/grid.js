@@ -2109,7 +2109,7 @@ define('grid', [
                     var insurance_code;
                     var insurance_codes = [];
 
-                    for( var i=0; i < selectedStudies.length; i++) {
+                    for (var i=0; i < selectedStudies.length; i++) {
                         insurance_code = selectedStudies[i].insurance_code && selectedStudies[i].insurance_code.toLocaleLowerCase() || '';
 
                         if (insurance_code && insurance_codes.indexOf(insurance_code) == -1) {
