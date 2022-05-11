@@ -189,6 +189,8 @@ define('grid', [
             var order_id = 0;
             var isbilled_status = false;
             var isUnbilled_status = false;
+            var insurance_code = gridData.insurance_code || '';
+            var insurance_codes = [];
 
             for (var r = 0; r < selectedCount; r++) {
                 var rowId = $checkedInputs[r].parentNode.parentNode.id;
@@ -196,6 +198,11 @@ define('grid', [
                 var gridData = $(gridID).jqGrid('getRowData', rowId);
                 studyArray.push(rowId);
                 orderIds.push(_storeEle.order_id);
+                insurance_code = _storeEle.insurance_code && _storeEle.insurance_code.toLocaleLowerCase() || '';
+
+                if (insurance_code && insurance_codes.indexOf(insurance_code) == -1) {
+                    insurance_codes.push(insurance_code);
+                }
                 var study = {
                     study_id: rowId,
                     patient_id: gridData.hidden_patient_id,
@@ -213,7 +220,8 @@ define('grid', [
                     billing_method: _storeEle.billing_method,
                     claim_resubmission_flag: _storeEle.claim_resubmission_flag,
                     claim_balance: _storeEle.claim_balance,
-                    claim_dt: gridData.claim_dt
+                    claim_dt: gridData.claim_dt,
+                    insurance_code: insurance_code
                 };
                 if (gridData.billed_status && gridData.billed_status.toLocaleLowerCase() == 'billed') {
                     isbilled_status = true;
@@ -268,7 +276,21 @@ define('grid', [
 
                     // Claim status updation
                     $.each(app.claim_status, function (index, claimStatus) {
-                        if ((app.billingRegionCode === 'can_MB' && claimStatus.code === 'P77') || (app.billingRegionCode === 'can_BC' && claimStatus.code === 'OH')) {
+                        var can_show_wcb_claim_status = (app.billingRegionCode === "can_AB"
+                                                        && (insurance_code.toLocaleLowerCase() === "wcb"
+                                                            || (insurance_codes.length == 1 && insurance_codes[0] === "wcb"))
+                                                        && commonjs.can_ab_claim_status.indexOf(claimStatus.code) == -1
+                                                        && commonjs.can_ab_wcb_claim_status.indexOf(claimStatus.code) == -1);
+                        var can_show_other_claim_status = ((app.billingRegionCode != "can_AB"
+                                                        || (insurance_code.toLocaleLowerCase() != "wcb"
+                                                            || (insurance_codes.length == 1 && insurance_codes[0] != "wcb")))
+                                                        && commonjs.can_ab_wcb_claim_status.indexOf(claimStatus.code) > -1);
+                        var can_show_common_claim_status = (selectedCount > 1 && app.billingRegionCode === "can_AB"
+                                                        && insurance_codes.indexOf('wcb') > -1 && insurance_codes.indexOf('ahs') > -1
+                                                        && commonjs.can_ab_claim_status.indexOf(claimStatus.code) == -1);
+
+                        if ((app.billingRegionCode === 'can_MB' && claimStatus.code === 'P77') || (app.billingRegionCode === 'can_BC' && claimStatus.code === 'OH')
+                            || can_show_wcb_claim_status || can_show_other_claim_status || can_show_common_claim_status) {
                             return;
                         }
 
@@ -2084,7 +2106,21 @@ define('grid', [
                 });
 
                 if (gridData.hidden_billing_method === 'electronic_billing') {
+                    var insurance_code;
+                    var insurance_codes = [];
+
+                    for (var i=0; i < selectedStudies.length; i++) {
+                        insurance_code = selectedStudies[i].insurance_code && selectedStudies[i].insurance_code.toLocaleLowerCase() || '';
+
+                        if (insurance_code && insurance_codes.indexOf(insurance_code) == -1) {
+                            insurance_codes.push(insurance_code);
+                        }
+                    }
                     $('#li_ul_change_claim_status').hide();
+
+                    if (insurance_codes.indexOf('wcb') > -1 && insurance_codes.indexOf('ahs') > -1) {
+                        return;
+                    }
 
                     var resubmissionFlag = selectedStudies.length === selectedStudies.filter(function (e) {
                         return isClaimGrid && e.claim_resubmission_flag;
@@ -2092,7 +2128,9 @@ define('grid', [
 
                     var validClaimStatusArray = ['APP', 'AOP', 'PIF', 'R', 'D', 'BR', 'AD', 'ADP', 'ARP', 'OH', 'PA', 'PS', 'PP'];
 
-                    if (validClaimStatusArray.indexOf(gridData.hidden_claim_status_code) !== -1 || resubmissionFlag) {
+                    if ((insurance_codes.length == 1 && insurance_codes[0] === 'ahs' && validClaimStatusArray.indexOf(gridData.hidden_claim_status_code) !== -1)
+                        || (insurance_codes.length == 1 && insurance_codes[0] === 'wcb')
+                        || resubmissionFlag) {
                         $('#li_ul_change_claim_status').show();
                     }
                 }

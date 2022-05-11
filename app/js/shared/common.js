@@ -488,6 +488,10 @@ var commonjs = {
 
     limitedKeyCodesAfterShift: [187, 188, 190],
 
+    can_ab_claim_status: ["PV", "PS", "PP", "PIF", "OP", "D"],
+
+    can_ab_wcb_claim_status: ["DEL", "ISS", "PAE", "PGA", "PGD", "REJ", "REQ"],
+
     winPosComplete: true,
     getMessage: function (type, fieldName) {
         switch (type) {

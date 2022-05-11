@@ -1793,7 +1793,9 @@ define(['jquery',
                     patient_paid: patient_paid,
                     others_paid: others_paid,
                     claim_statuses: self.claimStatuses.toJSON(),
-                    billingRegionCode: app.billingRegionCode
+                    billingRegionCode: app.billingRegionCode,
+                    can_ab_claim_status: commonjs.can_ab_claim_status,
+                    can_ab_wcb_claim_status: commonjs.can_ab_wcb_claim_status
                 });
                 var _showDialogObj = {
                     header: casDialogHeader,
@@ -2025,7 +2027,8 @@ define(['jquery',
                                     id: payerObj.primary,
                                     text: payerObj.primary_ins_provider_name + '(' + payerObj.primary_ins_provider_code + ')(Primary Insurance)',
                                     payer_type: 'primary_insurance',
-                                    selected: payerObj.payer_type === 'primary_insurance'
+                                    selected: payerObj.payer_type === 'primary_insurance',
+                                    code: payerObj.primary_ins_provider_code
                                 });
                             }
 
@@ -2034,7 +2037,8 @@ define(['jquery',
                                     id: payerObj.secondary,
                                     text: payerObj.secondary_ins_provider_name + '(' + payerObj.secondary_ins_provider_code + ')(Secondary Insurance)',
                                     payer_type: 'secondary_insurance',
-                                    selected: payerObj.payer_type === 'secondary_insurance'
+                                    selected: payerObj.payer_type === 'secondary_insurance',
+                                    code: payerObj.secondary_ins_provider_code
                                 });
                             }
 
@@ -2043,7 +2047,8 @@ define(['jquery',
                                     id: payerObj.tertiary,
                                     text: payerObj.tertiary_ins_provider_name + '(' + payerObj.tertiary_ins_provider_code + ')(Tertiary Insurance)',
                                     payer_type: 'tertiary_insurance',
-                                    selected: payerObj.payer_type === 'tertiary_insurance'
+                                    selected: payerObj.payer_type === 'tertiary_insurance',
+                                    code: payerObj.tertiary_ins_provider_code
                                 });
                             }
 
@@ -2078,13 +2083,14 @@ define(['jquery',
                                     selected: true,
                                     is_edit: isEdit
                                 });
-
+                                self.displayClaimStatusByProvider(data && data.code);
                                 return data.text;
                             }
                         })
                         .on('select2:selecting', function (event) {
                             $(event.target).find('option').removeAttr('selected');
                             $(event.target).find('option').removeAttr('is_edit');
+                            self.displayClaimStatusByProvider(event.params.args.data && event.params.args.data.code);
                         });
 
                         self.received_claim_status_id = payerTypes && payerTypes[0].claim_status_id
@@ -3697,7 +3703,21 @@ define(['jquery',
                     });
                     $('#contentPaymentCAS').append(element);
                 }
-            }
+            },
+
+            displayClaimStatusByProvider: function(primary_insurance_code) {
+                var claimStatusOption = '#ddlClaimStatus option';
+
+                if (app.billingRegionCode === "can_AB" && primary_insurance_code && primary_insurance_code.toLowerCase() === "wcb") {
+                    $(claimStatusOption).hide();
+                    $(claimStatusOption + '.can_ab').show();
+                    $(claimStatusOption + '.can_ab_wcb').show();
+                }
+                else {
+                    $(claimStatusOption).show();
+                    $(claimStatusOption + '.can_ab_wcb').hide();
+                }
+            },
 
         });
     });
