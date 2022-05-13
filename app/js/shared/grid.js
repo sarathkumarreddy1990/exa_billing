@@ -277,17 +277,16 @@ define('grid', [
                     // Claim status updation
                     $.each(app.claim_status, function (index, claimStatus) {
                         var can_show_wcb_claim_status = (app.billingRegionCode === "can_AB"
-                                                        && (insurance_code.toLocaleLowerCase() === "wcb"
-                                                            || (insurance_codes.length == 1 && insurance_codes[0] === "wcb"))
+                                                        && (insurance_codes.length == 1 && insurance_codes[0] === "wcb")
                                                         && commonjs.can_ab_claim_status.indexOf(claimStatus.code) == -1
                                                         && commonjs.can_ab_wcb_claim_status.indexOf(claimStatus.code) == -1);
                         var can_show_other_claim_status = ((app.billingRegionCode != "can_AB"
-                                                        || (insurance_code.toLocaleLowerCase() != "wcb"
-                                                            || (insurance_codes.length == 1 && insurance_codes[0] != "wcb")))
+                                                        || (insurance_codes.length == 1 && insurance_codes[0] != "wcb"))
                                                         && commonjs.can_ab_wcb_claim_status.indexOf(claimStatus.code) > -1);
                         var can_show_common_claim_status = (selectedCount > 1 && app.billingRegionCode === "can_AB"
                                                         && insurance_codes.indexOf('wcb') > -1 && insurance_codes.indexOf('ahs') > -1
-                                                        && commonjs.can_ab_claim_status.indexOf(claimStatus.code) == -1);
+                                                        && commonjs.can_ab_common_claim_status.indexOf(claimStatus.code) == -1
+                                                        && claimStatus.is_system_status );
 
                         if ((app.billingRegionCode === 'can_MB' && claimStatus.code === 'P77') || (app.billingRegionCode === 'can_BC' && claimStatus.code === 'OH')
                             || can_show_wcb_claim_status || can_show_other_claim_status || can_show_common_claim_status) {
@@ -2118,18 +2117,14 @@ define('grid', [
                     }
                     $('#li_ul_change_claim_status').hide();
 
-                    if (insurance_codes.indexOf('wcb') > -1 && insurance_codes.indexOf('ahs') > -1) {
-                        return;
-                    }
-
                     var resubmissionFlag = selectedStudies.length === selectedStudies.filter(function (e) {
                         return isClaimGrid && e.claim_resubmission_flag;
                     }).length;
 
                     var validClaimStatusArray = ['APP', 'AOP', 'PIF', 'R', 'D', 'BR', 'AD', 'ADP', 'ARP', 'OH', 'PA', 'PS', 'PP'];
 
-                    if ((insurance_codes.length == 1 && insurance_codes[0] === 'ahs' && validClaimStatusArray.indexOf(gridData.hidden_claim_status_code) !== -1)
-                        || (insurance_codes.length == 1 && insurance_codes[0] === 'wcb')
+                    if ((insurance_codes.length && insurance_codes.indexOf("ahs") > -1 && validClaimStatusArray.indexOf(gridData.hidden_claim_status_code) !== -1)
+                        || (insurance_codes.length && insurance_codes.indexOf("wcb") > -1)
                         || resubmissionFlag) {
                         $('#li_ul_change_claim_status').show();
                     }

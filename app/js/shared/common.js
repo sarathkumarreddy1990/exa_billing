@@ -492,6 +492,8 @@ var commonjs = {
 
     can_ab_wcb_claim_status: ["DEL", "ISS", "PAE", "PGA", "PGD", "REJ", "REQ"],
 
+    can_ab_common_claim_status: ["PS", "PV", "PP"],
+
     winPosComplete: true,
     getMessage: function (type, fieldName) {
         switch (type) {
