@@ -324,7 +324,8 @@ define(['jquery',
                         isSplitClaim: app.isMobileBillingEnabled,
                         delayReasons: app.delay_reasons,
                         can_ab_claim_status: commonjs.can_ab_claim_status,
-                        can_ab_wcb_claim_status: commonjs.can_ab_wcb_claim_status
+                        can_ab_wcb_claim_status: commonjs.can_ab_wcb_claim_status,
+                        originalRef: app.billingRegionCode === "can_AB" ? "billing.payments.wcbClaimNumber" : "billing.claims.originalRef"
                     })
                 });
 
@@ -1328,6 +1329,10 @@ define(['jquery',
                 $('#frequency').val(claim_data.frequency || '');
                 $('#selAccidentState').val(claim_data.accident_state).prop('disabled', !isCauseCode);
 
+                if (app.billingRegionCode === "can_AB" && claim_data.original_reference ) {
+                    $("#lblOriginalRef").text(commonjs.geti18NString("billing.payments.wcbClaimNumber")).append("<span class='Required' style='color: red;padding-left: 5px;'>*</span>");
+                }
+
                 if (['can_BC', 'can_AB'].indexOf(app.billingRegionCode) !== -1) {
 
                     var areaOfInjuryCode = _.find(app.wcb_area_code, {
@@ -1889,6 +1894,7 @@ define(['jquery',
             toggleOtherClaimNumber: function() {
                 var originalRef = commonjs.geti18NString("billing.claims.originalRef");
                 var otherClaimNumber = commonjs.geti18NString("billing.payments.otherClaimNumber");
+                var wcbClaimNumber = commonjs.geti18NString("billing.payments.wcbClaimNumber");
 
                 if (app.billingRegionCode === 'can_BC'){
                     $("#lblOriginalRef").text(otherClaimNumber);
@@ -1898,6 +1904,16 @@ define(['jquery',
                 if (app.billingRegionCode === 'can_BC' && ($('#chkEmployment').prop('checked') || $('#chkAutoAccident').prop('checked'))) {
                     $("#lblOriginalRef").text(otherClaimNumber).append("<span class='Required' style='color: red;padding-left: 5px;'>*</span>");
                     $("#txtOriginalRef").attr({ 'placeholder': otherClaimNumber, 'maxlength': 8 });
+                }
+                else if (app.billingRegionCode === "can_AB") {
+
+                    if ($('#chkEmployment').prop('checked')) {
+                        $("#lblOriginalRef").text(wcbClaimNumber).append("<span class='Required' style='color: red;padding-left: 5px;'>*</span>");
+                    }
+                    else {
+                        $("#lblOriginalRef").text(wcbClaimNumber);
+                    }
+                    $("#txtOriginalRef").attr({ 'placeholder': wcbClaimNumber});
                 }
                 else {
                     $('#lblOriginalRef').removeClass('field-required').text(originalRef);
@@ -4474,6 +4490,12 @@ define(['jquery',
                             return false;
                         }
                     }
+                }
+
+                if (app.billingRegionCode === 'can_AB' && $('#chkEmployment').prop('checked') && !commonjs.checkNotEmpty($('#txtOriginalRef').val())) {
+                    commonjs.showWarning("messages.warning.shared.originalRef");
+                    $('#txtOriginalRef').focus();
+                    return false;
                 }
 
                 if ((!$('#txtEncounterNo').val() || $('#txtEncounterNo').val() == 0) && app.billingRegionCode === 'can_AB') {
