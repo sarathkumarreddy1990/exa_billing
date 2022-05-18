@@ -1895,6 +1895,7 @@ define(['jquery',
                 var originalRef = commonjs.geti18NString("billing.claims.originalRef");
                 var otherClaimNumber = commonjs.geti18NString("billing.payments.otherClaimNumber");
                 var wcbClaimNumber = commonjs.geti18NString("billing.payments.wcbClaimNumber");
+                var $lblOriginalRef = $("#lblOriginalRef");
 
                 if (app.billingRegionCode === 'can_BC'){
                     $("#lblOriginalRef").text(otherClaimNumber);
@@ -1908,12 +1909,14 @@ define(['jquery',
                 else if (app.billingRegionCode === "can_AB") {
 
                     if ($('#chkEmployment').prop('checked')) {
-                        $("#lblOriginalRef").text(wcbClaimNumber).append("<span class='Required' style='color: red;padding-left: 5px;'>*</span>");
+                        $lblOriginalRef.addClass('field-required');
                     }
                     else {
-                        $("#lblOriginalRef").text(wcbClaimNumber);
+                        $lblOriginalRef.removeClass('field-required');
                     }
+                    $lblOriginalRef.text(wcbClaimNumber);
                     $("#txtOriginalRef").attr({ 'placeholder': wcbClaimNumber});
+                    commonjs.updateCulture(app.currentCulture, commonjs.beautifyMe);
                 }
                 else {
                     $('#lblOriginalRef').removeClass('field-required').text(originalRef);
