@@ -324,8 +324,7 @@ define(['jquery',
                         isSplitClaim: app.isMobileBillingEnabled,
                         delayReasons: app.delay_reasons,
                         can_ab_claim_status: commonjs.can_ab_claim_status,
-                        can_ab_wcb_claim_status: commonjs.can_ab_wcb_claim_status,
-                        originalRef: app.billingRegionCode === "can_AB" ? "billing.payments.wcbClaimNumber" : "billing.claims.originalRef"
+                        can_ab_wcb_claim_status: commonjs.can_ab_wcb_claim_status
                     })
                 });
 
@@ -1329,10 +1328,6 @@ define(['jquery',
                 $('#frequency').val(claim_data.frequency || '');
                 $('#selAccidentState').val(claim_data.accident_state).prop('disabled', !isCauseCode);
 
-                if (app.billingRegionCode === "can_AB" && claim_data.original_reference ) {
-                    $("#lblOriginalRef").text(commonjs.geti18NString("billing.payments.wcbClaimNumber")).append("<span class='Required' style='color: red;padding-left: 5px;'>*</span>");
-                }
-
                 if (['can_BC', 'can_AB'].indexOf(app.billingRegionCode) !== -1) {
 
                     var areaOfInjuryCode = _.find(app.wcb_area_code, {
@@ -1892,36 +1887,21 @@ define(['jquery',
             },
 
             toggleOtherClaimNumber: function() {
-                var originalRef = commonjs.geti18NString("billing.claims.originalRef");
-                var otherClaimNumber = commonjs.geti18NString("billing.payments.otherClaimNumber");
-                var wcbClaimNumber = commonjs.geti18NString("billing.payments.wcbClaimNumber");
+                var $chkEmployment = $('#chkEmployment');
                 var $lblOriginalRef = $("#lblOriginalRef");
+                var $txtOriginalRef = $("#txtOriginalRef");
+                var can_AB_show_original_ref = app.billingRegionCode === "can_AB" && $chkEmployment.prop('checked');
+                var can_BC_show_original_ref = app.billingRegionCode === "can_BC" && ($chkEmployment.prop('checked') || $('#chkAutoAccident').prop('checked'));
 
-                if (app.billingRegionCode === 'can_BC'){
-                    $("#lblOriginalRef").text(otherClaimNumber);
-                    $("#txtOriginalRef").attr({ 'placeholder': otherClaimNumber});
-                }
-
-                if (app.billingRegionCode === 'can_BC' && ($('#chkEmployment').prop('checked') || $('#chkAutoAccident').prop('checked'))) {
-                    $("#lblOriginalRef").text(otherClaimNumber).append("<span class='Required' style='color: red;padding-left: 5px;'>*</span>");
-                    $("#txtOriginalRef").attr({ 'placeholder': otherClaimNumber, 'maxlength': 8 });
-                }
-                else if (app.billingRegionCode === "can_AB") {
-
-                    if ($('#chkEmployment').prop('checked')) {
-                        $lblOriginalRef.addClass('field-required');
-                    }
-                    else {
-                        $lblOriginalRef.removeClass('field-required');
-                    }
-                    $lblOriginalRef.text(wcbClaimNumber);
-                    $("#txtOriginalRef").attr({ 'placeholder': wcbClaimNumber});
-                    commonjs.updateCulture(app.currentCulture, commonjs.beautifyMe);
+                if (can_AB_show_original_ref || can_BC_show_original_ref) {
+                    $lblOriginalRef.addClass("field-required");
+                    can_BC_show_original_ref && $txtOriginalRef.attr('maxlength', 8);
                 }
                 else {
-                    $('#lblOriginalRef').removeClass('field-required').text(originalRef);
-                    $("#txtOriginalRef").attr('placeholder', originalRef).removeAttr('maxlength');
+                    $lblOriginalRef.removeClass("field-required");
+                    $txtOriginalRef.removeAttr('maxlength');
                 }
+                commonjs.updateCulture(app.currentCulture, commonjs.beautifyMe);
             },
 
             bindclaimFormEvents: function (isFrom) {
