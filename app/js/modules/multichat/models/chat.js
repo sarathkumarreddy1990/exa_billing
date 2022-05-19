@@ -33,7 +33,11 @@ define([
                 var chat_socket = io.connect(location, {
                     path: '/chat_socket',
                     forceNew: true,
-                    transports: ['websocket']
+                    transports: ['websocket'],
+                    query: {
+                        user_id: app.userID,
+                        session_id: app.sessionID
+                    }
                 });
                 this._chat_socket = chat_socket;
                 var callbackFired = false;
