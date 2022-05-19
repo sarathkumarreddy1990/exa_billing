@@ -774,11 +774,11 @@ module.exports = {
                     }
                 });
 
-                let payer_name = claimData.payerName && claimData.payerName.toLowerCase() || '';
+                let payer_code = claimData.payer_code && claimData.payer_code.toLowerCase() || '';
                 let payer_type = claimData.payer_type && claimData.payer_type.toLowerCase() || '';
 
-                if (payer_name.indexOf("workers compensation board") > -1 && payer_type.indexOf("primary_insurance") > -1
-                 && !claimData.original_reference) {
+                if (payer_code === "wcb" && payer_type === "primary_insurance"
+                    && !claimData.original_reference) {
                     errorMessages.push(`Claim - Missing data in WCB claim bumber field required by WCB`)
                  }
 
