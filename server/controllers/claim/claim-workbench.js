@@ -779,7 +779,7 @@ module.exports = {
 
                 if (payer_name.indexOf("workers compensation board") > -1 && payer_type.indexOf("primary_insurance") > -1
                  && !claimData.original_reference) {
-                    errorMessages.push(` Claim - Missing data in WCB claim bumber field required by WCB`)
+                    errorMessages.push(`Claim - Missing data in WCB claim bumber field required by WCB`)
                  }
 
             }
