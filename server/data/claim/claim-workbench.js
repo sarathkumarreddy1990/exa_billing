@@ -711,8 +711,13 @@ module.exports = {
                     LEFT JOIN public.providers pr on pr.id = pc.provider_id
                     WHERE bc.id = ANY(${claimIDs})
                     GROUP BY
-                          payer_name
-                        , payer `);
+                        bc.payer_type
+                        , p.full_name
+                        , pip.insurance_name
+                        , sip.insurance_name
+                        , tip.insurance_name
+                        , pof.name
+                        , pr.full_name `);
 
         return query(sql);
     },

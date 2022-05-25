@@ -222,7 +222,7 @@ module.exports = {
             term += '%';
 
             filterQuery.append(SQL`
-                AND cabr.description ILIKE ${term}
+                AND cabr.autobilling_rule_description ILIKE ${term}
             `);
         }
 
@@ -861,7 +861,7 @@ module.exports = {
                                   )::jsonb
                         , ${userId || 1}
                     ) AS audit_id
-                FROM update_cte uc `;        
+                FROM update_cte uc `;
 
         return await query(sql);
     },
@@ -1063,21 +1063,21 @@ module.exports = {
                     saveClaimParams.claims = [];
 
                     saveClaimParams.claims.push({
-                        ...claim, 
+                        ...claim,
                         claim_charges: claim.claim_charges,
                         billing_type: 'split_p'
                     });
-        
-                    // creating a technical claim since it is split claim 
+
+                    // creating a technical claim since it is split claim
                     let newCharges = [];
-                    
+
                     await Promise.all(claim.claim_charges.map(async (charge, index) => {
-                       
+
                         let modifier1 = charge.modifier1_id == professional_modifier_id ? technical_modifier_id : charge.modifier1_id;
                         let modifier2 = charge.modifier2_id == professional_modifier_id ? technical_modifier_id : charge.modifier2_id;
                         let modifier3 = charge.modifier3_id == professional_modifier_id ? technical_modifier_id : charge.modifier3_id;
                         let modifier4 = charge.modifier4_id == professional_modifier_id ? technical_modifier_id : charge.modifier4_id;
-        
+
                         newCharges.push({
                             ...claim.claim_charges[index],
                             modifier1_id: modifier1,
@@ -1088,8 +1088,8 @@ module.exports = {
                             allowed_amount: claim.claim_charges[index].is_custom_bill_fee  === 'true'  ? claim.claim_charges[index].allowed_amount : 0
                         });
                     }));
-        
-                    // EXA-22773 | For technical claim responsible must be ordering facility 
+
+                    // EXA-22773 | For technical claim responsible must be ordering facility
                     saveClaimParams.claims.push({
                         ...claim,
                         billing_method: 'direct_billing',
@@ -1098,7 +1098,7 @@ module.exports = {
                         billing_type: 'split_t',
                         place_of_service_id: claim.ord_fac_place_of_service
                     });
-        
+
                 } else {
                     saveClaimParams.claims = filteredClaims;
                 }
