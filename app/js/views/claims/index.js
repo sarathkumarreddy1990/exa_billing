@@ -467,6 +467,7 @@ define(['jquery',
                 self.hct.date();
                 self.priDOB = commonjs.bindDateTimePicker('divPriDOB', { format: 'L' });
                 self.priDOB.date();
+                commonjs.bindDateTimePicker('divDOF', { format: 'L' });
 
                 if (app.country_alpha_3_code !== 'can') {
                     self.benefitDate2 = commonjs.bindDateTimePicker('divBOD2', { format: 'L' });
@@ -1327,6 +1328,7 @@ define(['jquery',
                 $('#txtAuthorization').val(claim_data.authorization_no || '');
                 $('#frequency').val(claim_data.frequency || '');
                 $('#selAccidentState').val(claim_data.accident_state).prop('disabled', !isCauseCode);
+                $('#txtDateOfReferral').val(moment(claim_data.can_ahs_referral_date).format('L') || '');
 
                 if (['can_BC', 'can_AB'].indexOf(app.billingRegionCode) !== -1) {
 
@@ -1617,14 +1619,17 @@ define(['jquery',
             },
 
             toggleWCBInjuryTypes: function() {
+                var dateOfReferral =  $('#dateOfReferralDiv');
                 if ($('#chkEmployment').is(':checked')) {
                     $('#natureOfInjuryDiv').show();
                     $('#areaOfInjuryDiv').show();
                     $('#conditionDevTime_div').show();
+                    dateOfReferral.show();
                 } else {
                     $('#natureOfInjuryDiv').hide();
                     $('#areaOfInjuryDiv').hide();
                     $('#conditionDevTime_div').hide();
+                    dateOfReferral.hide();
                 }
             },
 
@@ -4097,6 +4102,7 @@ define(['jquery',
                 var claim_status_id = ~~$('#ddlClaimStatus').val() || null;
                 var claim_Study_date = $('#txtClaimDate').val();
                 var delayReasonId = $('#ddlDelayReasons option:selected').val();
+                var dateOfReferral = $('#txtDateOfReferral').val();
 
                 claim_model.claims = {
                     claim_id: self.claim_Id,
@@ -4133,6 +4139,7 @@ define(['jquery',
                     is_auto_accident: $('#chkAutoAccident').prop('checked'),
                     is_other_accident: $('#chkOtherAccident').prop('checked'),
                     is_employed: $('#chkEmployment').prop('checked'),
+                    can_ahs_referral_date: commonjs.checkNotEmpty(dateOfReferral) ? commonjs.getISODateString(dateOfReferral) : null,
                     can_wcb_has_condition_developed_over_time: ($('#chkEmployment').prop('checked') && $('input:radio[name=conditionDevTime]:checked').val()) || false,
                     accident_state: isCauseCode && $('#selAccidentState').val() || null,
                     service_by_outside_lab: $('#chkOutSideLab').prop('checked'),

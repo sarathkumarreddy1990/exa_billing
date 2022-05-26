@@ -1368,6 +1368,15 @@
                 </div>
                 <% } %>
                 <% if(billingRegionCode === 'can_AB') { %>
+                    <div class="form-group row wcb_injury" id="dateOfReferralDiv">
+                        <label for="txtDateOfReferral" class="col-sm-3 col-form-label" i18n="order.additionalInfo.dateOfReferral"></label>
+                        <div class="col-sm-4 input-group" id="divDOF">
+                            <input type="text" id="txtDateOfReferral" class="form-control form-control-date maskDateLocale" name="DateOFReferral" i18np="dateFormat">
+                            <span class="input-group-addon add-on divReferralDt">
+                                <i class="icon-ic-schedule"></i>
+                            </span>
+                        </div>
+                    </div>
                     <div class="form-group form-inline" id="conditionDevTime_div";>
                         <label class="col-form-label control-label"  i18n="order.additionalInfo.conditionDevelopOverTime"></label>
                         <div class="col-sm-3">
