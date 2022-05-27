@@ -1619,7 +1619,7 @@ define(['jquery',
             },
 
             toggleWCBInjuryTypes: function() {
-                var dateOfReferral =  $('#dateOfReferralDiv');
+                var dateOfReferral = $('#dateOfReferralDiv');
                 if ($('#chkEmployment').is(':checked')) {
                     $('#natureOfInjuryDiv').show();
                     $('#areaOfInjuryDiv').show();
