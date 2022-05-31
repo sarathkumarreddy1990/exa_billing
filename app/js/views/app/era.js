@@ -359,6 +359,7 @@ define([
                         switch(app.billingRegionCode) {
                             case 'can_MB':
                             case 'can_BC':
+                            case 'can_AB':
                                 return self.processCanadaResponse(model);
                             default:
                                 return self.processUsaResponse(file_id, model, gridData);
@@ -406,6 +407,8 @@ define([
                         return '/exa_modules/billing/mhs/process-file';
                     case 'can_BC':
                         return '/exa_modules/billing/bc/process-file';
+                    case 'can_AB':
+                        return '/exa_modules/billing/ahs/process-file';
                     default:
                         return '/exa_modules/billing/era/process-file';
                 }
@@ -417,8 +420,10 @@ define([
                 processPaymentBtn.prop('disabled', true);
                 commonjs.showLoading();
 
-                if (model && model.status == 100) {
+                if (model && (model.status == 100 || model.message)) {
                     commonjs.showWarning(model.message);
+                } else if (app.billingRegionCode === 'can_AB' && !model.message) {
+                    commonjs.showStatus('XML File Uploaded Successfully');
                 }
 
                 commonjs.hideDialog();
