@@ -224,7 +224,7 @@ define(['jquery',
                     messages: {
                         adjustmentCode: commonjs.getMessage("e", "Adjustment Code"),
                         description: commonjs.getMessage("e", "Description"),
-                        entryType: commonjs.getMessage("*", "Accouting Entry Type")
+                        entryType: commonjs.getMessage("*", "Accounting Entry Type")
                     },
                     submitHandler: function () {
                         self.save();
