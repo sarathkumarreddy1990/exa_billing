@@ -774,6 +774,14 @@ module.exports = {
                     }
                 });
 
+                let payer_code = claimData.payer_code && claimData.payer_code.toLowerCase() || '';
+                let payer_type = claimData.payer_type && claimData.payer_type.toLowerCase() || '';
+
+                if (payer_code === "wcb" && payer_type === "primary_insurance"
+                    && !claimData.original_reference) {
+                    errorMessages.push(`Claim - Missing data in WCB claim number field required by WCB`)
+                 }
+
             }
 
             if (!errorMessages.length) {

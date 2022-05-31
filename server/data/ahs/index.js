@@ -150,7 +150,10 @@ const ahsData = {
                     charges_bill_fee_total
                 FROM
                     billing.get_claim_totals(bc.id)) AS "claim_totalCharge",
-                bcs.code AS claim_status_code
+                bcs.code AS claim_status_code,
+                bc.original_reference,
+                bc.payer_type,
+                pip.insurance_code AS payer_code
                 FROM billing.claims bc
                 INNER JOIN billing.claim_status bcs ON bcs.id = bc.claim_status_id
                 LEFT JOIN public.companies pc ON pc.id = bc.company_id
