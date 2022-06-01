@@ -344,6 +344,7 @@ module.exports = {
                                 )
                             FROM
                                 matched_claims
+                            ORDER BY matched_claims.claim_id ASC
                         )
                         ,update_payment AS (
                            UPDATE billing.payments
