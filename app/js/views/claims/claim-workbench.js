@@ -575,6 +575,7 @@ define(['jquery',
                 var isCheckedAll = $('#chkStudyHeader_' + filterID).prop('checked');
                 var data = {};
                 var gridElement = $(filter.options.gridelementid, parent.document).find('input[name=chkStudy]:checked');
+                var isWCBBilling = false;
 
                 billingMethod = self.getGridCellData(filter, rowId, 'hidden_billing_method');
 
@@ -607,13 +608,29 @@ define(['jquery',
                     }
                 } else {
                     var insuranceProviders = [];
+                    var insuranceProviderCodes = [];
+
                     for (var i = 0; i < gridElement.length; i++) {
                         var rowId = gridElement[i].parentNode.parentNode.id;
                         var claimStatus = self.getGridCellData(filter, rowId, 'hidden_claim_status_code');
                         var insProvider = self.getGridCellData(filter, rowId, 'hidden_insurance_providers');
+                        var insProviderCode = self.getGridCellData(filter, rowId, 'hidden_insurance_provider_codes');
 
                         if (insProvider) {
                             insuranceProviders.push(insProvider);
+                            insuranceProviderCodes.push(insProviderCode);
+                        }
+
+                        if (app.billingRegionCode === 'can_AB') {
+
+                            // Restrict to submit same type of insurance providers
+                            var uniqInsProviders = _.uniq(insuranceProviderCodes) || [];
+
+                            if (uniqInsProviders.length > 1) {
+                                return commonjs.showWarning('messages.warning.claims.multipleInsurancesForSubmission');
+                            }
+
+                            isWCBBilling = uniqInsProviders.length === 1 && uniqInsProviders[0] === 'WCB';
                         }
 
                         if (claimStatus === "PV") {
@@ -633,16 +650,18 @@ define(['jquery',
 
                                 var excludeClaimStatus = ['PA', 'ADP', 'AD', 'R', 'D'];
 
-                                if (excludeClaimStatus.indexOf(claimStatus) > -1) {
+                                if (excludeClaimStatus.indexOf(claimStatus) > -1 || (isWCBBilling && claimStatus != 'PS')) {
                                     commonjs.showWarning('messages.status.pleaseSelectValidClaimsStatus');
                                     return false;
                                 }
+                                break;
                             }
                             case 'can_MB': {
                                 if (claimStatus != 'PS') {
                                     commonjs.showWarning('messages.status.pleaseSelectValidClaimsStatus');
                                     return false;
                                 }
+                                break;
                             }
                             case 'can_BC': {
                                 /* Allowed to submit electronic claim when status of claim is in any of the below:
@@ -650,12 +669,13 @@ define(['jquery',
                                    PS  - Pending submission
                                 */
 
-                                   var excludeClaimStatus = ['SF', 'PS'];
+                                var excludeClaimStatus = ['SF', 'PS'];
 
-                                   if (excludeClaimStatus.indexOf(claimStatus) === -1) {
-                                       commonjs.showWarning('messages.status.pleaseSelectValidClaimsStatus');
-                                       return false;
-                                   }
+                                if (excludeClaimStatus.indexOf(claimStatus) === -1) {
+                                    commonjs.showWarning('messages.status.pleaseSelectValidClaimsStatus');
+                                    return false;
+                                }
+                                break;
                             }
                         }
 
@@ -705,6 +725,7 @@ define(['jquery',
 
                     data = {
                         claimIds: claimIds.toString(),
+                        isWCBBilling: isWCBBilling,
                         userId: app.userID
                     }
                     if (billingMethodFormat === "special_form") {
@@ -765,7 +786,7 @@ define(['jquery',
 
                 commonjs.showLoading();
 
-                var url = self.getSubmitClaimUrl(app.billingRegionCode);
+                var url = self.getSubmitClaimUrl(app.billingRegionCode, isWCBBilling);
 
                 if (app.billingRegionCode === 'can_AB') {
                     data.source = 'submit';
@@ -780,7 +801,9 @@ define(['jquery',
 
                         switch (app.billingRegionCode) {
                             case 'can_AB':
-                                self.ahsResponse(data);
+                                !isWCBBilling
+                                    ? self.ahsResponse(data)
+                                    : self.wcbResponse(data);
                                 break;
                             case 'can_MB':
                                 self.mhsResponse(data);
@@ -1022,9 +1045,37 @@ define(['jquery',
 
             },
 
-            downloadClaimSubmission: function(fileText, fileName, encoding) {
+            wcbResponse: function (data) {
+                var self = this;
+                data.err = data.err || data.message;
+
+                var errorDetails = data.validationMessages || data.submissionErrors;
+
+                if (errorDetails && errorDetails.length) {
+                    var responseTemplate = _.template(validationTemplate);
+
+                    commonjs.showNestedDialog({
+                        header: 'Claim Validation Result',
+                        i18nHeader: 'billing.claims.claimValidationResponse',
+                        height: '50%',
+                        width: '60%',
+                        html: responseTemplate({
+                            'validationMessages': errorDetails
+                        })
+                    });
+                } else if (data.err) {
+                    commonjs.showWarning(data.err);
+                } else if (data.fileContent) {
+                    commonjs.showStatus('messages.status.claimSubmitted');
+
+                    self.downloadClaimSubmission(data.fileContent, data.fileName, 'base64', 'application/zip');
+                }
+            },
+
+            downloadClaimSubmission: function(fileText, fileName, encoding, type) {
                 var element = document.createElement('a');
-                element.setAttribute('href', 'data:text/plain;charset=' + encoding + ',' + encodeURIComponent(fileText));
+                var downloadType = type || 'text/plain;charset=';
+                element.setAttribute('href', 'data:' + downloadType + ';' + encoding + ',' + encodeURIComponent(fileText));
                 element.setAttribute('download', fileName);
 
                 element.style.display = 'none';
@@ -3228,11 +3279,13 @@ define(['jquery',
              *
              * @param  {String} billingRegionCode  region code
              */
-            getSubmitClaimUrl: function(billingRegionCode){
+            getSubmitClaimUrl: function(billingRegionCode, isWCBBilling) {
 
                 switch(billingRegionCode) {
                     case 'can_AB':
-                        return '/exa_modules/billing/ahs/submitClaims';
+                        return !isWCBBilling 
+                            ? '/exa_modules/billing/ahs/submitClaims'
+                            : '/exa_modules/billing/ahs/submitWcbClaim';
                     case 'can_MB':
                         return '/exa_modules/billing/mhs/submitClaims';
                     case 'can_ON':
