@@ -179,7 +179,11 @@ const sftpService = {
                 port: config.ftp_port,
 
                 algorithms: {
-                    cipher: ['aes128-cbc']
+                    cipher: [
+                        'aes192-ctr',
+                        'aes256-ctr',
+                        'aes128-cbc'
+                    ]
                 }
             });
 
