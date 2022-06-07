@@ -4,8 +4,8 @@ const express = require('express');
 const router = express.Router();
 
 const ahs = require('./index');
+const wcb = require('./wcb/index');
 const httpHandler = require('../../server/shared/http');
-const sftp = require('./sftp');
 
 module.exports = function () {
 
@@ -22,6 +22,11 @@ module.exports = function () {
 
     router.put('/can_ahs_delete_claim', async (req, res) => {
         const response = await ahs.deleteAhsClaim(req.body);
+        return httpHandler.send(req, res, response);
+    });
+
+    router.use('/submitWcbClaim', async (req, res) => {
+        let response = await wcb.submitClaims(req.body);
         return httpHandler.send(req, res, response);
     });
 

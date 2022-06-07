@@ -1410,7 +1410,7 @@ define(['jquery',
                     $('#ddlClaimStatus').val(claim_data.claim_status_id || '');
                     $('#ddlFrequencyCode').val(claim_data.frequency || '')
                     $('#ddlSubmissionCode').val(claim_data.can_submission_code_id || '');
-                    $('#ddlPOSType').val(["can_AB", "can_MB", "can_ON"].indexOf(app.billingRegionCode) === -1 && claim_data.place_of_service_id || '');
+                    $('#ddlPOSType').val(["can_MB", "can_ON"].indexOf(app.billingRegionCode) === -1 && claim_data.place_of_service_id || '');
                     document.querySelector('#txtClaimDate').value = claim_data.claim_dt ? self.convertToTimeZone(claim_data.facility_id, claim_data.claim_dt).format('L') : '';
                     $('#txtClaimCreatedDt').val(claim_data.created_dt ? self.convertToTimeZone(claim_data.facility_id, claim_data.created_dt).format('L') : '');
                     self.displayClaimStatusByProvider(claim_data.p_insurance_code);
@@ -1438,7 +1438,7 @@ define(['jquery',
 
                     if (app.isMobileBillingEnabled && ['facility', 'global'].indexOf(claim_data.billing_type) > -1) {
                         ddlPOSType.val(claim_data.ord_fac_place_of_service || '');
-                    } else if (["can_AB", "can_MB", "can_ON"].indexOf(app.billingRegionCode) === -1 && claim_data.pos_type_code && claim_data.pos_type_code != '') {
+                    } else if (["can_MB", "can_ON"].indexOf(app.billingRegionCode) === -1 && claim_data.pos_type_code && claim_data.pos_type_code != '') {
                         ddlPOSType.val($('option[data-code = ' + claim_data.pos_type_code.trim() + ']').val());
                     } else if (app.country_alpha_3_code !== 'can') {
                         ddlPOSType.val(claim_data.fac_place_of_service_id || '');
@@ -4115,7 +4115,7 @@ define(['jquery',
                     can_ahs_skill_code_id: can_ahs_skill_code_id || null,
                     referring_provider_contact_id: self.ACSelect && self.ACSelect.refPhy ? self.ACSelect.refPhy.contact_id : null,
                     ordering_facility_contact_id: self.ordering_facility_contact_id || null,
-                    place_of_service_id: ["can_AB", "can_MB", "can_ON"].indexOf(app.billingRegionCode) === -1 && $('#ddlPOSType option:selected').val() != '' ? parseInt($('#ddlPOSType option:selected').val()) : null,
+                    place_of_service_id: ["can_MB", "can_ON"].indexOf(app.billingRegionCode) === -1 && $('#ddlPOSType option:selected').val() != '' ? parseInt($('#ddlPOSType option:selected').val()) : null,
                     technical_place_of_service: app.isMobileBillingEnabled && self.is_split_claim && self.technicalPlaceOfService || '',
                     billing_code_id: $('#ddlBillingCode option:selected').val() != '' ? parseInt($('#ddlBillingCode option:selected').val()) : null,
                     billing_class_id: $('#ddlBillingClass option:selected').val() != '' ? parseInt($('#ddlBillingClass option:selected').val()) : null,
@@ -4758,7 +4758,7 @@ define(['jquery',
                 /* Additional Info Section */
                 var accidentState = $('#selAccidentState');
 
-                if (accidentState.val().length === 1) {
+                if (accidentState.val() && accidentState.val().length === 1) {
                     commonjs.showWarning("order.additionalInfo.accidentStateValidation");
                     accidentState.focus();
                     return false;
