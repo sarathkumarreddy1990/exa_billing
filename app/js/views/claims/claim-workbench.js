@@ -2218,7 +2218,10 @@ define(['jquery',
                             "can_ahs_a" : i18n.get('billing.claims.submissionA'),
                             "can_ahs_c" : i18n.get('billing.claims.submissionC'),
                             "can_ahs_r" : i18n.get('billing.claims.submissionR'),
-                            "can_ahs_d" : i18n.get('billing.claims.submissionD')
+                            "can_ahs_d" : i18n.get('billing.claims.submissionD'),
+                            "can_ab_wcb_c568": i18n.get('billing.claims.submissionC568'),
+                            "can_ab_wcb_c570": i18n.get('billing.claims.submissionC570'),
+                            "can_ab_wcb_ra": i18n.get('billing.claims.paymentWCB')
                         };
                     case 'can_MB':
                         return {
@@ -2321,7 +2324,7 @@ define(['jquery',
                         },
                         {
                             name: 'file_type',
-                            width: 150,
+                            width: 200,
                             stype: 'select',
                             formatter: self.fileTypeFormatter,
                             stype: 'select',
@@ -2520,6 +2523,12 @@ define(['jquery',
                         return i18n.get('billing.claims.submissionR');
                     case 'can_ahs_d':
                         return i18n.get('billing.claims.submissionD');
+                    case 'can_ab_wcb_c568':
+                        return i18n.get('billing.claims.submissionC568');
+                    case 'can_ab_wcb_c570':
+                        return i18n.get('billing.claims.submissionC570');
+                    case 'can_ab_wcb_ra':
+                        return i18n.get('billing.claims.paymentWCB');
                     case 'can_ohip_h':
                     default:
                         return i18n.get('billing.claims.submission');
