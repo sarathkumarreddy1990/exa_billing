@@ -423,7 +423,7 @@ define([
                 if (model && (model.status == 100 || model.message)) {
                     commonjs.showWarning(model.message);
                 } else if (app.billingRegionCode === 'can_AB' && !model.message) {
-                    commonjs.showStatus('XML File Uploaded Successfully');
+                    commonjs.showStatus('File Uploaded Successfully');
                 }
 
                 commonjs.hideDialog();
