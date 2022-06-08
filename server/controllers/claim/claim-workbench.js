@@ -1,6 +1,7 @@
 const fs = require('fs');
 const path = require('path');
 const logger = require('../../../logger');
+const moment = require('moment');
 const { promisify } = require('util');
 const readFileAsync = promisify(fs.readFile);
 
@@ -721,6 +722,17 @@ module.exports = {
         return validation_result;
     },
 
+    validateFields: (field, value) => {
+
+        if (/(.*_(dt|date|date_time)$)/.test(field)) {
+            let dateFormat = moment(value, 'L');
+            //Checking the given value is a valid date or not
+            return dateFormat.isValid();
+        }
+
+        return !_.isEmpty(value);
+    },
+
     ahsClaimValidation: async function (params) {
 
         let claimDetails = await ahsData.getClaimsData({ claimIds: params.claim_ids });
@@ -729,7 +741,9 @@ module.exports = {
         let valdationClaimJson = await readFileAsync(file_path, 'utf8');
         valdationClaimJson = JSON.parse(valdationClaimJson);
 
-        if (claimDetails && claimDetails[0].billing_method == 'patient_payment' || claimDetails[0].billing_method == 'direct_billing') {
+        let billingMethod = claimDetails?.[0]?.billing_method || '';
+
+        if (['patient_payment', 'direct_billing'].indexOf(billingMethod) > -1) {
             valdationClaimJson = valdationClaimJson.patient_payment;
         } else {
             valdationClaimJson = valdationClaimJson.default;
@@ -749,8 +763,20 @@ module.exports = {
             let claimData = currentClaim;
 
             if (claimData) {
-                let skipValidation = claimData.oop_referral_indicator === 'Y';
-                _.each(valdationClaimJson, (fieldValue, field) => {
+                let {
+                    insurance_code = null
+                } = claimData;
+                let validationFields = {};
+    
+                if (billingMethod === 'electronic_billing') {
+                    validationFields = insurance_code === 'wcb'
+                        ? valdationClaimJson['wcb']
+                        : valdationClaimJson['ahs'];
+                }
+
+                let skipValidation = insurance_code === 'ahs' && claimData.oop_referral_indicator === 'Y';
+                _.each(validationFields, (fieldValue, field) => {
+
                     if (fieldValue) {
                         if (typeof fieldValue === 'object') {
                             if (claimData[field]) {
@@ -758,7 +784,7 @@ module.exports = {
                                     if (data) {
                                         dataField === 'provider_prid' && skipValidation
                                             ? null
-                                            : !claimData[dataField] || !claimData[dataField].length
+                                            : !this.validateFields(dataField, claimData[dataField])
                                                 ? errorMessages.push(` Claim - ${dataField} does not exists`)
                                                 : null;
                                     }
@@ -767,7 +793,7 @@ module.exports = {
                         } else {
                             field === 'provider_prid' && skipValidation
                                 ? null
-                                : !claimData[field] || !claimData[field].length
+                                : !this.validateFields(field, claimData[field])
                                     ? errorMessages.push(` Claim - ${field} does not exists`)
                                     : null;
                         }

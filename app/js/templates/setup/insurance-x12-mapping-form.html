@@ -19,7 +19,7 @@
                     </select>
                 </div>
             </div>
-            <% if (country_alpha_3_code !== 'can') { %>
+            <% if (country_alpha_3_code !== 'can' || billing_region_code === 'can_AB') { %>
             <div class="form-group row" id="clearingHouse" style="display:none">
                 <label for="ddlClaimClearingHouse" class="col-sm-2 col-form-label field-required" i18n="setup.insuranceX12Mapping.claimClearingHouse"></label>
 

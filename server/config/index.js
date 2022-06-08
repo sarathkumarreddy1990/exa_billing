@@ -37,7 +37,9 @@ module.exports = {
         externalUrlBcUserName: 'externalUrlBcUserName',
         externalUrlBcPassword: 'externalUrlBcPassword',
         goLiveDate: 'goLiveDate',
-        enableMobileBilling: 'enableMobileBilling'
+        enableMobileBilling: 'enableMobileBilling',
+        wcbNewClaimTemplate: 'wcbNewClaimTemplate',
+        wcbCorrectionClaimTemplate: 'wcbCorrectionClaimTemplate'
     },
 
     paths: [
