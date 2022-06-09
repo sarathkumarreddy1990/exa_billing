@@ -30,5 +30,9 @@ module.exports = function () {
         return httpHandler.send(req, res, response);
     });
 
+    router.use('/process-file', async (req, res) => {
+        let response = await ahsController.processWCBFile(req.body);
+    });
+
     return router;
 };

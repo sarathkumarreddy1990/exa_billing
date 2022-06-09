@@ -123,6 +123,10 @@ const getProvinceBasedProperties = (billingRegionCode) => {
         return 'can_ab_wcb_ra';
     }
 
+    if (billingRegionCode === 'can_AB') {
+        return 'can_ab_wcb_ra';
+    }
+
     return '835';
 };
 

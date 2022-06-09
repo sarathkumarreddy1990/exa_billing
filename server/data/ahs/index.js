@@ -1597,7 +1597,231 @@ const ahsData = {
         catch (err) {
             return err;
         }
-    }
+    },
+
+    getWCBFilePathById: async ({file_id, company_id}) => {
+
+        const sql = SQL`
+        SELECT
+            ef.id
+            , ef.status
+            , ef.file_type
+            , ef.file_path
+            , fs.root_directory
+            , ef.uploaded_file_name
+        FROM billing.edi_files ef
+        INNER JOIN file_stores fs on fs.id = ef.file_store_id
+        WHERE ef.id = ${file_id} 
+        AND ef.company_id = ${company_id}`;
+
+        return await query(sql);
+    },
+
+    updateWCBFileStatus: async ({ file_id }) => {
+
+        const sql = SQL` 
+        UPDATE billing.edi_files
+            SET status = 
+                CASE
+                    WHEN EXISTS (
+                        SELECT 1 
+                        FROM billing.edi_file_payments 
+                        WHERE edi_file_id = ${file_id} 
+                    ) 
+                    THEN 'success'
+                    ELSE
+                        'failure'
+                END
+        WHERE id = ${file_id}
+        RETURNING id, status `;
+
+        return await query(sql);
+    },
+
+    applyWCBPayments: async args => {
+        let {
+            clientIp,
+            userId,
+            payment,
+            overPayment,
+            company_id,
+            facility_id,
+            file_id,
+            uploaded_file_name
+        } = args;
+
+        let auditDetails = {
+            'company_id': company_id,
+            'screen_name': 'payments',
+            'module_name': 'payments',
+            'client_ip': clientIp,
+            'user_id': userId,
+        };
+
+        const sql = SQL`
+        WITH file_claims AS ( 
+            SELECT 
+                ROW_NUMBER() OVER() AS row_id
+                , NULLIF(fc."DisbursementNumber", '')::TEXT AS disbursement_number
+                , NULLIF(fc."DisbursementType", '') AS disbursement_type
+                , NULLIF(fc."DisbursementAmount", '')::NUMERIC AS disbursement_amount
+                , NULLIF(fc."PaymentReasonCode", '') AS payment_reason_code
+                , NULLIF(fc."PaymentStatus", '') AS payment_status
+                , NULLIF(fc."PaymentAmount", '')::NUMERIC AS payment_amount
+                , NULLIF(fc."ClaimNumber", '')::BIGINT AS claim_no
+                , NULLIF(fc."WorkerPHN", '')::BIGINT AS worker_phn
+                , NULLIF(fc."EncounterNumber", '')::BIGINT AS encounter_no
+                , NULLIF(fc."DisbursementIssueDate", '')::DATE AS disbursement_issue_date
+                , NULLIF(fc."DisbursementXRefNumber",'')::BIGINT AS disbursement_xref_no
+                , NULLIF(fc."DisbursementRecipientBillingNumber",'')::TEXT AS disbursement_billing_no 
+                , NULLIF(fc."ServiceCode", '') AS service_code
+                , NULLIF(fc."OverpaymentRecoveryAmount", '')::NUMERIC AS ovp_recovery_amount
+            FROM jsonb_to_recordset(${JSON.stringify(payment)}) AS fc
+            (
+                "DisbursementNumber" TEXT
+                , "DisbursementType" TEXT
+                , "DisbursementAmount" TEXT
+                , "PaymentReasonCode" TEXT
+                , "PaymentStatus" TEXT
+                , "PaymentAmount" TEXT
+                , "ClaimNumber" TEXT
+                , "WorkerPHN" TEXT
+                , "EncounterNumber" TEXT 
+                , "DisbursementIssueDate" TEXT
+                , "ServiceCode" TEXT
+                , "OverpaymentRecoveryAmount" TEXT
+                , "DisbursementXRefNumber" TEXT
+                , "DisbursementRecipientBillingNumber" TEXT
+            )
+        )
+        , payment_claims AS (
+            SELECT
+                row_id
+                , payment_status
+                , payment_amount
+                , payment_reason_code
+                , disbursement_type
+                , claim_no
+                , disbursement_issue_date AS payment_date
+                , 'PAY' AS payment_type
+                , string_to_array(regexp_replace(service_code, '[^a-zA-Z0-9., ]','','g'),',') AS service_code
+                , ('WCB File Name: ' || COALESCE(${uploaded_file_name}::TEXT, ' ') || E'\n' || 
+                    ' Disbursement Number: ' || COALESCE(disbursement_number,' ') || E'\n' ||
+                    ' Disbursement Type: ' || COALESCE(disbursement_type,' ') || E'\n' ||
+                    ' Disbursement XRef Number: ' || COALESCE(disbursement_xref_no::TEXT,' ') || E'\n' ||
+                    ' Disbursement Billing Number: ' || COALESCE(disbursement_billing_no,' ') || E'\n' ||
+                    ' Disbursement Issue Date: '|| COALESCE (disbursement_issue_date::TEXT,' ') || E'\n' ||
+                    ' Disbursement Amount: '|| COALESCE (disbursement_amount::TEXT,' ')
+                ) AS payment_notes
+                , disbursement_number AS card_number
+            FROM file_claims
+        
+        )
+        , grouped_records AS (
+            SELECT 
+                disbursement_number
+                , fc.disbursement_type
+                , fc.disbursement_amount
+                , fc.disbursement_issue_date
+                , fc.disbursement_xref_no
+                , fc.disbursement_billing_no
+                , jsonb_agg(row_to_json(pc.*)) AS payment
+            FROM file_claims fc
+            INNER JOIN (
+                SELECT 
+                    *
+                    , BTRIM(service_codes) AS cpt_code  
+                FROM payment_claims pc
+                LEFT JOIN UNNEST(pc.service_code) AS service_codes ON TRUE
+            ) pc ON pc.row_id = fc.row_id
+            GROUP BY 
+                disbursement_number
+                , fc.disbursement_amount
+                , fc.disbursement_type 
+                , fc.disbursement_issue_date
+                , fc.disbursement_xref_no
+                , fc.disbursement_billing_no
+        )
+        , overpayment_claims AS (
+            SELECT  
+                NULLIF(opc."OVPClaimNumber", '')::TEXT AS claim_no
+                , NULLIF(opc."DateOfOverpayment",'')::DATE AS payment_date
+                , NULLIF(opc."RecoveryAmount",'')::NUMERIC AS payment_amount
+                , NULLIF(opc."OVPReason",'')::TEXT AS payment_reason_code
+                , NULL AS payment_status
+                , 'EFT' AS disbursement_type
+                , 'OVP' AS payment_type
+            FROM jsonb_to_recordset(${JSON.stringify(overPayment)}) AS opc
+                (
+                    "OVPClaimNumber" TEXT
+                    , "RecoveryAmount" TEXT
+                    , "OVPReason" TEXT
+                    , "DateOfOverpayment" TEXT
+                )
+        )
+        , recovery_claims AS (
+            SELECT  
+                NULLIF(opc."RecoveredFromClaimNumber", '')::TEXT AS recovered_claim_no
+                , NULLIF(opc."DateOfOverpayment",'')::DATE AS ovp_date
+                , NULLIF(opc."RecoveryAmount",'')::NUMERIC AS recovery_amount
+                , NULLIF(opc."OVPReason",'')::TEXT AS ovp_reason
+                , NULL AS payment_status
+                , 'EFT' AS disbursement_type
+                , 'REC' AS payment_type
+                FROM jsonb_to_recordset(${JSON.stringify(overPayment)}) AS opc
+                (
+                    "RecoveredFromClaimNumber" TEXT
+                    , "RecoveryAmount" TEXT
+                    , "OVPReason" TEXT 
+                    , "DateOfOverpayment" TEXT
+                )
+        )
+        , overpayment_recovery_claims AS (
+            SELECT
+                NULLIF(fc."ClaimNumber", '')::TEXT AS claim_no
+                , NULLIF(fc."DisbursementIssueDate", '')::DATE AS disbursement_date
+                , NULLIF(fc."OverpaymentRecoveryAmount", '')::NUMERIC AS ovp_recovery_amount
+                , NULL AS ovp_reason
+                , NULL AS payment_status
+                , 'EFT' AS disbursement_type
+                , 'OVPR' AS payment_type
+            FROM jsonb_to_recordset(${JSON.stringify(payment)}) AS fc
+            (
+                "PaymentReasonCode" TEXT
+                , "ClaimNumber" TEXT
+                , "OverpaymentRecoveryAmount" TEXT
+                , "DisbursementIssueDate" TEXT
+            )
+        )
+        , total_overpayment_details AS (
+            SELECT 
+                jsonb_build_array(row_to_json(overpayment_details.*)) AS payment
+            FROM (
+                SELECT * FROM overpayment_claims WHERE claim_no IS NOT NULL
+                UNION
+                SELECT * FROM overpayment_recovery_claims WHERE ovp_recovery_amount IS NOT NULL
+                UNION
+                SELECT * FROM recovery_claims WHERE recovered_claim_no IS NOT NULL
+            ) overpayment_details
+        )
+        , total_payment_records AS (
+            SELECT payment FROM grouped_records
+            UNION
+            SELECT payment FROM total_overpayment_details
+        )	
+        
+        SELECT 
+            billing.can_ahs_wcb_apply_payments(
+                ${facility_id}::INTEGER
+                , ${file_id}::BIGINT
+                , p.payment
+                , ${JSON.stringify(auditDetails)}::JSONB
+            ) AS applied_payments 
+        FROM total_payment_records p;
+        `;
+
+        return await query(sql);
+    },
 
 };
 

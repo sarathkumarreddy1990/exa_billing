@@ -2558,6 +2558,7 @@ define(['jquery',
                     case 'can_ohip_p':
                     case 'can_ahs_ard':
                     case 'can_bc_remit':
+                    case 'can_ab_wcb_ra':
                         return i18n.get('billing.payments.payment');
                     case 'can_ohip_b':
                     case 'can_ahs_bbr':
@@ -2565,6 +2566,7 @@ define(['jquery',
                     case 'can_ohip_x':
                         return i18n.get('billing.claims.rejection');
                     case 'can_ohip_e':
+                    case 'can_ab_wcb_c570':
                         return i18n.get('billing.claims.correction');
                     case 'can_ahs_a':
                         return i18n.get('billing.claims.submissionA');

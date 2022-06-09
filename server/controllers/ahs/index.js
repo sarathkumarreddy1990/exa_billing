@@ -6,12 +6,15 @@ const parser = require('../../../modules/ahs/decoder/index');
 const logger = require('../../../logger');
 const fs = require('fs');
 const _ = require('lodash');
+const path = require('path');
 
 const {
     promisify,
 } = require('util');
+const wcbParser = require('../../../modules/ahs/wcb/wcb-parser');
 
 const readFileAsync = promisify(fs.readFile);
+const statAsync = promisify(fs.stat);
 
 const ahsController = {
 
@@ -171,8 +174,95 @@ const ahsController = {
         else if (file_type === 'can_ahs_ard') {
             return await ahsData.applyPayments(data);
         }
-    }
+    },
 
+    /***
+    * Function used to process WCB payment file
+    * @param {data} Object {
+    *                      ip
+    *                      }
+    */
+    processWCBFile: async (params) => {
+        let processDetails = {};
+        let { rows = [] } = await ahsData.getWCBFilePathById(params);
+
+        if (!rows.length) {
+            return { message: "Could not find file path by file id" };
+        }
+
+        let [{
+            root_directory = '',
+            file_path = '',
+            uploaded_file_name = ''
+        }] = rows;
+        let dirFullPath = path.join(root_directory, file_path);
+
+        try {
+            let dirStat = await statAsync(dirFullPath);
+
+            if (!dirStat.isDirectory()) {
+                return { message: 'Directory not found in file store' };
+            };
+
+            let filePath = path.join(dirFullPath, params.file_id);
+            let fileStat = await statAsync(filePath);
+
+            if (!fileStat.isFile()) {
+                return { message: 'File not found in directory' }
+            };
+
+            let fileData = await readFileAsync(filePath, 'utf8');
+            let wcb_details = await wcbParser.getWCBData(fileData);
+
+            if (wcb_details.message) {
+                await ahsData.updateWCBFileStatus(params)
+                return { message: 'Invalid XML file' };
+            }
+
+            let {
+                payment_remittance = [],
+                overpayment_remittance = []
+            } = wcb_details;
+            let isClaimNumInvalid = payment_remittance.some(val => val.ClaimNumber && !Number(val.ClaimNumber));
+            let isOvpClaimNumInvalid = overpayment_remittance.some(val => val.OVPClaimNumber && !Number(val.OVPClaimNumber));
+            let isRecoveredClaimNumInvalid = overpayment_remittance.some(val => val.RecoveredFromClaimNumber && !Number(val.RecoveredFromClaimNumber));
+
+            params.uploaded_file_name = uploaded_file_name || '';
+            params.payment = payment_remittance;
+            params.overPayment = overpayment_remittance;
+
+            if (isClaimNumInvalid) {
+                return { message: 'WCB Claim Number should be numeric' };
+            }
+
+            if (isOvpClaimNumInvalid) {
+                return { message: 'OVP Claim Number should be numeric' };
+            }
+
+            if (isRecoveredClaimNumInvalid) {
+                return { message: 'Recovered from Claim Number should be numeric' };
+            }
+
+            processDetails = await ahsData.applyWCBPayments(params);
+
+            if (processDetails.code === '22008') {
+                return { message: 'Invalid Date Format' };
+            }
+
+            await ahsData.updateWCBFileStatus(params);
+
+            return processDetails;
+
+        } catch (err) {
+
+            if (err.code == 'ENOENT') {
+                return { message: 'No such file or directory' };
+            }
+
+            logger.error(err);
+            return { message: err };
+        }
+    }
 };
 
 module.exports = ahsController;
