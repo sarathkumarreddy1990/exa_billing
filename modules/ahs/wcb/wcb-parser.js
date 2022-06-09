@@ -19,10 +19,10 @@ const wcbParser = {
             } = result || {};
 
             data = {
-                payment_remittance: PaymentRemittanceRecord && Array.isArray(PaymentRemittanceRecord)
+                payment_remittance: PaymentRemittanceRecord && !Array.isArray(PaymentRemittanceRecord)
                     ? [PaymentRemittanceRecord]
                     : PaymentRemittanceRecord,
-                overpayment_remittance: OverpaymentRemittanceRecord && Array.isArray(OverpaymentRemittanceRecord)
+                overpayment_remittance: OverpaymentRemittanceRecord && !Array.isArray(OverpaymentRemittanceRecord)
                     ? [OverpaymentRemittanceRecord]
                     : OverpaymentRemittanceRecord
             };
