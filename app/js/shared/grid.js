@@ -2249,7 +2249,7 @@ define('grid', [
                 });
             }
             else {
-                alert(commonjs.geti18NString('messages.claims.claimHasPaymentPleaseUnapply'));
+                alert(commonjs.geti18NString('messages.warning.claims.claimHasPaymentPleaseUnapply'));
             }
         },
 
