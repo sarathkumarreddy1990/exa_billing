@@ -1629,14 +1629,8 @@ const ahsData = {
                         WHERE edi_file_id = ${file_id} 
                     ) 
                     THEN 'success'
-                    WHEN NOT EXISTS (
-                        SELECT 1 
-                        FROM billing.edi_file_payments
-                        WHERE edi_file_id = ${file_id}
-                    ) 
-                    THEN 'failure'
                     ELSE
-                        'in_progress'
+                        'failure'
                 END
         WHERE id = ${file_id}
         RETURNING id, status `;
