@@ -232,13 +232,13 @@ const ahsData = {
                 'phone_area_code', SUBSTRING(REGEXP_REPLACE(TRIM(p.patient_info->'c1HomePhone'), '[()#-]', '', 'g'), 1, 3),
                 'patient_phn', (
                     CASE
-                        WHEN ppaa.province_alpha_2_code = 'AB'
+                        WHEN ppaa.province_alpha_2_code = 'AB' AND i.issuer_type = 'uli_phn'
                         THEN ppaa.alt_account_no
                         ELSE NULL
                     END),
                 'patient_phn_flag', (
                     CASE
-                        WHEN (ppaa.province_alpha_2_code = 'AB')
+                        WHEN ppaa.province_alpha_2_code = 'AB' AND i.issuer_type = 'uli_phn'
                         THEN 'N'
                         ELSE 'Y'
                     END)
@@ -532,29 +532,38 @@ const ahsData = {
                     ELSE ''
                 END AS oop_referral_indicator,
                 COALESCE(pp.patient_info -> 'c1State', pp.patient_info -> 'c1Province', '') AS province_code,
-                (SELECT
-                    charges_bill_fee_total
-                FROM
-                    billing.get_claim_totals(bc.id)) AS "claim_totalCharge",
+                NULLIF(bgct.charges_bill_fee_total, 0::MONEY) AS "claim_totalCharge",
                 bcs.code AS claim_status_code,
                 bc.original_reference,
                 bc.payer_type,
+                pos.code AS place_of_service,
                 pip.insurance_code AS payer_code
                 FROM billing.claims bc
                 INNER JOIN billing.claim_status bcs ON bcs.id = bc.claim_status_id
+                INNER JOIN billing.get_claim_totals(bc.id) bgct ON TRUE
                 LEFT JOIN public.companies pc ON pc.id = bc.company_id
                 LEFT JOIN public.patients pp ON pp.id = bc.patient_id
                 LEFT JOIN billing.charges bch ON bch.claim_id = bc.id
                 LEFT JOIN public.cpt_codes pcc ON pcc.id = bch.cpt_id
                 LEFT JOIN billing.charges_studies bchs ON bchs.charge_id = bch.id
                 LEFT JOIN public.studies s ON s.id = bchs.study_id
+                LEFT JOIN public.skill_codes sc ON sc.id = s.can_ahs_skill_code_id
+                LEFT JOIN public.skill_codes scc ON scc.id = bc.can_ahs_skill_code_id
                 LEFT JOIN public.study_transcriptions st ON st.study_id = s.id
                 LEFT JOIN public.provider_contacts pc_app ON pc_app.id = bc.rendering_provider_contact_id
+                LEFT JOIN public.providers p_app ON p_app.id = pc_app.provider_id
                 LEFT JOIN public.provider_contacts pc_c ON pc_c.id = bc.referring_provider_contact_id
+                LEFT JOIN public.providers p_ref ON p_ref.id = pc_c.provider_id
                 LEFT JOIN public.facilities f ON f.id = bc.facility_id
+                LEFT JOIN public.places_of_service pos ON pos.id = bc.place_of_service_id
                 LEFT JOIN billing.claim_patient_insurances bcpi ON bcpi.claim_id = bc.id AND bcpi.coverage_level = 'primary'
                 LEFT JOIN public.patient_insurances ppi  ON ppi.id = bcpi.patient_insurance_id
                 LEFT JOIN public.insurance_providers pip ON pip.id = ppi.insurance_provider_id
+                LEFT JOIN public.can_wcb_injury_codes nic ON bc.nature_of_injury_code_id = nic.id
+                LEFT JOIN public.can_wcb_injury_codes aic ON bc.area_of_injury_code_id = aic.id
+                LEFT JOIN public.patient_alt_accounts ppaa ON ppaa.patient_id = bc.patient_id 
+                    AND ppaa.issuer_id = bc.can_issuer_id 
+                    AND ppaa.is_primary
                 LEFT JOIN LATERAL (
                     WITH bci AS (
                         SELECT
