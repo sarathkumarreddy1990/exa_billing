@@ -1,7 +1,10 @@
 'use strict';
 const _ = require('lodash');
 const builder = require('xmlbuilder');
+const fsPromises = require('fs/promises');
+const path = require('path');
 const { XML_ELEMENTS } = require('./constants');
+const xmlParser = require('xml2js').parseString;
 const {
     isArray,
     getFormattedValue
@@ -20,7 +23,17 @@ const {
     NAMESPACE,
     XMLSCHEMA_INSTANCE,
     XMLSCHEMA_INSTANCE_LOCATION,
-    WCB_CORRECTION_CLAIM_TEMPLATE
+    WCB_CORRECTION_CLAIM_TEMPLATE,
+    CONTENT_GRP_4,
+    CONTENT_LST_5,
+    CONTENT_GRP_3,
+    CONTENT_GRP_2,
+    CONTENT_LST_3,
+    CONTENT_GRP_1,
+    CONTENT_LST_1,
+    INVOICE_TYPE_CODE,
+    TRANSACTION_CODE,
+    TRANSACTION_DESCRIPTION
 } = XML_ELEMENTS;
 
 /**
@@ -296,6 +309,120 @@ const encoder = async (templateName, i_json, data) => {
     };
 };
 
+/**
+ * Function used to fetch the previous submitted claim
+ * @param {Object} data 
+ * @returns Object of the FT1 segment of previously submitted claim
+ */
+const processOldData = async (data) => {
+    let {
+        claim_id,
+        root_directory,
+        file_path,
+        uploaded_file_name
+    } = data || {};
+
+    let response = {
+        error: null,
+        old_data: null
+    };
+
+    if (!claim_id) {
+        let errMsg = `No Claim # passed to fetch old claim details`;
+        response.error = errMsg;
+        return response;
+    }
+
+    try {
+        let dirPath = path.join(root_directory);
+        let dirStat = await fsPromises.stat(dirPath);
+
+        if (!dirStat.isDirectory()) {
+            logger.error(`Error while reading old claim data in C570 template for claim # ${claim_id}...`);
+            return {
+                status: 100,
+                error: 'Directory not found in file store'
+            };
+        }
+
+        let filePath = path.join(file_path);
+        let fileStat = await fsPromises.stat(filePath);
+
+        if (!fileStat?.isFile()) {
+            return {
+                status: 100,
+                error: 'File not found in directory'
+            };
+        }
+
+        let fileContent = await fsPromises.readFile(filePath, 'utf8');
+
+        await xmlParser(fileContent, { explicitArray: false }, (err, result) => {
+
+            if (err) {
+                logger.error(err);
+                response.error = err;
+                return response;
+            };
+
+            if (!result || _.isEmpty(result[XML_ROOT])) {
+                let msg = `No data/root element found in the XML file..`;
+                response.error = msg;
+                logger.error(msg);
+                return response;
+            }
+
+            let {
+                [XML_ROOT]: {
+                    [CONTENT_NODE]: {
+                        [CONTENT_GRP_4]: {
+                            [CONTENT_LST_5]: {
+                                [CONTENT_GRP_3]: {
+                                    [CONTENT_GRP_2]: {
+                                        [CONTENT_LST_3]: {
+                                            [CONTENT_GRP_1]: {
+                                                [CONTENT_LST_1]: {
+                                                    FT1 = []
+                                                }
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            } = result || {};
+            let data = {};
+
+            if (_.isEmpty(FT1)) {
+                response.error = `No data found for previously submitted claim!`;
+                return response;
+            }
+
+            data = isArray(FT1) && FT1.length > 1
+                ? FT1[1]    // get new claim data of previously submitted C570 template
+                : FT1       // get new claim data of previously submitted C568 template
+
+            data[INVOICE_TYPE_CODE] = 'CG';
+            data[TRANSACTION_CODE] = '';
+            data[TRANSACTION_DESCRIPTION] = '';
+
+            response.old_data = data;
+            return response;
+        });
+
+        return response;
+    } catch (err) {
+
+        let errMsg = `Error occured while processing previously submitted file - ${err}`;
+        logger.error(errMsg);
+        response.error = errMsg;
+
+        return response;
+    }
+};
+
 module.exports = {
     getObjKeys,
     bindArrayJson,
@@ -303,5 +430,6 @@ module.exports = {
     bindSingleJson,
     createNode,
     createXMLJson,
-    encoder
+    encoder,
+    processOldData
 };
