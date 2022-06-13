@@ -4093,7 +4093,7 @@ define(['jquery',
                 }
 
                 if (app.billingRegionCode === 'can_AB' && (currentPayer_type === "PIP" && self.priInsCode === "AHS")) {
-                    can_ahs_skill_code_id = (self.ACSelect && self.ACSelect.skillCodes)
+                    can_ahs_skill_code_id = (self.providerSkillCodesCount > 1 && self.ACSelect && self.ACSelect.skillCodes)
                                             ? self.ACSelect.skillCodes.ID
                                             : null;
                 }
