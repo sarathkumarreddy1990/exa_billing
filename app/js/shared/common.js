@@ -946,19 +946,6 @@ var commonjs = {
         options.iframeContainerId = 'site_modal_iframe_container';
         options.isNested = false;
 
-        commonjs.showDefaultDialog(options);
-        commonjs.initHideEvent(options);
-    },
-
-    showNestedDialog: function (options) {
-        options.modalContainerId = '#siteModalNested';
-        options.spanHeaderId = '#spanModalHeaderNested';
-        options.modalBodyId = '#modalBodyNested';
-        options.modalDialogId = '#modalDialogNested';
-        options.modalDivContainerId = '#modal_div_container_nested';
-        options.iframeContainerId = 'site_modal_iframe_container_nested';
-        options.isNested = true;
-
         $('.modal-header button, .modal-footer button')
         .off('click')
         .on('click', function (e) {
@@ -984,6 +971,19 @@ var commonjs = {
                 $closeButton.attr('data-dismiss', 'modal');
             }
         });
+
+        commonjs.showDefaultDialog(options);
+        commonjs.initHideEvent(options);
+    },
+
+    showNestedDialog: function (options) {
+        options.modalContainerId = '#siteModalNested';
+        options.spanHeaderId = '#spanModalHeaderNested';
+        options.modalBodyId = '#modalBodyNested';
+        options.modalDialogId = '#modalDialogNested';
+        options.modalDivContainerId = '#modal_div_container_nested';
+        options.iframeContainerId = 'site_modal_iframe_container_nested';
+        options.isNested = true;
 
         commonjs.showDefaultDialog(options);
         commonjs.initHideEvent(options);
