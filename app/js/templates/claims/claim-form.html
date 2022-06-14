@@ -1351,7 +1351,7 @@
                         </div>
                     </div>
                 </div>
-                <% if(['can_BC', 'can_AB'].indexOf(billingRegionCode) !== -1) { %>
+                <% if(billingRegionCode === 'can_BC') { %>
                 <div class="form-group row wcb_injury" id="natureOfInjuryDiv">
                     <label for="wcbNatureOfInjury" class="col-sm-3 col-form-label" i18n="order.additionalInfo.natureOfInjury"></label>
                     <div class="col-sm-5">
@@ -1376,6 +1376,21 @@
                                 <i class="icon-ic-schedule"></i>
                             </span>
                         </div>
+                    </div>
+                    <div id="divInjury">
+                        <table id="tblInjury" class="table table-bordered">
+                            <thead id="tHeadInjury">
+                                <tr>
+                                    <th class='w-space'></th>
+                                    <th class='w-space'></th>
+                                    <th i18n="menuTitles.setup.bodyParts"></th>
+                                    <th i18n="order.additionalInfo.natureOfInjury"></th>
+                                    <th i18n="order.newOrder.orientation"></th>
+                                </tr>
+                            </thead>
+                            <tbody id="tBodyInjury">
+                            </tbody>
+                        </table>
                     </div>
                     <div class="form-group form-inline" id="conditionDevTime_div";>
                         <label class="col-form-label control-label"  i18n="order.additionalInfo.conditionDevelopOverTime"></label>

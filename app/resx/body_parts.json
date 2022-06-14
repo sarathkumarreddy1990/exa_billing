@@ -1,0 +1,154 @@
+{
+	"body_parts": [
+		{
+			"code": "24000",
+			"description": "Abdomen",
+			"sideofbodyrequired": "No"
+		},
+		{
+			"code": "42000",
+			"description": "Ankle",
+			"sideofbodyrequired": "Yes"
+		},
+		{
+			"code": "31000",
+			"description": "Arm",
+			"sideofbodyrequired": "Yes"
+		},
+		{
+			"code": "23901",
+			"description": "Back-Lower",
+			"sideofbodyrequired": "No"
+		},
+		{
+			"code": "23000",
+			"description": "Back-Middle",
+			"sideofbodyrequired": "No"
+		},
+		{
+			"code": "50000",
+			"description": "Body systems",
+			"sideofbodyrequired": "No"
+		},
+		{
+			"code": "01100",
+			"description": "Brain",
+			"sideofbodyrequired": "No"
+		},
+		{
+			"code": "22009",
+			"description": "Chest",
+			"sideofbodyrequired": "No"
+		},
+		{
+			"code": "02000",
+			"description": "Ear",
+			"sideofbodyrequired": "Yes"
+		},
+		{
+			"code": "31200",
+			"description": "Elbow",
+			"sideofbodyrequired": "Yes"
+		},
+		{
+			"code": "03201",
+			"description": "Eye",
+			"sideofbodyrequired": "Yes"
+		},
+		{
+			"code": "03000",
+			"description": "Face",
+			"sideofbodyrequired": "No"
+		},
+		{
+			"code": "34000",
+			"description": "Finger",
+			"sideofbodyrequired": "Yes"
+		},
+		{
+			"code": "43000",
+			"description": "Foot",
+			"sideofbodyrequired": "Yes"
+		},
+		{
+			"code": "25400",
+			"description": "Groin",
+			"sideofbodyrequired": "Yes"
+		},
+		{
+			"code": "33000",
+			"description": "Hand",
+			"sideofbodyrequired": "Yes"
+		},
+		{
+			"code": "00000",
+			"description": "Head",
+			"sideofbodyrequired": "No"
+		},
+		{
+			"code": "25100",
+			"description": "Hip",
+			"sideofbodyrequired": "Yes"
+		},
+		{
+			"code": "24900",
+			"description": "Internal Systems",
+			"sideofbodyrequired": "No"
+		},
+		{
+			"code": "41200",
+			"description": "Knee",
+			"sideofbodyrequired": "Yes"
+		},
+		{
+			"code": "41000",
+			"description": "Leg",
+			"sideofbodyrequired": "Yes"
+		},
+		{
+			"code": "10000",
+			"description": "Neck",
+			"sideofbodyrequired": "No"
+		},
+		{
+			"code": "91000",
+			"description": "Personal effects only",
+			"sideofbodyrequired": "No"
+		},
+		{
+			"code": "21000",
+			"description": "Shoulder",
+			"sideofbodyrequired": "Yes"
+		},
+		{
+			"code": "03630",
+			"description": "Teeth",
+			"sideofbodyrequired": "No"
+		},
+		{
+			"code": "34001",
+			"description": "Thumb",
+			"sideofbodyrequired": "Yes"
+		},
+		{
+			"code": "44000",
+			"description": "Toes",
+			"sideofbodyrequired": "Yes"
+		},
+		{
+			"code": "20000",
+			"description": "Trunk",
+			"sideofbodyrequired": "Yes"
+		},
+		{
+			"code": "99990",
+			"description": "Unknown/Other",
+			"sideofbodyrequired": "No"
+		},
+		{
+			"code": "32000",
+			"description": "Wrist",
+			"sideofbodyrequired": "Yes"
+		}
+	]
+}

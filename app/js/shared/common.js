@@ -1,5 +1,6 @@
 
 var moment;
+var swal2;
 require.config({
     waitSeconds: 0,
     paths: {
@@ -8,8 +9,9 @@ require.config({
     }
 });
 
-define(['moment-timezone'], function (momenttz) {
+define(['moment-timezone', 'sweetalert2'], function (momenttz, sweetalert2) {
     moment = momenttz;
+    swal2 = sweetalert2;
 });
 
 var settingsReceived = false
@@ -80,6 +82,7 @@ var commonjs = {
     currentStudyFilter: '',
     localCacheMaxErrorLimit: 0,
     filterData: {},
+    hasWCBUnsavedChanges: false,
 
     /**
      * Setting up zip autocomplete:
@@ -955,6 +958,32 @@ var commonjs = {
         options.modalDivContainerId = '#modal_div_container_nested';
         options.iframeContainerId = 'site_modal_iframe_container_nested';
         options.isNested = true;
+
+        $('.modal-header button, .modal-footer button')
+        .off('click')
+        .on('click', function (e) {
+            var $closeButton = $(this);
+            if (app.billingRegionCode === "can_AB" && commonjs.hasWCBUnsavedChanges) {
+                $closeButton.removeAttr('data-dismiss');
+                swal2.fire({
+                    type: 'warning',
+                    titleText: i18n.get('messages.confirm.unsavedWCBChanges'),
+                    showCancelButton: true,
+                    onOpen: function (e) {
+                        $('.swal2-checkbox').addClass('d-none');
+                    }
+                }).then(function (res) {
+                    if (res.value) {
+                        $closeButton.attr('data-dismiss', 'modal');
+                        $("#siteModal").hide();
+                        $("#siteModal").modal("hide");
+                        return true;
+                    }
+                });
+            } else {
+                $closeButton.attr('data-dismiss', 'modal');
+            }
+        });
 
         commonjs.showDefaultDialog(options);
         commonjs.initHideEvent(options);

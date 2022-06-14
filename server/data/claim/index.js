@@ -214,7 +214,7 @@ module.exports = {
                                         COALESCE(NULLIF(order_info->'outsideLab',''), 'false')::boolean AS service_by_outside_lab,
                                         order_info->'original_ref' AS original_reference,
                                         orders.order_info -> 'authorization_no' AS authorization_no,
-                                        CASE 
+                                        CASE
                                             WHEN order_info ->'frequency_code' = '1'
                                             THEN 'original'
                                             WHEN order_info ->'frequency_code' = '7'
@@ -379,6 +379,25 @@ module.exports = {
                                                 LIMIT 1
                                         ) as studies_details ON TRUE
                             )
+                            , wcb_injury_details AS (
+                                SELECT
+                                    jsonb_agg(
+                                        jsonb_build_object(
+                                            'study_id', s.id,
+                                            'injury_detail_id', pcawid.id,
+                                            'body_part_code', pcawid.body_part_code,
+                                            'orientation_code', pcawid.orientation_code,
+                                            'injury_id', pcawid.injury_id,
+                                            'injury_description', pcawic.description
+                                        )
+                                    ) AS injury_details
+                                FROM public.studies s
+                                LEFT JOIN public.can_ahs_wcb_injury_details pcawid ON pcawid.study_id = s.id
+                                LEFT JOIN public.can_wcb_injury_codes pcawic ON pcawic.id = pcawid.injury_id
+                                WHERE s.id = ${firstStudyId}
+                                    AND pcawic.injury_code_type = 'n'
+                                    AND pcawic.inactivated_dt IS NULL
+                            )
                             ,claim_problems AS (
                                         SELECT
                                             DISTINCT icd_codes.id
@@ -401,6 +420,10 @@ module.exports = {
                                                 FROM claim_charges
                                             ) AS charge
                                     ) AS charges
+                                    , (
+                                        SELECT COALESCE(injury_details, '[]') AS injury_details
+                                        FROM wcb_injury_details
+                                    ) AS injury_details
                                     ,( SELECT COALESCE(json_agg(row_to_json(claims)),'[]') claim_details
 		                                FROM (
                                                 SELECT
@@ -916,6 +939,21 @@ module.exports = {
                             WHERE claim_id = c.id
                             ORDER BY id ASC
                       ) icd_query) AS claim_icd_data
+                    , (
+                        SELECT array_agg(row_to_json(injury_data)) AS injury_details
+                        FROM (
+                            SELECT
+                                  cawid.id AS injury_detail_id
+                                , cawid.body_part_code
+                                , cawid.orientation_code
+                                , cawid.injury_id
+                                , wic.description AS injury_description
+                            FROM billing.can_ahs_wcb_injury_details cawid
+                            LEFT JOIN public.can_wcb_injury_codes wic ON wic.id = cawid.injury_id
+                            WHERE
+                               cawid.claim_id = c.id
+                               AND wic.injury_code_type = 'n'
+                        ) injury_data) AS injury_details
                     , (
                         SELECT json_agg(row_to_json(existing_insurance)) AS existing_insurance
                         FROM (

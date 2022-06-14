@@ -55,6 +55,12 @@ module.exports = {
             usaInfo.provinces = (response.rows[0].states && response.rows[0].states.length && response.rows[0].states[0].app_states).sort();
         }
 
+        let bpFilePath  = path.join(__dirname, '../../app/resx/body_parts.json');
+        let body_parts = JSON.parse(await readFileAsync(bpFilePath , 'utf8'));
+
+        let orientFilePath  = path.join(__dirname, '../../app/resx/orientation.json');
+        let orientation = JSON.parse(await readFileAsync(orientFilePath , 'utf8'));
+
         const app_settings = response.rows[0];
 
         const {
@@ -73,6 +79,8 @@ module.exports = {
 
         app_settings.hotkeys = hotkeys;
         app_settings.countries = countries || [];
+        app_settings.bodyPartsList = body_parts.body_parts || [];
+        app_settings.orientationsList = orientation.orientation || [];
 
         return response;
     }
