@@ -191,7 +191,7 @@ define([
                             return;
 
                         if(data && data.err) {
-                            return commonjs.showWarning(err);
+                            return commonjs.showWarning(data.err);
                         }
                         if (data) {
                             ace.edit('editor').setValue(JSON.stringify(data, null, '\t'), 1);

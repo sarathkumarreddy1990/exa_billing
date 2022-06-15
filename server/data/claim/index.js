@@ -214,7 +214,15 @@ module.exports = {
                                         COALESCE(NULLIF(order_info->'outsideLab',''), 'false')::boolean AS service_by_outside_lab,
                                         order_info->'original_ref' AS original_reference,
                                         orders.order_info -> 'authorization_no' AS authorization_no,
-                                        order_info->'frequency_code' AS frequency,
+                                        CASE 
+                                            WHEN order_info ->'frequency_code' = '1'
+                                            THEN 'original'
+                                            WHEN order_info ->'frequency_code' = '7'
+                                            THEN 'corrected'
+                                            WHEN order_info ->'frequency_code' = '8'
+                                            THEN 'void'
+                                            ELSE NULL
+                                        END AS frequency,
                                         COALESCE(NULLIF(order_info->'oa',''), 'false')::boolean AS is_other_accident,
                                         COALESCE(NULLIF(order_info->'aa',''), 'false')::boolean AS is_auto_accident,
                                         COALESCE(NULLIF(order_info->'emp',''), 'false')::boolean AS is_employed,

@@ -561,7 +561,8 @@ define('grid', [
 
                 if (studyArray.length === 1 && statusIndex < 0) {
                     var liDeleteClaim = commonjs.getRightClickMenu('anc_delete_claim', 'setup.rightClickMenu.deleteClaim', false, 'Delete Claim', false);
-
+                    var isWCBBilling = gridData.hidden_insurance_provider_codes
+                        && gridData.hidden_insurance_provider_codes.toLowerCase() === 'wcb'; 
                     $divObj.append(liDeleteClaim);
                     self.checkRights('anc_delete_claim');
 
@@ -573,14 +574,14 @@ define('grid', [
                         if (confirm(commonjs.geti18NString("messages.status.areYouSureWantToDeleteClaims"))) {
 
                             if (app.country_alpha_3_code !== 'usa') {
-                                var msg = self.provinceBasedValidationResults(app.billingRegionCode, gridData);
+                                var msg = self.provinceBasedValidationResults(app.billingRegionCode, gridData, isWCBBilling);
 
                                 if (msg) {
                                     return commonjs.showWarning(msg);
                                 }
                             }
 
-                            var params = self.getProvinceBasedParams(app.billingRegionCode, 'delete', studyIds, gridData);
+                            var params = self.getProvinceBasedParams(app.billingRegionCode, 'delete', studyIds, gridData, isWCBBilling);
 
                             commonjs.showLoading();
                             $.ajax({
@@ -590,7 +591,7 @@ define('grid', [
                                 success: function (data, response) {
                                     commonjs.hideLoading();
 
-                                    if (app.billingRegionCode === 'can_AB' && gridData.hidden_billing_method === 'electronic_billing') {
+                                    if (app.billingRegionCode === 'can_AB' && gridData.hidden_billing_method === 'electronic_billing' && !isWCBBilling) {
                                         self.ahsDeleteResponse(data);
                                     } else {
                                         self.claimDeleteResponse(data, studyIds);
@@ -1026,11 +1027,11 @@ define('grid', [
             var icon_width = 24;
             colName = colName.concat([
                 ('<input type="checkbox" i18nt="billing.payments.selectAllStudies" id="chkStudyHeader_' + filterID + '" class="chkheader" onclick="commonjs.checkMultiple(event)" />'),
-                '','','','','', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', 'Assigned To', '', '', ''
+                '','','','','', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', 'Assigned To', '', '', '', ''
             ]);
 
             i18nName = i18nName.concat([
-                '','','','','', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '','', '', 'billing.claims.assignedTo', '', '', ''
+                '','','','','', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '','', '', 'billing.claims.assignedTo', '', '', '', ''
             ]);
 
             colModel = colModel.concat([
@@ -1448,6 +1449,18 @@ define('grid', [
                     isIconCol: true,
                     formatter: function (cellvalue, options, rowObject) {
                         return rowObject.insurance_providers || "";
+                    }
+                },
+                {
+                    name: 'hidden_insurance_provider_codes',
+                    width: 20,
+                    sortable: false,
+                    resizable: false,
+                    search: false,
+                    hidden: true,
+                    isIconCol: true,
+                    formatter: function (cellvalue, options, rowObject) {
+                        return rowObject.insurance_code || "";
                     }
                 },
                 {
@@ -2080,11 +2093,13 @@ define('grid', [
 
         //To bind province based right click menus in claim grid
         self.bindProvinceBasedMenus = function ($divObj, studyArray, gridData, isClaimGrid, selectedStudies, $target) {
+            var isWCBBilling = gridData.hidden_insurance_provider_codes
+                && gridData.hidden_insurance_provider_codes.toLowerCase() === 'wcb';
 
             if(app.billingRegionCode === 'can_AB') {
                 var liClaimReassess = commonjs.getRightClickMenu('anc_claim_reassess', 'setup.rightClickMenu.claimReassess', false, 'Claim Reassess', false);
 
-                if (gridData.hidden_billing_method === 'electronic_billing' && ['R', 'D', 'BR', 'AD'].indexOf(gridData.hidden_claim_status_code) === -1) {
+                if (gridData.hidden_billing_method === 'electronic_billing' && ['R', 'D', 'BR', 'AD'].indexOf(gridData.hidden_claim_status_code) === -1 && !isWCBBilling) {
                     $divObj.append(liClaimReassess);
                 }
 
@@ -2249,12 +2264,13 @@ define('grid', [
                 });
             }
             else {
-                alert(commonjs.geti18NString('messages.claims.claimHasPaymentPleaseUnapply'));
+                alert(commonjs.geti18NString('messages.warning.claims.claimHasPaymentPleaseUnapply'));
             }
         },
 
         // Bind url parameters to ajax calls based on province
-        self.getProvinceBasedParams = function (billingRegion, from, studyIds, gridData) {
+        self.getProvinceBasedParams = function (billingRegion, from, studyIds, gridData, isWCBBilling) {
+
             var defaultParamsForDelete = {
                 url: '/exa_modules/billing/claim_workbench/claim_check_payment_details',
                 type: 'GET',
@@ -2266,7 +2282,7 @@ define('grid', [
 
             switch (billingRegion) {
                 case 'can_AB':
-                    if (from === 'delete' && gridData.hidden_billing_method === 'electronic_billing') {
+                    if (from === 'delete' && gridData.hidden_billing_method === 'electronic_billing' && !isWCBBilling) {
                         return {
                             url: '/exa_modules/billing/ahs/can_ahs_delete_claim',
                             type: 'PUT',
@@ -2288,11 +2304,11 @@ define('grid', [
         },
 
         // Province based validations are handled in this block and returns validation results.
-        self.provinceBasedValidationResults = function (billingRegion, gridData) {
+        self.provinceBasedValidationResults = function (billingRegion, gridData, isWCBBilling) {
             var msg = '';
             var claimStatus = gridData && gridData.hidden_claim_status_code || null;
 
-            if (billingRegion === 'can_AB') {
+            if (billingRegion === 'can_AB' && !isWCBBilling) {
                 if (gridData.hidden_billing_method === 'electronic_billing') {
 
                     if (claimStatus !== 'AD' && (claimStatus === 'ADP' || !commonjs.isValidClaimStatusToSubmit('delete', gridData.hidden_claim_status_code))) {
