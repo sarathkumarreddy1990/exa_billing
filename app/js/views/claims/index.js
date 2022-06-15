@@ -4177,7 +4177,9 @@ define(['jquery',
                 var injury_details = [];
 
                 if (app.billingRegionCode === "can_AB" && !$('#divInjury').is(':hidden')) {
-                    injury_details = self.injuryDetailsView.injuryDetails;
+                    injury_details = _.filter(self.injuryDetailsView.injuryDetails, function(data) {
+                       return data.injury_id && data.body_part_code
+                    });
                 }
 
                 var deletedInjuryLevels = '';
