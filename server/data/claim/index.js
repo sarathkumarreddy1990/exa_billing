@@ -6,8 +6,10 @@ module.exports = {
     getKeys: async function () {
         const sql = SQL`SELECT * FROM
          (
-             SELECT json_array_elements(web_config) AS info from sites)AS info_tab
-            WHERE info->>'id' IN('insPokitdok' , 'pokitdok_client_id' , 'pokitdok_client_secret', 'CHCPokitdokBaseURL' ,'CHCPokitdokAccessTokenURL') `;
+            SELECT
+                jsonb_array_elements(web_config) AS info from sites) AS info_tab
+            WHERE
+                info->>'id' IN ('insPokitdok', 'pokitdok_client_id', 'pokitdok_client_secret', 'CHCPokitdokBaseURL', 'CHCPokitdokAccessTokenURL') `;
 
         return await query(sql);
     },
