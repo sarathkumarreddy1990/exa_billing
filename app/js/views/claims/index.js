@@ -4175,33 +4175,26 @@ define(['jquery',
                 var delayReasonId = $('#ddlDelayReasons option:selected').val();
                 var dateOfReferral = $('#txtDateOfReferral').val();
                 var injury_details = [];
+                var deletedInjuryLevels = [];
 
                 if (app.billingRegionCode === "can_AB" && !$('#divInjury').is(':hidden')) {
                     injury_details = _.filter(self.injuryDetailsView.injuryDetails, function(data) {
                        return data.injury_id && data.body_part_code
                     });
-                }
 
-                var deletedInjuryLevels = '';
-                switch (injury_details.length) {
-                    case 0:
-                        deletedInjuryLevels = 'primary';
-                    break;
-                    case 1:
-                        deletedInjuryLevels = 'secondary';
-                    break;
-                    case 2:
-                        deletedInjuryLevels = 'tertiary';
-                    break;
-                    case 3:
-                        deletedInjuryLevels = 'quaternary';
-                    break;
-                    case 4:
-                        deletedInjuryLevels = 'quinary';
-                    break;
-                    case 5:
-                        deletedInjuryLevels = null;
-                    break;
+                    switch (self.injuryDetailsView.injuryDetails.length) {
+                        case 0:
+                            deletedInjuryLevels.push('primary');
+                        case 1:
+                            deletedInjuryLevels.push('secondary');
+                        case 2:
+                            deletedInjuryLevels.push('tertiary');
+                        case 3:
+                            deletedInjuryLevels.push('quaternary');
+                        case 4:
+                            deletedInjuryLevels.push('quinary');
+                            break;
+                    }
                 }
 
                 claim_model.claims = {
@@ -4270,7 +4263,7 @@ define(['jquery',
                         ? self.ACSelect.patientAltAccNo.issuer_id
                         : null,
                     wcb_injury_details: JSON.stringify(injury_details),
-                    deleted_injury_level: deletedInjuryLevels
+                    deleted_injury_level: deletedInjuryLevels.join('~')
                 };
 
                 // Pay-to Details are only saved when Pay-to Code is Other

@@ -953,6 +953,8 @@ module.exports = {
                             WHERE
                                cawid.claim_id = c.id
                                AND wic.injury_code_type = 'n'
+                            ORDER BY
+                               cawid.id ASC
                         ) injury_data) AS injury_details
                     , (
                         SELECT json_agg(row_to_json(existing_insurance)) AS existing_insurance

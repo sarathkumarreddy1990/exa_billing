@@ -35,6 +35,7 @@ define(
             render: function (injury_details) {
                 this.bindInjuryList(injury_details);
                 commonjs.hasWCBUnsavedChanges = false;
+                commonjs.updateCulture(app.current_culture, commonjs.beautifyMe);
             },
 
             initAutoCompleteList: function(rowIndex, injury_details) {
@@ -298,7 +299,7 @@ define(
                 });
                 function formatRepo(res) {
                     var markup = "<table><tr>";
-                    markup += "<td  data-id='" + res.id + " ' title='" + res.code + "'> <div>" + res.code + '-' + res.description + "</div>";
+                    markup += "<td  data-id='" + res.id + " ' title='" + res.code + "'> <div>" + res.description + "</div>";
 
                     markup += "</td></tr></table>";
 
@@ -310,6 +311,7 @@ define(
                         $(containerID).val(res.id);
                         var index = self.injuryDetails.findIndex(function (i) { return i.data_row_id == data_row_id });
                         self.injuryDetails[index].injury_id = res.id;
+                        self.injuryDetails[index].injury_description = res.description;
 
                         if (!self.fromNOIInitSelection) {
                             commonjs.hasWCBUnsavedChanges = true;
