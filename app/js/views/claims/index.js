@@ -4182,18 +4182,10 @@ define(['jquery',
                        return data.injury_id && data.body_part_code
                     });
 
-                    switch (self.injuryDetailsView.injuryDetails.length) {
-                        case 0:
-                            deletedInjuryLevels.push('primary');
-                        case 1:
-                            deletedInjuryLevels.push('secondary');
-                        case 2:
-                            deletedInjuryLevels.push('tertiary');
-                        case 3:
-                            deletedInjuryLevels.push('quaternary');
-                        case 4:
-                            deletedInjuryLevels.push('quinary');
-                            break;
+                    var priorityLevel = self.getPriorityLevel(self.injuryDetailsView.injuryDetails.length);
+
+                    if (priorityLevel) {
+                        deletedInjuryLevels.push(priorityLevel);
                     }
                 }
 

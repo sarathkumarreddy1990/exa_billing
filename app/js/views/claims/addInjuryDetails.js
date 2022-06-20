@@ -40,15 +40,13 @@ define(
 
             initAutoCompleteList: function(rowIndex, injury_details) {
                 var self = this;
-                var options = {
-                    data_row_id: rowIndex
-                };
-                var bodyPartOptions = options;
-                var orientationOptions = options;
-                var noiOptions = options;
+                var bodyPartOptions = {};
+                var orientationOptions = {};
+                var noiOptions = {};
 
                 if (!_.isEmpty(injury_details)) {
                     bodyPartOptions.value = injury_details.body_part_code;
+
                     orientationOptions.value = injury_details.orientation_code;
 
                     noiOptions.value = injury_details.injury_id;
@@ -57,6 +55,10 @@ define(
                         description: injury_details.injury_description
                     };
                 }
+
+                bodyPartOptions.data_row_id = rowIndex;
+                orientationOptions.data_row_id = rowIndex;
+                noiOptions.data_row_id = rowIndex;
 
                 self.initBodyPartAutocomplete($('#txtBodyPart_' + rowIndex), bodyPartOptions);
                 self.initOrientationAutocomplete($('#txtOrientation_' + rowIndex), orientationOptions);
@@ -67,12 +69,13 @@ define(
                 var self = this;
                 var $tblInjuryDetails = $('#divInjury #tBodyInjury');
 
-                self.injuryDetails = [];
+                self.injuryDetails = injury_details || [];
                 self.injuryDetailLastIndex = 0;
                 $tblInjuryDetails.empty();
+                var isNewInjury = !injury_details || !injury_details.length;
 
-                if (!injury_details || !injury_details.length) {
-                    var injuryDetail = {
+                if (isNewInjury) {
+                    self.injuryDetails = [{
                         id: null,
                         data_row_id: 0,
                         body_part_code: null,
@@ -80,35 +83,26 @@ define(
                         injury_id: null,
                         priority_level: 'primary',
                         has_orientation: false
-                    };
+                    }];
+                }
 
-                    var injury_row = this.addInjuryDetailTemplate({
-                        row: injuryDetail,
+                self.injuryDetails.forEach(function (injury_detail, i) {
+                    injury_detail.data_row_id = i;
+                    self.injuryDetailLastIndex++;
+
+                    $tblInjuryDetails.append(self.addInjuryDetailTemplate({
+                        row: injury_detail,
                         study_id: self.study_id
-                    });
-                    self.injuryDetails.push(injuryDetail);
-                    $tblInjuryDetails.append(injury_row);
+                    }));
 
-                    self.initAutoCompleteList(0, null);
+                    self.initAutoCompleteList(i, !isNewInjury ? injury_detail : null);
 
-                } else {
-                    self.injuryDetails = injury_details;
-                    self.injuryDetails.forEach(function (injury_detail, i) {
-                        injury_detail.data_row_id = i;
-                        self.injuryDetailLastIndex++;
-
-                        $tblInjuryDetails.append(self.addInjuryDetailTemplate({
-                            row: injury_detail,
-                            study_id: self.study_id
-                        }));
-
-                        self.initAutoCompleteList(i, injury_detail);
-
+                    if (!isNewInjury) {
                         $('#txtBodyPart_' + i).select2('val', injury_detail.body_part_code);
                         $('#txtOrientation_' + i).select2('val', injury_detail.orientation_code);
                         $('#txtNOI_' + i).select2('val', injury_detail.injury_id);
-                    });
-                }
+                    }
+                });
             },
 
             duplicateInjuryValidation: function (index, data_row_id) {
@@ -331,8 +325,6 @@ define(
 
             updatePriorityLevel: function (currentIndex) {
                 var self = this;
-                var $trBodyInjury = $('#tBodyInjury > tr');
-                var priority_level = '';
 
                 self.injuryDetails.forEach(function (injury_detail, index) {
                     if (index >= currentIndex) {
