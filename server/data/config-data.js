@@ -4,7 +4,7 @@ module.exports = {
 
     read: async function (siteID) {
         let sql = SQL`
-            SELECT COALESCE(web_config, '[]'::json) AS web_config 
+            SELECT COALESCE(web_config, '[]'::JSONB) AS web_config
             FROM sites
             WHERE id = ${siteID}
         `;
