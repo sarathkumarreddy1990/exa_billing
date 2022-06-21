@@ -1321,7 +1321,6 @@ define(['jquery',
 
                 $('input[name="outSideLab"]').prop('checked', claim_data.service_by_outside_lab);
                 $('input[name="employment"]').prop('checked', claim_data.is_employed);
-                $('input[name="conditionDevTime"][value="' + claim_data.can_wcb_has_condition_developed_over_time + '"]').prop('checked', true);
                 $('input[name="autoAccident"]').prop('checked', claim_data.is_auto_accident);
                 $('input[name="manualReviewIndicator"]').prop('checked', claim_data.manual_review_indicator);
                 $('input[name="otherAccident"]').prop('checked', claim_data.is_other_accident);
@@ -1624,12 +1623,10 @@ define(['jquery',
                 if ($('#chkEmployment').is(':checked')) {
                     $('#natureOfInjuryDiv').show();
                     $('#areaOfInjuryDiv').show();
-                    $('#conditionDevTime_div').show();
                     dateOfReferral.show();
                 } else {
                     $('#natureOfInjuryDiv').hide();
                     $('#areaOfInjuryDiv').hide();
-                    $('#conditionDevTime_div').hide();
                     dateOfReferral.hide();
                 }
             },
