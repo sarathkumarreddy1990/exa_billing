@@ -55,7 +55,7 @@ module.exports = function (app, express, companyId) {
                 "'self'",
                 "'unsafe-inline'",
                 "'unsafe-eval'",
-                (req, res) => `nonce-${res.locals.cspNonce}'`
+                //(req, res) => `nonce-${res.locals.cspNonce}'`
             ]
         }
     }));
