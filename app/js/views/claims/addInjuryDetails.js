@@ -40,29 +40,15 @@ define(
 
             initAutoCompleteList: function(rowIndex, injury_details) {
                 var self = this;
-                var bodyPartOptions = {};
-                var orientationOptions = {};
-                var noiOptions = {};
-
-                if (!_.isEmpty(injury_details)) {
-                    bodyPartOptions.value = injury_details.body_part_code;
-
-                    orientationOptions.value = injury_details.orientation_code;
-
-                    noiOptions.value = injury_details.injury_id;
-                    noiOptions.data = {
-                        id: injury_details.injury_id,
-                        description: injury_details.injury_description
-                    };
-                }
-
-                bodyPartOptions.data_row_id = rowIndex;
-                orientationOptions.data_row_id = rowIndex;
-                noiOptions.data_row_id = rowIndex;
-
-                self.initBodyPartAutocomplete($('#txtBodyPart_' + rowIndex), bodyPartOptions);
-                self.initOrientationAutocomplete($('#txtOrientation_' + rowIndex), orientationOptions);
-                self.initNatureOfInjuryAutocomplete($('#txtNOI_' + rowIndex), noiOptions);
+                self.initBodyPartAutocomplete(('#txtBodyPart_' + rowIndex), {
+                    data_row_id: rowIndex
+                });
+                self.initOrientationAutocomplete(('#txtOrientation_' + rowIndex), {
+                    data_row_id: rowIndex
+                });
+                self.initNatureOfInjuryAutocomplete(('#txtNOI_' + rowIndex), {
+                    data_row_id: rowIndex
+                });
             },
 
             bindInjuryList: function (injury_details) {
@@ -119,9 +105,9 @@ define(
                 });
 
                 if (isInjuryDetailDuplicate) {
-                    $('#select2-txtBodyPart_' + data_row_id + '-container').html(i18n.get('messages.warning.shared.selectBodyPart'));
-                    $('#select2-txtOrientation_' + data_row_id + '-container').html(i18n.get('messages.warning.shared.selectOrientation'));
-                    $('#select2-txtNOI_' + data_row_id + '-container').html(i18n.get('messages.warning.shared.selectNatureOfInjury'));
+                    $('#select2-txtBodyPart_' + data_row_id + '-container').html(commonjs.geti18NString('messages.warning.shared.selectBodyPart'));
+                    $('#select2-txtOrientation_' + data_row_id + '-container').html(commonjs.geti18NString('messages.warning.shared.selectOrientation'));
+                    $('#select2-txtNOI_' + data_row_id + '-container').html(commonjs.geti18NString('messages.warning.shared.selectNatureOfInjury'));
                     $('#txtNOI_' + data_row_id).select2('data', null);
                     $('#txtOrientation_' + data_row_id).select2("enable", true);
 
@@ -145,7 +131,10 @@ define(
                 $(containerID).select2({
                     data: self.body_parts_autocomplete_list,
                     allowClear: false,
-                    placeholder: i18n.get('messages.warning.shared.selectBodyPart'),
+                    placeholder: {
+                        id: '',
+                        text: commonjs.geti18NString('messages.warning.shared.selectBodyPart')
+                    },
                     width: 150,
                     minimumInputLength: 0,
                     matcher: function (params, data) {
@@ -196,6 +185,9 @@ define(
                         self.fromBodyPartInitSelection = false;
                         return res.description;
                     }
+                    else {
+                        return res && res.text;
+                    }
                 }
 
                 $(containerID).on('change', function (a, b) {
@@ -215,7 +207,10 @@ define(
                 $(containerID).select2({
                     data: self.orientation_autocomplete_list,
                     allowClear: false,
-                    placeholder: i18n.get('messages.warning.shared.selectOrientation'),
+                    placeholder: {
+                        id: '',
+                        text: commonjs.geti18NString('messages.warning.shared.selectOrientation')
+                    },
                     width: 100,
                     minimumInputLength: 0,
                     matcher: function (params, data) {
@@ -255,6 +250,9 @@ define(
                         self.fromOrientationInitSelection = false;
                         return res.description;
                     }
+                    else {
+                        return res && res.text;
+                    }
                 }
 
                 $(containerID).on('change', function (a, b) {
@@ -274,7 +272,10 @@ define(
                 $(containerID).select2({
                     data: app.wcb_nature_code,
                     allowClear: false,
-                    placeHolder: i18n.get('messages.warning.shared.selectNatureOfInjury'),
+                    placeholder: {
+                        id: '',
+                        text: commonjs.geti18NString('messages.warning.shared.selectNatureOfInjury')
+                    },
                     escapeMarkup: function (markup) { return markup; }, // let our custom formatter work
                     minimumInputLength: 0,
                     templateResult: formatRepo,
@@ -313,7 +314,9 @@ define(
                         self.fromNOIInitSelection = false;
                         return res.description;
                     }
-
+                    else {
+                        return res && res.text;
+                    }
                 }
 
                 $(containerID).on('change', function (a, b) {

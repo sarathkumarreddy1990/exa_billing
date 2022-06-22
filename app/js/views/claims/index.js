@@ -797,6 +797,30 @@ define(['jquery',
                 "Z": "Referral Required, Nurse Practitioner, can be self-ref"
             },
 
+            getDeletedInjuryLevels: function() {
+                if (app.billingRegionCode !== "can_AB" || $('#divInjury').is(':hidden')) {
+                    return [];
+                }
+
+                var levels = [];
+
+                switch (this.injuryDetailsView.injuryDetails.length) {
+                    case 0:
+                        levels.push('primary');
+                    case 1:
+                        levels.push('secondary');
+                    case 2:
+                        levels.push('tertiary');
+                    case 3:
+                        levels.push('quaternary');
+                    case 4:
+                        levels.push('quinary');
+                        break;
+                }
+
+                return levels.join('~');
+            },
+
             getPriorityLevel: function(index) {
                 var priorityLevel = null;
                 switch(index) {
@@ -2019,7 +2043,18 @@ define(['jquery',
                 });
 
                 $(".claimProcess").off().click(function (e) {
-                    self.processClaim(e);
+                    if (app.billingRegionCode === "can_AB" && commonjs.hasWCBUnsavedChanges) {
+                        self.openUnSavedChangesModal('prevNext', e);
+                    } else {
+                        self.processClaim(e);
+                    }
+                });
+
+                $("#siteModal .modal-header button, #siteModal .modal-footer button").off().click(function (e) {
+                    if (app.billingRegionCode === "can_AB" && commonjs.hasWCBUnsavedChanges) {
+                        $(this).removeAttr('data-dismiss');
+                        self.openUnSavedChangesModal('close', $(this));
+                    }
                 });
 
                 $('#btnCheckEligibility, #btnCheckEligibility2, #btnCheckEligibility3').off().click(function (e) {
@@ -2077,6 +2112,34 @@ define(['jquery',
                 })
 
             },
+
+            openUnSavedChangesModal: function (isFrom, e) {
+                var self = this;
+
+                swal2.fire({
+                    type: 'warning',
+                    titleText: i18n.get('messages.confirm.unsavedWCBChanges'),
+                    showCancelButton: true,
+                    onOpen: function (e) {
+                        $('.swal2-checkbox').addClass('d-none');
+                    }
+                }).then(function (res) {
+                    if (isFrom === 'close') {
+                        e.attr('data-dismiss', 'modal');
+
+                        if (res.value) {
+                            $("#siteModal").hide();
+                            $("#siteModal").modal("hide");
+                            return true;
+                        }
+                    } else {
+                        if (res.value) {
+                            self.processClaim(e);
+                        }
+                    }
+                });
+            },
+
             getLineItemsAndBind: function (selectedStudyIds) {
                 var self = this;
                 self.chargeModel = [];
@@ -4172,20 +4235,11 @@ define(['jquery',
                 var claim_Study_date = $('#txtClaimDate').val();
                 var delayReasonId = $('#ddlDelayReasons option:selected').val();
                 var dateOfReferral = $('#txtDateOfReferral').val();
-                var injury_details = [];
-                var deletedInjuryLevels = [];
-
-                if (app.billingRegionCode === "can_AB" && !$('#divInjury').is(':hidden')) {
-                    injury_details = _.filter(self.injuryDetailsView.injuryDetails, function(data) {
-                       return data.injury_id && data.body_part_code
-                    });
-
-                    var priorityLevel = self.getPriorityLevel(self.injuryDetailsView.injuryDetails.length);
-
-                    if (priorityLevel) {
-                        deletedInjuryLevels.push(priorityLevel);
-                    }
-                }
+                var injury_details = app.billingRegionCode === "can_AB" && !$('#divInjury').is(':hidden')
+                    ? _.filter(self.injuryDetailsView.injuryDetails, function (data) {
+                            return data.injury_id && data.body_part_code;
+                        })
+                    : [];
 
                 claim_model.claims = {
                     claim_id: self.claim_Id,
@@ -4253,7 +4307,7 @@ define(['jquery',
                         ? self.ACSelect.patientAltAccNo.issuer_id
                         : null,
                     wcb_injury_details: JSON.stringify(injury_details),
-                    deleted_injury_level: deletedInjuryLevels.join('~')
+                    deleted_injury_level: self.getDeletedInjuryLevels()
                 };
 
                 // Pay-to Details are only saved when Pay-to Code is Other
