@@ -6,8 +6,10 @@ module.exports = {
     getKeys: async function () {
         const sql = SQL`SELECT * FROM
          (
-             SELECT json_array_elements(web_config) AS info from sites)AS info_tab
-            WHERE info->>'id' IN('insPokitdok' , 'pokitdok_client_id' , 'pokitdok_client_secret', 'CHCPokitdokBaseURL' ,'CHCPokitdokAccessTokenURL') `;
+            SELECT
+                jsonb_array_elements(web_config) AS info from sites) AS info_tab
+            WHERE
+                info->>'id' IN ('insPokitdok', 'pokitdok_client_id', 'pokitdok_client_secret', 'CHCPokitdokBaseURL', 'CHCPokitdokAccessTokenURL') `;
 
         return await query(sql);
     },
@@ -226,7 +228,6 @@ module.exports = {
                                         COALESCE(NULLIF(order_info->'oa',''), 'false')::boolean AS is_other_accident,
                                         COALESCE(NULLIF(order_info->'aa',''), 'false')::boolean AS is_auto_accident,
                                         COALESCE(NULLIF(order_info->'emp',''), 'false')::boolean AS is_employed,
-                                        COALESCE(NULLIF(order_info->'conditionDevOverTime',''), 'false')::boolean AS can_wcb_has_condition_developed_over_time,
                                         COALESCE(NULLIF(order_info->'accident_state',''), '') AS accident_state,
                                         orders.can_wcb_referral_date,
                                         referring_provider.ref_prov_full_name,
@@ -722,7 +723,6 @@ module.exports = {
                     , c.is_other_accident
                     , c.is_employed
                     , c.can_wcb_referral_date
-                    , c.can_wcb_has_condition_developed_over_time
                     , c.accident_state
                     , c.service_by_outside_lab
                     , c.payer_type

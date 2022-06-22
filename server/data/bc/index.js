@@ -55,7 +55,7 @@ const bcData = {
                                   option AS current
                               FROM
                                   sites,
-                                  jsonb_array_elements(web_config :: JSONB) option
+                                  jsonb_array_elements(web_config) option
                               ORDER BY
                                   option ->> 'id' ASC
                         ),
@@ -389,7 +389,7 @@ const bcData = {
                                 option AS current
                             FROM
                                 sites,
-                                jsonb_array_elements(web_config :: JSONB) option
+                                jsonb_array_elements(web_config) option
                             ORDER BY
                                 option ->> 'id' ASC
                         )
@@ -996,10 +996,10 @@ const bcData = {
                         INNER JOIN billing.providers bp ON bp.id = bfs.default_provider_id
                         WHERE bfs.facility_id = ${facility_id}
                         AND bp.company_id = ${companyId}
-                        AND bp.can_bc_msp_portal_username IS NOT NULL 
+                        AND bp.can_bc_msp_portal_username IS NOT NULL
                         AND bp.can_bc_msp_portal_password IS NOT NULL
                         AND bp.can_bc_msp_portal_external_url IS NOT NULL`;
-        
+
         return (await queryRows(sql)).pop();
     },
 

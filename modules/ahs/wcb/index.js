@@ -11,7 +11,7 @@ const siteConfig = require('../../../server/config');
 const claimWorkBenchController = require('../../../server/controllers/claim/claim-workbench');
 const validateClaimsData = require('../../../server/data/claim/claim-workbench');
 
-const { encoder } = require('./encoder');
+const { encoder, processOldData } = require('./encoder');
 
 const WCB_NEW_CLAIM_TEMPLATE = siteConfig.wcbNewClaimTemplate || 'WCB_C568';
 const WCB_CORRECTION_CLAIM_TEMPLATE = siteConfig.wcbCorrectionClaimTemplate || 'WCB_C570';
@@ -299,7 +299,10 @@ const wcbModule = {
                 file_name,
                 batch_sequence_number,
                 batch_number,
-            } = data
+                root_directory,
+                uploaded_file_name,
+                file_path
+        } = data
 
             // WCB Business Rule validations for each claim details
             validationMessages = wcbModule.getWCBValidationErrors(data);
@@ -309,6 +312,41 @@ const wcbModule = {
             }
 
             try {
+                let oldClaimJson = {};
+
+                // verification and processing of previously submitted file for a claim	
+                if (EDI_TEMPLATE === WCB_CORRECTION_CLAIM_TEMPLATE) {
+                    // passing old data by fetching from file.	
+                    oldClaimJson = await processOldData({
+                        claim_id: exa_claim_id,
+                        root_directory,
+                        uploaded_file_name,
+                        file_path
+                    }) || {};
+
+                    let {
+                        error = null,
+                        old_data = null
+                    } = oldClaimJson;
+
+                    if (error) {
+                        errorObj.flag = true;
+                        errorObj.errMsg = error;
+                        errMsg = `Error occured at fetching old claim details... ${JSON.stringify(error)}`;
+                        return errorObj;
+                    }
+
+                    if (!old_data) {
+                        errMsg = `Claim # ${exa_claim_id} was not previously submitted to WCB!`;
+                        errorObj.flag = true;
+                        errorObj.errMsg = errMsg;
+                        
+                        return errorObj;
+                    }
+
+                    data['old_claim_data'] = old_data;
+                }	
+
                 let {
                     outXml = null,
                     errors
@@ -360,7 +398,7 @@ const wcbModule = {
                 });
 
                 if (!edi_file_claim_id) {
-                    errMsg = 'Error occured at storing claim into edi file claims table...';
+                    errMsg = `Error occured at storing claim ${exa_claim_id} into edi file claims table...`;
                     errorObj.flag = true;
                     errorObj.errMsg = errMsg;
 

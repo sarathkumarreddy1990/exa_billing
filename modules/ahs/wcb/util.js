@@ -29,7 +29,7 @@ const formatPhoneFax = (phnNum, key) => {
     let cleaned = phnNum && (phnNum).replace(/\D/g, '') || '';
 
     if (isValidPhoneNumber && cleaned) {
-            return cleaned.substring(3, 10) || '';
+        return cleaned.substring(3, 10) || '';
     }
 
     return null;
@@ -45,7 +45,6 @@ const formatGender = (code) => {
         ? 'X'
         : gender;
 };
-
 
 const formatters = {
     "country_code": formatCountryCode,

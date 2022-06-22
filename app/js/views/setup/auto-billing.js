@@ -688,7 +688,7 @@ define(['jquery',
 
                 $('#ddlAutoBillingInsuranceProviders').select2({
                     ajax: {
-                        type: 'GET',
+                        type: 'POST',
                         url: "/insuranceProviders",
                         dataType: 'json',
                         delay: 250,
