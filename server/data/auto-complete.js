@@ -302,7 +302,7 @@ module.exports = {
                                     WHERE( LOWER(user_groups.group_name) = 'billing'
                                             OR LOWER(ur.role_name) = 'billing'
                                             OR LOWER(ur.role_name) = 'billing1.5'
-                                            OR (group_info -> 'user_nav')::jsonb ? 'billing'
+                                            OR (group_info -> 'user_nav') ? 'billing'
                                          )
                                     AND users.has_deleted = FALSE
                                     ${users_q}
