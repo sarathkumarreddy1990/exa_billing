@@ -18,10 +18,6 @@ define(
             fromBodyPartInitSelection: true,
             fromNOIInitSelection: true,
             fromOrientationInitSelection: true,
-            events: {
-                'click .addInjury': 'addInjury',
-                'click .removeInjury': 'deleteInjury'
-            },
 
             initialize: function (options) {
                 this.body_parts_autocomplete_list = app.bodyPartsList.map(function (body_part) {
@@ -48,6 +44,16 @@ define(
                 });
                 self.initNatureOfInjuryAutocomplete(('#txtNOI_' + rowIndex), {
                     data_row_id: rowIndex
+                });
+            },
+
+            addInjuryLineItems: function() {
+                var self = this;
+                $('.addInjury').off().on('click', function(e) {
+                    self.addInjury(e);
+                });
+                $('.removeInjury').off().on('click', function(e) {
+                    self.deleteInjury(e);
                 });
             },
 
@@ -89,6 +95,7 @@ define(
                         $('#txtNOI_' + i).select2('val', injury_detail.injury_id);
                     }
                 });
+                self.addInjuryLineItems();
             },
 
             duplicateInjuryValidation: function (index, data_row_id) {
@@ -364,7 +371,6 @@ define(
                 var currentIndex = $(e.currentTarget).closest('tr').index();
                 var $tblInjuryDetails = $('#divInjury #tBodyInjury');
                 var newRowIndex = self.injuryDetails.length;
-                self.injuryDetailLastIndex++;
 
                 if (newRowIndex >= 5) {
                     return commonjs.showWarning("messages.warning.shared.wcbExceedsMaximumLimit", "mediumwarning");
@@ -394,9 +400,10 @@ define(
                     $('#tBodyInjury > tr').eq(currentIndex).after(injury_row);
                     self.injuryDetails.splice(currentIndex + 1, 0, injuryDetail);
                 }
-
-                self.updatePriorityLevel(currentIndex);
                 self.initAutoCompleteList(self.injuryDetailLastIndex, null);
+                self.updatePriorityLevel(currentIndex);
+                self.addInjuryLineItems();
+                self.injuryDetailLastIndex++;
             },
 
             deleteInjury: function (e) {
@@ -404,7 +411,6 @@ define(
                 var currentIndex = $currentTarget.closest('tr').index();
                 $currentTarget.closest('tr').remove();
                 this.injuryDetails.splice(currentIndex, 1);
-                this.injuryDetailLastIndex--;
                 commonjs.hasWCBUnsavedChanges = true;
 
                 if (!this.injuryDetails.length) {
