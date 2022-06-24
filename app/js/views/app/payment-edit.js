@@ -2563,7 +2563,9 @@ define(['jquery',
                                 paymentStatus === 'applied' ? commonjs.geti18NString('messages.status.paymentUpdatedSuccessfully') : commonjs.geti18NString('messages.status.paymentAppliedSuccessfully');
 
                             commonjs.showStatus(msg);
-                            e.target.id !==  'btnSaveAppliedPendingPayments' ? targetObj.removeAttr('disabled') : '';
+                            if (e.target.id !== 'btnSaveAppliedPendingPayments') {
+                                targetObj.removeAttr('disabled');
+                            }
                             commonjs.hideLoading();
                             self.isRefundApplied = false;
                             self.casDeleted = [];
