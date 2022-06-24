@@ -2563,7 +2563,7 @@ define(['jquery',
                                 paymentStatus === 'applied' ? commonjs.geti18NString('messages.status.paymentUpdatedSuccessfully') : commonjs.geti18NString('messages.status.paymentAppliedSuccessfully');
 
                             commonjs.showStatus(msg);
-                            targetObj.removeAttr('disabled');
+                            e.target.id !==  'btnSaveAppliedPendingPayments' ? targetObj.removeAttr('disabled') : '';
                             commonjs.hideLoading();
                             self.isRefundApplied = false;
                             self.casDeleted = [];
@@ -2646,6 +2646,7 @@ define(['jquery',
                                 }
                             })
                         }
+                        $('#btnSaveAppliedPendingPayments').removeAttr('disabled');
                         commonjs.hideLoading();
                     },
                     error: function (err) {
