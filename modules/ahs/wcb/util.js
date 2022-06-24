@@ -5,6 +5,9 @@ const {
     COUNTRY_CODES
 } = require ('./encoder/constants');
 
+const { body_parts } = require('../../../app/resx/body_parts.json');
+const { orientation } = require('../../../app/resx/orientation.json');
+
 const isArray = (obj) => obj && typeof (obj) === 'object' && Array.isArray(obj);
 
 const formatCountryCode = (str) => {
@@ -46,13 +49,25 @@ const formatGender = (code) => {
         : gender;
 };
 
+const getBPDescription = (code) => {
+    let bp = body_parts.find((bp) => bp.code === code) || {};
+    return bp.description || '';
+};
+
+const getOrientationDescription = (code) => {
+    let orObj = orientation.find((or) => or.code === code) || {};
+    return orObj.description || '';
+};
+
 const formatters = {
     "country_code": formatCountryCode,
     "postal_code": formatPostalCode,
     "fax_number": formatPhoneFax,
     "phone_number": formatPhoneFax,
     "attachment_content": formatAttachment,
-    "gender": formatGender 
+    "gender": formatGender,
+    "body_part_description": getBPDescription,
+    "side_of_body_description": getOrientationDescription
 };
 
 const getFormattedValue = (key, inputObj) => {

@@ -70,8 +70,8 @@ const bindArrayJson = (node, templateJson, data, templateName) => {
             }
 
             if (!isCorrectionTemplate) {
-                for (let k = 1; k <= 3; k++) { // loop over part of body, side of body and nature of injury combinations
-                    for (let j = 0; j < pobArr.length; j++) { // loop over each part of body from database
+                for (let j = 0; j < pobArr.length; j++) { // loop over each part of body from database
+                    for (let k = 1; k <= 3; k++) { // loop over part of body, side of body and nature of injury combinations
                         let keysOrder = getObjKeys(templateJson[k]);
                         outputJson.push(createNode(node, templateJson[k], keysOrder, pobArr[j], templateName) || null);
                     }

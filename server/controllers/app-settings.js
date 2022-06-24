@@ -5,6 +5,8 @@ const { promisify } = require('util');
 const path = require('path');
 const readFileAsync = promisify(fs.readFile);
 const config = require('./../config');
+const { body_parts } = require('../../app/resx/body_parts.json');
+const { orientation } = require('../../app/resx/orientation.json');
 
 const getOHIPConfiguration = () => {
 
@@ -73,6 +75,8 @@ module.exports = {
 
         app_settings.hotkeys = hotkeys;
         app_settings.countries = countries || [];
+        app_settings.bodyPartsList = body_parts || [];
+        app_settings.orientationsList = orientation || [];
 
         return response;
     }

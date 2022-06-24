@@ -370,26 +370,24 @@ const ahsData = {
             LIMIT 1
         ) old_claim_data ON TRUE
 
-        -- TODO: Will reformat the join for body part details after EXA-33503
         LEFT JOIN LATERAL (
             SELECT jsonb_agg(orientations.orientation) AS orientation
             FROM (
                 SELECT
                     jsonb_build_object(
-                        'body_part_code', s.body_part,
-                        'body_part_description', s.body_part,
-                        'side_of_body_code', s.orientation,
-                        'side_of_body_description', s.orientation,
+                        'body_part_code', cawid.body_part_code,
+                        'body_part_description', cawid.body_part_code,
+                        'side_of_body_code', cawid.orientation_code,
+                        'side_of_body_description', cawid.orientation_code,    -- Handled side of body and body part description using code in encoder
                         'nature_of_injury_code', nic.code,
-                        'nature_of_injury_description', nic.description,
-                        'area_of_injury_code', aic.code,
-                        'area_of_injury_description', aic.description
-                    ) AS orientation
-                FROM billing.claims bic
-                LEFT JOIN public.can_wcb_injury_codes nic ON bic.nature_of_injury_code_id = nic.id
-                LEFT JOIN public.can_wcb_injury_codes aic ON bic.area_of_injury_code_id = aic.id
-                WHERE bic.id = bc.id
-                LIMIT 5
+                        'nature_of_injury_description', nic.description
+                ) AS orientation
+            FROM billing.claims bic
+            LEFT JOIN billing.can_ahs_wcb_injury_details cawid ON cawid.claim_id = bic.id
+            LEFT JOIN public.can_wcb_injury_codes nic ON nic.id = cawid.injury_id
+            WHERE bic.id = bc.id
+            AND nic.injury_code_type = 'n'
+            LIMIT 5
             ) orientations
         ) AS orientation_data ON TRUE
         LEFT JOIN LATERAL (

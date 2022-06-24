@@ -1,0 +1,16 @@
+{
+	"orientation": [
+		{
+			"code": "B",
+			"description": "Both"
+		},
+		{
+			"code": "L",
+			"description": "Left"
+		},
+		{
+			"code": "R",
+			"description": "Right"
+		}
+	]
+}

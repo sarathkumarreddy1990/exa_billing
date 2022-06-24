@@ -21,7 +21,8 @@ define(['jquery',
 'text!templates/claims/eligibilityResponseOHIP.html',
 'text!templates/claims/eligibilityResponseBC.html',
 'text!templates/claims/ahs_charges_today.html',
-'text!templates/app/patient-recent-claims.html'
+'text!templates/app/patient-recent-claims.html',
+'views/claims/addInjuryDetails'
 ],
     function ($,
         moment,
@@ -46,7 +47,8 @@ define(['jquery',
         insuranceOhipForm,
         insuranceBCForm,
         patientChargesTemplate,
-        patientClaimTemplate
+        patientClaimTemplate,
+        injuryDetailsView
     ) {
         var claimView = Backbone.View.extend({
             el: null,
@@ -315,6 +317,7 @@ define(['jquery',
                         posList: app.places_of_service || [],
                         relationshipList: app.relationship_status || [],
                         chargeList: self.claimChargeList || [],
+                        injuryList: self.injuryDetailList || [],
                         paymentList: self.paymentList,
                         billingRegionCode: app.billingRegionCode,
                         currentDate: self.studyDate === undefined && self.cur_study_date || self.studyDate,
@@ -749,6 +752,12 @@ define(['jquery',
                 self.setPatientAltAccountsAutoComplete(); // Patient alternate account number /
                 if (!self.isEdit)
                     self.bindExistingPatientInsurance(doHide);
+
+                self.injuryDetailsView = new injuryDetailsView({
+                    el: '#tBodyInjury'
+                });
+                self.injuryDetailsView.render(self.injuryModel || []);
+
             },
 
             initializeClaimEditForm: function (isFrom) {
@@ -788,6 +797,56 @@ define(['jquery',
                 "Z": "Referral Required, Nurse Practitioner, can be self-ref"
             },
 
+            getDeletedInjuryLevels: function() {
+                if (app.billingRegionCode !== "can_AB" || $('#divInjury').is(':hidden')) {
+                    return [];
+                }
+
+                var levels = [];
+
+                switch (this.injuryDetailsView.injuryDetails.length) {
+                    case 0:
+                        levels.push('primary');
+                    case 1:
+                        levels.push('secondary');
+                    case 2:
+                        levels.push('tertiary');
+                    case 3:
+                        levels.push('quaternary');
+                    case 4:
+                        levels.push('quinary');
+                        break;
+                }
+
+                return levels.join('~');
+            },
+
+            getPriorityLevel: function(index) {
+                var priorityLevel = null;
+                switch(index) {
+                    case 0:
+                        priorityLevel = 'primary';
+                    break;
+                    case 1:
+                        priorityLevel = 'secondary';
+                    break;
+                    case 2:
+                        priorityLevel = 'tertiary';
+                    break;
+                    case 3:
+                        priorityLevel = 'quaternary';
+                    break;
+                    case 4:
+                        priorityLevel = 'quinary';
+                    break;
+                    default:
+                        priorityLevel = 'primary';
+                    break;
+                }
+
+                return priorityLevel;
+            },
+
             /* Get claim edit details function*/
             showEditClaimForm: function (claim_Id, isFrom, options) {
                 var self = this;
@@ -797,6 +856,7 @@ define(['jquery',
                 self.claimICDLists = [];
                 self.removedCharges = [];
                 self.chargeModel = [];
+                self.injuryModel = [];
                 self.options = options || {};
                 self.patientAlerts = [];
                 self.dtpAccountingDate = [];
@@ -843,8 +903,26 @@ define(['jquery',
                             $('#tBodyCharge').empty();
                             $('.claim-summary').remove();
                             claimDetails.claim_charges = claimDetails.claim_charges || [];
+                            claimDetails.injury_details = claimDetails.injury_details || [];
+
                             self.claimChargeList = [];
+                            self.injuryDetailList = [];
                             self.referralCodesList = [];
+
+                            if (app.billingRegionCode === 'can_AB') {
+                                $.each(claimDetails.injury_details, function (index, obj) {
+                                    self.injuryDetailList.push(obj);
+                                    self.injuryModel.push({
+                                        id: obj.injury_detail_id || null,
+                                        data_row_id: index,
+                                        body_part_code: obj.body_part_code,
+                                        orientation_code: obj.orientation_code,
+                                        injury_id: obj.injury_id,
+                                        priority_level: self.getPriorityLevel(index)
+                                    });
+                                });
+                            }
+
                             $.each(claimDetails.claim_charges, function (index, obj) {
                                 obj.charge_dt = commonjs.checkNotEmpty(obj.charge_dt) ? commonjs.convertToFacilityTimeZone(claimDetails.facility_id, obj.charge_dt).format('L') : '';
                                 obj.facility_id = claimDetails.facility_id;
@@ -899,6 +977,7 @@ define(['jquery',
                             }
                             self.assignLineItemsEvents();
                             self.assignModifierEvent();
+                            self.injuryDetailsView.render(self.injuryModel || []);
                             app.modifiers_in_order = true;
                             commonjs.validateControls();
                             commonjs.isMaskValidate();
@@ -1624,10 +1703,14 @@ define(['jquery',
                     $('#natureOfInjuryDiv').show();
                     $('#areaOfInjuryDiv').show();
                     dateOfReferral.show();
+                    $('#divInjury').show();
+                    $('#tblInjury').show();
+
                 } else {
                     $('#natureOfInjuryDiv').hide();
                     $('#areaOfInjuryDiv').hide();
                     dateOfReferral.hide();
+                    $('#tblInjury').hide();
                 }
             },
 
@@ -1960,7 +2043,18 @@ define(['jquery',
                 });
 
                 $(".claimProcess").off().click(function (e) {
-                    self.processClaim(e);
+                    if (app.billingRegionCode === "can_AB" && commonjs.hasWCBUnsavedChanges) {
+                        self.openUnSavedChangesModal('prevNext', e);
+                    } else {
+                        self.processClaim(e);
+                    }
+                });
+
+                $("#siteModal .modal-header button, #siteModal .modal-footer button").off().click(function (e) {
+                    if (app.billingRegionCode === "can_AB" && commonjs.hasWCBUnsavedChanges) {
+                        $(this).removeAttr('data-dismiss');
+                        self.openUnSavedChangesModal('close', $(this));
+                    }
                 });
 
                 $('#btnCheckEligibility, #btnCheckEligibility2, #btnCheckEligibility3').off().click(function (e) {
@@ -2018,9 +2112,38 @@ define(['jquery',
                 })
 
             },
+
+            openUnSavedChangesModal: function (isFrom, e) {
+                var self = this;
+
+                swal2.fire({
+                    type: 'warning',
+                    titleText: i18n.get('messages.confirm.unsavedWCBChanges'),
+                    showCancelButton: true,
+                    onOpen: function (e) {
+                        $('.swal2-checkbox').addClass('d-none');
+                    }
+                }).then(function (res) {
+                    if (isFrom === 'close') {
+                        e.attr('data-dismiss', 'modal');
+
+                        if (res.value) {
+                            $("#siteModal").hide();
+                            $("#siteModal").modal("hide");
+                            return true;
+                        }
+                    } else {
+                        if (res.value) {
+                            self.processClaim(e);
+                        }
+                    }
+                });
+            },
+
             getLineItemsAndBind: function (selectedStudyIds) {
                 var self = this;
                 self.chargeModel = [];
+                self.injuryModel = [];
                 self.patientAlerts = [];
                 self.studyDate = commonjs.getConvertedFacilityTime(app.currentdate, '', 'L', app.facilityID);
                 if (selectedStudyIds) {
@@ -2070,6 +2193,17 @@ define(['jquery',
                                 if(app.billingRegionCode === 'can_AB'){
                                     self.getPatientCharges(self.cur_patient_id, modelDetails.charges);
                                 }
+
+                                _.each(modelDetails.injury_details, function (obj, index) {
+                                    self.injuryModel.push({
+                                        id: null,
+                                        study_id: obj.study_id,
+                                        body_part_code: obj.body_part_code,
+                                        orientation_code: obj.orientation_code,
+                                        injury_id: obj.injury_id,
+                                        priority_level: self.getPriorityLevel(index)
+                                    });
+                                });
 
                                 _.each(modelDetails.charges, function (item) {
                                     var index = $('#tBodyCharge').find('tr').length;
@@ -4101,6 +4235,11 @@ define(['jquery',
                 var claim_Study_date = $('#txtClaimDate').val();
                 var delayReasonId = $('#ddlDelayReasons option:selected').val();
                 var dateOfReferral = $('#txtDateOfReferral').val();
+                var injury_details = app.billingRegionCode === "can_AB" && !$('#divInjury').is(':hidden')
+                    ? _.filter(self.injuryDetailsView.injuryDetails, function (data) {
+                            return data.injury_id && data.body_part_code;
+                        })
+                    : [];
 
                 claim_model.claims = {
                     claim_id: self.claim_Id,
@@ -4167,6 +4306,8 @@ define(['jquery',
                     can_issuer_id: self.ACSelect && self.ACSelect.patientAltAccNo
                         ? self.ACSelect.patientAltAccNo.issuer_id
                         : null,
+                    wcb_injury_details: JSON.stringify(injury_details),
+                    deleted_injury_level: self.getDeletedInjuryLevels()
                 };
 
                 // Pay-to Details are only saved when Pay-to Code is Other
@@ -4760,6 +4901,21 @@ define(['jquery',
                     commonjs.showWarning("order.additionalInfo.accidentStateValidation");
                     accidentState.focus();
                     return false;
+                }
+
+                if (app.billingRegionCode === "can_AB" && $('#chkEmployment').prop('checked') && !$('#divInjury').is(':hidden')
+                    && self.injuryDetailsView.injuryDetails && self.injuryDetailsView.injuryDetails.length > 0) {
+                    var is_injury_detail_empty = false;
+                    self.injuryDetailsView.injuryDetails.forEach(function(injury_detail) {
+                        if (!is_injury_detail_empty) {
+                            is_injury_detail_empty = (!injury_detail.body_part_code || !injury_detail.injury_id
+                                                    || (injury_detail.has_orientation && !injury_detail.orientation_code))
+                        }
+                    });
+
+                    if (is_injury_detail_empty ) {
+                        return commonjs.showWarning('messages.warning.shared.selectInjury', 'mediumwarning');
+                    }
                 }
 
                 if (self.wcf.date() || self.wct.date()) {
