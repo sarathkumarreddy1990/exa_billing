@@ -365,7 +365,6 @@ define(['jquery',
                 self.clearDependentVariables();
                 // Hide non-edit tabs
                 if (!self.isEdit) {
-                    $('.ddlPhnUli').hide();
                     $('.editClaimRelated').hide();
                 }
 
