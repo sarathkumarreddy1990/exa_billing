@@ -28,7 +28,7 @@ module.exports = {
             customArgs
         } = params;
 
-        whereQuery.push(` ef.file_type NOT IN ('EOB', '837', 'can_ab_wcb_c568', 'can_ab_wcb_c570') `);  // removing claim submission records shown in EOB screen
+        whereQuery.push(` ef.file_type NOT IN ('EOB', '837', 'can_ab_wcb_c568', 'can_ab_wcb_c570', 'can_ahs_a', 'can_ahs_c', 'can_ahs_r', 'can_ahs_d') `);  // removing claim submission records shown in EOB screen
 
         if (id) {
             whereQuery.push(` ef.id = ${id} `);
