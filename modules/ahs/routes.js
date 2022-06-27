@@ -6,6 +6,7 @@ const router = express.Router();
 const ahs = require('./index');
 const wcb = require('./wcb/index');
 const httpHandler = require('../../server/shared/http');
+const ahsController = require('../../server/controllers/ahs');
 
 module.exports = function () {
 
@@ -32,6 +33,7 @@ module.exports = function () {
 
     router.use('/process-file', async (req, res) => {
         let response = await ahsController.processWCBFile(req.body);
+        return httpHandler.send(req, res, response);
     });
 
     return router;
