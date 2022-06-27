@@ -40,7 +40,7 @@ module.exports = {
                     , cte_ordering_facilities AS (
                             SELECT Json_agg(Row_to_json(ordering_facilities)) ordering_facilities
                             FROM (
-                                    SELECT 
+                                    SELECT
                                          id,
                                          code AS ordering_faciltiy_code,
                                          name AS ordering_facility_name
@@ -48,8 +48,8 @@ module.exports = {
                                     WHERE company_id = ${companyID}
                                     AND deleted_dt IS NULL
                                     ORDER BY
-                                    name )AS ordering_facilities 
-                    )               
+                                    name )AS ordering_facilities
+                    )
                     , cte_company AS(
                             SELECT (Row_to_json(company)) company
                             FROM   (
@@ -267,7 +267,7 @@ module.exports = {
                                 WHERE
                                      ( LOWER(user_groups.group_name) = 'billing' OR LOWER(ur.role_name) = 'billing'
                                      OR LOWER(ur.role_name) = 'billing1.5'
-                                     OR (group_info->'user_nav')::jsonb ? 'billing'
+                                     OR (group_info->'user_nav') ? 'billing'
                                     ) AND
                                      users.deleted_dt IS NULL AND
                                      users.is_active AND
@@ -478,7 +478,7 @@ module.exports = {
                         WHERE
                             p.deleted_dt IS NULL
                             AND pc.deleted_dt IS NULL
-                            AND p.is_active 
+                            AND p.is_active
                             AND p.provider_type = 'PR'
                             AND NOT p.sys_provider
                         ORDER BY p.full_name asc
