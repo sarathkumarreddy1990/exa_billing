@@ -275,8 +275,26 @@ module.exports = {
                                         studies_details.nature_of_injury_code_id,
                                         studies_details.area_of_injury_code_id,
                                         studies_details.can_ahs_skill_code_id,
-                                        studies_details.skill_code as skill_code
-                                        , COALESCE(NULLIF((SELECT split_types IS NOT NULL FROM census_fee_charges_details), FALSE), (SELECT billing_type from get_study_date) = 'split') AS is_split_claim
+                                        studies_details.skill_code as skill_code,
+                                        COALESCE(NULLIF((SELECT split_types IS NOT NULL FROM census_fee_charges_details), FALSE), (SELECT billing_type from get_study_date) = 'split') AS is_split_claim,
+                                        (
+                                            SELECT
+                                                jsonb_agg(jsonb_build_object(
+                                                    'issuer_id', paa.issuer_id,
+                                                    'issuer_type', iss.issuer_type,
+                                                    'alt_account_no', paa.alt_account_no,
+                                                    'is_primary', paa.is_primary,
+                                                    'id', paa.id,
+                                                    'country_alpha_3_code', paa.country_alpha_3_code,
+                                                    'province_alpha_2_code', paa.province_alpha_2_code
+                                                ))
+                                            FROM
+                                                patient_alt_accounts paa
+                                            INNER JOIN
+                                                issuers iss ON paa.issuer_id = iss.id
+                                            WHERE
+                                                patient_id = ${params.patient_id}
+                                        ) AS patient_alt_acc_nos
                                     FROM
                                         orders
                                         INNER JOIN order_ids oi ON oi.order_id = orders.id
