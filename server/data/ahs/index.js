@@ -559,7 +559,12 @@ const ahsData = {
                 LEFT JOIN billing.claim_patient_insurances bcpi ON bcpi.claim_id = bc.id AND bcpi.coverage_level = 'primary'
                 LEFT JOIN public.patient_insurances ppi  ON ppi.id = bcpi.patient_insurance_id
                 LEFT JOIN public.insurance_providers pip ON pip.id = ppi.insurance_provider_id
-                LEFT JOIN billing.can_ahs_wcb_injury_details cawid ON cawid.claim_id = bc.id
+                LEFT JOIN LATERAL (
+                    SELECT id
+                    FROM billing.can_ahs_wcb_injury_details cawid
+                    WHERE cawid.claim_id = bc.id
+                    LIMIT 1
+                ) cawid ON TRUE
                 LEFT JOIN public.patient_alt_accounts ppaa ON ppaa.patient_id = bc.patient_id 
                     AND ppaa.issuer_id = bc.can_issuer_id 
                     AND ppaa.is_primary
