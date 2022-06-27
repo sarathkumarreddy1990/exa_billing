@@ -485,8 +485,7 @@ const ahsData = {
                 pp.gender AS patient_gender,
                 pp.birth_date::DATE AS patient_birth_date,
                 bch.charge_dt AS service_date,
-                nic.code AS nature_of_injury_code,
-                aic.code AS area_of_injury_code,
+                cawid.id AS wcb_injury_id,
                 COALESCE(bc.encounter_no, '1')::TEXT AS encounters,
                 pp.patient_info->'c1AddressLine1' AS patient_address,
                 pp.patient_info->'c1City' AS patient_city,
@@ -560,8 +559,7 @@ const ahsData = {
                 LEFT JOIN billing.claim_patient_insurances bcpi ON bcpi.claim_id = bc.id AND bcpi.coverage_level = 'primary'
                 LEFT JOIN public.patient_insurances ppi  ON ppi.id = bcpi.patient_insurance_id
                 LEFT JOIN public.insurance_providers pip ON pip.id = ppi.insurance_provider_id
-                LEFT JOIN public.can_wcb_injury_codes nic ON bc.nature_of_injury_code_id = nic.id
-                LEFT JOIN public.can_wcb_injury_codes aic ON bc.area_of_injury_code_id = aic.id
+                LEFT JOIN billing.can_ahs_wcb_injury_details cawid ON cawid.claim_id = bc.id
                 LEFT JOIN public.patient_alt_accounts ppaa ON ppaa.patient_id = bc.patient_id 
                     AND ppaa.issuer_id = bc.can_issuer_id 
                     AND ppaa.is_primary

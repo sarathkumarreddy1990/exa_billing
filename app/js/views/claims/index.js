@@ -22,7 +22,8 @@ define(['jquery',
 'text!templates/claims/eligibilityResponseBC.html',
 'text!templates/claims/ahs_charges_today.html',
 'text!templates/app/patient-recent-claims.html',
-'views/claims/addInjuryDetails'
+'views/claims/addInjuryDetails',
+'sweetalert2'
 ],
     function ($,
         moment,
@@ -48,7 +49,8 @@ define(['jquery',
         insuranceBCForm,
         patientChargesTemplate,
         patientClaimTemplate,
-        injuryDetailsView
+        injuryDetailsView,
+        swal2
     ) {
         var claimView = Backbone.View.extend({
             el: null,
@@ -977,7 +979,6 @@ define(['jquery',
                             }
                             self.assignLineItemsEvents();
                             self.assignModifierEvent();
-                            self.injuryDetailsView.render(self.injuryModel || []);
                             app.modifiers_in_order = true;
                             commonjs.validateControls();
                             commonjs.isMaskValidate();
@@ -2248,6 +2249,7 @@ define(['jquery',
 
                                 self.assignLineItemsEvents();
                                 self.assignModifierEvent();
+                                self.injuryDetailsView.render(self.injuryModel || []);
                                 app.modifiers_in_order = true;
                                 commonjs.enableModifiersOnbind('M'); // Modifier
                                 commonjs.enableModifiersOnbind('P'); // Diagnostic Pointer
@@ -4277,7 +4279,6 @@ define(['jquery',
                     is_other_accident: $('#chkOtherAccident').prop('checked'),
                     is_employed: $('#chkEmployment').prop('checked'),
                     can_wcb_referral_date: commonjs.checkNotEmpty(dateOfReferral) ? commonjs.getISODateString(dateOfReferral) : null,
-                    can_wcb_has_condition_developed_over_time: ($('#chkEmployment').prop('checked') && $('input:radio[name=conditionDevTime]:checked').val()) || false,
                     accident_state: isCauseCode && $('#selAccidentState').val() || null,
                     service_by_outside_lab: $('#chkOutSideLab').prop('checked'),
                     claim_status_id: claim_status_id,
