@@ -371,6 +371,7 @@ define(
                 var currentIndex = $(e.currentTarget).closest('tr').index();
                 var $tblInjuryDetails = $('#divInjury #tBodyInjury');
                 var newRowIndex = self.injuryDetails.length;
+                self.injuryDetailLastIndex++;
 
                 if (newRowIndex >= 5) {
                     return commonjs.showWarning("messages.warning.shared.wcbExceedsMaximumLimit", "mediumwarning");
@@ -403,7 +404,6 @@ define(
                 self.initAutoCompleteList(self.injuryDetailLastIndex, null);
                 self.updatePriorityLevel(currentIndex);
                 self.addInjuryLineItems();
-                self.injuryDetailLastIndex++;
             },
 
             deleteInjury: function (e) {
@@ -432,6 +432,7 @@ define(
                     $('#divInjury #tBodyInjury').append(injury_row);
 
                     this.initAutoCompleteList(0, null);
+                    this.addInjuryLineItems();
                 }
                 else {
                     this.updatePriorityLevel(currentIndex);

@@ -2248,7 +2248,9 @@ define(['jquery',
 
                                 self.assignLineItemsEvents();
                                 self.assignModifierEvent();
-                                self.injuryDetailsView.render(self.injuryModel || []);
+                                if (app.billingRegionCode == "can_AB") {
+                                    self.injuryDetailsView.render(self.injuryModel || []);
+                                }
                                 app.modifiers_in_order = true;
                                 commonjs.enableModifiersOnbind('M'); // Modifier
                                 commonjs.enableModifiersOnbind('P'); // Diagnostic Pointer
