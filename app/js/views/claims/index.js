@@ -4242,6 +4242,10 @@ define(['jquery',
                         })
                     : [];
 
+                if (self.claim_Id) {
+                    can_ahs_skill_code_id = self.ACSelect && self.ACSelect.skillCodes ? self.ACSelect.skillCodes.ID : null;
+                }
+
                 claim_model.claims = {
                     claim_id: self.claim_Id,
                     company_id: app.companyID,
@@ -4445,6 +4449,7 @@ define(['jquery',
                     commonjs.showLoading();
                     saveButton.prop('disabled', true);
                     $claimProcess.prop('disabled', true);
+                    console.log("------------123----", self.model)
 
                     self.model.save({}, {
                         success: function (model, response) {
