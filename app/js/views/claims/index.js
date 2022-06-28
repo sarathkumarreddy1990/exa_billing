@@ -4449,7 +4449,6 @@ define(['jquery',
                     commonjs.showLoading();
                     saveButton.prop('disabled', true);
                     $claimProcess.prop('disabled', true);
-                    console.log("------------123----", self.model)
 
                     self.model.save({}, {
                         success: function (model, response) {
