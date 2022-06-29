@@ -4077,6 +4077,16 @@ define(['jquery',
 
                 return false;
             },
+            getSkillCodeId: function(currentPayer_type) {
+                var self = this;
+                var can_ahs_skill_code_id = null;
+
+                if (app.billingRegionCode === 'can_AB' && currentPayer_type === "PIP" && (self.priInsCode === "WCB" || self.priInsCode === "AHS")) {
+                    can_ahs_skill_code_id = self.ACSelect && self.ACSelect.skillCodes ? self.ACSelect.skillCodes.ID : null;
+                }
+
+                return can_ahs_skill_code_id;
+            },
             setClaimDetails: function () {
                 var self = this;
                 var claim_model = {}, billingMethod;
@@ -4219,17 +4229,8 @@ define(['jquery',
                 if (app.country_alpha_3_code !== 'can' && (self.is_tertiary_available || self.terClaimInsID)) {
                     claim_model.insurances.push(teritiary_insurance_details);
                 }
-                var can_ahs_skill_code_id = null;
 
-                if (app.billingRegionCode === 'can_AB' && (currentPayer_type === "PIP" && self.priInsCode === "WCB")) {
-                    can_ahs_skill_code_id = self.ACSelect && self.ACSelect.skillCodes ? self.ACSelect.skillCodes.ID : null;
-                }
-
-                if (app.billingRegionCode === 'can_AB' && (currentPayer_type === "PIP" && self.priInsCode === "AHS")) {
-                    can_ahs_skill_code_id = (self.providerSkillCodesCount > 1 && self.ACSelect && self.ACSelect.skillCodes)
-                                            ? self.ACSelect.skillCodes.ID
-                                            : null;
-                }
+                var can_ahs_skill_code_id = self.getSkillCodeId(currentPayer_type);
 
                 var can_ahs_pay_to_code = $('#ddlPayToCode').val();
                 var claim_status_id = ~~$('#ddlClaimStatus').val() || null;
@@ -4241,10 +4242,6 @@ define(['jquery',
                             return data.injury_id && data.body_part_code;
                         })
                     : [];
-
-                if (self.claim_Id) {
-                    can_ahs_skill_code_id = self.ACSelect && self.ACSelect.skillCodes ? self.ACSelect.skillCodes.ID : null;
-                }
 
                 claim_model.claims = {
                     claim_id: self.claim_Id,
