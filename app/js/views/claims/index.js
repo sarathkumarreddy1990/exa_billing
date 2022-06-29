@@ -4078,11 +4078,10 @@ define(['jquery',
                 return false;
             },
             getSkillCodeId: function(currentPayer_type) {
-                var self = this;
                 var can_ahs_skill_code_id = null;
 
-                if (app.billingRegionCode === 'can_AB' && currentPayer_type === "PIP" && (self.priInsCode === "WCB" || self.priInsCode === "AHS")) {
-                    can_ahs_skill_code_id = self.ACSelect && self.ACSelect.skillCodes ? self.ACSelect.skillCodes.ID : null;
+                if (app.billingRegionCode === 'can_AB' && currentPayer_type === "PIP" && (this.priInsCode === "WCB" || this.priInsCode === "AHS")) {
+                    can_ahs_skill_code_id = this.ACSelect && this.ACSelect.skillCodes ? this.ACSelect.skillCodes.ID : null;
                 }
 
                 return can_ahs_skill_code_id;
