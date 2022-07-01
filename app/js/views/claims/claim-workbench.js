@@ -2566,7 +2566,6 @@ define(['jquery',
                     case 'can_ohip_x':
                         return i18n.get('billing.claims.rejection');
                     case 'can_ohip_e':
-                    case 'can_ab_wcb_c570':
                         return i18n.get('billing.claims.correction');
                     case 'can_ahs_a':
                         return i18n.get('billing.claims.submissionA');
