@@ -1080,7 +1080,7 @@ const ahsData = {
                     LEFT JOIN public.providers p_ref
                         ON p_ref.id = pc_ref.provider_id
                     LEFT JOIN public.skill_codes sc
-                        ON sc.id = s.can_ahs_skill_code_id
+                        ON sc.id = bc.can_ahs_skill_code_id
                     LEFT JOIN public.functional_centres fc
                         ON fc.id = s.can_ahs_functional_centre_id
                     LEFT JOIN public.originating_facilities orig_fac
