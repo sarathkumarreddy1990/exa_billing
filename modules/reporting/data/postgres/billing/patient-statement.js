@@ -435,7 +435,6 @@ WITH claim_data AS (
     , 'Over90'             AS c24
     , 'Over120'            AS c25
     , 'BillingMessage'     AS c26
-    <% if (reportFormat === 'html' || reportFormat === 'pdf') {%>
     , 'GuarantorName'               AS c27
     , 'Age'                         AS c28
     , 'PatientGuarantorAddress1'    AS c29
@@ -451,7 +450,6 @@ WITH claim_data AS (
     , 'orderingFacilityZipCode'     AS c39
     , 'mailTo'                      AS c40
     , 'countryCode'                 AS c41
-    <% } %>
     , -1                   AS pid
     , -1                   AS enc_id
     , null::date           AS enc_date
@@ -490,7 +488,6 @@ WITH claim_data AS (
     , null
     , null
     , null
-    <% if (reportFormat === 'html' || reportFormat === 'pdf') {%>
     , null
     , null
     , null
@@ -506,7 +503,6 @@ WITH claim_data AS (
     , null
     , null
     , null
-    <% } %>
     , pid
     , 0
     , null
@@ -549,7 +545,13 @@ WITH claim_data AS (
     , null
     , null
     , null
-    <% if (reportFormat === 'html' || reportFormat === 'pdf') {%>
+    , CASE WHEN age < 18 THEN guarantor_full_name ELSE null END
+    , null
+    , CASE WHEN age < 18 THEN guarantor_address1 ELSE null END
+    , CASE WHEN age < 18 THEN guarantor_address2 ELSE null END
+    , CASE WHEN age < 18 THEN guarantor_city ELSE null END
+    , CASE WHEN age < 18 THEN guarantor_state ELSE null END
+    , CASE WHEN age < 18 THEN guarantor_zip ELSE null END
     , null
     , null
     , null
@@ -558,14 +560,6 @@ WITH claim_data AS (
     , null
     , null
     , null
-    , null
-    , null
-    , null
-    , null
-    , null
-    , null
-    , null
-    <% } %>
     , pid
     , enc_id
     , enc_date::date AS enc_date
@@ -605,7 +599,6 @@ WITH claim_data AS (
     , null
     , null
     , null
-    <% if (reportFormat === 'html' || reportFormat === 'pdf') {%>
     , null
     , null
     , null
@@ -621,7 +614,6 @@ WITH claim_data AS (
     , null
     , null
     , null
-    <% } %>
     , pid
     , enc_id
     , null
@@ -661,7 +653,6 @@ WITH claim_data AS (
     , over90_amount::text
     , over120_amount::text
     , billing_msg
-    <% if (reportFormat === 'html' || reportFormat === 'pdf') {%>
     , null
     , null
     , null
@@ -677,7 +668,6 @@ WITH claim_data AS (
     , null
     , null
     , null
-    <% } %>
     , pid
     , null
     , null
@@ -723,14 +713,28 @@ WITH claim_data AS (
     , c24
     , c25
     , c26
-    <% if (reportFormat === 'html' || reportFormat === 'pdf') {%>
+    <% if (countryCode === 'usa') { %>
     , c27
-    , c28
+    <% if (['html','pdf'].includes(reportFormat)) { %>
+        , c28
+    <% } %>
     , c29
     , c30
     , c31
     , c32
     , c33
+    <% } else { %>
+    , null
+    <% if (['html','pdf'].includes(reportFormat)) { %>
+        , null
+    <% } %>
+    , null
+    , null
+    , null
+    , null
+    , null
+    <% } %>
+    <% if (['html','pdf'].includes(reportFormat)) { %>
     , c34
     , c35
     , c36
