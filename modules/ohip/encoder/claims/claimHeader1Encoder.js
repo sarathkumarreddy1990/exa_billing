@@ -125,8 +125,10 @@ const ClaimHeader1Encoder = function (options) {
         let isProfSLI = false;
 
         let cptCodes = claimData.items && claimData.items.map((obj) => {
-            isProfSLI = isProfessionalClaim && ohipProfProcedureCodes.indexOf(obj.serviceCode) > -1 || 
-                technicalProcedureCodesExceptions.indexOf(obj.serviceCode) > -1;
+            // encode professional SLI for claims having CPT codes available in below two arrays.
+            isProfSLI = isProfessionalClaim && (
+                ohipProfProcedureCodes.indexOf(obj.serviceCode) > -1 || 
+                technicalProcedureCodesExceptions.indexOf(obj.serviceCode) > -1);
             return obj.serviceCode;
         }) || [];
 
