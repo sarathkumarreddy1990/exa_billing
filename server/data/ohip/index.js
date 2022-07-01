@@ -28,8 +28,10 @@ const {
     CLAIM_STATUS_REJECTED_DEFAULT,
     CLAIM_STATUS_PENDING_PAYMENT_DEFAULT,
     CLAIM_STATUS_DENIED_DEFAULT,
-    CLAIM_STATUS_BATCH_REJECTED_DEFAULT
-
+    CLAIM_STATUS_BATCH_REJECTED_DEFAULT,
+    encoder: {
+        technicalProcedureCodesExceptions
+    }
 } = require('./../../../modules/ohip/constants');
 
 const ohipUtil = require('./../../../modules/ohip/utils');
@@ -1134,7 +1136,18 @@ const OHIPDataAPI = {
             LEFT JOIN public.providers reff_pr ON reff_pr.id = reff_ppc.provider_id
             LEFT JOIN LATERAL(
                 SELECT
-                    pcc.charge_type
+                    CASE
+                        WHEN pcc.charge_type = 'technical' AND pcc.display_code = ANY(${technicalProcedureCodesExceptions})
+                        THEN (
+                            CASE 
+                                WHEN pcc.display_code LIKE '%A'
+                                THEN 'professional_facility'
+                                WHEN pcc.display_code ILIKE '%C'
+                                THEN 'professional_provider'
+                            END
+                        )
+                        ELSE pcc.charge_type
+                    END AS charge_type
                 FROM billing.charges bch
                 INNER JOIN public.cpt_codes pcc ON pcc.id = bch.cpt_id
                 WHERE bch.claim_id = bc.id AND NOT bch.is_excluded

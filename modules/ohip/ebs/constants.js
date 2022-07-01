@@ -81,6 +81,11 @@ const ohipProfProcedureCodes = [
 
 ];
 
+// This array will treat actual technical procedures as professional procedure based on which Professional SLIs will be taken
+const technicalProcedureCodesExceptions = [
+    'G111A', 'G570A'
+] 
+
 module.exports = {
 
     services,
@@ -104,4 +109,5 @@ module.exports = {
     INFO_MAX: 100,
 
     ohipProfProcedureCodes,
+    technicalProcedureCodesExceptions
 };

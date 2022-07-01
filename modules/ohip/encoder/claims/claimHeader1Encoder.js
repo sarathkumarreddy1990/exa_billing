@@ -1,5 +1,9 @@
 const sprintf = require('sprintf');
-const constants = require('./../../constants').encoder;
+const { encoder: {
+        ohipProfProcedureCodes,
+        technicalProcedureCodesExceptions,
+        endOfRecord
+    }} = require('./../../constants');
 const util = require('./../util');
 
 /**
@@ -119,7 +123,8 @@ const ClaimHeader1Encoder = function (options) {
         let isProfSLI = false;
 
         let cptCodes = claimData.items && claimData.items.map((obj) => {
-            isProfSLI = isProfessionalClaim && constants.ohipProfProcedureCodes.indexOf(obj.serviceCode) > -1;
+            isProfSLI = isProfessionalClaim && ohipProfProcedureCodes.indexOf(obj.serviceCode) > -1 || 
+                technicalProcedureCodesExceptions.indexOf(obj.serviceCode) > -1;
             return obj.serviceCode;
         }) || [];
 
@@ -164,7 +169,7 @@ const ClaimHeader1Encoder = function (options) {
             claimHeader1Record += getReservedForOOC();
             claimHeader1Record += getReservedForMOHUse();
 
-            return claimHeader1Record + constants.endOfRecord;
+            return claimHeader1Record + endOfRecord;
         }
     };
 }
