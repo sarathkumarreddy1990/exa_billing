@@ -1,9 +1,11 @@
 const sprintf = require('sprintf');
-const { encoder: {
+const {
+    encoder: {
         ohipProfProcedureCodes,
         technicalProcedureCodesExceptions,
         endOfRecord
-    }} = require('./../../constants');
+    }
+} = require('./../../constants');
 const util = require('./../util');
 
 /**
