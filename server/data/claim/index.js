@@ -1226,6 +1226,24 @@ module.exports = {
                             ,fac_prov_cont.id AS rendering_provider_contact_id
                             ,fac_prov.full_name AS rendering_provider_full_name
                             ,f.place_of_service_id AS fac_place_of_service_id
+                            ,(
+                                SELECT
+                                    jsonb_agg(jsonb_build_object(
+                                        'issuer_id', paa.issuer_id,
+                                        'issuer_type', iss.issuer_type,
+                                        'alt_account_no', paa.alt_account_no,
+                                        'is_primary', paa.is_primary,
+                                        'id', paa.id,
+                                        'country_alpha_3_code', paa.country_alpha_3_code,
+                                        'province_alpha_2_code', paa.province_alpha_2_code
+                                    ))
+                                FROM
+                                    patient_alt_accounts paa
+                                INNER JOIN
+                                    issuers iss ON paa.issuer_id = iss.id
+                                WHERE
+                                    patient_id = ${id}
+                            ) AS patient_alt_acc_nos
                         FROM
                             patients p
                         INNER JOIN patient_facilities pfc ON pfc.patient_id = p.id

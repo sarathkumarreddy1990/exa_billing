@@ -6046,6 +6046,11 @@ define(['jquery',
                 $("#txtClaimCreatedDt").val(claimDate);
                 $("#txtClaimCreatedDt").prop('disabled', true);
 
+                if (patient_details.patient_alt_acc_nos && app.country_alpha_3_code === 'can') {
+                    var patientAltAccNo = self.getDefaultPatientAltAccNo(patient_details.patient_alt_acc_nos);
+                    $('#select2-ddlPhnUli-container').text(patientAltAccNo);
+                }
+
                 // Claim w/o charge code  -- end
 
                 setTimeout(function () {
