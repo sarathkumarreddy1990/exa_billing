@@ -4082,7 +4082,7 @@ define(['jquery',
             getSkillCodeId: function(currentPayer_type) {
                 var can_ahs_skill_code_id = null;
 
-                if (app.billingRegionCode === 'can_AB' && currentPayer_type === "PIP" && (this.priInsCode === "WCB" || this.priInsCode === "AHS")) {
+                if (app.billingRegionCode === 'can_AB' && (this.priInsCode === "WCB" || this.priInsCode === "AHS")) {
                     can_ahs_skill_code_id = this.ACSelect && this.ACSelect.skillCodes ? this.ACSelect.skillCodes.ID : null;
                 }
 
