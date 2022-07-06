@@ -337,6 +337,10 @@ const api= {
         return await data.getClaimsByPatient(args);
     },
 
+    getPatientAltAccNumber: async (args) => {
+        return await data.getPatientAltAccNumber(args);
+    },
+
     getIcd9To10: async function (params) {
         let pokitdokSecretKey = await data.getKeys();
         let pokitdok_client_id = pokitdokSecretKey.rows[1].info.value;
