@@ -303,8 +303,8 @@ define(['jquery',
                 var billingMethod = $('#ddlClaimBillingMethod').val();
                 var isElectronicBilling = billingMethod === 'electronic_billing';
 
-                if (app.billingRegionCode === 'can_AB' && this.model.get('insurance_code') !== 'AHS' && isElectronicBilling) {
-                    return commonjs.showWarning('messages.warning.claims.electronicBillingOnlyAHS');
+                if (app.billingRegionCode === 'can_AB' && (['AHS','WCB'].indexOf(this.model.get('insurance_code')) === -1)  && isElectronicBilling) {
+                    return commonjs.showWarning('messages.warning.claims.electronicBillingOnlyAHSWCB');
                 }
 
                 if (app.billingRegionCode === 'can_BC' && this.model.get('insurance_code') !== 'MSP' && isElectronicBilling) {

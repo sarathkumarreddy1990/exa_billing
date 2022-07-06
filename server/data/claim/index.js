@@ -216,7 +216,15 @@ module.exports = {
                                         COALESCE(NULLIF(order_info->'outsideLab',''), 'false')::boolean AS service_by_outside_lab,
                                         order_info->'original_ref' AS original_reference,
                                         orders.order_info -> 'authorization_no' AS authorization_no,
-                                        order_info->'frequency_code' AS frequency,
+                                        CASE
+                                            WHEN order_info ->'frequency_code' = '1'
+                                            THEN 'original'
+                                            WHEN order_info ->'frequency_code' = '7'
+                                            THEN 'corrected'
+                                            WHEN order_info ->'frequency_code' = '8'
+                                            THEN 'void'
+                                            ELSE NULL
+                                        END AS frequency,
                                         COALESCE(NULLIF(order_info->'oa',''), 'false')::boolean AS is_other_accident,
                                         COALESCE(NULLIF(order_info->'aa',''), 'false')::boolean AS is_auto_accident,
                                         COALESCE(NULLIF(order_info->'emp',''), 'false')::boolean AS is_employed,
@@ -267,8 +275,26 @@ module.exports = {
                                         studies_details.nature_of_injury_code_id,
                                         studies_details.area_of_injury_code_id,
                                         studies_details.can_ahs_skill_code_id,
-                                        studies_details.skill_code as skill_code
-                                        , COALESCE(NULLIF((SELECT split_types IS NOT NULL FROM census_fee_charges_details), FALSE), (SELECT billing_type from get_study_date) = 'split') AS is_split_claim
+                                        studies_details.skill_code as skill_code,
+                                        COALESCE(NULLIF((SELECT split_types IS NOT NULL FROM census_fee_charges_details), FALSE), (SELECT billing_type from get_study_date) = 'split') AS is_split_claim,
+                                        (
+                                            SELECT
+                                                jsonb_agg(jsonb_build_object(
+                                                    'issuer_id', paa.issuer_id,
+                                                    'issuer_type', iss.issuer_type,
+                                                    'alt_account_no', paa.alt_account_no,
+                                                    'is_primary', paa.is_primary,
+                                                    'id', paa.id,
+                                                    'country_alpha_3_code', paa.country_alpha_3_code,
+                                                    'province_alpha_2_code', paa.province_alpha_2_code
+                                                ))
+                                            FROM
+                                                patient_alt_accounts paa
+                                            INNER JOIN
+                                                issuers iss ON paa.issuer_id = iss.id
+                                            WHERE
+                                                patient_id = ${params.patient_id}
+                                        ) AS patient_alt_acc_nos
                                     FROM
                                         orders
                                         INNER JOIN order_ids oi ON oi.order_id = orders.id
@@ -372,6 +398,25 @@ module.exports = {
                                                 LIMIT 1
                                         ) as studies_details ON TRUE
                             )
+                            , wcb_injury_details AS (
+                                SELECT
+                                    jsonb_agg(
+                                        jsonb_build_object(
+                                            'study_id', s.id,
+                                            'injury_detail_id', pcawid.id,
+                                            'body_part_code', pcawid.body_part_code,
+                                            'orientation_code', pcawid.orientation_code,
+                                            'injury_id', pcawid.injury_id,
+                                            'injury_description', pcawic.description
+                                        )
+                                    ) AS injury_details
+                                FROM public.studies s
+                                LEFT JOIN public.can_ahs_wcb_injury_details pcawid ON pcawid.study_id = s.id
+                                LEFT JOIN public.can_wcb_injury_codes pcawic ON pcawic.id = pcawid.injury_id
+                                WHERE s.id = ${firstStudyId}
+                                    AND pcawic.injury_code_type = 'n'
+                                    AND pcawic.inactivated_dt IS NULL
+                            )
                             ,claim_problems AS (
                                         SELECT
                                             DISTINCT icd_codes.id
@@ -394,6 +439,10 @@ module.exports = {
                                                 FROM claim_charges
                                             ) AS charge
                                     ) AS charges
+                                    , (
+                                        SELECT COALESCE(injury_details, '[]') AS injury_details
+                                        FROM wcb_injury_details
+                                    ) AS injury_details
                                     ,( SELECT COALESCE(json_agg(row_to_json(claims)),'[]') claim_details
 		                                FROM (
                                                 SELECT
@@ -908,6 +957,23 @@ module.exports = {
                             WHERE claim_id = c.id
                             ORDER BY id ASC
                       ) icd_query) AS claim_icd_data
+                    , (
+                        SELECT array_agg(row_to_json(injury_data)) AS injury_details
+                        FROM (
+                            SELECT
+                                  cawid.id AS injury_detail_id
+                                , cawid.body_part_code
+                                , cawid.orientation_code
+                                , cawid.injury_id
+                                , wic.description AS injury_description
+                            FROM billing.can_ahs_wcb_injury_details cawid
+                            LEFT JOIN public.can_wcb_injury_codes wic ON wic.id = cawid.injury_id
+                            WHERE
+                               cawid.claim_id = c.id
+                               AND wic.injury_code_type = 'n'
+                            ORDER BY
+                               cawid.id ASC
+                        ) injury_data) AS injury_details
                     , (
                         SELECT json_agg(row_to_json(existing_insurance)) AS existing_insurance
                         FROM (

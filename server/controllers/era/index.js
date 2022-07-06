@@ -119,6 +119,12 @@ const isInvalidFile = (fileString, billingRegionCode) => {
 const getProvinceBasedProperties = (billingRegionCode) => {
     if (billingRegionCode === 'can_BC') {
         return 'can_bc_remit';
+    } else if (billingRegionCode === 'can_AB') {
+        return 'can_ab_wcb_ra';
+    }
+
+    if (billingRegionCode === 'can_AB') {
+        return 'can_ab_wcb_ra';
     }
 
     return '835';
@@ -217,6 +223,9 @@ module.exports = {
                 break;
             case 'can_BC':
                 fileDirectory = 'MSP/Remittance';
+                break;
+            case 'can_AB':
+                fileDirectory = 'WCB/Remittance';
                 break;
             default:
                 fileDirectory = uploadingMode.toLowerCase();

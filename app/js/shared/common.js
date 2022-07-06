@@ -80,6 +80,7 @@ var commonjs = {
     currentStudyFilter: '',
     localCacheMaxErrorLimit: 0,
     filterData: {},
+    hasWCBUnsavedChanges: false,
 
     /**
      * Setting up zip autocomplete:
