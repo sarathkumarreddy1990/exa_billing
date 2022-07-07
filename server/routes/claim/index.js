@@ -77,6 +77,11 @@ router.get('/claimsby_patient', async function (req, res) {
     httpHandler.sendRows(req, res, data);
 });
 
+router.get('/getPatientAltAccNumber', async function (req, res) {
+    const data = await claimsController.getPatientAltAccNumber(req.query);
+    httpHandler.sendRows(req, res, data);
+});
+
 router.get('/getIcd9To10', async function (req, res) {
     const data = await claimsController.getIcd9To10(req.query);
     httpHandler.send(req, res, { 'result': data });

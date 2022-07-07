@@ -1261,6 +1261,30 @@ module.exports = {
 
     },
 
+    getPatientAltAccNumber: async function (args) {
+
+        const { id } = args;
+
+        const sql = SQL`
+            SELECT
+                paa.id
+                , paa.issuer_id::INT
+                , i.issuer_type
+                , paa.alt_account_no
+                , paa.is_primary
+                , paa.country_alpha_3_code
+                , paa.province_alpha_2_code
+            FROM
+                patient_alt_accounts paa
+            INNER JOIN
+                issuers i ON paa.issuer_id = i.id
+            WHERE
+                patient_id = ${id}`;
+
+        return await query(sql);
+
+    },
+
     getClaimsByPatient: async function (args) {
         const {
             id,
