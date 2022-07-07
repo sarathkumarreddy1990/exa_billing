@@ -1245,7 +1245,7 @@ module.exports = {
 
     getPatientAltAccNumber: async function (args) {
 
-        let { id } = args;
+        const { id } = args;
 
         const sql = SQL`
             SELECT
