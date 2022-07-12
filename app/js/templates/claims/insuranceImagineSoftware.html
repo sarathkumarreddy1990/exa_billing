@@ -1,0 +1,320 @@
+<div id="divImagineSoftwarePage" class="full-screen flex-parent-vert">
+    <div class="flex-parent-vert flex-fill">
+        <!-- Header Expand / Collapse -->
+        <div class="top-right-caret">
+            <button id="btnToggleHeader" type="button" class="btn">
+                <i class="fa fa-caret-down"></i>
+            </button>
+        </div>
+
+        <!-- Header -->
+        <div id="divImagineSoftwareHeader" style="display: none;">
+            <div class="flex-parent-horiz">
+                <!-- Patient -->
+                <div class="flex-fill flex-area-sm">
+                    <div class="flex-area__header">
+                        <span i18n="shared.fields.patient"></span>
+                    </div>
+
+                    <!-- Name -->
+                    <div class="flex-field">
+                        <label i18n="patient.patient.patientName" class="flex-field__label"></label>
+                        <div id="divPatientNameIS" class="flex-field__content"></div>
+                    </div>
+
+                    <!-- Home Phone -->
+                    <div class="flex-field">
+                        <label i18n="shared.fields.homePhone" class="flex-field__label"></label>
+                        <div id="divPatientHomePhoneIS" class="flex-field__content"></div>
+                    </div>
+
+                    <!-- Mobile Phone -->
+                    <div class="flex-field">
+                        <label i18n="shared.fields.mobilePhone" class="flex-field__label"></label>
+                        <div id="divPatientMobilePhoneIS" class="flex-field__content"></div>
+                    </div>
+                </div>
+
+                <!-- Visit -->
+                <div class="flex-fill flex-area-sm">
+                    <div class="flex-area__header">
+                        <span i18n="patient.patientInsurance.eligibility.visit"></span>
+                    </div>
+
+                    <!-- Procedures -->
+                    <div class="flex-field">
+                        <label i18n="patient.patientInsurance.eligibility.procedures" class="flex-field__label"></label>
+                        <div id="divVisitProcedures" class="flex-field__content"></div>
+                    </div>
+
+                    <!-- Date of Service -->
+                    <div class="flex-field">
+                        <label i18n="patient.patientInsurance.eligibility.dateOfService" class="flex-field__label"></label>
+                        <div id="divVisitDateOfService" class="flex-field__content"></div>
+                    </div>
+
+                    <!-- Referring Physician -->
+                    <div class="flex-field">
+                        <label i18n="order.patientOrderDetails.referringPhysician" class="flex-field__label"></label>
+                        <div id="divVisitReferringPhysician" class="flex-field__content"></div>
+                    </div>
+                </div>
+
+                <!-- Insurance -->
+                <div class="flex-fill flex-area-sm">
+                    <div class="flex-area__header">
+                        <span i18n="patient.studies.insurance"></span>
+                    </div>
+
+                    <!-- Provider Name -->
+                    <div class="flex-field">
+                        <label i18n="patient.patientInsurance.eligibility.providerName" class="flex-field__label"></label>
+                        <div id="divInsuranceProviderName" class="flex-field__content"></div>
+                    </div>
+
+                    <!-- Address -->
+                    <div class="flex-field">
+                        <label i18n="patient.patientInsurance.address" class="flex-field__label"></label>
+                        <div class="flex-field__content">
+                            <div id="divInsuranceAddress1"></div>
+                            <div id="divInsuranceAddress2"></div>
+                        </div>
+                    </div>
+
+                    <!-- Policy Number -->
+                    <div class="flex-field">
+                        <label i18n="shared.fields.policyNumber" class="flex-field__label"></label>
+                        <div id="divInsurancePolicyNumber" class="flex-field__content"></div>
+                    </div>
+
+                    <!-- Subscriber Name -->
+                    <div class="flex-field">
+                        <label i18n="patient.patientInsurance.subscriberName" class="flex-field__label"></label>
+                        <div id="divInsuranceSubscriberName" class="flex-field__content"></div>
+                    </div>
+
+                    <!-- Subscriber DOB -->
+                    <div class="flex-field">
+                        <label i18n="patient.patientInsurance.subscriberDob" class="flex-field__label"></label>
+                        <div id="divInsuranceSubscriberDob" class="flex-field__content"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Main -->
+        <div class="flex-fill flex-parent-vert">
+            <!-- Status Bar -->
+            <div style="margin-left: 10px; margin-top: 5px;">
+                <!-- Eligibility Status -->
+                <div class="ib">
+                    <label i18n="patient.patientInsurance.eligibility.eligibilityStatus" class="boldLabel"></label>
+                    <span style="padding-left: 20px;">
+                        <i id="iPatientEligibilityStatus"></i>
+                    </span>
+                </div>
+
+                <!-- Benefits Date -->
+                <div class="ib" style="margin-left: 50px;">
+                    <label i18n="patient.patientInsurance.eligibility.benefitsDate" class="boldLabel"></label>
+                    <span id="divPatientBenefitsDate" style="padding-left: 20px;"></span>
+                </div>
+            </div>
+
+            <!-- Tabs & Buttons -->
+            <div>
+                <div class="pull-left">
+                    <ul id="mainNavTabs" class="nav nav-tabs tabs" style="border-bottom: 0; padding-left: 10px; min-width: 0;">
+                        <li class="clickImagineEligibility active" style="padding-bottom: 10px;">
+                            <a data-toggle="tab">
+                                <label i18n="patient.patientInsurance.eligibility.eligibility"></label>
+                            </a>
+                        </li>
+                        <li class="clickImagineEstimation" style="padding-bottom: 10px;">
+                            <a data-toggle="tab">
+                                <label i18n="patient.patientInsurance.eligibility.estimation"></label>
+                            </a>
+                        </li>
+                    </ul>
+                </div>
+
+                <div class="pull-right" style="padding-top: 10px; padding-right: 5px;">
+                    <button id="btnReestimate" type="button" class="btn start-hidden" i18n="patient.patientInsurance.eligibility.reestimate"></button>
+                    <button id="btnEstimationLetter" type="button" class="btn start-hidden" i18n="patient.patientInsurance.eligibility.letter"></button>
+                    <button id="btnRecheckEligibility" type="button" class="btn" i18n="patient.patientInsurance.eligibility.recheckEligibility"></button>
+                    <button id="btnPrintEligibility" type="button" class="btn" i18n="shared.buttons.print"></button>
+                </div>
+
+                <div style="clear: both;"></div>
+            </div>
+
+            <!-- Eligibility Tab Contents -->
+            <div id="divImagineEligibility" class="flex-parent-horiz flex-fill">
+                <div class="flex-area flex-3">
+                    <!-- Plan Details -->
+                    <div i18n="patient.patientInsurance.eligibility.planDetails" class="boldLabel">
+                    </div>
+
+                    <div id="divEligibilityPlanDetails" class="imagine-eligibility">
+
+                    </div>
+
+                    <!-- Co-Insurance -->
+                    <div i18n="patient.patientInsurance.eligibility.coInsurance" class="boldLabel">
+                    </div>
+
+                    <div id="divEligibilityCoInsurance" class="imagine-eligibility">
+
+                    </div>
+
+                    <!-- Co-Pay -->
+                    <div i18n="patient.patientInsurance.eligibility.coPay" class="boldLabel">
+                    </div>
+
+                    <div id="divEligibilityCoPay" class="imagine-eligibility">
+
+                    </div>
+
+                    <!-- Deductible -->
+                    <div i18n="patient.patientInsurance.eligibility.deductible" class="boldLabel">
+                    </div>
+
+                    <div id="divEligibilityDeductible" class="imagine-eligibility">
+
+                    </div>
+
+                    <!-- Out-of-Pocket -->
+                    <div i18n="patient.patientInsurance.eligibility.outOfPocket" class="boldLabel">
+                    </div>
+
+                    <div id="divEligibilityOutOfPocket" class="imagine-eligibility">
+
+                    </div>
+
+                    <br/>
+                </div>
+
+                <div class="flex-area flex-1">
+
+                </div>
+            </div>
+
+            <!-- Estimation Tab Contents -->
+            <div id="divImagineEstimation" class="flex-parent-horiz flex-fill" style="display: none;">
+                <div class="flex-area flex-1">
+                    <!-- Co-Insurance -->
+                    <div data-item="co-insurance" class="imagine-estimation">
+                        <i class="fa fa-info-circle imagine-estimation__icon" i18nt="patient.patientInsurance.eligibility.coInsuranceEstimation"></i>
+                        <div class="imagine-estimation__label" i18n="patient.patientInsurance.eligibility.coInsurance"></div>
+                        <div class="imagine-estimation__amount"></div>
+                    </div>
+
+                    <!-- Co-Pay -->
+                    <div data-item="co-pay" class="imagine-estimation">
+                        <i class="fa fa-info-circle imagine-estimation__icon" i18nt="patient.patientInsurance.eligibility.coPayEstimation"></i>
+                        <div class="imagine-estimation__label" i18n="patient.patientInsurance.eligibility.coPay"></div>
+                        <div class="imagine-estimation__amount"></div>
+                    </div>
+
+                    <!-- Deductible / Max -->
+                    <div data-item="deductible" class="imagine-estimation">
+                        <i class="fa fa-info-circle imagine-estimation__icon" i18nt="patient.patientInsurance.eligibility.deductibleEstimation"></i>
+                        <div class="imagine-estimation__label" i18n="patient.patientInsurance.eligibility.deductible"></div>
+                        <div class="imagine-estimation__amount"></div>
+                        <div class="imagine-estimation__separator">/</div>
+                        <div class="imagine-estimation__max"></div>
+                    </div>
+
+                    <!-- Total Charges / Max -->
+                    <div data-item="total-charges" class="imagine-estimation">
+                        <i class="fa fa-info-circle imagine-estimation__icon" i18nt="patient.patientInsurance.eligibility.totalChargesEstimation"></i>
+                        <div class="imagine-estimation__label" i18n="patient.patientInsurance.eligibility.totalCharges"></div>
+                        <div class="imagine-estimation__amount"></div>
+                        <div class="imagine-estimation__separator">/</div>
+                        <div class="imagine-estimation__max"></div>
+                    </div>
+
+                    <!-- Allowed Amount / Max -->
+                    <div data-item="allowed-amount" class="imagine-estimation">
+                        <i class="fa fa-info-circle imagine-estimation__icon" i18nt="patient.patientInsurance.eligibility.allowedAmountEstimation"></i>
+                        <div class="imagine-estimation__label" i18n="patient.patientInsurance.eligibility.allowedAmount"></div>
+                        <div class="imagine-estimation__amount"></div>
+                        <div class="imagine-estimation__separator">/</div>
+                        <div class="imagine-estimation__max"></div>
+                    </div>
+
+                    <!-- Insurance Adjustment -->
+                    <div data-item="insurance-adjustment" class="imagine-estimation">
+                        <i class="fa fa-info-circle imagine-estimation__icon" i18nt="patient.patientInsurance.eligibility.insuranceAdjustmentsEstimation"></i>
+                        <div class="imagine-estimation__label" i18n="patient.patientInsurance.eligibility.insuranceAdjustments"></div>
+                        <div class="imagine-estimation__amount"></div>
+                    </div>
+
+                    <!-- Insurance Payment -->
+                    <div data-item="insurance-payment" class="imagine-estimation">
+                        <i class="fa fa-info-circle imagine-estimation__icon" i18nt="patient.patientInsurance.eligibility.insurancePaymentEstimation"></i>
+                        <div class="imagine-estimation__label" i18n="patient.patientInsurance.eligibility.insurancePayment"></div>
+                        <div class="imagine-estimation__amount"></div>
+                    </div>
+
+                    <!-- Stop Loss -->
+                    <div data-item="stop-loss" class="imagine-estimation">
+                        <i class="fa fa-info-circle imagine-estimation__icon" i18nt="patient.patientInsurance.eligibility.stopLossEstimation"></i>
+                        <div class="imagine-estimation__label" i18n="patient.patientInsurance.eligibility.stopLoss"></div>
+                        <div class="imagine-estimation__amount"></div>
+                    </div>
+
+                    <!-- Patient Responsibility -->
+                    <div data-item="patient-responsibility" class="imagine-estimation">
+                        <i class="fa fa-info-circle imagine-estimation__icon" i18nt="patient.patientInsurance.eligibility.patientResponsibilityEstimation"></i>
+                        <div class="imagine-estimation__label" i18n="patient.patientInsurance.eligibility.patientResponsibility"></div>
+                        <div class="imagine-estimation__min"></div>
+                        <div class="imagine-estimation__separator">/</div>
+                        <div class="imagine-estimation__amount"></div>
+                        <div class="imagine-estimation__separator">/</div>
+                        <div class="imagine-estimation__max"></div>
+                    </div>
+
+                    <!-- Max Balance Due (Balance Due is displayed in the right-side column) -->
+                    <div data-item="max-balance-due" class="imagine-estimation">
+                        <div class="imagine-estimation__label" i18n="patient.patientInsurance.eligibility.maxBalanceDue"></div>
+                        <div class="imagine-estimation__amount"></div>
+                    </div>
+
+                    <!-- Max Out of Pocket -->
+                    <div data-item="max-out-of-pocket" class="imagine-estimation">
+                        <div class="imagine-estimation__label" i18n="patient.patientInsurance.eligibility.maxOutOfPocket"></div>
+                        <div class="imagine-estimation__amount"></div>
+                    </div>
+
+                    <br/>
+                </div>
+
+                <div class="flex-area flex-1" style="margin-left: 30px; margin-right: 30px;">
+                    <div class="flex-area__header text-center bold-text" style="font-size: x-large;">
+                        <span i18n="patient.patientInsurance.eligibility.estimatedPatientBalance"></span>
+                        <span id="txtEstimatedPatientBalance"></span>
+                    </div>
+
+                    <div class="text-justify mb-20" i18n="patient.patientInsurance.eligibility.balanceAboveEstimatedAmount">
+
+                    </div>
+
+                    <div id="divEstimationStudies" class="mb-20">
+
+                    </div>
+
+                    <div class="text-justify mb-20" i18n="patient.patientInsurance.eligibility.viewEstimateByProcedure">
+
+                    </div>
+
+                    <div class="text-center">
+                        <button id="btnUpdateSelected" type="button" class="btn start-hidden" i18n="patient.patientInsurance.eligibility.updateSelected"></button>
+                    </div>
+
+                    <br/>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

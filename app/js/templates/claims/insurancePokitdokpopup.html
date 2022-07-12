@@ -1,0 +1,1076 @@
+<style>
+    table #pokitdoktable tr:nth-child(even), #pokitdoktable1 tr:nth-child(even), #pokitdoktable2 tr:nth-child(even), #pokitdoktable3 tr:nth-child(even), #pokitdoktable4 tr:nth-child(even), #pokitdoktable5 tr:nth-child(even), #pokitdoktable6 tr:nth-child(even) {
+        background-color: #eee;
+    }
+
+    table #pokitdoktable tr:nth-child(odd), #pokitdoktable1 tr:nth-child(odd), #pokitdoktable2 tr:nth-child(odd), #pokitdoktable3 tr:nth-child(odd), #pokitdoktable4 tr:nth-child(odd), #pokitdoktable5 tr:nth-child(odd), #pokitdoktable6 tr:nth-child(odd) {
+        background-color: #fff;
+    }
+
+    #divPokitdok .form-list .form-group .col-form-label {
+        width: 300px;
+    }
+    #OutofPocket {
+        margin-top: 0;
+    }
+
+    #btnPrintInsuranceEligibility {
+        position: absolute;
+        top: 4px;
+        z-index: 1;
+    }
+</style>
+<input type="submit" id="btnPrintInsuranceEligibility" class='btn btn-primary' value="Print" i18n="shared.buttons.print">
+
+<div class="container" style="width: 100%;margin-left: 0px">
+    <div class='Form' id='divPokitdok' style="padding-top: 5px;overflow: auto">
+        <form class="form-horizontal form-list formStudyInfo " id="formAllergyInfo">
+            <div class="col-xs-12">
+                <div class="col-xs-6"><br/>
+                    <legend class="viztekLegend">
+                        <h4> SUBSCRIBER INFORMATION</h4>
+                    </legend>
+                    <div class="form-group form-inline">
+                        <div class="col-form-label">
+                            Subscriber First Name
+                        </div>
+                        <div class="col-form-content">
+                            <label class="logFields1"><%= InsuranceData && InsuranceData.subscriber && InsuranceData.subscriber.first_name ? InsuranceData.subscriber.first_name : '-' %></label>
+                        </div>
+                    </div>
+                    <div class="form-group form-inline">
+                        <div class="col-form-label">
+                            Subscriber Last Name
+                        </div>
+                        <div class="col-form-content">
+                            <label class="logFields1"><%= InsuranceData && InsuranceData.subscriber && InsuranceData.subscriber.last_name ? InsuranceData.subscriber.last_name : '-' %></label>
+                        </div>
+                    </div>
+                    <div class="form-group form-inline">
+                        <div class="col-form-label">
+                            Subscriber ID
+                        </div>
+                        <div class="col-form-content">
+                            <label class="logFields1"><%= InsuranceData && InsuranceData.subscriber && InsuranceData.subscriber.id ? InsuranceData.subscriber.id : '-' %></label>
+                        </div>
+                    </div>
+                    <div class="form-group form-inline">
+                        <div class="col-form-label">
+                            Subscriber Birth Date
+                        </div>
+                        <div class="col-form-content">
+                            <label class="logFields1"><%= InsuranceData && InsuranceData.subscriber && InsuranceData.subscriber.birth_date ? InsuranceData.subscriber.birth_date : '-' %></label>
+                        </div>
+                    </div>
+                    <div class="form-group form-inline">
+                        <div class="col-form-label">
+                            Subscriber Gender
+                        </div>
+                        <div class="col-form-content">
+                            <label class="logFields1"><%= InsuranceData && InsuranceData.subscriber && InsuranceData.subscriber.gender ? InsuranceData.subscriber.gender : '-' %></label>
+                        </div>
+                    </div>
+                    <div class="form-group form-inline">
+                        <div class="col-form-label">
+                            Active
+                        </div>
+                        <div class="col-form-content">
+                            <% if (InsuranceData && InsuranceData.coverage && InsuranceData.coverage.active && InsuranceData.coverage.active == true) { %>
+                            <label class="logFields1">Yes</label>
+                            <% } else { %>
+                            <label class="logFields1">No</label>
+                            <% } %>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-xs-6"><br/>
+                    <legend class="viztekLegend">
+                        <h4>CoPay</h4>
+                    </legend>
+                    <div class="form-group form-inline">
+                        <div>
+                            <% if (InsuranceData && InsuranceData.coverage && InsuranceData.coverage.copay && InsuranceData.coverage.copay.length > 0 ) {
+                                var v_flag = false; %>
+                                <% _.each(InsuranceData.service_type_codes, function(serviceTypeDetails) { %>
+                                    <% _.each(InsuranceData.coverage.copay, function(resultServiceType,index) { %>
+                                        <% if ( resultServiceType.service_type_codes && resultServiceType.service_type_codes == serviceTypeDetails ) {
+                                            v_flag = true; %>
+                                            <table class="table table-bordered">
+                                                <tbody>
+                                                    <tr>
+                                                        <td width="30%" class="boldLabel">Amount</td>
+                                                        <td width="70%"> <%= resultServiceType.copayment && resultServiceType.copayment.currency ? (resultServiceType.copayment.currency === 'USD' ? '$' : '') : '' %><%= resultServiceType.copayment && resultServiceType.copayment.amount ? resultServiceType.copayment.amount : '' %></td>
+                                                    </tr>
+                                                    <tr>
+                                                        <td width="30%" class="boldLabel">In Plan Network</td>
+                                                        <td width="70%"> <%= resultServiceType.in_plan_network ? resultServiceType.in_plan_network : '-' %> </td>
+                                                    </tr>
+                                                    <tr>
+                                                        <td width="30%" class="boldLabel">Coverage Level</td>
+                                                        <td width="70%"> <%= resultServiceType.coverage_level ? resultServiceType.coverage_level : '-' %> </td>
+                                                    </tr>
+                                                    <tr>
+                                                        <td width="30%" class="boldLabel">Type</td>
+                                                        <td width="70%"> <%= resultServiceType.insurance_type ? resultServiceType.insurance_type : '-' %> </td>
+                                                    </tr>
+                                                    <tr>
+                                                        <td width="30%" class="boldLabel">Plan Description</td>
+                                                        <td width="70%"> <%= resultServiceType.plan_description ? resultServiceType.plan_description : '-' %> </td>
+                                                    </tr>
+                                                    <tr>
+                                                        <td width="30%" class="boldLabel">Service Type</td>
+                                                        <td width="70%"> <%= resultServiceType.service_types ? resultServiceType.service_types : '-' %> </td>
+                                                    </tr>
+                                                    <tr>
+                                                        <td width="30%" class="boldLabel">Authorization Required?</td>
+                                                        <td width="70%"> <%= resultServiceType.authorization_required ? 'Yes' : 'No' %> </td>
+                                                    </tr>
+                                                    <% if (resultServiceType.messages) { %>
+                                                        <% _.each(resultServiceType.messages, function(msgDetails, index) { %>
+                                                            <tr>
+                                                                <td width="30%" class="boldLabel"><%= index === 0 ? 'Messages' : '' %></td>
+                                                                <td width="70%">* <%= msgDetails.message %> </td>
+                                                            </tr>
+                                                        <% }); %>
+                                                    <% } else { %>
+                                                        <tr>
+                                                            <td width="30%" class="boldLabel">Messages</td>
+                                                            <td width="70%">-</td>
+                                                        </tr>
+                                                    <% } %>
+                                                    <tr>
+                                                        <td width="30%" class="boldLabel">Additional Information</td>
+                                                        <td width="70%"> <%= resultServiceType.description ? resultServiceType.description : '-' %> </td>
+                                                    </tr>
+                                                </tbody>
+                                            </table>
+                                        <% } %>
+                                    <% }); %>
+                                <% }); %>
+                                <% if ( !v_flag ) { %>
+                                    <div class="col-form-content" align="center">
+                                        <label>No Record Found</label>
+                                    </div>
+                                <% } %>
+                            <% } else { %>
+                                <div class="col-form-content" align="center">
+                                    <label>No Record Found</label>
+                                </div>
+                            <% } %>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <br/> <br/>
+            <legend class="viztekLegend" style="margin-bottom: 10px;">
+                <h4>MORE INFORMATION</h4>
+            </legend>
+            <ul class="nav nav-tabs tabs tabControlUL" id="tabsCompany">
+                <li id="liCoverage" class="active">
+                    <a id="aCoverage" href="#Coverage" data-toggle="tab" i18n="patient.patientInsurance.coverage"></a>
+                </li>
+                <li id="liOutOfPocket">
+                    <a id="aOutOfPocket" href="#OutofPocket" data-toggle="tab" i18n="patient.patientInsurance.outofpocket"></a>
+                </li>
+                <li id="liCoInsurance">
+                    <a id="aCoInsurance" href="#CoInsurance" data-toggle="tab" i18n="patient.patientInsurance.coinsurance"></a>
+                </li>
+                <li id="liCoPay">
+                    <a id="aCopay" href="#CoPay" data-toggle="tab" i18n="patient.patientInsurance.copay"></a>
+                </li>
+                <li id="liLimitations">
+                    <a id="aLimitations" href="#Limitations" data-toggle="tab" i18n="patient.patientInsurance.limitations"></a>
+                </li>
+                <li id="liRequestDetails">
+                    <a id="aRequestDetails" href="#RequestDetails" data-toggle="tab"
+                       i18n="patient.patientInsurance.requestdetails"></a>
+                </li>
+                <li id="liPharmacy">
+                    <a id="aPharmacy" href="#Pharmacy" data-toggle="tab" i18n="patient.patientInsurance.pharmacy"></a>
+                </li>
+            </ul>
+            <div class="tab-content" style="min-height: 310px;">
+                <div class="tab-pane form-list active" id="Coverage">
+                    <div class="col-xs-12" style="margin-top: 5px">
+                        <div class="form-group form-inline">
+                            <div class="col-form-label">
+                                Active
+                            </div>
+                            <div class="col-form-content">
+                                <% if (InsuranceData && InsuranceData.coverage && InsuranceData.coverage.active && InsuranceData.coverage.active == true) { %>
+                                <label class="logFields1">Yes</label>
+                                <% } else { %>
+                                <label class="logFields1">No</label>
+                                <% } %>
+                            </div>
+                        </div>
+                        <div class="form-group form-inline">
+                            <div class="col-form-label">
+                                Coverage Level
+                            </div>
+                            <div class="col-form-content">
+                                <label class="logFields1"><%= InsuranceData && InsuranceData.coverage && InsuranceData.coverage.plan_benefit_description && InsuranceData.coverage.plan_benefit_description.coverage_level ? InsuranceData.coverage.plan_benefit_description.coverage_level: '-' %></label>
+                            </div>
+                        </div>
+                        <div class="form-group form-inline">
+                            <div class="col-form-label">
+                                Insurance Type
+                            </div>
+                            <div class="col-form-content">
+                                <label class="logFields1"><%= InsuranceData && InsuranceData.coverage && InsuranceData.coverage.coverage_details && InsuranceData.coverage.coverage_details.insurance_type ? InsuranceData.coverage.coverage_details.insurance_type: '-' %></label>
+                            </div>
+                        </div>
+                        <div class="form-group form-inline">
+                            <div class="col-form-label">
+                                Group Description
+                            </div>
+                            <div class="col-form-content">
+                                <label class="logFields1"><%= InsuranceData && InsuranceData.coverage && InsuranceData.coverage.coverage_details && InsuranceData.coverage.coverage_details.plan_description ? InsuranceData.coverage.coverage_details.plan_description: '-' %></label>
+                            </div>
+                        </div>
+                        <div class="form-group form-inline">
+                            <div class="col-form-label">
+                                Group Number
+                            </div>
+                            <div class="col-form-content">
+                                <label class="logFields1"><%= InsuranceData && InsuranceData.coverage && InsuranceData.coverage.coverage_details && InsuranceData.coverage.coverage_details.group_or_policy_number ? InsuranceData.coverage.coverage_details.group_or_policy_number: '-' %></label>
+                            </div>
+                        </div>
+                        <div class="form-group form-inline">
+                            <div class="col-form-label">
+                                Plan Begin Date
+                            </div>
+                            <div class="col-form-content">
+                                <label class="logFields1"><%= InsuranceData && InsuranceData.coverage && InsuranceData.coverage.plan_begin_date ? InsuranceData.coverage.plan_begin_date : '-' %></label>
+                            </div>
+                        </div>
+                        <div class="form-group form-inline">
+                            <div class="col-form-label">
+                                Plan End Date
+                            </div>
+                            <div class="col-form-content">
+                                <label class="logFields1"><%= InsuranceData && InsuranceData.coverage && InsuranceData.coverage.plan_end_date ? InsuranceData.coverage.plan_end_date : '-' %></label>
+                            </div>
+                        </div>
+                        <div class="form-group form-inline">
+                            <div class="col-form-label">
+                                Plan Description
+                            </div>
+                            <div class="col-form-content">
+                                <label class="logFields1"><%= InsuranceData && InsuranceData.coverage && InsuranceData.coverage.plan_description ? InsuranceData.coverage.plan_description : '-' %></label>
+                            </div>
+                        </div>
+                        <div class="form-group form-inline">
+                            <div class="col-form-label">
+                                Plan Number
+                            </div>
+                            <div class="col-form-content">
+                                <label class="logFields1"><%= InsuranceData && InsuranceData.coverage && InsuranceData.coverage.plan_number ? InsuranceData.coverage.plan_number : '-' %></label>
+                            </div>
+                        </div>
+                        <div class="form-group form-inline">
+                            <div class="col-form-label">
+                                Service Date
+                            </div>
+                            <div class="col-form-content">
+                                <label class="logFields1"><%= InsuranceData && InsuranceData.coverage && InsuranceData.coverage.service_date ? InsuranceData.coverage.service_date : '-' %></label>
+                            </div>
+                        </div>
+                        <div class="form-group form-inline">
+                            <div class="col-form-label">
+                                Messages
+                            </div>
+                            <div class="col-form-content">
+                                <% var v_msgs = [{message: '-'}]; %>
+                                <% v_msgs = (InsuranceData && InsuranceData.coverage && InsuranceData.coverage.messages) ? InsuranceData.coverage.messages : v_msgs; %>
+                                <% v_msgs = (InsuranceData && InsuranceData.coverage && InsuranceData.coverage.coverage_details && InsuranceData.coverage.coverage_details.messages) ? v_msgs.concat(InsuranceData.coverage.coverage_details.messages) : v_msgs; %>
+                                <% v_msgs = (InsuranceData && InsuranceData.coverage && InsuranceData.coverage.plan_benefit_description && InsuranceData.coverage.plan_benefit_description.messages) ? v_msgs.concat(InsuranceData.coverage.plan_benefit_description.messages) : v_msgs; %>
+                                <table><tbody>
+                                <% _.each(v_msgs, function(msgDetails, index) { %>
+                                    <tr><td><% if (msgDetails.message != '-') { %>* <% } %><%= msgDetails.message %></tr></td>
+                                <% }); %>
+                                </tbody></table>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="tab-pane" id="OutofPocket">
+                    <div class="col-xs-12" style="margin-top: 10px">
+                        <div class="col-xs-6" style="margin-top: 10px">
+                            <legend class="viztekLegend">
+                                <h5>Deductibles</h5>
+                            </legend>
+                            <% if (InsuranceData && InsuranceData.coverage && InsuranceData.coverage.deductibles && InsuranceData.coverage.deductibles.length > 0 ) { %>
+                                <% _.each(InsuranceData.coverage.deductibles, function(resultServiceType,index) { %>
+                                    <table class="table table-bordered">
+                                        <tbody>
+                                            <tr>
+                                                <td width="30%" class="boldLabel">In Network</td>
+                                                <td width="70%"> <%= resultServiceType.in_plan_network ? resultServiceType.in_plan_network : '-' %> </td>
+                                            </tr>
+                                            <tr>
+                                                <td width="30%" class="boldLabel">Coverage Level</td>
+                                                <td width="70%"> <%= resultServiceType.coverage_level ? resultServiceType.coverage_level : '-' %> </td>
+                                            </tr>
+                                            <tr>
+                                                <td width="30%" class="boldLabel">Benefit Amount</td>
+                                                <td width="70%"> <%= resultServiceType.benefit_amount && resultServiceType.benefit_amount && resultServiceType.benefit_amount.currency ? (resultServiceType.benefit_amount.currency === 'USD' ? '$' : '') : '' %><%= resultServiceType.benefit_amount && resultServiceType.benefit_amount.amount ? resultServiceType.benefit_amount.amount : '' %></td>
+                                            </tr>
+                                            <tr>
+                                                <td width="30%" class="boldLabel">Time Period</td>
+                                                <td width="70%"> <%= resultServiceType.time_period ? resultServiceType.time_period : '-' %> </td>
+                                            </tr>
+                                            <tr>
+                                                <td width="30%" class="boldLabel">Service Type</td>
+                                                <td width="70%"> <%= resultServiceType.service_types ? resultServiceType.service_types : '-' %> </td>
+                                            </tr>
+                                            <% if (resultServiceType.messages) { %>
+                                                <% _.each(resultServiceType.messages, function(msgDetails, index) { %>
+                                                    <tr>
+                                                        <td width="30%" class="boldLabel"><%= index === 0 ? 'Messages' : '' %></td>
+                                                        <td width="70%">* <%= msgDetails.message %> </td>
+                                                    </tr>
+                                                <% }); %>
+                                            <% } else { %>
+                                                <tr>
+                                                    <td width="30%" class="boldLabel">Messages</td>
+                                                    <td width="70%">-</td>
+                                                </tr>
+                                            <% } %>
+                                        </tbody>
+                                    </table>
+                                <% }); %>
+                            <% } else { %>
+                                <div class="col-form-content" align="center">
+                                    <label>No Record Found</label>
+                                </div>
+                            <% } %>
+                        </div>
+                        <div class="col-xs-6" style="margin-top: 10px">
+                            <legend class="viztekLegend">
+                                <h6>Maximum Out-Of-Pockets</h6>
+                            </legend>
+                            <% if (InsuranceData && InsuranceData.coverage && InsuranceData.coverage.out_of_pocket && InsuranceData.coverage.out_of_pocket.length > 0 ) { %>
+                                <% _.each(InsuranceData.coverage.out_of_pocket, function(resultServiceType,index) { %>
+                                    <table class="table table-bordered">
+                                        <tbody>
+                                            <tr>
+                                                <td width="30%" class="boldLabel">In Network</td>
+                                                <td width="70%"> <%= resultServiceType.in_plan_network ? resultServiceType.in_plan_network : '-' %> </td>
+                                            </tr>
+                                            <tr>
+                                                <td width="30%" class="boldLabel">Coverage Level</td>
+                                                <td width="70%"> <%= resultServiceType.coverage_level ? resultServiceType.coverage_level : '-' %> </td>
+                                            </tr>
+                                            <tr>
+                                                <td width="30%" class="boldLabel">Benefit Amount</td>
+                                                <td width="70%"> <%= resultServiceType.benefit_amount && resultServiceType.benefit_amount && resultServiceType.benefit_amount.currency ? (resultServiceType.benefit_amount.currency === 'USD' ? '$' : '') : '' %><%= resultServiceType.benefit_amount && resultServiceType.benefit_amount.amount ? resultServiceType.benefit_amount.amount : '' %></td>
+                                            </tr>
+                                            <tr>
+                                                <td width="30%" class="boldLabel">Time Period</td>
+                                                <td width="70%"> <%= resultServiceType.time_period ? resultServiceType.time_period : '-' %> </td>
+                                            </tr>
+                                            <tr>
+                                                <td width="30%" class="boldLabel">Service Type</td>
+                                                <td width="70%"> <%= resultServiceType.service_types ? resultServiceType.service_types : '-' %> </td>
+                                            </tr>
+                                            <% if (resultServiceType.messages) { %>
+                                                <% _.each(resultServiceType.messages, function(msgDetails, index) { %>
+                                                    <tr>
+                                                        <td width="30%" class="boldLabel"><%= index === 0 ? 'Messages' : '' %></td>
+                                                        <td width="70%">* <%= msgDetails.message %> </td>
+                                                    </tr>
+                                                <% }); %>
+                                            <% } else { %>
+                                                <tr>
+                                                    <td width="30%" class="boldLabel">Messages</td>
+                                                    <td width="70%">-</td>
+                                                </tr>
+                                            <% } %>
+                                        </tbody>
+                                    </table>
+                                <% }); %>
+                            <% } else { %>
+                                <div class="col-form-content" align="center">
+                                    <label>No Record Found</label>
+                                </div>
+                            <% } %>
+                        </div>
+                    </div>
+                    <div class="col-xs-12" style="margin-top: 10px">
+                        <div class="col-xs-6" style="margin-top: 10px">
+                            <legend class="viztekLegend">
+                                <h5>Summary Deductible</h5>
+                            </legend>
+                            <label> In Network</label>
+                            <div class="form-group form-inline">
+                                <div class="col-form-label">
+                                    Total Deductible
+                                </div>
+                                <div class="col-form-content">
+                                    <% if ( InsuranceData && InsuranceData.summary && InsuranceData.summary.deductible &&
+                                    InsuranceData.summary.deductible.individual && InsuranceData.summary.deductible.individual.in_network &&
+                                    InsuranceData.summary.deductible.individual.in_network.limit &&
+                                    InsuranceData.summary.deductible.individual.in_network.limit.amount &&
+                                    InsuranceData.summary.deductible.individual.in_network.limit.amount.length > 0 ) {
+                                    if ( InsuranceData.summary.deductible.individual.in_network.limit.currency=="USD" ) { %>
+                                    <label class="logFields1">$<%= InsuranceData.summary.deductible.individual.in_network.limit.amount
+                                        %></label>
+                                    <% } else { %>
+                                    <label class="logFields1"><%= InsuranceData.summary.deductible.individual.in_network.limit.amount
+                                        %></label>
+                                    <% }
+                                    } %>
+                                </div>
+                            </div>
+                            <div class="form-group form-inline">
+                                <div class="col-form-label">
+                                   Spent Y-T-D
+                                </div>
+                                <div class="col-form-content">
+                                    <% if ( InsuranceData && InsuranceData.summary && InsuranceData.summary.deductible &&
+                                    InsuranceData.summary.deductible.individual && InsuranceData.summary.deductible.individual.in_network &&
+                                    InsuranceData.summary.deductible.individual.in_network.applied &&
+                                    InsuranceData.summary.deductible.individual.in_network.applied.amount &&
+                                    InsuranceData.summary.deductible.individual.in_network.applied.amount.length > 0 ) {
+                                    if ( InsuranceData.summary.deductible.individual.in_network.applied.currency=="USD" ) { %>
+                                    <label class="logFields1">$<%= InsuranceData.summary.deductible.individual.in_network.applied.amount
+                                        %></label>
+                                    <% } else { %>
+                                    <label class="logFields1"><%= InsuranceData.summary.deductible.individual.in_network.applied.amount
+                                        %></label>
+                                    <% }
+                                    } %>
+                                </div>
+                            </div>
+                            <div class="form-group form-inline">
+                                <div class="col-form-label">
+                                    Remaining
+                                </div>
+                                <div class="col-form-content">
+                                    <% if ( InsuranceData && InsuranceData.summary && InsuranceData.summary.deductible &&
+                                    InsuranceData.summary.deductible.individual && InsuranceData.summary.deductible.individual.in_network &&
+                                    InsuranceData.summary.deductible.individual.in_network.remaining &&
+                                    InsuranceData.summary.deductible.individual.in_network.remaining.amount &&
+                                    InsuranceData.summary.deductible.individual.in_network.remaining.amount.length > 0 ) {
+                                    if ( InsuranceData.summary.deductible.individual.in_network.remaining.currency=="USD" ) { %>
+                                    <label class="logFields1">$<%= InsuranceData.summary.deductible.individual.in_network.remaining.amount
+                                        %></label>
+                                    <% } else { %>
+                                    <label class="logFields1"><%= InsuranceData.summary.deductible.individual.in_network.remaining.amount
+                                        %></label>
+                                    <% }
+                                    } %>
+                                </div>
+                            </div>
+                            <br/>
+                            <label>Out Of Network</label>
+                            <div class="form-group form-inline">
+                                <div class="col-form-label">
+                                    Total Deductible
+                                </div>
+                                <div class="col-form-content">
+                                    <% if ( InsuranceData && InsuranceData.summary && InsuranceData.summary.deductible &&
+                                    InsuranceData.summary.deductible.individual && InsuranceData.summary.deductible.individual.out_of_network &&
+                                    InsuranceData.summary.deductible.individual.out_of_network.limit &&
+                                    InsuranceData.summary.deductible.individual.out_of_network.limit.amount &&
+                                    InsuranceData.summary.deductible.individual.out_of_network.limit.amount.length > 0 ) {
+                                    if ( InsuranceData.summary.deductible.individual.out_of_network.limit.currency=="USD" ) { %>
+                                    <label class="logFields1">$<%= InsuranceData.summary.deductible.individual.out_of_network.limit.amount
+                                        %></label>
+                                    <% } else { %>
+                                    <label class="logFields1"><%= InsuranceData.summary.deductible.individual.out_of_network.limit.amount
+                                        %></label>
+                                    <% }
+                                    } %>
+                                </div>
+                            </div>
+                            <div class="form-group form-inline">
+                                <div class="col-form-label">
+                                    Spent Y-T-D
+                                </div>
+                                <div class="col-form-content">
+                                    <% if ( InsuranceData && InsuranceData.summary && InsuranceData.summary.deductible &&
+                                    InsuranceData.summary.deductible.individual && InsuranceData.summary.deductible.individual.out_of_network &&
+                                    InsuranceData.summary.deductible.individual.out_of_network.applied &&
+                                    InsuranceData.summary.deductible.individual.out_of_network.applied.amount &&
+                                    InsuranceData.summary.deductible.individual.out_of_network.applied.amount.length > 0 ) {
+                                    if ( InsuranceData.summary.deductible.individual.out_of_network.applied.currency=="USD" ) { %>
+                                    <label class="logFields1">$<%= InsuranceData.summary.deductible.individual.out_of_network.applied.amount
+                                        %></label>
+                                    <% } else { %>
+                                    <label class="logFields1"><%= InsuranceData.summary.deductible.individual.out_of_network.applied.amount
+                                        %></label>
+                                    <% }
+                                    } %>
+                                </div>
+                            </div>
+                            <div class="form-group form-inline">
+                                <div class="col-form-label">
+                                    Remaining
+                                </div>
+                                <div class="col-form-content">
+                                    <% if ( InsuranceData && InsuranceData.summary && InsuranceData.summary.deductible &&
+                                    InsuranceData.summary.deductible.individual && InsuranceData.summary.deductible.individual.out_of_network &&
+                                    InsuranceData.summary.deductible.individual.out_of_network.remaining &&
+                                    InsuranceData.summary.deductible.individual.out_of_network.remaining.amount &&
+                                    InsuranceData.summary.deductible.individual.out_of_network.remaining.amount.length > 0 ) {
+                                    if ( InsuranceData.summary.deductible.individual.out_of_network.remaining.currency=="USD" ) { %>
+                                    <label class="logFields1">$<%= InsuranceData.summary.deductible.individual.out_of_network.remaining.amount
+                                        %></label>
+                                    <% } else { %>
+                                    <label class="logFields1"><%= InsuranceData.summary.deductible.individual.out_of_network.remaining.amount
+                                        %></label>
+                                    <% }
+                                    } %>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-xs-6" style="margin-top: 10px">
+                            <legend class="viztekLegend">
+                                <h6>Summary Maximum Out-Of-Pocket</h6>
+                            </legend>
+                            <label>In Network</label>
+                            <div class="form-group form-inline">
+                                <div class="col-form-label">
+                                    Total Deductible
+                                </div>
+                                <div class="col-form-content">
+                                    <% if ( InsuranceData && InsuranceData.summary && InsuranceData.summary.out_of_pocket &&
+                                    InsuranceData.summary.out_of_pocket.individual && InsuranceData.summary.out_of_pocket.individual.in_network &&
+                                    InsuranceData.summary.out_of_pocket.individual.in_network.limit &&
+                                    InsuranceData.summary.out_of_pocket.individual.in_network.limit.amount &&
+                                    InsuranceData.summary.out_of_pocket.individual.in_network.limit.amount.length > 0 ) {
+                                    if ( InsuranceData.summary.out_of_pocket.individual.in_network.limit.currency=="USD" ) { %>
+                                    <label class="logFields1">$<%= InsuranceData.summary.out_of_pocket.individual.in_network.limit.amount
+                                        %></label>
+                                    <% } else { %>
+                                    <label class="logFields1"><%= InsuranceData.summary.out_of_pocket.individual.in_network.limit.amount
+                                        %></label>
+                                    <% }
+                                    } %>
+                                </div>
+                            </div>
+                            <div class="form-group form-inline">
+                                <div class="col-form-label">
+                                    Spent Y-T-D
+                                </div>
+                                <div class="col-form-content">
+                                    <% if ( InsuranceData && InsuranceData.summary && InsuranceData.summary.out_of_pocket &&
+                                    InsuranceData.summary.out_of_pocket.individual && InsuranceData.summary.out_of_pocket.individual.in_network &&
+                                    InsuranceData.summary.out_of_pocket.individual.in_network.applied &&
+                                    InsuranceData.summary.out_of_pocket.individual.in_network.applied.amount &&
+                                    InsuranceData.summary.out_of_pocket.individual.in_network.applied.amount.length > 0 ) {
+                                    if ( InsuranceData.summary.out_of_pocket.individual.in_network.applied.currency=="USD" ) { %>
+                                    <label class="logFields1">$<%= InsuranceData.summary.out_of_pocket.individual.in_network.applied.amount
+                                        %></label>
+                                    <% } else { %>
+                                    <label class="logFields1"><%= InsuranceData.summary.out_of_pocket.individual.in_network.applied.amount
+                                        %></label>
+                                    <% }
+                                    } %>
+                                </div>
+                            </div>
+                            <div class="form-group form-inline">
+                                <div class="col-form-label">
+                                    Remaining
+                                </div>
+                                <div class="col-form-content">
+                                    <% if ( InsuranceData && InsuranceData.summary && InsuranceData.summary.out_of_pocket &&
+                                    InsuranceData.summary.out_of_pocket.individual && InsuranceData.summary.out_of_pocket.individual.in_network &&
+                                    InsuranceData.summary.out_of_pocket.individual.in_network.remaining &&
+                                    InsuranceData.summary.out_of_pocket.individual.in_network.remaining.amount &&
+                                    InsuranceData.summary.out_of_pocket.individual.in_network.remaining.amount.length > 0 ) {
+                                    if ( InsuranceData.summary.out_of_pocket.individual.in_network.remaining.currency=="USD" ) { %>
+                                    <label class="logFields1">$<%= InsuranceData.summary.out_of_pocket.individual.in_network.remaining.amount
+                                        %></label>
+                                    <% } else { %>
+                                    <label class="logFields1"><%= InsuranceData.summary.out_of_pocket.individual.in_network.remaining.amount
+                                        %></label>
+                                    <% }
+                                    } %>
+                                </div>
+                            </div>
+                            <br/>
+                            <label>Out Of Network</label>
+                            <div class="form-group form-inline">
+                                <div class="col-form-label">
+                                    Total Deductible
+                                </div>
+                                <div class="col-form-content">
+                                    <% if ( InsuranceData && InsuranceData.summary && InsuranceData.summary.out_of_pocket &&
+                                    InsuranceData.summary.out_of_pocket.individual && InsuranceData.summary.deductible.individual.out_of_network &&
+                                    InsuranceData.summary.out_of_pocket.individual.out_of_network.limit &&
+                                    InsuranceData.summary.out_of_pocket.individual.out_of_network.limit.amount &&
+                                    InsuranceData.summary.out_of_pocket.individual.out_of_network.limit.amount.length > 0 ) {
+                                    if ( InsuranceData.summary.out_of_pocket.individual.out_of_network.limit.currency=="USD" ) { %>
+                                    <label class="logFields1">$<%= InsuranceData.summary.out_of_pocket.individual.out_of_network.limit.amount
+                                        %></label>
+                                    <% } else { %>
+                                    <label class="logFields1"><%= InsuranceData.summary.out_of_pocket.individual.out_of_network.limit.amount
+                                        %></label>
+                                    <% }
+                                    } %>
+                                </div>
+                            </div>
+                            <div class="form-group form-inline">
+                                <div class="col-form-label">
+                                    Spent Y-T-D
+                                </div>
+                                <div class="col-form-content">
+                                    <% if ( InsuranceData && InsuranceData.summary && InsuranceData.summary.out_of_pocket &&
+                                    InsuranceData.summary.out_of_pocket.individual && InsuranceData.summary.deductible.individual.out_of_network &&
+                                    InsuranceData.summary.out_of_pocket.individual.out_of_network.applied &&
+                                    InsuranceData.summary.out_of_pocket.individual.out_of_network.applied.amount &&
+                                    InsuranceData.summary.out_of_pocket.individual.out_of_network.applied.amount.length > 0 ) {
+                                    if ( InsuranceData.summary.out_of_pocket.individual.out_of_network.applied.currency=="USD" ) { %>
+                                    <label class="logFields1">$<%= InsuranceData.summary.out_of_pocket.individual.out_of_network.applied.amount
+                                        %></label>
+                                    <% } else { %>
+                                    <label class="logFields1"><%= InsuranceData.summary.out_of_pocket.individual.out_of_network.applied.amount
+                                        %></label>
+                                    <% }
+                                    } %>
+                                </div>
+                            </div>
+                            <div class="form-group form-inline">
+                                <div class="col-form-label">
+                                    Remaining
+                                </div>
+                                <div class="col-form-content">
+                                    <% if ( InsuranceData && InsuranceData.summary && InsuranceData.summary.out_of_pocket &&
+                                    InsuranceData.summary.out_of_pocket.individual && InsuranceData.summary.out_of_pocket.individual.out_of_network &&
+                                    InsuranceData.summary.out_of_pocket.individual.out_of_network.remaining &&
+                                    InsuranceData.summary.out_of_pocket.individual.out_of_network.remaining.amount &&
+                                    InsuranceData.summary.out_of_pocket.individual.out_of_network.remaining.amount.length > 0 ) {
+                                    if ( InsuranceData.summary.out_of_pocket.individual.out_of_network.remaining.currency=="USD" ) { %>
+                                    <label class="logFields1">$<%= InsuranceData.summary.out_of_pocket.individual.out_of_network.remaining.amount
+                                        %></label>
+                                    <% } else { %>
+                                    <label class="logFields1"><%= InsuranceData.summary.deductible.individual.out_of_network.remaining.amount
+                                        %></label>
+                                    <% }
+                                    } %>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="tab-pane" id="CoInsurance">
+                    <div class="col-xs-12" style="margin-top: 5px">
+                        <div class="form-group form-inline">
+                            <% if (InsuranceData && InsuranceData.coverage && InsuranceData.coverage.coinsurance && InsuranceData.coverage.coinsurance.length > 0 ) {
+                                var v_flag = false; %>
+                                <% _.each(InsuranceData.service_type_codes, function(serviceTypeDetails) { %>
+                                    <% _.each(InsuranceData.coverage.coinsurance, function(resultServiceType,index){ %>
+                                        <% if (resultServiceType.service_type_codes && resultServiceType.service_type_codes == serviceTypeDetails) {
+                                            v_flag = true; %>
+                                            <table class="table table-bordered">
+                                                <tbody>
+                                                    <tr>
+                                                        <td width="20%" class="boldLabel">Benefit Percent</td>
+                                                        <td width="80%"><%= resultServiceType.benefit_percent ? resultServiceType.benefit_percent + '%' : '-' %></td>
+                                                    </tr>
+                                                    <tr>
+                                                        <td width="20%" class="boldLabel">In Plan Network</td>
+                                                        <td width="80%"> <%= resultServiceType.in_plan_network ? resultServiceType.in_plan_network : '-' %> </td>
+                                                    </tr>
+                                                    <tr>
+                                                        <td width="20%" class="boldLabel">Coverage Level</td>
+                                                        <td width="80%"> <%= resultServiceType.coverage_level ? resultServiceType.coverage_level : '-' %> </td>
+                                                    </tr>
+                                                    <tr>
+                                                        <td width="20%" class="boldLabel">Authorization Required</td>
+                                                        <td width="80%"> <%= resultServiceType.authorization_required ? resultServiceType.authorization_required : '-' %> </td>
+                                                    </tr>
+                                                    <tr>
+                                                        <td width="20%" class="boldLabel">Service Type</td>
+                                                        <td width="80%"> <%= resultServiceType.service_types ? resultServiceType.service_types : '-' %> </td>
+                                                    </tr>
+                                                    <% if (resultServiceType.messages) { %>
+                                                        <% _.each(resultServiceType.messages, function(msgDetails, index) { %>
+                                                            <tr>
+                                                                <td width="30%" class="boldLabel"><%= index === 0 ? 'Messages' : '' %></td>
+                                                                <td width="70%">* <%= msgDetails.message %> </td>
+                                                            </tr>
+                                                        <% }); %>
+                                                    <% } else { %>
+                                                        <tr>
+                                                            <td width="30%" class="boldLabel">Messages</td>
+                                                            <td width="70%">-</td>
+                                                        </tr>
+                                                    <% } %>
+                                                </tbody>
+                                            </table>
+                                        <% } %>
+                                    <% }); %>
+                                <% }); %>
+                                <% if ( !v_flag ) { %>
+                                    <div class="col-form-content" align="center">
+                                        <label>No Record Found</label>
+                                    </div>
+                                <% } %>
+                            <% } else { %>
+                                <div class="col-form-content" align="center">
+                                    <label>No Record Found</label>
+                                </div>
+                            <% } %>
+                        </div>
+                    </div>
+                </div>
+                <div class="tab-pane" id="CoPay">
+                    <div class="col-xs-12" style="margin-top: 5px">
+                        <div class="form-group form-inline">
+                            <% if (InsuranceData && InsuranceData.coverage && InsuranceData.coverage.copay && InsuranceData.coverage.copay.length > 0) {
+                                var v_flag = false; %>
+                                <% _.each(InsuranceData.service_type_codes, function(serviceTypeDetails) { %>
+                                    <% _.each(InsuranceData.coverage.copay, function(resultServiceType,index) { %>
+                                        <% if ( resultServiceType.service_type_codes && resultServiceType.service_type_codes == serviceTypeDetails ) {
+                                            v_flag = true; %>
+                                            <table class="table table-bordered">
+                                                <tbody>
+                                                    <tr>
+                                                        <td width="30%" class="boldLabel">Amount</td>
+                                                        <td width="70%"> <%= resultServiceType.copayment && resultServiceType.copayment.currency ? (resultServiceType.copayment.currency === 'USD' ? '$' : '') : '' %><%= resultServiceType.copayment && resultServiceType.copayment.amount ? resultServiceType.copayment.amount : '' %></td>
+                                                    </tr>
+                                                    <tr>
+                                                        <td width="30%" class="boldLabel">In Plan Network</td>
+                                                        <td width="70%"> <%= resultServiceType.in_plan_network ? resultServiceType.in_plan_network : '-' %> </td>
+                                                    </tr>
+                                                    <tr>
+                                                        <td width="30%" class="boldLabel">Coverage Level</td>
+                                                        <td width="70%"> <%= resultServiceType.coverage_level ? resultServiceType.coverage_level : '-' %> </td>
+                                                    </tr>
+                                                    <tr>
+                                                        <td width="30%" class="boldLabel">Type</td>
+                                                        <td width="70%"> <%= resultServiceType.insurance_type ? resultServiceType.insurance_type : '-' %> </td>
+                                                    </tr>
+                                                    <tr>
+                                                        <td width="30%" class="boldLabel">Plan Description</td>
+                                                        <td width="70%"> <%= resultServiceType.plan_description ? resultServiceType.plan_description : '-' %> </td>
+                                                    </tr>
+                                                    <tr>
+                                                        <td width="30%" class="boldLabel">Service Type</td>
+                                                        <td width="70%"> <%= resultServiceType.service_types ? resultServiceType.service_types : '-' %> </td>
+                                                    </tr>
+                                                    <tr>
+                                                        <td width="30%" class="boldLabel">Authorization Required?</td>
+                                                        <td width="70%"> <%= resultServiceType.authorization_required ? 'Yes' : 'No' %> </td>
+                                                    </tr>
+                                                    <% if (resultServiceType.messages) { %>
+                                                        <% _.each(resultServiceType.messages, function(msgDetails, index) { %>
+                                                            <tr>
+                                                                <td width="30%" class="boldLabel"><%= index === 0 ? 'Messages' : '' %></td>
+                                                                <td width="70%">* <%= msgDetails.message %> </td>
+                                                            </tr>
+                                                        <% }); %>
+                                                    <% } else { %>
+                                                        <tr>
+                                                            <td width="30%" class="boldLabel">Messages</td>
+                                                            <td width="70%">-</td>
+                                                        </tr>
+                                                    <% } %>
+                                                    <tr>
+                                                        <td width="30%" class="boldLabel">Additional Information</td>
+                                                        <td width="70%"> <%= resultServiceType.description ? resultServiceType.description : '-' %> </td>
+                                                    </tr>
+                                                </tbody>
+                                            </table>
+                                        <% } %>
+                                    <% }); %>
+                                <% }); %>
+                                <% if ( !v_flag ) { %>
+                                    <div class="col-form-content" align="center">
+                                        <label>No Record Found</label>
+                                    </div>
+                                <% } %>
+                            <% } else { %>
+                                <div class="col-form-content" align="center">
+                                    <label i18n="messages.errors.norecordfound"></label>
+                                </div>
+                            <% } %>
+                        </div>
+                    </div>
+                </div>
+                <div class="tab-pane" id="Limitations">
+                    <div class="col-xs-12" style="margin-top: 5px" id="divLimitations" >
+                        <div class="form-group form-inline">
+                            <table class="table">
+                                <tbody>
+                                    <th>LIMITATIONS</th>
+                                    <th>Disclaimer</th>
+                                    <tr>
+                                        <td width="60%">
+                                            <% if (InsuranceData && InsuranceData.coverage && InsuranceData.coverage.limitations && InsuranceData.coverage.limitations.length > 0 ) {
+                                                var v_flag = false; %>
+                                                <% _.each(InsuranceData.service_type_codes, function(serviceTypeDetails) { %>
+                                                    <% _.each(InsuranceData.coverage.limitations, function(resultServiceType,index) { %>
+                                                        <% if ( resultServiceType.service_type_codes == serviceTypeDetails ) {
+                                                            v_flag = true; %>
+                                                            <table class="table table-bordered">
+                                                                <tbody>
+                                                                    <tr>
+                                                                        <td width="20%" class="boldLabel">Benefit Limitation Amount</td>
+                                                                        <td width="80%"><%= resultServiceType.benefit_amount && resultServiceType.benefit_amount.currency ? (resultServiceType.benefit_amount.currency === 'USD' ? '$' : '') : '' %><%= resultServiceType.benefit_amount && resultServiceType.benefit_amount.amount ? resultServiceType.benefit_amount.amount : '' %></td>
+                                                                    </tr>
+
+                                                                    <tr>
+                                                                        <td width="20%" class="boldLabel">Limitations Description</td>
+                                                                        <td width="80%"> <%= resultServiceType.description ? resultServiceType.description : '-' %> </td>
+                                                                    </tr>
+                                                                    <tr>
+                                                                        <td width="20%" class="boldLabel">Service Type</td>
+                                                                        <td width="80%"> <%= resultServiceType.service_types ? resultServiceType.service_types : '-' %> </td>
+                                                                    </tr>
+                                                                    <% if (resultServiceType.messages) { %>
+                                                                        <% _.each(resultServiceType.messages, function(msgDetails, index) { %>
+                                                                            <tr>
+                                                                                <td width="30%" class="boldLabel"><%= index === 0 ? 'Messages' : '' %></td>
+                                                                                <td width="70%">* <%= msgDetails.message %> </td>
+                                                                            </tr>
+                                                                        <% }); %>
+                                                                    <% } else { %>
+                                                                        <tr>
+                                                                            <td width="30%" class="boldLabel">Messages</td>
+                                                                            <td width="70%">-</td>
+                                                                        </tr>
+                                                                    <% } %>
+                                                                </tbody>
+                                                            </table>
+                                                            <br>
+                                                        <% } %>
+                                                    <% }); %>
+                                                <% }); %>
+                                                <% if ( !v_flag ) { %>
+                                                    <div class="col-form-content" align="center">
+                                                        <label>No Record Found</label>
+                                                    </div>
+                                                <% } %>
+                                            <% } else { %>
+                                                <div class="col-form-content" align="center">
+                                                    <label>No Record Found</label>
+                                                </div>
+                                            <% } %>
+                                        </td>
+                                        <td width="40%">
+                                            <% if (InsuranceData && InsuranceData.coverage && InsuranceData.coverage.disclaimer && InsuranceData.coverage.disclaimer.messages && InsuranceData.coverage.disclaimer.messages.length > 0 ) { %>
+                                                <table class="table table-bordered">
+                                                    <tbody>
+                                                        <% _.each(InsuranceData.coverage.disclaimer.messages, function(msgDetails, index) { %>
+                                                            <tr>
+                                                                <td width="20%" class="boldLabel"><%= index === 0 ? 'Messages' : '' %></td>
+                                                                <td width="80%">* <%= msgDetails.message %> </td>
+                                                            </tr>
+                                                        <% }); %>
+                                                    </tbody>
+                                                </table>
+                                            <% } else { %>
+                                                <div class="col-form-content" align="center">
+                                                    <label>No Record Found</label>
+                                                </div>
+                                            <% } %>
+                                        </td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+                <div class="tab-pane" id="RequestDetails">
+                    <div class="col-xs-12">
+                        <div class="col-xs-6">
+                            <legend class="viztekLegend">
+                                <h4> SUBSCRIBER INFORMATION</h4>
+                            </legend>
+                            <div class="form-group form-inline">
+                                <div class="col-form-label">
+                                    Subscriber ID
+                                </div>
+                                <div class="col-form-content">
+                                    <label class="logFields1"><%= InsuranceData && InsuranceData.subscriber && InsuranceData.subscriber.id ? InsuranceData.subscriber.id : '-' %></label>
+                                </div>
+                            </div>
+                            <div class="form-group form-inline">
+                                <div class="col-form-label">
+                                    Subscriber First Name
+                                </div>
+                                <div class="col-form-content">
+                                    <label class="logFields1"><%= InsuranceData && InsuranceData.subscriber && InsuranceData.subscriber.first_name ? InsuranceData.subscriber.first_name : '-' %></label>
+                                </div>
+                            </div>
+                            <div class="form-group form-inline">
+                                <div class="col-form-label">
+                                    Subscriber Last Name
+                                </div>
+                                <div class="col-form-content">
+                                    <label class="logFields1"><%= InsuranceData && InsuranceData.subscriber && InsuranceData.subscriber.last_name ? InsuranceData.subscriber.last_name : '-' %></label>
+                                </div>
+                            </div>
+                            <div class="form-group form-inline">
+                                <div class="col-form-label">
+                                    Subscriber Birth Date
+                                </div>
+                                <div class="col-form-content">
+                                    <label class="logFields1"><%= InsuranceData && InsuranceData.subscriber && InsuranceData.subscriber.birth_date ? InsuranceData.subscriber.birth_date : '-' %></label>
+                                </div>
+                            </div>
+                            <div class="form-group form-inline">
+                                <div class="col-form-label">
+                                    Subscriber Gender
+                                </div>
+                                <div class="col-form-content">
+                                    <label class="logFields1"><%= InsuranceData && InsuranceData.subscriber && InsuranceData.subscriber.gender ? InsuranceData.subscriber.gender : '-' %></label>
+                                </div>
+                            </div>
+                            <div class="form-group form-inline">
+                                <div class="col-form-label">
+                                    Subscriber Address Lines
+                                </div>
+                                <div class="col-form-content">
+                                    <label class="logFields1"><%= (InsuranceData && InsuranceData.subscriber && InsuranceData.subscriber.address &&
+                                    InsuranceData.subscriber.address.address_lines && InsuranceData.subscriber.address.address_lines != '' ) ? InsuranceData.subscriber.address.address_lines : '-' %></label>
+                                </div>
+                            </div>
+                            <div class="form-group form-inline">
+                                <div class="col-form-label">
+                                    Subscriber City
+                                </div>
+                                <div class="col-form-content">
+                                    <label class="logFields1"><%= (InsuranceData && InsuranceData.subscriber && InsuranceData.subscriber.address &&
+                                    InsuranceData.subscriber.address.city && InsuranceData.subscriber.address.city != '') ? InsuranceData.subscriber.address.city : '-' %></label>
+                                </div>
+                            </div>
+                            <div class="form-group form-inline">
+                                <div class="col-form-label">
+                                    Subscriber State
+                                </div>
+                                <div class="col-form-content">
+                                    <label class="logFields1"><%= (InsuranceData && InsuranceData.subscriber && InsuranceData.subscriber.address &&
+                                    InsuranceData.subscriber.address.state && InsuranceData.subscriber.address.state != '') ? InsuranceData.subscriber.address.state : '-' %></label>
+                                </div>
+                            </div>
+                            <div class="form-group form-inline">
+                                <div class="col-form-label">
+                                    Subscriber Zipcode
+                                </div>
+                                <div class="col-form-content">
+                                    <label class="logFields1"><%= (InsuranceData && InsuranceData.subscriber && InsuranceData.subscriber.address &&
+                                    InsuranceData.subscriber.address.zipcode && InsuranceData.subscriber.address.zipcode != '') ? InsuranceData.subscriber.address.zipcode : '-' %></label>
+                                </div>
+                            </div>
+                            <div class="form-group form-inline">
+                                <div class="col-form-label">
+                                    Valid Request
+                                </div>
+                                <div class="col-form-content">
+                                    <label class="logFields1"><%= InsuranceData && InsuranceData.valid_request ? (InsuranceData.valid_request ? 'Yes' : 'No') : '-' %></label>
+                                </div>
+                            </div>
+                            <div class="form-group form-inline">
+                                <div class="col-form-label">
+                                    Service Type Codes
+                                </div>
+                                <div class="col-form-content">
+                                    <label class="logFields1" style="width: 100px"><%= InsuranceData && InsuranceData.service_type_codes ? InsuranceData.service_type_codes : '-' %></label>
+                                </div>
+                            </div>
+                            <div class="form-group form-inline">
+                                <div class="col-form-label">
+                                    Trace Number
+                                </div>
+                                <div class="col-form-content">
+                                    <label class="logFields1" style="width: 100px"><%= InsuranceData && InsuranceData.trace_number ? InsuranceData.trace_number : '-' %></label>
+                                </div>
+                            </div>
+                            <div class="form-group form-inline">
+                                <div class="col-form-label">
+                                    Origination Company ID
+                                </div>
+                                <div class="col-form-content">
+                                    <label class="logFields1"><%= InsuranceData && InsuranceData.originating_company_id ? InsuranceData.originating_company_id : '-' %></label>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-xs-6">
+                            <div class="col-xs-12">
+                                <legend class="viztekLegend">
+                                    <h4>PAYER INFORMATION</h4>
+                                </legend>
+                                <div class="form-group form-inline">
+                                    <div class="col-form-label">
+                                        Payer ID
+                                    </div>
+                                    <div class="col-form-content">
+                                        <label class="logFields1"><%= InsuranceData && InsuranceData.payer && InsuranceData.payer.id ? InsuranceData.payer.id : '-' %></label>
+                                    </div>
+                                </div>
+                                <div class="form-group form-inline">
+                                    <div class="col-form-label">
+                                        Payer Name
+                                    </div>
+                                    <div class="col-form-content">
+                                        <label class="logFields1"><%= InsuranceData && InsuranceData.payer && InsuranceData.payer.name ? InsuranceData.payer.name : '-' %></label>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-xs-12">
+                                <legend class="viztekLegend">
+                                    <h4>PROVIDER INFORMATION</h4>
+                                </legend>
+                                <div class="form-group form-inline">
+                                    <div class="col-form-label">
+                                        Provider NPI
+                                    </div>
+                                    <div class="col-form-content">
+                                        <label class="logFields1"><%= InsuranceData && InsuranceData.provider && InsuranceData.provider.npi ? InsuranceData.provider.npi : '-' %></label>
+                                    </div>
+                                </div>
+                                <div class="form-group form-inline">
+                                    <div class="col-form-label">
+                                        Provider Organization Name
+                                    </div>
+                                    <div class="col-form-content">
+                                        <label class="logFields1"><%= InsuranceData && InsuranceData.provider && InsuranceData.provider.organization_name ? InsuranceData.provider.organization_name : '-' %></label>
+                                    </div>
+                                </div>
+                            </div>
+                        </div><br/>
+                        <!-- Removed this part as it is hidden, having an error if json is empty, Wilson Novido, July 31, 2017-->
+                    </div>
+                </div>
+                <div class="tab-pane" id="Pharmacy">
+                    <div class="col-xs-12" style="margin-top: 10px">
+                        <div class="form-group form-inline">
+                            <div class="col-form-label">
+                                Is Eligible
+                            </div>
+                            <div class="col-form-content">
+                                <label class="logFields1"><%= InsuranceData && InsuranceData.pharmacy ? (InsuranceData.pharmacy.is_eligible !== undefined && InsuranceData.pharmacy.is_eligible ? 'Yes' : 'No') : '-' %></label>
+                            </div>
+                        </div>
+                        <% if (InsuranceData && InsuranceData.pharmacy && InsuranceData.pharmacy.copay && InsuranceData.pharmacy.copay.length > 0 ) { %>
+                            <% _.each(InsuranceData.pharmacy.copay, function(resultServiceType,index) { %>
+                                <table class="table table-bordered">
+                                    <tbody>
+                                        <tr>
+                                            <td width="20%" class="boldLabel">Co-Pay</td>
+                                            <td width="80%"><%= resultServiceType.copayment && resultServiceType.copayment.currency ? (resultServiceType.copayment.currency === 'USD' ? '$' : '') : '' %><%= resultServiceType.copayment && resultServiceType.copayment.amount ? resultServiceType.copayment.amount : '' %></td>
+                                        </tr>
+                                        <tr>
+                                            <td width="20%" class="boldLabel">Type</td>
+                                            <td width="80%"> <%= resultServiceType.type ? resultServiceType.type : '-' %> </td>
+                                        </tr>
+                                        <tr>
+                                            <td width="20%" class="boldLabel">Notes</td>
+                                            <td width="80%"> <%= resultServiceType.notes ? resultServiceType.notes : '-' %> </td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            <% }); %>
+                        <% } %>
+                    </div>
+                </div>
+            </div>
+        </form>
+    </div>
+</div>

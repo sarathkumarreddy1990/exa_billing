@@ -2137,6 +2137,30 @@ var commonjs = {
     },
 
     /**
+     * Converts the i18n attributes in an HTML document.  Useful for html templates used for printing or emailing that
+     * aren't automatically converted because they're not being rendered in the browser.
+     *
+     * @param {string} html_string
+     * @returns {string}
+     */
+    i18nHtmlTranslate: function (html_string) {
+        var $jq = $(html_string);
+        var $i18n = $jq.find("[i18n]");
+
+        $i18n.each(function (index, el) {
+            var $el = $(el);
+            var attr = $el.attr("i18n");
+            var text = commonjs.geti18NString(attr);
+
+            $el.text(text);
+        });
+
+        var $translated_jq = $("<html />").append($jq);
+
+        return $translated_jq.html();
+    },
+
+    /**
      * Take input moment object (and optional input date format template) and return string of YYYY-MM-DD
      * @param   {string}    date
      * @param   {string}    template    =   ex: MM/DD/YYYY
@@ -5460,6 +5484,51 @@ var commonjs = {
         }
 
         return isValidSearch;
+    },
+
+    /**
+     * Formats address 1 and 2 for display
+     *
+     * @param {string} address1
+     * @param {string} address2
+     * @returns {string}
+     */
+    formatAddress: function (address1, address2) {
+        if (!address1 && !address2) { return ""; }
+
+        return address2
+            ? address1 + ", " + address2
+            : address1;
+    },
+
+    /**
+     * Formats city, state and zip for display
+     *
+     * @param {string} city
+     * @param {string} state
+     * @param {string} zip
+     * @returns {string}
+     */
+    formatCityStateZip: function (city, state, zip) {
+        if (!city && !state && !zip) { return ""; }
+
+        var comma = state || zip
+            ? ", "
+            : "";
+
+        return (city + comma + state + " " + zip).trim();
+    },
+
+    /**
+     * Ensures callback paramters are a function to avoid crashes when not passed
+     *
+     * @param {function} callback
+     * @returns {function}
+     */
+    ensureCallback: function (callback) {
+        return (typeof callback === "function")
+            ? callback
+            : $.noop;
     },
 
     tinyMceLoad: function(callback){

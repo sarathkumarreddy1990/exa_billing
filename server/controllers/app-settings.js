@@ -78,6 +78,9 @@ module.exports = {
         app_settings.bodyPartsList = body_parts || [];
         app_settings.orientationsList = orientation || [];
 
+        app_settings.insPokitdok = config.get(config.keys.insPokitdok);
+        app_settings.insImagineSoftware = config.get(config.keys.insImagineSoftware);
+
         return response;
     }
 };

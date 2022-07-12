@@ -34,9 +34,21 @@
 		padding: 0 @wrapper_left_pudding;
 	}
 }
-//html, body{
-//	height: 100%;
-//}
+
+.page-full {
+	width: 100%;
+	height: 100%;
+}
+
+.full-screen {
+	bottom: 0;
+	left: 0;
+	overflow-y: auto;
+	position: absolute;
+	right: 0;
+	top: 0;
+}
+
 .holder{
 	width: 100%;
 	//min-height: 100%;
@@ -71,5 +83,135 @@ footer{
 		padding-bottom: 12px;
 		position: relative;
 		//margin: -24px 0 0;
+	}
+}
+
+/* Flexbox / layout properties */
+.flex-parent-vert {
+	display: -webkit-box;
+	display: -moz-box;
+	display: -ms-flexbox;
+	display: -webkit-flex;
+	display: flex;
+	flex-direction: column;
+	-webkit-flex-direction: column;
+	-moz-flex-direction: column;
+	-ms-flex-direction: column;
+}
+
+.flex-parent-horiz {
+	display: -webkit-box;
+	display: -moz-box;
+	display: -ms-flexbox;
+	display: -webkit-flex;
+	display: flex;
+	flex-direction: row;
+	-webkit-flex-direction: row;
+	-moz-flex-direction: row;
+	-ms-flex-direction: row;
+}
+
+/* A box with elements that are horizontally and vertically centered */
+.flex-parent-center {
+	&:extend(.flex-parent-horiz);
+	&:extend(.page-full);
+	align-items: center;
+	justify-content: center;
+}
+
+.flex-parent-center-vert {
+	&:extend(.flex-parent-vert);
+	&:extend(.page-full);
+	align-items: center;
+	justify-content: center;
+}
+
+.flex-fill {
+	flex:2;
+	overflow: auto;
+	position: relative;
+}
+
+.flex-vert-center {
+	align-items: center;
+}
+
+.flex-space-wrap {
+	flex-wrap: wrap;
+	justify-content: space-between;
+}
+
+.flex__bottom-border {
+	border-bottom: solid @blue-a200 1px;
+}
+
+.flex-field {
+	&:extend(.flex-parent-horiz);
+	margin-bottom: 1rem;
+}
+
+.flex-field SELECT {
+	width: auto;
+}
+
+.flex-field INPUT[type="text"] {
+	width: 225px;
+}
+
+.flex-field__label {
+	align-self: center;
+	flex-basis: 150px;
+	font-weight: normal;
+	margin-bottom: 0;
+}
+
+.flex-field__label-sm {
+	&:extend(.flex-field__label);
+	flex-basis: 120px;
+}
+
+.flex-field__content {
+	&:extend(.flex-fill);
+	overflow: hidden;
+}
+
+.flex-1 {
+	flex: 1;
+}
+
+.flex-2 {
+	flex: 2;
+}
+
+.flex-3 {
+	flex: 3;
+}
+
+.flex-area {
+	padding: 2rem;
+}
+
+.flex-area-sm {
+	padding: 1rem;
+}
+
+.flex-area__header {
+	border-bottom: solid @blue-a200 1px;
+	color: @blue-a200;
+	font-size: larger;
+	margin-bottom: 10px;
+}
+
+.top-right-caret {
+	position: absolute;
+	right: 2px;
+	top: 2px;
+	z-index: 10;
+
+	.btn {
+		border-radius: 100%;
+		height: 30px;
+		padding: 0px;
+		width: 30px;
 	}
 }

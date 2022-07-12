@@ -1,0 +1,50 @@
+<% if (data.show_service_type) { %>
+<!-- Service Type -->
+<div class="<%= data.container_class %>">
+    <div class="form-group form-inline">
+        <div class="col-form-label">
+            <label class="control-label" for="ddlServiceType<%= data.key %>" i18n="shared.fields.serviceType"></label>
+        </div>
+
+        <div class="col-form-content">
+            <select id="ddlServiceType<%= data.key %>" multiple="multiple" />
+        </div>
+    </div>
+</div>
+<% } %>
+
+<% if (data.show_benefits_on_date) { %>
+<!-- Benefit On Date -->
+<div class="<%= data.container_class %>">
+    <div class="form-group form-inline">
+        <div class="col-form-label">
+            <label class="field-chk" for="txtBenefitOnDate<%= data.key %>" i18n="shared.fields.benefitOnDate"></label>
+        </div>
+
+        <div class="col-form-content">
+            <div id="divBenefitOnDate<%= data.key %>" class="input-group">
+                <input type="text" id="txtBenefitOnDate<%= data.key %>" class="form-control maskDateLocale" i18np="dateFormat">
+
+                <span class="input-group-addon add-on">
+                    <i class="icon-ic-schedule"></i>
+                </span>
+            </div>
+        </div>
+    </div>
+</div>
+<% } %>
+
+<div class="<%= data.container_class %>">
+    <div class="eligibility-button" data-key="<%= data.key %>">
+        <button type="button" class="btn btn-green btn-eligibility" i18n="<%= data.btnI18n %>"></button>
+    </div>
+
+    <div class="eligibility-loader start-hidden" data-key="<%= data.key %>">
+        <img src="../images/ajax-loader.gif" style="padding-left: 10px;">
+    </div>
+
+    <div class="eligibility-date" data-key="<%= data.key %>" style="display: none; line-height: 2em;">
+        <i class="fa fa-2x fa-check-circle align-middle verified"></i>
+        <span class="ml-5"></span>
+    </div>
+</div>
