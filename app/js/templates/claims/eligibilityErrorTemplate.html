@@ -1,0 +1,13 @@
+<table class='table'>
+    <tr>
+        <th  class='moreLightbgColor' style='width: 25%;' i18n='shared.fields.field'></th>
+        <th i18n='shared.fields.fieldReason'></th>
+    </tr>
+    <% for (error in error_obj) { %>
+    <% var description = JSON.stringify(error_obj[error]); %>
+    <tr>
+        <td class='moreLightbgColor' style='width: 25%;'><%= error %></td>
+        <td><%= description  %></td>
+    </tr>
+    <% } %>
+</table>

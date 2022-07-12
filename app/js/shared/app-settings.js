@@ -129,4 +129,16 @@ var app = {
 
         return modalityRooms;
     },
+
+    checkPermissionCode: function(permissionCode) {
+        var result = app.userInfo.user_type === "SU";
+
+        if (!result && app.screens && Array.isArray(app.screens)) {
+            result = app.screens.some(function(permission) {
+                return permission === permissionCode;
+            });
+        }
+
+        return result;
+    }
 };

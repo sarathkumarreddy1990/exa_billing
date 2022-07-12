@@ -8,7 +8,6 @@ define(['jquery',
 'models/patient-details',
 'text!templates/claims/claim-form.html',
 'text!templates/claims/charge-row.html',
-'text!templates/claims/insurance-eligibility.html',
 'collections/app/patientsearch',
 'text!templates/app/patientSearchResult.html',
 'text!templates/claims/claim-validation.html',
@@ -18,11 +17,10 @@ define(['jquery',
 'collections/app/pending-payments',
 'text!templates/claims/payment-row.html',
 'shared/address',
-'text!templates/claims/eligibilityResponseOHIP.html',
-'text!templates/claims/eligibilityResponseBC.html',
 'text!templates/claims/ahs_charges_today.html',
 'text!templates/app/patient-recent-claims.html',
 'views/claims/addInjuryDetails',
+'views/claims/insuranceEligibility',
 'sweetalert2'
 ],
     function ($,
@@ -35,7 +33,6 @@ define(['jquery',
         patientModel,
         claimCreationTemplate,
         chargeRowTemplate,
-        insurancePokitdokForm,
         patientCollection,
         patSearchContent,
         claimValidation,
@@ -45,11 +42,10 @@ define(['jquery',
         pendingPayments,
         paymentRowTemplate,
         address,
-        insuranceOhipForm,
-        insuranceBCForm,
         patientChargesTemplate,
         patientClaimTemplate,
         injuryDetailsView,
+        InsuranceEligibilityView,
         swal2
     ) {
         var claimView = Backbone.View.extend({
@@ -61,9 +57,7 @@ define(['jquery',
             claimValidation: _.template(claimValidation),
             patientAlertTemplate: _.template(patientAlertTemplate),
             paymentRowTemplate: _.template(paymentRowTemplate),
-            insuranceOhipTemplate: _.template(insuranceOhipForm),
             patientChargesTemplate: _.template(patientChargesTemplate),
-            insuranceBCTemplate: _.template(insuranceBCForm),
             patientClaimTemplate: _.template(patientClaimTemplate),
             updateResponsibleList: [],
             chargeModel: [],
@@ -74,7 +68,6 @@ define(['jquery',
             existingTriInsurance: [],
             npiNo: '',
             federalTaxId: '',
-            enableInsuranceEligibility: '',
             tradingPartnerId: '',
             ACSelect: { refPhy: {}, readPhy: {}, skillCodes: {}, patientAltAccNo: {} },
             icd9to10Template : _.template(icd9to10Template),
@@ -171,6 +164,11 @@ define(['jquery',
             claimTotalRecords: 0,
             chargeTotalRecords: 0,
             patientClaimsPager: null,
+            insuranceEligibilityView: {
+                primary: null,
+                secondary: null,
+                tertiary: null
+            },
             elIDs: {
                 'primaryInsAddress1': '#txtPriSubPriAddr',
                 'primaryInsAddress2': '#txtPriSubSecAddr',
@@ -209,7 +207,6 @@ define(['jquery',
                 this.billingClassList = new modelCollection(app.billing_classes);
                 this.billingProviderList = new modelCollection(app.billing_providers);
                 this.claimSubmissionCodes = new modelCollection(app.claim_submission_codes);
-                this.InsurancePokitdokTemplateForm = new _.template(insurancePokitdokForm);
                 this.patientsPager = new modelPatientPager();
                 this.patientListcoll = new patientCollection();
                 this.pendingPayments = new pendingPayments();
@@ -333,6 +330,8 @@ define(['jquery',
                     })
                 });
 
+                this.renderEligibilityViews();
+
                 address.bindCountrySelectToCityStateZip('#divPriAddressInfo', {}, this.cszFieldMap[0]);
                 if (app.country_alpha_3_code !== 'can') {
                     address.bindCountrySelectToCityStateZip('#divSecAddressInfo', {}, this.cszFieldMap[1]);
@@ -412,6 +411,74 @@ define(['jquery',
             },
 
             /**
+             * Render all of the eligibility views
+             */
+            renderEligibilityViews: function () {
+                this.renderEligibilityView("primary")
+                    .renderEligibilityView("secondary")
+                    .renderEligibilityView("tertiary");
+
+                return this;
+            },
+
+            /**
+             * Render an eligibility view
+             *
+             * @param {string} coverage_level
+             */
+            renderEligibilityView: function (coverage_level) {
+                if (!this.hasEligibilityPermission()) {
+                    return this;
+                }
+
+                if (coverage_level /*&& !this.insuranceEligibilityView[coverage_level]*/) {
+                    this.insuranceEligibilityView[coverage_level] = new InsuranceEligibilityView({
+                        el: "#divEligibility" + _.capitalize(coverage_level)
+                    });
+
+                    this.insuranceEligibilityView[coverage_level].render({
+                        order_id: this.options.order_id,
+                        coverage_level: coverage_level,
+                        show_service_type: this.showServiceType(),
+                        show_benefits_on_date: this.showBenefitsOnDate(),
+                        container_class: "col-xs-12"
+                    });
+                }
+
+                return this;
+            },
+
+            /**
+             * Indicates if user has permission for Eligibility or Eligibility (Read only)
+             *
+             * @returns {boolean}
+             */
+            hasEligibilityPermission: function () {
+                return app.checkPermissionCode("ELIG") || app.checkPermissionCode("ELGR");
+            },
+
+            /**
+             * Indicates if the Benefits On Date date picker should be rendered
+             *
+             * @returns {boolean}
+             */
+            showBenefitsOnDate: function () {
+                return !app.insImagineSoftware;
+            },
+
+            /**
+             * Indicates if the Service Type selector should be rendered
+             *
+             * @returns {boolean}
+             */
+            showServiceType: function () {
+                return (
+                    app.country_alpha_3_code !== "can" &&
+                    !app.insImagineSoftware
+                );
+            },
+
+            /**
              * Bind patient recent search result from bucket
              *
              * Copypasta from web... public/javascripts/views/patient/patientsearchLite.js
@@ -456,8 +523,6 @@ define(['jquery',
             initializeDateTimePickers: function () {
                 var self = this;
 
-                self.benefitDate1 = commonjs.bindDateTimePicker('divBOD1', { format: 'L' });
-                self.benefitDate1.date(moment().format('L'));
                 self.injuryDate = commonjs.bindDateTimePicker('divInjuryDate', { format: 'L' });
                 self.injuryDate.date();
                 self.otherDate = commonjs.bindDateTimePicker('divOtherDate', { format: 'L' });
@@ -475,10 +540,6 @@ define(['jquery',
                 commonjs.bindDateTimePicker('divDOF', { format: 'L' });
 
                 if (app.country_alpha_3_code !== 'can') {
-                    self.benefitDate2 = commonjs.bindDateTimePicker('divBOD2', { format: 'L' });
-                    self.benefitDate2.date(moment().format('L'));
-                    self.benefitDate3 = commonjs.bindDateTimePicker('divBOD3', { format: 'L' });
-                    self.benefitDate3.date(moment().format('L'));
                     self.secDOB = commonjs.bindDateTimePicker('divSecDOB', { format: 'L' });
                     self.secDOB.date();
                     self.terDOB = commonjs.bindDateTimePicker('divTerDOB', { format: 'L' });
@@ -488,257 +549,10 @@ define(['jquery',
 
             },
 
-            checkInsuranceEligibility: function (e) {
-                var self = this;
-                switch (app.billingRegionCode) {
-                    case 'can_ON':
-                        self.insuranceEligibilityCan(e);
-                        break;
-                    case 'can_BC':
-                        self.insuranceEligibilityBC(e);
-                        break;
-                    default:
-                        self.insuranceEligibilityUsa(e);
-                }
-            },
-
-            insuranceEligibilityCan: function (e) {
-                var self = this;
-
-                if ($('#txtPriPolicyNo').val().length == 0 && self.priInsCode != '' && ['hcp', 'wsib'].indexOf(self.priInsCode.toLowerCase()) > -1) {
-                    commonjs.showWarning('messages.warning.shared.invalidHealthNumber');
-                    return;
-                }
-                if (self.priInsCode === '' || $('#ddlPriInsurance').val() === '') {
-                    commonjs.showWarning('messages.warning.claims.selectPriInsurance');
-                    $('#ddlPriInsurance').focus();
-                    return;
-                }
-                if (self.priInsCode !== '' && ['hcp','wsib'].indexOf(self.priInsCode.toLowerCase()) === -1) {
-                    commonjs.showWarning('messages.warning.shared.invalidEligibilityCheck');
-                    return;
-                }
-                else {
-                    $.ajax({
-                        url: '/exa_modules/billing/ohip/validateHealthCard',
-                        type: "GET",
-                        data: {
-                            healthNumber: $('#txtPriPolicyNo').val(),
-                            versionCode: $('#txtPriGroupNo').val(),
-                            patient_id: self.cur_patient_id,
-                            patient_insurance_id: self.priClaimInsID || self.primaryPatientInsuranceId
-                        },
-                        success: function (data) {
-                            if ( data ) {
-                                var eligibilityRes = (data.results && data.results.length) ? data.results[0] : data.faults && data.faults[0] || data.err
-                                eligibilityRes.dateOfBirth = (eligibilityRes.dateOfBirth &&  commonjs.getFormattedDate(eligibilityRes.dateOfBirth)) || '';
-                                eligibilityRes.expiryDate = (eligibilityRes.expiryDate &&  commonjs.getFormattedDate(eligibilityRes.expiryDate)) || '';
-                                commonjs.showNestedDialog({
-                                    header: 'Healthcard Eligibility Result', i18nHeader: 'menuTitles.patient.patientInsuranceEligibility', height: '70%', width: '70%',
-                                    html: self.insuranceOhipTemplate({
-                                        'insuranceData': eligibilityRes
-                                    })
-                                });
-                            }
-                            else {
-                                commonjs.showWarning( 'messages.status.noValidationData', 'largestatus' );
-                            }
-                        },
-                        error: function (request, status, error) {
-                            commonjs.handleXhrError(request);
-                        }
-                    });
-                }
-            },
-
-            insuranceEligibilityUsa: function (e) {
-                var self = this;
-                var serviceTypeCodes = [], serviceTypes = [];
-                var id = e && e.target && e.target.id && e.target.id;
-                var ins = '';
-
-                var eligibilityData = {
-                    Sender: "",
-                    AuthKey: "",
-                    APIOrgCode: "",
-                    InsuranceCompanyCode: "-1",
-                    ProviderCode: "-1",
-                    EntityType: '1',
-                    NpiNo: self.npiNo,
-                    FederalTaxID: self.federalTaxId ? self.federalTaxId : '',
-                    BenefitOnDate: null,
-                    BirthDate: null,
-                    RelationshipCode: 34,
-                    ServiceTypeCodes: null,
-                    ServiceTypes: null,
-                    FromLocal: 'false',
-                    ResponseType: 'html',
-                    patient_id: self.cur_patient_id,
-                    isExistingInsurance: true,
-                    patient_insurance_id: null,
-                    LastName: null,
-                    FirstName: null,
-                    address: null,
-                    PolicyNo: null,
-                    InsuranceCompanyName: null,
-                    tradingPartnerId: self.tradingPartnerId
-                }
-
-                if (id == 'btnCheckEligibility2') {
-                    ins = 2;
-                } else if (id == 'btnCheckEligibility3') {
-                    ins = 3;
-                }
-
-
-                if (!$('#ddlServiceType' + ins + ' :selected').length) {
-                    commonjs.showWarning('messages.warning.shared.selectservicetype');
-                    return;
-                }
-
-                if (!$('#txtBenefitOnDate' + ins).val()) {
-                    commonjs.showWarning('messages.warning.shared.selectbenefitondate');
-                    return;
-                }
-
-                if (!self.npiNo) {
-                    commonjs.showWarning('messages.warning.shared.npinumbernotpresent');
-                    return;
-                }
-
-                if (!self.federalTaxId) {
-                    commonjs.showWarning('messages.warning.shared.federaltaxidnotpresent');
-                    return;
-                }
-
-                if (!self.enableInsuranceEligibility) {
-                    commonjs.showWarning('messages.warning.shared.eligibilitycheckdisabled');
-                    return;
-                }
-
-                if (!$('#ddlBillingProvider').val()) {
-                    commonjs.showWarning("messages.warning.shared.selectbillingProvider");
-                    $('#ddlBillingProvider').focus();
-                    return;
-                }
-
-                $.each($('#ddlServiceType' + ins + ' :selected'), function (index, value) {
-                    serviceTypeCodes.push($(value).val())
-                    var serviceType = $(value).attr('title').toLowerCase();
-                    serviceTypes.push(serviceType.replace(/[^A-Z0-9]+/ig, "_"));
-                });
-
-                eligibilityData.serviceTypeCodes = serviceTypeCodes;
-                eligibilityData.serviceTypes = serviceTypes;
-
-                eligibilityData.billingProviderId = $('#ddlBillingProvider option:selected').val() != '' ? parseInt($('#ddlBillingProvider option:selected').val()) : null;
-
-                if (!ins) {  // Primary insurance
-                    eligibilityData.insuranceProviderId = self.priInsID;
-                    eligibilityData.relationshipCode = $('#ddlPriRelationShip').val() ? $('#ddlPriRelationShip').val() : eligibilityData.RelationshipCode;
-                    eligibilityData.policyNo = $('#txtPriPolicyNo').val() ? $('#txtPriPolicyNo').val() : null;
-                    eligibilityData.benefitOnDate = $('#txtBenefitOnDate').val() ? $('#txtBenefitOnDate').val() : null;
-                    eligibilityData.birthDate = commonjs.getISODateString(document.querySelector('#txtPriDOB').value);
-                    eligibilityData.lastName = $('#txtPriSubLastName').val() ? $('#txtPriSubLastName').val() : null;
-                    eligibilityData.firstName = $('#txtPriSubFirstName').val() ? $('#txtPriSubFirstName').val() : null;
-                } else if (ins == 2) { // Secondary insurance
-                    eligibilityData.insuranceProviderId = self.secInsID;
-                    eligibilityData.relationshipCode = $('#ddlSecRelationShip').val() ? $('#ddlSecRelationShip').val() : eligibilityData.relationshipCode;
-                    eligibilityData.policyNo = $('#txtSecPolicyNo').val() ? $('#txtSecPolicyNo').val() : null;
-                    eligibilityData.benefitOnDate = $('#txtBenefitOnDate2').val() ? $('#txtBenefitOnDate2').val() : null;
-                    eligibilityData.birthDate = commonjs.getISODateString(document.querySelector('#txtSecDOB').value);
-                    eligibilityData.lastName = $('#txtSecSubLastName').val() ? $('#txtSecSubLastName').val() : null;
-                    eligibilityData.firstName = $('#txtSecSubFirstName').val() ? $('#txtSecSubFirstName').val() : null;
-                }
-                else if (ins == 3) { // Teritary insurance
-                    eligibilityData.insuranceProviderId = self.terInsID;
-                    eligibilityData.relationshipCode = $('#ddlTerRelationShip').val() ? $('#ddlTerRelationShip').val() : eligibilityData.relationshipCode;
-                    eligibilityData.policyNo = $('#txtTerPolicyNo').val() ? $('#txtTerPolicyNo').val() : null;
-                    eligibilityData.benefitOnDate = $('#txtBenefitOnDate3').val() ? $('#txtBenefitOnDate3').val() : null;
-                    eligibilityData.birthDate = commonjs.getISODateString(document.querySelector('#txtTerDOB').value);
-                    eligibilityData.lastName = $('#txtTerSubLastName').val() ? $('#txtTerSubLastName').val() : null;
-                    eligibilityData.firstName = $('#txtTerSubFirstName').val() ? $('#txtTerSubFirstName').val() : null;
-                }
-
-                if (!eligibilityData.insuranceProviderId) {
-                    return commonjs.showWarning('messages.status.pleaseSelectInsuranceProvider');
-                }
-
-                $('#btnCheckEligibility' + ins).prop('disabled', true);
-                $('#imgLoading').show();
-
-
-                commonjs.showLoading("messages.loadingMsg.connectingPokitdok");
-                $('#divPokidokResponse').empty();
-                $.ajax({
-                    url: '/exa_modules/billing/claims/claim/eligibility',
-                    type: "POST",
-                    dataType: "json",
-                    data: eligibilityData,
-                    success: function (response) {
-                        commonjs.hideLoading();
-                        var data = '';
-                        if (response.err) {
-                            data = response.err.error.data;
-                        } else {
-                            response = response.res;
-                            data = response.data || response.res;
-                        }
-
-                        $('#btnCheckEligibility' + ins).prop('disabled', false);
-
-                        if (data && (data.errors || data.transaction_set_syntax_errors)) {
-                            return commonjs.showNestedDialog({
-                                header: 'Pokitdok Response',
-                                i18nHeader: 'shared.fields.pokitdokresponse',
-                                width: '80%',
-                                height: '70%',
-                                html: $(self.InsurancePokitdokTemplateForm({
-                                    'InsuranceData': '',
-                                    'InsuranceDatavalue': '',
-                                    'errors': data.errors || data.transaction_set_syntax_errors
-                                }))
-                            });
-                        }
-                        else if (data && !data.errors && response.insPokitdok) {
-                            commonjs.showNestedDialog({
-                                header: 'Pokitdok Response',
-                                i18nHeader: 'shared.fields.pokitdokresponse',
-                                width: '80%',
-                                height: '70%',
-                                html: $(self.InsurancePokitdokTemplateForm({
-                                    'InsuranceData': response.data,
-                                    'InsuranceDatavalue': response.meta,
-                                    'errors': ''
-                                }))
-                            });
-                        } else if (!response.insPokitdok) {
-                            return commonjs.showWarning('messages.warning.claims.pleaseConfigurePokitdok');
-                        } else if (response && response.error === 'invalid_client') {
-                            return commonjs.showError("messages.errors.invalidPokitdokIp");
-                        }
-
-                        $('#divCoPayDetails').height('400px');
-
-                        $.each($('#divPokitdok table td'), function (index, obj) {
-                            $(obj).attr('title', $(obj).text().replace(/[*$-]/, '').trim());
-                        });
-
-                        $("#btnClosePokidokPopup").unbind().click(function (e) {
-                            $('#divPokidokResponse').hide();
-                        });
-                    },
-                    error: function (model, response) {
-                        commonjs.handleXhrError(model, response);
-                    }
-                });
-            },
-
             bindDetails: function (doHide) {
                 var self = this;
 
                 // set all Insurance auto_complete
-                self.bindServiceType();
                 self.bindInsuranceAutocomplete('ddlPriInsurance');
                 self.bindInsuranceAutocomplete('ddlSecInsurance');
                 self.bindInsuranceAutocomplete('ddlTerInsurance');
@@ -1056,7 +870,6 @@ define(['jquery',
 
                             self.npiNo = claimDetails.npi_no || '';
                             self.federalTaxId = claimDetails.federal_tax_id || '';
-                            self.enableInsuranceEligibility = claimDetails.enable_insurance_eligibility || '';
 
                             $.each(existing_insurance, function (index, value) {
                                 var isDisplayInsurance = !value.valid_to_date || moment(claimDetails.claim_dt).isSameOrBefore(value.valid_to_date);
@@ -2077,10 +1890,6 @@ define(['jquery',
                         $(this).removeAttr('data-dismiss');
                         self.openUnSavedChangesModal('close', $(this));
                     }
-                });
-
-                $('#btnCheckEligibility, #btnCheckEligibility2, #btnCheckEligibility3').off().click(function (e) {
-                    self.checkInsuranceEligibility(e);
                 });
 
                 //Todo
@@ -3505,7 +3314,6 @@ define(['jquery',
                             self.patientAddress = response[0].patient_info ? response[0].patient_info : self.patientAddress;
                             self.npiNo = existing_insurance.length && existing_insurance[0].npi_no ? existing_insurance[0].npi_no : '';
                             self.federalTaxId = existing_insurance.length && existing_insurance[0].federal_tax_id ? existing_insurance[0].federal_tax_id : '';
-                            self.enableInsuranceEligibility = existing_insurance.length && existing_insurance[0].enable_insurance_eligibility ? existing_insurance[0].enable_insurance_eligibility : '';
                             self.tradingPartnerId = existing_insurance.length && existing_insurance[0].ins_partner_id ? existing_insurance[0].ins_partner_id : '';
 
                             $.each(existing_insurance, function (index, value) {
@@ -3857,57 +3665,7 @@ define(['jquery',
                 $('#lbl' + level + 'PhoneNo').html(insuranceInfo.PhoneNo);
             },
 
-            bindServiceType: function () {
-                var self = this;
-                var serviceTypeDescription = [];
-                var serviceTypeDropDown = $('#ddlServiceType');
-                $('#ddlServiceType').empty();
-
-                commonjs.getServiceTypes(function (err, model) {
-                    if (err) {
-                        return;
-                    }
-
-                    var eligibilityServiceTypes = model.eligibility_service_types;
-
-                    $.each(eligibilityServiceTypes, function (index, val) {
-                        $('<option/>')
-                            .val(val.code)
-                            .text(val.description + '(' + val.code + ')')
-                            .attr('title', val.description)
-                            .appendTo('#ddlServiceType');
-
-                        $('<option/>')
-                            .val(val.code)
-                            .text(val.description + '(' + val.code + ')')
-                            .attr('title', val.description)
-                            .appendTo('#ddlServiceType2');
-
-                        $('<option/>')
-                            .val(val.code)
-                            .text(val.description + '(' + val.code + ')')
-                            .attr('title', val.description)
-                            .appendTo('#ddlServiceType3');
-                    });
-
-                    $('#ddlServiceType, #ddlServiceType2, #ddlServiceType3').multiselect({
-                        maxHeight: 200,
-                        buttonWidth: '250px',
-                        enableFiltering: true,
-                        enableCaseInsensitiveFiltering: true
-                    });
-
-                    $('.multiselect-container li').css('width', '300px');
-                    $('.multiselect-container li a').css('padding', '0');
-
-                    $.each($('.multiselect-item span'), function (index, obj) {
-                        $(this).find('.glyphicon-search').removeClass('glyphicon').removeClass('glyphicon-search').addClass('fa fa-search').css('margin', '10px');
-                        $(this).find('.glyphicon-remove-circle').removeClass('glyphicon').removeClass('glyphicon-remove-circle').addClass('fa fa-times');
-                    });
-                });
-            },
-
-           assignExistInsurance: function (e) {
+            assignExistInsurance: function (e) {
                 var self = this;
                 var id = e.target.id;
                 var patientInsID = $('#' + id + ' option:selected').val();
@@ -5159,18 +4917,6 @@ define(['jquery',
                     document.querySelector('#txt' + flag + 'StartDate').value = '';
                     document.querySelector('#txt' + flag + 'ExpDate').value = '';
 
-                    if(flag == 'Pri'){
-                        $('#ddlServiceType').multiselect("deselectAll", false).multiselect("refresh");
-                        $('#txtBenefitOnDate').val('');
-                    }
-                    else if(flag == 'Sec'){
-                        $('#ddlServiceType2').multiselect("deselectAll", false).multiselect("refresh");
-                        $('#txtBenefitOnDate2').val('');
-                    }
-                    else {
-                         $('#ddlServiceType3').multiselect("deselectAll", false).multiselect("refresh");
-                         $('#txtBenefitOnDate3').val('');
-                    }
                     $('#ddl' + flag + 'Insurance').empty();
                     $('#select2-ddl' + flag + 'Insurance-container').html(self.usermessage.selectCarrier);
 
@@ -5980,7 +5726,6 @@ define(['jquery',
                     $('#txt' + flag[i] + 'ZipCode').val('');
                     $('#txt' + flag[i] + 'ZipPlus').val('');
                 });
-                $("input[id*='txtBenefitOnDate']").val('');
 
                 //clear additional Info Section
                 $('#chkEmployment, #chkAutoAccident, #chkOtherAccident, #chkOutSideLab').prop("checked", false);
@@ -6817,65 +6562,6 @@ define(['jquery',
                     }
                 }
                 self.findRelevantTemplates();
-            },
-
-            insuranceEligibilityBC: function (e) {
-                var self = this;
-
-                if ($('#txtPriPolicyNo').val().length == 0 && self.priInsCode != '' && 'msp' != self.priInsCode.toLowerCase()) {
-                    return commonjs.showWarning('messages.warning.shared.invalidHealthNumber');
-                }
-
-                if (!self.phn) {
-                    return commonjs.showWarning('messages.warning.phn');
-                }
-                $.ajax({
-                    url: '/exa_modules/billing/bc/validateHealthCard',
-                    type: "GET",
-                    data: {
-                        patient_id: self.cur_patient_id,
-                        patient_insurance_id: self.priClaimInsID || self.primaryPatientInsuranceId,
-                        eligibility_dt: self.benefitDate1 && self.benefitDate1.date() ? self.benefitDate1.date().format('YYYY-MM-DD') : null,
-                        phn: self.phn && self.phn.alt_account_no,
-                        birth_date: self.cur_patient_dob,
-                        facility_id: self.facilityId || app.default_facility_id
-                    },
-                    success: function (result) {
-                        var data = result.data;
-                        var responseCode = result.responseCode;
-                        if (responseCode) {
-                            switch (responseCode) {
-                                case 'error':
-                                    commonjs.showWarning('messages.status.communicationError');
-                                    break;
-
-                                case 'isDownTime':
-                                    commonjs.showWarning('messages.status.downTime');
-                                    break;
-                            }
-                        } else if (data) {
-                            var eligibility = _.get(data, "results[0]") || _.get(data, "err[0]") || {};
-                            eligibility.BIRTHDATE = (eligibility.BIRTHDATE && commonjs.getFormattedDate(eligibility.BIRTHDATE)) || '';
-                            eligibility.DOS = (eligibility.DOS && commonjs.getFormattedDate(eligibility.DOS)) || '';
-                            commonjs.showDialog({
-                                header: 'Healthcard Eligibility Result',
-                                i18nHeader: 'menuTitles.patient.patientInsuranceEligibility',
-                                height: '70%',
-                                width: '70%',
-                                html: self.insuranceBCTemplate({
-                                    insuranceData: eligibility,
-                                    firstName: self.cur_patient_patient_first_name,
-                                    lastName: self.cur_patient_patient_last_name,
-                                    healthNumber: self.phn && self.phn.alt_account_no,
-                                    gender: self.cur_patient_gender
-                                })
-                            });
-                        }
-                    },
-                    error: function (request, status, error) {
-                        commonjs.handleXhrError(request);
-                    }
-                });
             },
 
             openSplitClaim: function (){
