@@ -682,7 +682,7 @@ function (
          * No need for the Re-Check buttons on the New Order screen
          */
         removeRecheckButtons: function () {
-            if (this.isMode("P")) {
+            if (this.isMode("P") || this.readOnlyPermission()) {
                 $("#btnRecheckEligibility").remove();
                 $("#btnReestimate").remove();
             }
@@ -1379,6 +1379,15 @@ function (
                 // planZip: null,
                 // planLocation: null
             }
+        },
+
+        /**
+         * Indicates that the user only has read-only permission
+         *
+         * @returns {boolean}
+         */
+        readOnlyPermission: function () {
+            return app.checkPermissionCode("ELGR") && !app.checkPermissionCode("ELIG");
         },
 
         /**
