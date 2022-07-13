@@ -888,7 +888,7 @@ function (
             var dob = p.dob ? moment(p.dob).format("L") : "";
             var text = ": " + p.name + " (" + p.mrn + ") " + dob + ", " + p.gender + ", " + this.firstStudyAge();
 
-            $("#spanModalHeader").append(text);
+            $("#spanModalHeaderNested").append(text);
 
             return this;
         },

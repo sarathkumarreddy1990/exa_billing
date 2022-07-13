@@ -135,7 +135,6 @@ function (
          */
         render: function (args) {
             args = args || {};
-            console.log("RENDER", args)
 
             var self = this;
 
