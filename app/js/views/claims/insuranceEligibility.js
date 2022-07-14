@@ -322,12 +322,36 @@ function (
             var self = this;
             commonjs.showLoading();
 
+            // Imagine Software
+            if (app.insImagineSoftware) {
+                return $.ajax({
+                    url: "/studiesListImagineSoftware",
+                    type: "GET",
+                    data: {
+                        orderId: this.order_id,
+                        coverageLevel: this.coverage_level
+                    },
+                    success: function (response) {
+                        commonjs.hideLoading();
+
+                        var data = _.get(response, 'result');
+                        self.setOrderData(data);
+
+                        return callback(data);
+                    },
+                    error: function (request) {
+                        commonjs.handleXhrError(request);
+                        return callback();
+                    }
+                });
+            }
+
+            // Pokitdok and Canada
             $.ajax({
                 url: "/insuranceEligibilityOrder",
                 type: "GET",
                 data: {
                     order_id: this.order_id,
-                    patient_insurance_id: this.patient_insurance_id,
                     coverage_level: this.coverage_level
                 },
                 success: function (response) {
@@ -1093,6 +1117,8 @@ function (
          */
         imagineSoftwareData: function () {
             return {
+                eligibility_id: ~~this.data.eligibility_id,
+                estimation_id: ~~this.data.estimation_id,
                 insurance: {
                     id: this.data.patient_insurance_id,
                     coverage_level: this.coverage_level,
