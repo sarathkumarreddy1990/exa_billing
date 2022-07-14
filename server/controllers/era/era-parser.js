@@ -159,8 +159,11 @@ module.exports = {
                         /**
                         *  Condition : Apply adjustment only for primary payer
                         *  DESC : Primary payers are defined via the claim status of 1 or 19
+                        *  EXA-35927 - Added code 22 for reversal of a previous adjustment
                         */
-                        adjustmentAmount = ['1', '19'].indexOf(value.claimStatusCode) == -1 ? 0 : adjustmentAmount;
+                        adjustmentAmount = ['1', '19', '22'].indexOf(value.claimStatusCode) > -1
+                            ? adjustmentAmount
+                            : 0;
 
                         /**
                         *  Condition : Check Is Valid CAS or Not
