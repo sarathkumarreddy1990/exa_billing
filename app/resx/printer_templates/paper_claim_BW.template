@@ -809,7 +809,6 @@ function formatSingleClaim(claimData, servicelineList) {
 	    BillingPh = claimData.billingProvider ? getTrimmedPhoneNo(getKeyTrimValue(claimData.billingProvider, 'phoneNo', 13)):' ';
 	}
     let totalPaid = getClaimResponsible(claimData);
-    let claimNotes = getKeyTrimValue(claimDet, 'claimNotes', 65).split('\n').join(' ');
     return [
         {
             style: 'TableHead',
