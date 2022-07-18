@@ -2,6 +2,7 @@ define([
     "jquery",
     "underscore",
     "backbone",
+    "sweetalert2",
     "text!templates/icon_and_name.html",
     "text!templates/providerAlert.html",
     "text!templates/claims/insuranceImagineSoftware.html",
@@ -14,6 +15,7 @@ function (
     $,
     _,
     Backbone,
+    swal2,
     IconNameTemplate,
     ProviderAlertTemplate,
     ImagineSoftwareTemplate,
@@ -26,6 +28,7 @@ function (
     var insuranceImagineSoftware = Backbone.View.extend({
         el: null,
         rendered: false,
+        displayedStaleWarning: false,
         template: _.template(ImagineSoftwareTemplate),
         printTemplate: _.template(ImagineSoftwarePrintTemplate),
         eligibilityItemTemplate: _.template(EligibilityItemTemplate),
@@ -44,6 +47,7 @@ function (
             "click #divImagineSoftwarePage": "handleClickPage",
             "click #btnToggleHeader": "handleClickToggleHeader",
             "click #btnReestimate": "handleClickReestimate",
+            "click #btnReestimateWarning": "handleClickReestimate",
             "click #btnRecheckEligibility": "handleClickRecheckEligibility",
             "click #btnEstimationLetter": "handleClickLetter",
             "click #btnPrintEligibility": "handleClickPrint",
@@ -226,7 +230,7 @@ function (
          */
         fetchEstimation: function (callback) {
             if (this.isMode("P")) {
-                return this.fetchEligibilityParams(callback);
+                return this.fetchEstimationParams(callback);
             }
 
             if (this.isMode("S")) {
@@ -293,6 +297,25 @@ function (
         // --------------------------------------------------------------------------------
 
         /**
+         * Delivers an alert warning the user of a stale estimation
+         */
+        alertStaleEstimation: function () {
+            this.displayedStaleWarning = true;
+
+            swal2.fire({
+                type: "warning",
+                title: i18n.get("patient.patientInsurance.eligibility.staleEstimationWarning"),
+                html:  i18n.get("patient.patientInsurance.eligibility.staleEstimationWarningBody"),
+                onOpen: function (e) {
+                    // in billing display css is globally applied to label tag
+                    $('.swal2-checkbox').addClass('dispaly-none-important');
+                }
+            });
+
+            return this;
+        },
+
+        /**
          * Fetches estimation data and writes the form values
          *
          * @param {function} callback
@@ -300,11 +323,16 @@ function (
         loadEstimation: function (callback) {
             callback = commonjs.ensureCallback(callback);
 
+            if (this.data.eligibility.isStale && !this.displayedStaleWarning) {
+                this.alertStaleEstimation();
+            }
+
             if (this.needEstimationData()) {
                 var self = this;
 
                 this.fetchEstimation(function (estimation_data) {
                     self.handleEstimationData(estimation_data);
+                    self.activateEstimation();
 
                     callback();
                 });
@@ -530,8 +558,8 @@ function (
 
         /**
          * Re-estimate
+         *
          * @param {function} callback
-         * @returns this
          */
         reestimate: function (callback) {
             callback = commonjs.ensureCallback(callback);
@@ -552,6 +580,7 @@ function (
                     commonjs.hideLoading();
                     // Re-estimating invalidates the existing eligibility
                     self.data.eligibility = {};
+                    self.activateEstimation();
                     return callback(data.result);
                 },
                 error: function (err) {
@@ -565,8 +594,8 @@ function (
 
         /**
          * Recheck eligibility
+         *
          * @param {function} callback
-         * @returns this
          */
         recheckEligibility: function (callback) {
             callback = commonjs.ensureCallback(callback);
@@ -639,6 +668,7 @@ function (
         activateEligibility: function () {
             this.loadEligibility(function () {
                 $("#btnReestimate").hide();
+                $("#btnReestimateWarning").hide();
                 $("#btnEstimationLetter").hide();
                 $("#divImagineEstimation").hide();
                 $("#divImagineEligibility").show();
@@ -654,12 +684,20 @@ function (
          * Activates the Estimation tab
          */
         activateEstimation: function () {
+            var self = this;
+
             this.loadEstimation(function () {
                 $("#divImagineEligibility").hide();
                 $("#btnRecheckEligibility").hide();
                 $("#divImagineEstimation").show();
                 $("#btnEstimationLetter").show();
-                $("#btnReestimate").show();
+                $("#btnReestimate").hide();
+                $("#btnReestimateWarning").hide();
+    
+                self.data.eligibility.isStale
+                    ? $("#btnReestimateWarning").show()
+                    : $("#btnReestimate").show();
+
                 $(".clickImagineEligibility").removeClass("active");
                 $(".clickImagineEstimation").addClass("active");
             });
