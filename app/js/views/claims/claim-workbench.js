@@ -626,7 +626,7 @@ define(['jquery',
                             // Restrict to submit same type of insurance providers
                             var uniqInsProviders = _.uniq(insuranceProviderCodes) || [];
 
-                            if (uniqInsProviders.length > 1) {
+                            if (billingMethodFormat === 'electronic_billing' && uniqInsProviders.length > 1) {
                                 return commonjs.showWarning('messages.warning.claims.multipleInsurancesForSubmission');
                             }
 
