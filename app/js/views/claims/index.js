@@ -1284,6 +1284,10 @@ define(['jquery',
                 self.ACSelect.readPhy.contact_id = claim_data.rendering_provider_contact_id || claim_data.fac_rendering_provider_contact_id || null;
                 self.ACSelect.skillCodes.ID = claim_data.can_ahs_skill_code_id || null;
 
+                if(!claim_data.rendering_provider_contact_id && claim_data.fac_rendering_provider_contact_id) {
+                    self.toggleSkillCodeSection();
+                }
+
                 self.ordering_facility_id = claim_data.ordering_facility_id || claim_data.service_facility_id || null;
                 self.ordering_facility_name = orderingFacility;
                 self.ordering_facility_contact_id = claim_data.ordering_facility_contact_id || claim_data.service_facility_contact_id || null;
