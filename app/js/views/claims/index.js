@@ -1084,7 +1084,21 @@ define(['jquery',
                             $("#txtClaimDate").attr("disabled", "disabled");
                             $("#txtClaimCreatedDt").prop('disabled', true);
 
-                            self.bindDefaultClaimDetails(claimDetails);
+                            if (isFrom === 'reclaim' && app.country_alpha_3_code === 'can') {
+                                self.getPatientAltAccNumber({
+                                    id: claimDetails.patient_id
+                                })
+                                .done(function (response) {
+                                    claimDetails.patient_alt_acc_nos = response;
+                                    self.bindDefaultClaimDetails(claimDetails);
+                                })
+                                .fail(function(err) {
+                                    commonjs.handleXhrError(err);
+                                });
+                            } else {
+                                self.bindDefaultClaimDetails(claimDetails);
+                            }
+
                             $('.claimProcess').prop('disabled', false);
                             if (self.options && !self.options.study_id)
                                 $('#btPatientDocuemnt').prop('disabled', true);
@@ -1135,6 +1149,14 @@ define(['jquery',
                     code = modifierData[0].code;
                 }
                 return code;
+            },
+
+            getPatientAltAccNumber: function (params) {
+                return $.ajax({
+                    url: '/exa_modules/billing/claims/claim/getPatientAltAccNumber',
+                    type: "GET",
+                    data: params
+                });
             },
 
             createCptCodesUI: function(rowIndex) {
@@ -6049,6 +6071,11 @@ define(['jquery',
                 var claimDate = commonjs.getConvertedFacilityTime(app.currentdate, '', 'L', app.facilityID);
                 $("#txtClaimCreatedDt").val(claimDate);
                 $("#txtClaimCreatedDt").prop('disabled', true);
+
+                if (patient_details.patient_alt_acc_nos && app.country_alpha_3_code === 'can') {
+                    var patientAltAccNo = self.getDefaultPatientAltAccNo(patient_details.patient_alt_acc_nos);
+                    $('#select2-ddlPhnUli-container').text(patientAltAccNo);
+                }
 
                 // Claim w/o charge code  -- end
 

@@ -3,6 +3,7 @@ const {
     responseCodes,
     services,
     ohipProfProcedureCodes,
+    technicalProcedureCodesExceptions,
 } = require('./ebs/constants');
 
 
@@ -90,7 +91,9 @@ module.exports = {
         endOfFile: '\x1A',     // value appended to the end of every
                                 // claim-submission string
 
-        ohipProfProcedureCodes
+        ohipProfProcedureCodes,
+
+        technicalProcedureCodesExceptions
 
     },
 
