@@ -126,7 +126,7 @@ const ahsData = {
     getWCBTemplate: async ({ templateName, companyId }) => {
         const sql = SQL`
             SELECT
-                COALESCE(bet.template_info, '{}'::JSON) AS template_info
+                COALESCE(bet.template_info, '{}'::JSONB) AS template_info
             FROM billing.edi_templates bet
             WHERE bet.company_id = ${companyId}
             AND bet.template_type = 'edi'
