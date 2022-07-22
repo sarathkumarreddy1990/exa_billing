@@ -5434,9 +5434,8 @@ define(['jquery',
             },
 
             updateReportURL: function () {
-                var self = this;
                 if (window.reportWindow && window.reportWindow.location.hash) {
-                    commonjs.openDocumentsAndReports(self.options);
+                    commonjs.openDocumentsAndReports(this.options);
                 }
             },
 
