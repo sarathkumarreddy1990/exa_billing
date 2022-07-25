@@ -1008,7 +1008,7 @@ function (
          * Hide or shows the Estimation tab based on the coverage level
          */
         visibleStateEstimationTab: function () {
-            this.data.insurance.coverage_level === "primary"
+            this.data.insurance.coverage_level === "primary" && (!this.readOnlyPermission() || this.data.estimation_id > 0)
                 ? $(".clickImagineEstimation").show()
                 : $(".clickImagineEstimation").hide();
 
