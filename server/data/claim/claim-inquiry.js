@@ -782,13 +782,13 @@ module.exports = {
                     LEFT JOIN public.ordering_facilities pof ON pof.id = pofc.ordering_facility_id
                     LEFT JOIN billing.claim_status  ON claim_status.id=claims.claim_status_id
                     LEFT JOIN LATERAL (
-						SELECT
+                    	SELECT
                     	    array_agg(note) AS claim_comments
                     	FROM billing.claim_comments bcc
                     	WHERE ${initialLoad}
                         AND bcc.claim_id = ${claimID}
                     	AND 'patient_claims' = ANY(bcc.alert_screens)
-					) AS pc_alerts ON TRUE
+                        ) AS pc_alerts ON TRUE
                     WHERE patients.id = ${patientId}
                     `);
 
