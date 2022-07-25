@@ -410,12 +410,12 @@ module.exports = {
                 INNER JOIN billing.claims bc ON bc.id = bch.claim_id
                 INNER JOIN public.patients pp ON pp.id = bc.patient_id
                 LEFT JOIN LATERAL (
-					SELECT 
-					    true AS show_alert_icon
+                    SELECT 
+                    true AS show_alert_icon
                     FROM billing.claim_comments bcc
-					WHERE bcc.claim_id = bc.id
-					AND 'payment_reconciliation' = ANY(bcc.alert_screens)
-					GROUP BY bcc.claim_id			
+                    WHERE bcc.claim_id = bc.id
+                    AND 'payment_reconciliation' = ANY(bcc.alert_screens)
+                    GROUP BY bcc.claim_id			
 				) AS claim_alt ON TRUE
                 INNER JOIN billing.get_claim_totals(bc.id) gct ON TRUE
                 INNER JOIN billing.get_claim_patient_other_payment(bc.id) gcp_other_payment ON TRUE
@@ -468,10 +468,9 @@ module.exports = {
         }
 
         let sql = SQL` 
-            WITH payer_types AS
-            (
+            WITH payer_types AS (
                 SELECT Json_agg(Row_to_json(payer_types)) payer_types
-                    FROM   (
+                    FROM (
                         SELECT bc.patient_id,
                             bc.facility_id,
                             bc.billing_notes,
@@ -498,14 +497,14 @@ module.exports = {
                             providers.full_name AS provider_name,
                             bc.claim_status_id
                         FROM billing.claims bc
-                            LEFT JOIN public.patients ON patients.id = bc.patient_id
-                            LEFT JOIN public.facilities ON facilities.id = bc.facility_id `
+                        LEFT JOIN public.patients ON patients.id = bc.patient_id
+                        LEFT JOIN public.facilities ON facilities.id = bc.facility_id `
 
         .append(getClaimPatientInsurances('bc'))
         .append( `
-            LEFT  JOIN public.patient_insurances AS pip ON pip.id = claim_ins.primary_patient_insurance_id
-            LEFT  JOIN public.patient_insurances AS sip ON sip.id = claim_ins.secondary_patient_insurance_id
-            LEFT  JOIN public.patient_insurances AS tip ON tip.id = claim_ins.tertiary_patient_insurance_id
+            LEFT JOIN public.patient_insurances AS pip ON pip.id = claim_ins.primary_patient_insurance_id
+            LEFT JOIN public.patient_insurances AS sip ON sip.id = claim_ins.secondary_patient_insurance_id
+            LEFT JOIN public.patient_insurances AS tip ON tip.id = claim_ins.tertiary_patient_insurance_id
 
             LEFT JOIN public.insurance_providers pips ON pips.id = pip.insurance_provider_id
             LEFT JOIN public.insurance_providers sips ON sips.id = sip.insurance_provider_id
@@ -518,7 +517,7 @@ module.exports = {
             ) AS payer_types ),
             adjustment_codes AS(
                 SELECT Json_agg(Row_to_json(adjustment_codes)) adjustment_codes
-                FROM  (
+                FROM (
                     SELECT
                         id,
                         code,
@@ -532,7 +531,7 @@ module.exports = {
             ),
             charges AS(
                 SELECT Json_agg(Row_to_json(charges)) charges
-                FROM  (
+                FROM (
                     SELECT
                         bch.id,
                         (bch.bill_fee * bch.units)::NUMERIC AS bill_fee,
