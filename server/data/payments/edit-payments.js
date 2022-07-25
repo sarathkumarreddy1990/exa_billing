@@ -416,7 +416,7 @@ module.exports = {
                     WHERE bcc.claim_id = bc.id
                     AND 'payment_reconciliation' = ANY(bcc.alert_screens)
                     GROUP BY bcc.claim_id
-                    ) AS claim_alt ON TRUE
+                ) AS claim_alt ON TRUE
                 INNER JOIN billing.get_claim_totals(bc.id) gct ON TRUE
                 INNER JOIN billing.get_claim_patient_other_payment(bc.id) gcp_other_payment ON TRUE
         `);

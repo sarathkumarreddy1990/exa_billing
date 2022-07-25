@@ -50,12 +50,12 @@ module.exports = {
             LEFT JOIN public.ordering_facilities pof ON pof.id = pofc.ordering_facility_id
             LEFT JOIN public.places_of_service pos ON pos.id = bc.place_of_service_id
             LEFT JOIN LATERAL (
-				SELECT
+                SELECT
                     array_agg(note) AS claim_comments
                 FROM billing.claim_comments bcc
                 WHERE bcc.claim_id = ${claim_id}
                 AND 'claim_inquiry' = ANY(bcc.alert_screens)
-			) AS ci_alerts ON TRUE
+            ) AS ci_alerts ON TRUE
             WHERE
                 bc.id = ${claim_id}
             GROUP BY
@@ -788,7 +788,7 @@ module.exports = {
                     	WHERE ${initialLoad}
                         AND bcc.claim_id = ${claimID}
                     	AND 'patient_claims' = ANY(bcc.alert_screens)
-                        ) AS pc_alerts ON TRUE
+                    ) AS pc_alerts ON TRUE
                     WHERE patients.id = ${patientId}
                     `);
 
