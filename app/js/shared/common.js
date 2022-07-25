@@ -1,5 +1,6 @@
 
 var moment;
+var swal2;
 require.config({
     waitSeconds: 0,
     paths: {
@@ -8,8 +9,9 @@ require.config({
     }
 });
 
-define(['moment-timezone'], function (momenttz) {
+define(['moment-timezone', 'sweetalert2'], function (momenttz, sweetalert2) {
     moment = momenttz;
+    swal2 = sweetalert2;
 });
 
 var settingsReceived = false
@@ -5473,6 +5475,26 @@ var commonjs = {
         } else {
             callback();
         }
+    },
+
+    /**
+    * Show claim comments as alert
+    * @param {Array} claimAlerts contains comments data
+    */
+    showClaimAlerts: function (claimAlerts) {
+        var liAlerts = [];
+        $.each(claimAlerts, function (i, alert) {
+            liAlerts.push('<li>' + alert + '</li>');
+        });
+
+        swal2.fire({
+            title: commonjs.geti18NString("billing.claims.alert"),
+            html: "<ul id='alertContent'> </ul>",
+            onOpen: function (e) {
+                $('.swal2-checkbox').addClass('d-none');
+                $('#alertContent').append(liAlerts);
+            }
+        });
     }
 };
 

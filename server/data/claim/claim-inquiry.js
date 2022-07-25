@@ -29,6 +29,7 @@ module.exports = {
                 , SUM(ch.allowed_amount * ch.units) AS allowed_fee
                 , (SELECT SUM(claim_balance_total) FROM billing.get_claim_totals(bc.id)) AS claim_balance
                 , bc.billing_notes
+                , ci_alerts.claim_comments
                 , (timezone(get_facility_tz(bc.facility_id::integer), bc.claim_dt)::date)::text AS claim_dt
                 , pos.description AS pos_name
                 , bpr.name AS billing_provider_name
@@ -48,6 +49,13 @@ module.exports = {
             LEFT JOIN public.ordering_facility_contacts pofc ON pofc.id = bc.ordering_facility_contact_id
             LEFT JOIN public.ordering_facilities pof ON pof.id = pofc.ordering_facility_id
             LEFT JOIN public.places_of_service pos ON pos.id = bc.place_of_service_id
+            LEFT JOIN LATERAL (
+				SELECT
+                    array_agg(note) AS claim_comments
+                FROM billing.claim_comments bcc
+                WHERE bcc.claim_id = ${claim_id}
+                AND 'claim_inquiry' = ANY(bcc.alert_screens)
+			) AS ci_alerts ON TRUE
             WHERE
                 bc.id = ${claim_id}
             GROUP BY
@@ -61,6 +69,7 @@ module.exports = {
                 , pos.description
                 , bpr.name
                 , orders.order_no
+                , ci_alerts.claim_comments
             ) AS encounter
         )
     , patient_details AS
@@ -354,6 +363,7 @@ module.exports = {
                       id
                     , note AS comments
                     , is_internal
+                    , alert_screens
                     FROM
                         billing.claim_comments
                     WHERE id = ${commentId}`;
@@ -371,6 +381,7 @@ module.exports = {
             claim_id,
             assignedTo,
             notes,
+            altScreens,
             screenName,
             moduleName,
             clientIp,
@@ -531,7 +542,8 @@ module.exports = {
                     UPDATE
                         billing.claim_comments
                     SET
-                        note = ${note}
+                          note = ${note}
+                        , alert_screens = ${JSON.parse(altScreens)}
                     WHERE
                         id = ${commentId}
                     RETURNING *,
@@ -572,7 +584,8 @@ module.exports = {
             note,
             type,
             claim_id,
-            userId
+            userId,
+            altScreens
         } = params;
 
         let sql = SQL`INSERT INTO billing.claim_comments
@@ -582,6 +595,7 @@ module.exports = {
                 , claim_id
                 , created_by
                 , created_dt
+                , alert_screens
             )
             VALUES(
                   ${note}
@@ -589,6 +603,7 @@ module.exports = {
                 , ${claim_id}
                 , ${userId}
                 , now()
+                , ${JSON.parse(altScreens)}
             ) RETURNING *, '{}'::jsonb old_values`;
 
 
@@ -720,10 +735,12 @@ module.exports = {
             pageNo,
             pageSize,
             patientId,
-            billProvId
+            billProvId,
+            claimID
         } = params;
 
         let billProvWhereQuery = billProvId && billProvId != 0 && billProvId != '' ? `AND claims.billing_provider_id = ${billProvId}` : '';
+        let initialLoad = sortField === 'claims.id';
 
         let sql = SQL`
                     SELECT
@@ -739,6 +756,7 @@ module.exports = {
                         , claim_dt
                         , claims.facility_id
                         , claims.created_dt
+                        , pc_alerts.claim_comments
                         , claim_status.description as claim_status
                         , bgcp.adjustments_applied_total
                         , bgcp.payment_patient_total AS total_patient_payment
@@ -763,6 +781,14 @@ module.exports = {
                     LEFT JOIN public.ordering_facility_contacts pofc ON pofc.id = claims.ordering_facility_contact_id
                     LEFT JOIN public.ordering_facilities pof ON pof.id = pofc.ordering_facility_id
                     LEFT JOIN billing.claim_status  ON claim_status.id=claims.claim_status_id
+                    LEFT JOIN LATERAL (
+						SELECT
+                    	    array_agg(note) AS claim_comments
+                    	FROM billing.claim_comments bcc
+                    	WHERE ${initialLoad}
+                        AND bcc.claim_id = ${claimID}
+                    	AND 'patient_claims' = ANY(bcc.alert_screens)
+					) AS pc_alerts ON TRUE
                     WHERE patients.id = ${patientId}
                     `);
 

@@ -1124,6 +1124,13 @@ define(['jquery',
                                     }
                                 }
                             }
+
+                            var editClaimAlerts = claimDetails.edit_claim_alerts || null;
+                            
+                            if (isFrom !== 'reload' && editClaimAlerts) {
+                                commonjs.showClaimAlerts(editClaimAlerts);
+                            }
+
                             self.toggleOtherClaimNumber();
                             self.toggleWCBInjuryTypes();
 

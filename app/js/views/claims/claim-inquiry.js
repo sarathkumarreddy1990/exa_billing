@@ -261,6 +261,12 @@ define([
                             }
                             self.clearFaxInfo();
                             self.disableElementsForProvince(claim_data);
+                            
+                            var claimInquiryAlerts = claim_data.claim_comments || null;
+
+                            if (claimInquiryAlerts) {
+                                commonjs.showClaimAlerts(claimInquiryAlerts);
+                            }
                         }
                     },
                     error: function (err) {
@@ -527,7 +533,7 @@ define([
                     },
                     setCustomData: function (){
                         return {
-                            claimID: self.patientId,
+                            claimID: self.claimID,
                             patientId: self.patientId,
                             billProvId: self.billProvId
                         }
@@ -1039,7 +1045,7 @@ define([
                 })
             },
 
-            showCommentPopup: function (from, comment, commentId) {
+            showCommentPopup: function (from, comment, commentId, altScreens) {
                 var self = this;
                 commonjs.showNestedDialog({
                     header: 'Add Comment',
@@ -1048,14 +1054,21 @@ define([
                     height: '20%',
                     html: $('#divCIFormComment').html()
                 });
+                
+                var $nestedModel = $('#siteModalNested');
+                var $addComment = $nestedModel.find('#txtCIAddComment');
+
                 if (from == 'edit') {
-                    $('#siteModalNested').find('#txtCIAddComment').val(comment);
-                }
-                else {
+                    $addComment.val(comment);
+                    altScreens && altScreens.forEach(function (screens) {
+                        $nestedModel.find('#chkalertScreens input[value=' + screens + ']').prop('checked', true);
+                    });
+                } else {
                     commentId = 0;
                 }
-                $('#siteModalNested').find('#btnCICommentSave').off().click(function () {
-                    var comment = $('#siteModalNested').find('#txtCIAddComment').val();
+
+                $nestedModel.find('#btnCICommentSave').off().click(function () {
+                    var comment = $addComment.val();
                     if (comment != '')
                         self.saveClaimComment(commentId, comment);
                     else
@@ -1092,7 +1105,7 @@ define([
                     },
                     success: function (data, response) {
                         if (data) {
-                            self.showCommentPopup('edit', data[0].comments, commentId)
+                            self.showCommentPopup('edit', data[0].comments, commentId, data[0].alert_screens);
                         }
 
                     },
@@ -1104,7 +1117,15 @@ define([
 
             saveClaimComment: function (commentId, comment, type) {
                 var self = this;
-                $('#siteModalNested').find('#btnCICommentSave').prop('disabled', true)
+                var $nestedModel = $('#siteModalNested');
+                var $saveComments = $nestedModel.find('#btnCICommentSave');
+                var selectedScreens = [];
+
+                $nestedModel.find('#chkalertScreens input:checked').each(function() {
+                    selectedScreens.push($(this).val());
+                });
+
+                $saveComments.prop('disabled', true);
                 if (commentId != 0) {
 
                     $.ajax({
@@ -1113,11 +1134,12 @@ define([
                         data: {
                             'commentId': commentId,
                             'note': comment,
-                            'from': 'tmt'
+                            'from': 'tmt',
+                            'altScreens': JSON.stringify(selectedScreens)
                         },
                         success: function (data, response) {
                             commonjs.showStatus("messages.status.recordSaved");
-                            $('#siteModalNested').find('#btnCICommentSave').prop('disabled', false)
+                            $saveComments.prop('disabled', false);
                             self.closeSaveComment();
                             self.showClaimCommentsGrid();
 
@@ -1135,11 +1157,12 @@ define([
                         data: {
                             'note': comment,
                             'type': type || 'manual',
-                            'claim_id': self.claim_id
+                            'claim_id': self.claim_id,
+                            'altScreens': JSON.stringify(selectedScreens)
                         },
                         success: function (data, response) {
                             commonjs.showStatus("messages.status.recordSaved");
-                            $('#siteModalNested').find('#btnCICommentSave').prop('disabled', false)
+                            $saveComments.prop('disabled', false);
                             self.closeSaveComment();
                             self.showClaimCommentsGrid();
                         },

@@ -395,6 +395,7 @@ module.exports = {
                 gct.charges_bill_fee_total AS bill_fee,
                 gct.claim_cpt_description as display_description,
                 gct.claim_balance_total AS balance,
+                claim_alt.show_alert_icon,
                 COUNT(1) OVER (range unbounded preceding) AS total_records `;
 
         if (isFromClaim && paymentApplicationId) {
@@ -408,6 +409,14 @@ module.exports = {
                 INNER JOIN billing.charges bch ON bch.id = bpa.charge_id
                 INNER JOIN billing.claims bc ON bc.id = bch.claim_id
                 INNER JOIN public.patients pp ON pp.id = bc.patient_id
+                LEFT JOIN LATERAL (
+					SELECT 
+					    true AS show_alert_icon
+                    FROM billing.claim_comments bcc
+					WHERE bcc.claim_id = bc.id
+					AND 'payment_reconciliation' = ANY(bcc.alert_screens)
+					GROUP BY bcc.claim_id			
+				) AS claim_alt ON TRUE
                 INNER JOIN billing.get_claim_totals(bc.id) gct ON TRUE
                 INNER JOIN billing.get_claim_patient_other_payment(bc.id) gcp_other_payment ON TRUE
         `);
@@ -419,7 +428,8 @@ module.exports = {
                 .append(whereQuery.join(' AND '));
         }
 
-        sql.append(SQL`GROUP BY bc.id, bc.invoice_no, get_full_name(pp.last_name,pp.first_name), bc.claim_dt, bpa.applied_dt, display_description, balance, adjustments_applied_total, charges_bill_fee_total, patient_paid, others_paid `);
+        sql.append(SQL`GROUP BY bc.id, bc.invoice_no, get_full_name(pp.last_name,pp.first_name), bc.claim_dt, bpa.applied_dt, display_description, 
+            balance, adjustments_applied_total, charges_bill_fee_total, patient_paid, others_paid, claim_alt.show_alert_icon `);
 
         if (havingQuery.length) {
             sql.append(SQL` HAVING `)
@@ -443,18 +453,26 @@ module.exports = {
         let selectQuery = ' ';
         let groupByQuery = '';
 
-        if (params.paymentStatus && params.paymentStatus == 'applied') {
-            joinQuery = `INNER JOIN billing.get_payment_applications(${params.paymentId},${params.paymentApplicationId}) ppa ON ppa.charge_id = bch.id `;
+        let {
+            paymentStatus,
+            paymentId,
+            paymentApplicationId,
+            claimId,
+            companyID
+        } = params;
+
+        if (paymentStatus == 'applied') {
+            joinQuery = `INNER JOIN billing.get_payment_applications(${paymentId},${paymentApplicationId}) ppa ON ppa.charge_id = bch.id `;
             selectQuery = ' , ppa.id AS payment_application_id,ppa.adjustment_code_id AS adjustment_code_id,ppa.payment_amount::numeric AS payment_amount,ppa.adjustment_amount::numeric AS adjustment_amount , ppa.payment_application_adjustment_id as adjustment_id, ppa.payment_applied_dt AS payment_applied_dt';
             groupByQuery = ', ppa.payment_id , ppa.id,ppa.adjustment_code_id, ppa.payment_amount,ppa.adjustment_amount , ppa.payment_application_adjustment_id,ppa.payment_applied_dt ';
         }
 
-        return await query(`
-        WITH payer_types AS
-        (
-            SELECT Json_agg(Row_to_json(payer_types)) payer_types
-                FROM   (
-                    SELECT bc.patient_id,
+        let sql = SQL` 
+            WITH payer_types AS
+            (
+                SELECT Json_agg(Row_to_json(payer_types)) payer_types
+                    FROM   (
+                        SELECT bc.patient_id,
                             bc.facility_id,
                             bc.billing_notes,
                             claim_ins.primary_patient_insurance_id AS primary,
@@ -479,66 +497,76 @@ module.exports = {
                             of.name AS ordering_facility_name,
                             providers.full_name AS provider_name,
                             bc.claim_status_id
-                    FROM billing.claims bc
-                        LEFT JOIN public.patients ON patients.id = bc.patient_id
-                        LEFT JOIN public.facilities ON facilities.id = bc.facility_id
+                        FROM billing.claims bc
+                            LEFT JOIN public.patients ON patients.id = bc.patient_id
+                            LEFT JOIN public.facilities ON facilities.id = bc.facility_id `
 
-                        ${getClaimPatientInsurances('bc')}
-                        LEFT  JOIN public.patient_insurances AS pip ON pip.id = claim_ins.primary_patient_insurance_id
-                        LEFT  JOIN public.patient_insurances AS sip ON sip.id = claim_ins.secondary_patient_insurance_id
-                        LEFT  JOIN public.patient_insurances AS tip ON tip.id = claim_ins.tertiary_patient_insurance_id
+        .append(getClaimPatientInsurances('bc'))
+        .append( `
+            LEFT  JOIN public.patient_insurances AS pip ON pip.id = claim_ins.primary_patient_insurance_id
+            LEFT  JOIN public.patient_insurances AS sip ON sip.id = claim_ins.secondary_patient_insurance_id
+            LEFT  JOIN public.patient_insurances AS tip ON tip.id = claim_ins.tertiary_patient_insurance_id
 
-                        LEFT JOIN public.insurance_providers pips ON pips.id = pip.insurance_provider_id
-                        LEFT JOIN public.insurance_providers sips ON sips.id = sip.insurance_provider_id
-                        LEFT JOIN public.insurance_providers tips ON tips.id = tip.insurance_provider_id
+            LEFT JOIN public.insurance_providers pips ON pips.id = pip.insurance_provider_id
+            LEFT JOIN public.insurance_providers sips ON sips.id = sip.insurance_provider_id
+            LEFT JOIN public.insurance_providers tips ON tips.id = tip.insurance_provider_id
 
-                        LEFT JOIN ordering_facility_contacts ofc on ofc.id = bc.ordering_facility_contact_id
-                        LEFT JOIN public.ordering_facilities of on of.id = ofc.ordering_facility_id
-                        LEFT JOIN public.providers ON providers.id = bc.referring_provider_contact_id
-                    WHERE bc.id =  ${params.claimId}
-                        )
-                AS payer_types ),
-                    adjustment_codes AS(
-                        SELECT Json_agg(Row_to_json(adjustment_codes)) adjustment_codes
-                            FROM  (
-                                SELECT
-                                    id,
-                                    code,
-                                    description,
-                                    accounting_entry_type ,
-                                    accounting_entry_type AS type
-                            FROM billing.adjustment_codes
-                            WHERE company_id = ${params.companyID}
-                                AND inactivated_dt IS NULL
-                            )
-                    AS adjustment_codes),
-                charges AS(
+            LEFT JOIN ordering_facility_contacts ofc on ofc.id = bc.ordering_facility_contact_id
+            LEFT JOIN public.ordering_facilities of on of.id = ofc.ordering_facility_id
+            LEFT JOIN public.providers ON providers.id = bc.referring_provider_contact_id
+            WHERE bc.id =  ${claimId}
+            ) AS payer_types ),
+            adjustment_codes AS(
+                SELECT Json_agg(Row_to_json(adjustment_codes)) adjustment_codes
+                FROM  (
+                    SELECT
+                        id,
+                        code,
+                        description,
+                        accounting_entry_type ,
+                        accounting_entry_type AS type
+                    FROM billing.adjustment_codes
+                    WHERE company_id = ${companyID}
+                    AND inactivated_dt IS NULL
+                ) AS adjustment_codes
+            ),
+            charges AS(
                 SELECT Json_agg(Row_to_json(charges)) charges
-                    FROM  (
-                        SELECT
-                            bch.id,
-                            (bch.bill_fee * bch.units)::NUMERIC AS bill_fee,
-                            (bch.allowed_amount * bch.units)::NUMERIC AS allowed_amount,
-                            (select other_payment FROM billing.get_charge_other_payment_adjustment(bch.id))::numeric AS other_payment,
-                            (select other_adjustment FROM billing.get_charge_other_payment_adjustment(bch.id))::numeric AS other_adjustment,
-                            bch.charge_dt,
-                            array_agg(pcc.short_description) as cpt_description,
-                            array_agg(pcc.display_code) as cpt_code
-                            ${selectQuery}
-                        FROM billing.charges bch
-                        INNER JOIN public.cpt_codes pcc on pcc.id = bch.cpt_id
-                        ${joinQuery}
-                        WHERE bch.claim_id = ${params.claimId}
-                        GROUP BY bch.id ${groupByQuery}
-                )
-                AS charges)
-                    SELECT *
-                        FROM
-                        payer_types,
-                        adjustment_codes,
-                        charges
-                 `
-        );
+                FROM  (
+                    SELECT
+                        bch.id,
+                        (bch.bill_fee * bch.units)::NUMERIC AS bill_fee,
+                        (bch.allowed_amount * bch.units)::NUMERIC AS allowed_amount,
+                        (select other_payment FROM billing.get_charge_other_payment_adjustment(bch.id))::numeric AS other_payment,
+                        (select other_adjustment FROM billing.get_charge_other_payment_adjustment(bch.id))::numeric AS other_adjustment,
+                        bch.charge_dt,
+                        array_agg(pcc.short_description) as cpt_description,
+                        array_agg(pcc.display_code) as cpt_code
+                        ${selectQuery}
+                    FROM billing.charges bch
+                    INNER JOIN public.cpt_codes pcc on pcc.id = bch.cpt_id
+                    ${joinQuery}
+                    WHERE bch.claim_id = ${claimId}
+                    GROUP BY bch.id ${groupByQuery}
+                ) AS charges
+            ),            
+            payment_recon_alerts AS (
+                SELECT
+                    array_agg(note) AS claim_comments
+                FROM billing.claim_comments bcc
+                WHERE bcc.claim_id = ${claimId}
+                AND 'payment_reconciliation' = ANY(bcc.alert_screens)
+            )
+            
+            SELECT 
+                *
+            FROM
+            payer_types,
+            adjustment_codes,
+            charges,
+            payment_recon_alerts `);
+                
+        return await query(sql);
     },
 
     getGroupCodesAndReasonCodes: async function (params) {

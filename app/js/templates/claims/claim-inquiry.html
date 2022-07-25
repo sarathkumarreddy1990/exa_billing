@@ -244,16 +244,38 @@
             </div>
         </div>
         <div id="divCIFormComment" class="divBackgroundPayment form-horizontal commonBorder claim-comment">
-                <div class="col-xs-12" id="divCIclaimComment">
-                    <div class="col-xs-10">
-                        <div class="form-group">
-                            <textarea id="txtCIAddComment" class="form-control" style="margin-left: 20px; margin-right: 20px; width:95%" rows="3"></textarea>
-                        </div>
-                    </div>
-                    <div class="col-xs-2">
-                        <input type="button" id="btnCICommentSave" class="btn btnCommentSave  btn-primary" style="margin-left: 20px;" value="Save" i18n="shared.buttons.save">
+            <div class="col-xs-12" id="divCIclaimComment">
+                <div class="col-xs-6">
+                    <div class="form-group">
+                        <textarea id="txtCIAddComment" class="form-control" style="width:95%; height: 150px;"></textarea>
                     </div>
                 </div>
+                <div class="col-xs-4">
+                    <div class="form-group float-right" id="chkalertScreens">
+                        <legend class="viztekLegend" i18n="billing.claims.alertOnScreens"></legend>
+                        <div>
+                            <input type="checkbox" id="chkAltEditClaim" value="edit_claim">
+                            <label for="chkAltEditClaim" class="field-chk" i18n="setup.rightClickMenu.editClaim"></label>
+                        </div>
+                        <div>
+                            <input type="checkbox" id="chkAltClaimInquiry" value="claim_inquiry">
+                            <label for="chkAltClaimInquiry" class="field-chk" i18n="setup.rightClickMenu.claimInquiry"></label>
+                        </div>
+                        <div>
+                            <input type="checkbox" id="chkAltPaymentRecon" value="payment_reconciliation">
+                            <label for="chkAltPaymentRecon" class="field-chk" i18n="billing.claims.paymentReconciliation"></label>
+                        </div>
+                        <div>
+                            <input type="checkbox" id="chkAltPatientClaims" value="patient_claims">
+                            <label for="chkAltPatientClaims" class="field-chk" i18n="setup.rightClickMenu.patientClaims"></label>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div>
+                <input type="button" id="btnCICommentSave" class="btn btnCommentSave  btn-primary" value="Save" i18n="shared.buttons.save">
+            </div>
         </div>
     </div>
     </form>
