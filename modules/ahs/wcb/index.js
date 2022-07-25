@@ -290,7 +290,23 @@ const wcbModule = {
         }
 
         let validationErrors = [];
-        let errMsg = ''
+        let errMsg = '';
+
+        // WCB Business Rule validations for each claim details
+        rows.map((data, index) => {
+            let errorMessages = wcbModule.getWCBValidationErrors(data);
+
+            if (errorMessages?.length) {
+                validationMessages.push(...errorMessages);
+            }
+        });
+
+        // throwing validation errors in claim details
+        if (validationMessages?.length) {
+            return {
+                validationMessages
+            };
+        }
 
         // Encode each claims as new xml file
         let files = _.map(rows, async (data, index) => {
@@ -302,14 +318,7 @@ const wcbModule = {
                 root_directory,
                 uploaded_file_name,
                 file_path
-        } = data
-
-            // WCB Business Rule validations for each claim details
-            validationMessages = wcbModule.getWCBValidationErrors(data);
-
-            if (validationMessages?.length) {
-                return validationMessages;
-            }
+            } = data
 
             try {
                 let oldClaimJson = {};
@@ -440,13 +449,6 @@ const wcbModule = {
         });
 
         let out = await Promise.all(files);
-
-        // throwing validation errors in claim details
-        if (validationMessages?.length) {
-            return {
-                validationMessages
-            };
-        }
 
         if (errorObj.flag) {
             logger.error(errorObj.errMsg);
