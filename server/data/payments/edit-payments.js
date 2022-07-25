@@ -428,8 +428,17 @@ module.exports = {
                 .append(whereQuery.join(' AND '));
         }
 
-        sql.append(SQL`GROUP BY bc.id, bc.invoice_no, get_full_name(pp.last_name,pp.first_name), bc.claim_dt, bpa.applied_dt, display_description, 
-            balance, adjustments_applied_total, charges_bill_fee_total, patient_paid, others_paid, claim_alt.show_alert_icon `);
+        sql.append(SQL` GROUP BY bc.id,
+            bc.invoice_no,
+            get_full_name(pp.last_name,pp.first_name),
+            bc.claim_dt,
+            bpa.applied_dt,
+            display_description,
+            balance,
+            adjustments_applied_total,
+            charges_bill_fee_total,
+            patient_paid, others_paid,
+            claim_alt.show_alert_icon `);
 
         if (havingQuery.length) {
             sql.append(SQL` HAVING `)
@@ -469,7 +478,7 @@ module.exports = {
 
         let sql = SQL` 
             WITH payer_types AS (
-                SELECT Json_agg(Row_to_json(payer_types)) payer_types
+                SELECT JSON_AGG(Row_to_json(payer_types)) payer_types
                     FROM (
                         SELECT bc.patient_id,
                             bc.facility_id,
@@ -516,7 +525,7 @@ module.exports = {
             WHERE bc.id =  ${claimId}
             ) AS payer_types ),
             adjustment_codes AS(
-                SELECT Json_agg(Row_to_json(adjustment_codes)) adjustment_codes
+                SELECT JSON_AGG(Row_to_json(adjustment_codes)) adjustment_codes
                 FROM (
                     SELECT
                         id,
@@ -530,7 +539,7 @@ module.exports = {
                 ) AS adjustment_codes
             ),
             charges AS(
-                SELECT Json_agg(Row_to_json(charges)) charges
+                SELECT JSON_AGG(Row_to_json(charges)) charges
                 FROM (
                     SELECT
                         bch.id,
@@ -539,8 +548,8 @@ module.exports = {
                         (select other_payment FROM billing.get_charge_other_payment_adjustment(bch.id))::numeric AS other_payment,
                         (select other_adjustment FROM billing.get_charge_other_payment_adjustment(bch.id))::numeric AS other_adjustment,
                         bch.charge_dt,
-                        array_agg(pcc.short_description) as cpt_description,
-                        array_agg(pcc.display_code) as cpt_code
+                        ARRAY_AGG(pcc.short_description) as cpt_description,
+                        ARRAY_AGG(pcc.display_code) as cpt_code
                         ${selectQuery}
                     FROM billing.charges bch
                     INNER JOIN public.cpt_codes pcc on pcc.id = bch.cpt_id
@@ -551,7 +560,7 @@ module.exports = {
             ),            
             payment_recon_alerts AS (
                 SELECT
-                    array_agg(note) AS claim_comments
+                    ARRAY_AGG(note) AS claim_comments
                 FROM billing.claim_comments bcc
                 WHERE bcc.claim_id = ${claimId}
                 AND 'payment_reconciliation' = ANY(bcc.alert_screens)

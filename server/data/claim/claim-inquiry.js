@@ -51,7 +51,7 @@ module.exports = {
             LEFT JOIN public.places_of_service pos ON pos.id = bc.place_of_service_id
             LEFT JOIN LATERAL (
                 SELECT
-                    array_agg(note) AS claim_comments
+                    ARRAY_AGG(note) AS claim_comments
                 FROM billing.claim_comments bcc
                 WHERE bcc.claim_id = ${claim_id}
                 AND 'claim_inquiry' = ANY(bcc.alert_screens)
@@ -783,7 +783,7 @@ module.exports = {
                     LEFT JOIN billing.claim_status  ON claim_status.id=claims.claim_status_id
                     LEFT JOIN LATERAL (
                     	SELECT
-                    	    array_agg(note) AS claim_comments
+                    	    ARRAY_AGG(note) AS claim_comments
                     	FROM billing.claim_comments bcc
                     	WHERE ${initialLoad}
                         AND bcc.claim_id = ${claimID}

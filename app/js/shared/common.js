@@ -9,7 +9,12 @@ require.config({
     }
 });
 
-define(['moment-timezone', 'sweetalert2'], function (momenttz, sweetalert2) {
+define([
+    'moment-timezone',
+    'sweetalert2'
+], function (
+    momenttz, sweetalert2
+) {
     moment = momenttz;
     swal2 = sweetalert2;
 });
