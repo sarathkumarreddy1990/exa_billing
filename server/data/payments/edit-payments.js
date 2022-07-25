@@ -478,7 +478,7 @@ module.exports = {
 
         let sql = SQL` 
             WITH payer_types AS (
-                SELECT JSON_AGG(Row_to_json(payer_types)) payer_types
+                SELECT JSON_AGG(ROW_TO_JSON(payer_types)) payer_types
                     FROM (
                         SELECT bc.patient_id,
                             bc.facility_id,
