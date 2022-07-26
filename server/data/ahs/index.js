@@ -56,7 +56,7 @@ const ahsData = {
                                         , created_dt
                                     )
                                     SELECT
-                                        (COALESCE(ahs_claim_number, '') 
+                                        (COALESCE(ahs_claim_number, '')
                                             || CASE WHEN ahs_claim_number IS NOT NULL THEN ' - ' ELSE '' END
                                             || ${claimNote}
                                         )
@@ -118,15 +118,15 @@ const ahsData = {
     /**
      * To fetch the template info for the WCB C568/C570 templates
      * @param {Object} {
-     *                  templateName, 
+     *                  templateName,
      *                  companyId
-     *                 } 
+     *                 }
      * @returns {Object} template_info
      */
     getWCBTemplate: async ({ templateName, companyId }) => {
         const sql = SQL`
             SELECT
-                COALESCE(bet.template_info, '{}'::JSON) AS template_info
+                COALESCE(bet.template_info, '{}'::JSONB) AS template_info
             FROM billing.edi_templates bet
             WHERE bet.company_id = ${companyId}
             AND bet.template_type = 'edi'
@@ -143,7 +143,7 @@ const ahsData = {
 
     /**
      * To fetch the details for wcb claim submission
-     * @param {Object} args 
+     * @param {Object} args
      * @returns {Object} {
      *          err,
      *          dir_path,
@@ -184,10 +184,10 @@ const ahsData = {
         const created_dt = now.format();
 
         // Logic changes as per one claim in one file
-        
+
         const sql = SQL`
         WITH get_batch_number AS (
-            SELECT 
+            SELECT
                 nextVal('edi_file_claims_batch_number_seq') % 1000000 AS batch_number
         )
         SELECT
@@ -256,7 +256,7 @@ const ahsData = {
                         ELSE TRIM(
                             REGEXP_REPLACE(COALESCE(pc_ref.contact_info -> 'ADDR1', ''), '[#-]', '', 'g'))
                     END
-                ), 
+                ),
                 'address2', (
                     CASE
                         WHEN pc_ref.provider_group_id IS NOT NULL
@@ -266,9 +266,9 @@ const ahsData = {
                         ELSE ''
                     END
                 ),
-                'city', COALESCE(pc_ref.contact_info -> 'CITY', ''), 
-                'postal_code', REGEXP_REPLACE(COALESCE(pc_ref.contact_info -> 'ZIP', pc_ref.contact_info -> 'POSTALCODE', ''), '\\s', '', 'g'), 
-                'province_code', COALESCE(pc_ref.contact_info -> 'STATE', pc_ref.contact_info -> 'STATE_NAME', ''), 
+                'city', COALESCE(pc_ref.contact_info -> 'CITY', ''),
+                'postal_code', REGEXP_REPLACE(COALESCE(pc_ref.contact_info -> 'ZIP', pc_ref.contact_info -> 'POSTALCODE', ''), '\\s', '', 'g'),
+                'province_code', COALESCE(pc_ref.contact_info -> 'STATE', pc_ref.contact_info -> 'STATE_NAME', ''),
                 'country_code', COALESCE(pc_ref.contact_info -> 'COUNTRY', '')
               ) AS ref_provider_data
             , JSONB_BUILD_OBJECT(
@@ -351,7 +351,7 @@ const ahsData = {
             AND ppaa.issuer_id = bc.can_issuer_id
             AND LOWER(ppaa.country_alpha_3_code) = 'can'
             AND ppaa.is_primary
-        LEFT JOIN public.issuers i ON i.id = ppaa.issuer_id 
+        LEFT JOIN public.issuers i ON i.id = ppaa.issuer_id
             AND i.inactivated_dt IS NULL
             AND i.issuer_type = 'uli_phn'
         LEFT JOIN LATERAL (
@@ -425,7 +425,7 @@ const ahsData = {
                 ) AS mod3
         ) fee_mod ON TRUE
         LEFT JOIN LATERAL (
-            SELECT 
+            SELECT
                 jsonb_agg(attachment.attachments) AS attachments
             FROM (
                 SELECT
@@ -455,7 +455,7 @@ const ahsData = {
 
         if (!rows?.length) {
             errMsg = 'Error occured on fetching claim details...';
-            
+
             return {
                 err: errMsg,
                 rows
@@ -565,8 +565,8 @@ const ahsData = {
                     WHERE cawid.claim_id = bc.id
                     LIMIT 1
                 ) cawid ON TRUE
-                LEFT JOIN public.patient_alt_accounts ppaa ON ppaa.patient_id = bc.patient_id 
-                    AND ppaa.issuer_id = bc.can_issuer_id 
+                LEFT JOIN public.patient_alt_accounts ppaa ON ppaa.patient_id = bc.patient_id
+                    AND ppaa.issuer_id = bc.can_issuer_id
                     AND ppaa.is_primary
                 LEFT JOIN LATERAL (
                     WITH bci AS (
@@ -853,8 +853,25 @@ const ahsData = {
 
                         'RGLR'                                      AS claim_type,
                         pc_app.can_prid                             AS service_provider_prid,
-                        sc.code                                         AS skill_code,
 
+                        CASE
+                            WHEN
+                                (
+                                    SELECT
+                                        COUNT(*)
+                                    FROM
+                                        provider_skill_codes psc
+                                    INNER JOIN
+                                        provider_contacts AS pc
+                                    ON
+                                        pc.provider_id = psc.provider_id
+                                    WHERE
+                                        pc.id = bc.rendering_provider_contact_id ) > 1
+                            THEN
+                                sc.code
+                            ELSE
+                                NULL
+                        END  AS skill_code,
                         oci.service_recipient_phn,
                         nums.service_recipient_phn_province,
                         nums.service_recipient_parent_phn,
@@ -1090,7 +1107,7 @@ const ahsData = {
                     LEFT JOIN nums
                         ON nums.patient_id = p.id
                     LEFT JOIN oop_claim_info oci
-                        ON nums.patient_id = oci.patient_id 
+                        ON nums.patient_id = oci.patient_id
                     LEFT JOIN public.cpt_codes cpt
                         ON cpt.id = bch.cpt_id
                     LEFT JOIN public.facilities f
@@ -1273,7 +1290,7 @@ const ahsData = {
                 c.id,
                 ${batch_number},
                 ${sequence_number},
-                CASE 
+                CASE
                     WHEN ${action_code} = 'submit'
                     THEN 'can_ab_wcb_c568'
                     WHEN ${action_code} = 'change'
@@ -1281,7 +1298,7 @@ const ahsData = {
                 END
             FROM billing.claims c
             WHERE c.id = ${claim_id}
-            RETURNING 
+            RETURNING
                 id
         `;
 
@@ -1624,7 +1641,7 @@ const ahsData = {
             , ef.uploaded_file_name
         FROM billing.edi_files ef
         INNER JOIN file_stores fs on fs.id = ef.file_store_id
-        WHERE ef.id = ${file_id} 
+        WHERE ef.id = ${file_id}
         AND ef.company_id = ${company_id}`;
 
         return await query(sql);
@@ -1632,15 +1649,15 @@ const ahsData = {
 
     updateWCBFileStatus: async ({ file_id }) => {
 
-        const sql = SQL` 
+        const sql = SQL`
         UPDATE billing.edi_files
-            SET status = 
+            SET status =
                 CASE
                     WHEN EXISTS (
-                        SELECT 1 
-                        FROM billing.edi_file_payments 
-                        WHERE edi_file_id = ${file_id} 
-                    ) 
+                        SELECT 1
+                        FROM billing.edi_file_payments
+                        WHERE edi_file_id = ${file_id}
+                    )
                     THEN 'success'
                     ELSE
                         'failure'
@@ -1672,8 +1689,8 @@ const ahsData = {
         };
 
         const sql = SQL`
-        WITH file_claims AS ( 
-            SELECT 
+        WITH file_claims AS (
+            SELECT
                 ROW_NUMBER() OVER() AS row_id
                 , NULLIF(fc."DisbursementNumber", '')::TEXT AS disbursement_number
                 , NULLIF(fc."DisbursementType", '') AS disbursement_type
@@ -1686,7 +1703,7 @@ const ahsData = {
                 , NULLIF(fc."EncounterNumber", '')::BIGINT AS encounter_no
                 , NULLIF(fc."DisbursementIssueDate", '')::DATE AS disbursement_issue_date
                 , NULLIF(fc."DisbursementXRefNumber",'')::BIGINT AS disbursement_xref_no
-                , NULLIF(fc."DisbursementRecipientBillingNumber",'')::TEXT AS disbursement_billing_no 
+                , NULLIF(fc."DisbursementRecipientBillingNumber",'')::TEXT AS disbursement_billing_no
                 , NULLIF(fc."ServiceCode", '') AS service_code
                 , NULLIF(fc."OverpaymentRecoveryAmount", '')::NUMERIC AS ovp_recovery_amount
             FROM jsonb_to_recordset(${JSON.stringify(payment)}) AS fc
@@ -1699,7 +1716,7 @@ const ahsData = {
                 , "PaymentAmount" TEXT
                 , "ClaimNumber" TEXT
                 , "WorkerPHN" TEXT
-                , "EncounterNumber" TEXT 
+                , "EncounterNumber" TEXT
                 , "DisbursementIssueDate" TEXT
                 , "ServiceCode" TEXT
                 , "OverpaymentRecoveryAmount" TEXT
@@ -1718,7 +1735,7 @@ const ahsData = {
                 , disbursement_issue_date AS payment_date
                 , 'PAY' AS payment_type
                 , string_to_array(regexp_replace(service_code, '[^a-zA-Z0-9., ]','','g'),',') AS service_code
-                , ('WCB File Name: ' || COALESCE(${uploaded_file_name}::TEXT, ' ') || E'\n' || 
+                , ('WCB File Name: ' || COALESCE(${uploaded_file_name}::TEXT, ' ') || E'\n' ||
                     ' Disbursement Number: ' || COALESCE(disbursement_number,' ') || E'\n' ||
                     ' Disbursement Type: ' || COALESCE(disbursement_type,' ') || E'\n' ||
                     ' Disbursement XRef Number: ' || COALESCE(disbursement_xref_no::TEXT,' ') || E'\n' ||
@@ -1728,10 +1745,10 @@ const ahsData = {
                 ) AS payment_notes
                 , disbursement_number AS card_number
             FROM file_claims
-        
+
         )
         , grouped_records AS (
-            SELECT 
+            SELECT
                 disbursement_number
                 , fc.disbursement_type
                 , fc.disbursement_amount
@@ -1741,22 +1758,22 @@ const ahsData = {
                 , jsonb_agg(row_to_json(pc.*)) AS payment
             FROM file_claims fc
             INNER JOIN (
-                SELECT 
+                SELECT
                     *
-                    , BTRIM(service_codes) AS cpt_code  
+                    , BTRIM(service_codes) AS cpt_code
                 FROM payment_claims pc
                 LEFT JOIN UNNEST(pc.service_code) AS service_codes ON TRUE
             ) pc ON pc.row_id = fc.row_id
-            GROUP BY 
+            GROUP BY
                 disbursement_number
                 , fc.disbursement_amount
-                , fc.disbursement_type 
+                , fc.disbursement_type
                 , fc.disbursement_issue_date
                 , fc.disbursement_xref_no
                 , fc.disbursement_billing_no
         )
         , overpayment_claims AS (
-            SELECT  
+            SELECT
                 NULLIF(opc."OVPClaimNumber", '')::TEXT AS claim_no
                 , NULLIF(opc."DateOfOverpayment",'')::DATE AS payment_date
                 , NULLIF(opc."RecoveryAmount",'')::NUMERIC AS payment_amount
@@ -1773,7 +1790,7 @@ const ahsData = {
                 )
         )
         , recovery_claims AS (
-            SELECT  
+            SELECT
                 NULLIF(opc."RecoveredFromClaimNumber", '')::TEXT AS recovered_claim_no
                 , NULLIF(opc."DateOfOverpayment",'')::DATE AS ovp_date
                 , NULLIF(opc."RecoveryAmount",'')::NUMERIC AS recovery_amount
@@ -1785,7 +1802,7 @@ const ahsData = {
                 (
                     "RecoveredFromClaimNumber" TEXT
                     , "RecoveryAmount" TEXT
-                    , "OVPReason" TEXT 
+                    , "OVPReason" TEXT
                     , "DateOfOverpayment" TEXT
                 )
         )
@@ -1807,7 +1824,7 @@ const ahsData = {
             )
         )
         , total_overpayment_details AS (
-            SELECT 
+            SELECT
                 jsonb_build_array(row_to_json(overpayment_details.*)) AS payment
             FROM (
                 SELECT * FROM overpayment_claims WHERE claim_no IS NOT NULL
@@ -1821,15 +1838,15 @@ const ahsData = {
             SELECT payment FROM grouped_records
             UNION
             SELECT payment FROM total_overpayment_details
-        )	
-        
-        SELECT 
+        )
+
+        SELECT
             billing.can_ahs_wcb_apply_payments(
                 ${facility_id}::INTEGER
                 , ${file_id}::BIGINT
                 , p.payment
                 , ${JSON.stringify(auditDetails)}::JSONB
-            ) AS applied_payments 
+            ) AS applied_payments
         FROM total_payment_records p;
         `;
 

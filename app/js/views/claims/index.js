@@ -1119,6 +1119,10 @@ define(['jquery',
                 self.ACSelect.readPhy.contact_id = claim_data.rendering_provider_contact_id || claim_data.fac_rendering_provider_contact_id || null;
                 self.ACSelect.skillCodes.ID = claim_data.can_ahs_skill_code_id || null;
 
+                if (!claim_data.rendering_provider_contact_id && claim_data.fac_rendering_provider_contact_id) {
+                    self.toggleSkillCodeSection();
+                }
+
                 self.ordering_facility_id = claim_data.ordering_facility_id || claim_data.service_facility_id || null;
                 self.ordering_facility_name = orderingFacility;
                 self.ordering_facility_contact_id = claim_data.ordering_facility_contact_id || claim_data.service_facility_contact_id || null;
@@ -5139,7 +5143,7 @@ define(['jquery',
                             if (!self.isEdit) {
                                 $('.editClaimRelated').hide();
                             }
-                            self.updateReportURL(data.hidden_patient_id, data.hidden_order_id, rowId);
+                            self.updateReportURL();
                             self.disableElementsForProvince(data);
                         } else if (self.openedFrom === 'claims' || data.billed_status === 'Billed') {
                             rowId = self.openedFrom === 'studies' ? data.hidden_claim_id : rowId;
@@ -5159,7 +5163,7 @@ define(['jquery',
                                     split_claim_id: split_claim_id
                                 });
 
-                                self.updateReportURL(patient_id, order_id, study_id);
+                                self.updateReportURL();
                                 $('#modal_div_container').scrollTop(0);
                             });
                         }
@@ -5175,10 +5179,9 @@ define(['jquery',
                 }
             },
 
-            updateReportURL: function (patient_id, order_id, study_id) {
+            updateReportURL: function () {
                 if (window.reportWindow && window.reportWindow.location.hash) {
-                    var queryParams = window.reportWindow.location.hash.split("?")[1];
-                    window.reportWindow.location.hash = '#multipanel-billing-docs/'  + btoa(study_id)  + '/' + btoa(patient_id) + '/' + btoa(order_id)  + '?' + queryParams;
+                    commonjs.openDocumentsAndReports(this.options);
                 }
             },
 

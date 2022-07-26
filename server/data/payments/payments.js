@@ -1185,7 +1185,7 @@ module.exports = {
                                              study_id
                                             , array_agg(scp.cpt_code) AS cpt_code
                                         FROM study_cpt scp
-                                        WHERE NOT scp.has_deleted /* study_cpt.has_deleted */
+                                        WHERE scp.deleted_dt IS NULL 
                                         GROUP BY study_id
                                       ) cc ON cc.study_id = studies.id
                         WHERE o.patient_id = ${payerId}
