@@ -861,8 +861,12 @@ const ahsData = {
                                         COUNT(*)
                                     FROM
                                         provider_skill_codes psc
+                                    INNER JOIN
+                                        provider_contacts AS pc
+                                    ON
+                                        pc.provider_id = psc.provider_id
                                     WHERE
-                                        psc.provider_id = bc.rendering_provider_contact_id ) > 1
+                                        pc.id = bc.rendering_provider_contact_id ) > 1
                             THEN
                                 sc.code
                             ELSE
