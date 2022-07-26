@@ -853,8 +853,25 @@ const ahsData = {
 
                         'RGLR'                                      AS claim_type,
                         pc_app.can_prid                             AS service_provider_prid,
-                        sc.code                                         AS skill_code,
 
+                        CASE
+                            WHEN
+                                (
+                                    SELECT
+                                        COUNT(*)
+                                    FROM
+                                        provider_skill_codes psc
+                                    INNER JOIN
+                                        provider_contacts AS pc
+                                    ON
+                                        pc.provider_id = psc.provider_id
+                                    WHERE
+                                        pc.id = bc.rendering_provider_contact_id ) > 1
+                            THEN
+                                sc.code
+                            ELSE
+                                NULL
+                        END  AS skill_code,
                         oci.service_recipient_phn,
                         nums.service_recipient_phn_province,
                         nums.service_recipient_parent_phn,
