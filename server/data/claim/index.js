@@ -1616,7 +1616,7 @@ module.exports = {
                     AND to_facility_date(s.facility_id, s.study_dt) = ${current_date}
                     AND o.order_status NOT IN ('CAN','NOS')
                     AND s.study_status NOT IN ('CAN','NOS')
-                    AND NOT sc.has_deleted
+                    AND sc.deleted_dt IS NULL
                     ORDER BY sc.study_id DESC `;
 
         return await query(sql);
