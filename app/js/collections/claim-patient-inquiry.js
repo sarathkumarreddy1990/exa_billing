@@ -4,7 +4,7 @@ define(['backbone'], function (Backbone) {
         initialize: function () {
         },
         parse: function (response) {
-            var patientClaimAlerts = response && response[0].claim_comments;
+            var patientClaimAlerts = response && response.length && response[0].claim_comments;
 
             if (patientClaimAlerts) {
                 commonjs.showClaimAlerts(patientClaimAlerts);

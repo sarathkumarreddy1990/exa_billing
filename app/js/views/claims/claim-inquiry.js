@@ -1060,8 +1060,8 @@ define([
 
                 if (from == 'edit') {
                     $addComment.val(comment);
-                    altScreens && altScreens.forEach(function (screens) {
-                        $nestedModel.find('#chkalertScreens input[value=' + screens + ']').prop('checked', true);
+                    altScreens && altScreens.forEach(function (altScreen) {
+                        $nestedModel.find('#chkalertScreens input[value=' + altScreen + ']').prop('checked', true);
                     });
                 } else {
                     commentId = 0;

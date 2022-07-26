@@ -3275,7 +3275,7 @@ define(['jquery',
                     // Show alert icon if payment alerts exists for the claim
                     $.each(dataset, function (i, paymentData) {
                         paymentRowId = _.get(paymentData, "attributes.id");
-                        $('#alertInfoRow_' + (paymentRowId)).prop('hidden', !_.get(paymentData, "attributes.show_alert_icon"));
+                        $('#alertInfoRow_' + paymentRowId).prop('hidden', !_.get(paymentData, "attributes.show_alert_icon"));
                     });
                 }
             },
