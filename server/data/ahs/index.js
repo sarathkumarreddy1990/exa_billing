@@ -249,23 +249,8 @@ const ahsData = {
                 'middle_name', p_ref.middle_initial,
                 'suffix', p_ref.suffix,
                 'prefix', null,
-                'address1', (
-                    CASE
-                        WHEN pc_ref.provider_group_id IS NOT NULL
-                        THEN ( SELECT group_name FROM provider_groups WHERE id = pc_ref.provider_group_id )
-                        ELSE TRIM(
-                            REGEXP_REPLACE(COALESCE(pc_ref.contact_info -> 'ADDR1', ''), '[#-]', '', 'g'))
-                    END
-                ),
-                'address2', (
-                    CASE
-                        WHEN pc_ref.provider_group_id IS NOT NULL
-                        THEN TRIM (
-                            REGEXP_REPLACE(COALESCE(pc_ref.contact_info -> 'ADDR2', ''), '[#-]', '', 'g')
-                        )
-                        ELSE ''
-                    END
-                ),
+                'address1', TRIM(REGEXP_REPLACE(COALESCE(pc_ref.contact_info -> 'ADDR1', ''), '[#-]', '', 'g')),
+                'address2', TRIM(REGEXP_REPLACE(COALESCE(pc_ref.contact_info -> 'ADDR2', ''), '[#-]', '', 'g')),
                 'city', COALESCE(pc_ref.contact_info -> 'CITY', ''),
                 'postal_code', REGEXP_REPLACE(COALESCE(pc_ref.contact_info -> 'ZIP', pc_ref.contact_info -> 'POSTALCODE', ''), '\\s', '', 'g'),
                 'province_code', COALESCE(pc_ref.contact_info -> 'STATE', pc_ref.contact_info -> 'STATE_NAME', ''),
@@ -276,24 +261,8 @@ const ahsData = {
                 'first_name', p_app.first_name,
                 'middle_name', p_app.middle_initial,
                 'suffix', p_app.suffix,
-                'address1', (
-                    CASE
-                        WHEN pc_app.provider_group_id IS NOT NULL
-                        THEN ( SELECT group_name FROM provider_groups WHERE id = pc_app.provider_group_id )
-                        ELSE TRIM (
-                            REGEXP_REPLACE(COALESCE(pc_app.contact_info -> 'ADDR1', ''), '[#-]', '', 'g')
-                        )
-                    END
-                ),
-                'address2', (
-                    CASE
-                        WHEN pc_app.provider_group_id IS NOT NULL
-                        THEN TRIM (
-                            REGEXP_REPLACE(COALESCE(pc_app.contact_info -> 'ADDR2', ''), '[#-]', '', 'g')
-                        )
-                        ELSE ''
-                    END
-                ),
+                'address1', TRIM(REGEXP_REPLACE(COALESCE(pc_app.contact_info -> 'ADDR1', ''), '[#-]', '', 'g')),
+                'address2', TRIM(REGEXP_REPLACE(COALESCE(pc_app.contact_info -> 'ADDR2', ''), '[#-]', '', 'g')),
                 'city', COALESCE(pc_app.contact_info -> 'CITY', ''),
                 'postal_code', REGEXP_REPLACE(COALESCE(pc_app.contact_info -> 'ZIP', pc_app.contact_info -> 'POSTALCODE', ''), '\\s', '', 'g'),
                 'province_code', COALESCE(pc_app.contact_info -> 'STATE', pc_app.contact_info -> 'STATE_NAME', ''),
