@@ -168,6 +168,34 @@ define('grid', [
                 type : type
             });
         };
+
+       /**
+        * WCB status display handling
+        * @param {Object} claimStatus contains claim status data
+        * @param {Array} insuranceCodes contains selected insurance codes data
+        * @param {Object} selectedStudies contains selected studies data
+        * @param {Boolean} isWCBStatus contains status is WCB or not
+        * @returns canShowWCBClaimStatus AS true or false
+        */
+        var showWCBClaimStatus = function(claimStatus, insuranceCodes, selectedStudies, isWCBStatus) {
+            var canShowWCBClaimStatus;
+            var isAlbWCBCommonStatus = commonjs.can_ab_claim_status.indexOf(claimStatus.code) > -1;         
+            var isWCBInsuranceExist = insuranceCodes.indexOf('wcb') > -1;
+            var isAllWCBInsurance = _.every(selectedStudies, function(data) {
+                return data.insurance_code == 'wcb';
+            });
+
+            if (isWCBInsuranceExist) {
+                canShowWCBClaimStatus = isAllWCBInsurance
+                    ? isWCBStatus || isAlbWCBCommonStatus
+                    : commonjs.can_ab_common_claim_status.indexOf(claimStatus.code) > -1 || !claimStatus.is_system_status;
+            } else {
+                canShowWCBClaimStatus = !isWCBStatus;
+            }
+            
+            return canShowWCBClaimStatus;           
+        }
+
         var openCreateClaim = function (rowID, event, isClaimGrid, store) {
             var target = event.currentTarget;
             var $target = $(target);
@@ -276,35 +304,12 @@ define('grid', [
 
                     // Claim status updation
                     var isAlbertaBilling =  app.billingRegionCode === 'can_AB';
-                    var isWCBInsuranceExist = insurance_codes.indexOf('wcb') > -1;
-                    var isAllWCBInsurance = _.every(selectedStudies, function(data) {
-                        return data.insurance_code == 'wcb';
-                    });
-                   
-                    $.each(app.claim_status, function (index, claimStatus) {
 
-                        /**
-                         * WCB show status condition : 1.Selected all claims have WCB insurance show wcb, common status
-                         * 2.In multiple claims selected anyone claim have WCB insurance show custom, generic status only
-                         * 3.Selected claims doesn't have a WCB insurnace show all status exclude WCB status 
-                         */
+                    $.each(app.claim_status, function (index, claimStatus) {
                         var isWCBStatus = commonjs.can_ab_wcb_claim_status.indexOf(claimStatus.code) > -1;
 
-                        if (isAlbertaBilling) {
-                            var isAlbWCBCommonStatus = commonjs.can_ab_claim_status.indexOf(claimStatus.code) > -1;
-                            var canShowWCBClaimStatus;
-
-                            if (isWCBInsuranceExist) {
-                                canShowWCBClaimStatus = isAllWCBInsurance
-                                    ? isWCBStatus || isAlbWCBCommonStatus
-                                    : commonjs.can_ab_common_claim_status.indexOf(claimStatus.code) > -1 || !claimStatus.is_system_status;
-                            } else {
-                                canShowWCBClaimStatus = !isWCBStatus;
-                            }
-
-                            if (!canShowWCBClaimStatus) {
-                                return;
-                            }
+                        if (isAlbertaBilling && !showWCBClaimStatus(claimStatus, insurance_codes, selectedStudies, isWCBStatus)) {
+                            return;
                         }
 
                         if ((app.billingRegionCode === 'can_MB' && claimStatus.code === 'P77') || (app.billingRegionCode === 'can_BC' && claimStatus.code === 'OH')
