@@ -870,6 +870,7 @@ function (
 
             $("#divVisitProcedures").text(data.proceduresDisplay);
             $("#divVisitDateOfService").text(moment(data.dateOfService).format("L"));
+            $("#divVisitReferringPhysician").empty();
 
             referring_physicians.forEach(function (ref, index) {
                 var info = ref.contact_info;
