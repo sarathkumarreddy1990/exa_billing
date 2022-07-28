@@ -172,20 +172,22 @@ define('grid', [
        /**
         * WCB status display handling
         * @param {Object} claimStatus contains claim status data
-        * @param {Array} insuranceCodes contains selected insurance codes data
         * @param {Object} selectedStudies contains selected studies data
         * @param {Boolean} isWCBStatus contains status is WCB or not
-        * @returns canShowWCBClaimStatus AS true or false
+        * @returns {Boolean} canShowWCBClaimStatus AS true or false
         */
-        var showWCBClaimStatus = function(claimStatus, insuranceCodes, selectedStudies, isWCBStatus) {
+        var showWCBClaimStatus = function(claimStatus, selectedStudies, isWCBStatus) {
             var canShowWCBClaimStatus;
             var isAlbWCBCommonStatus = commonjs.can_ab_claim_status.indexOf(claimStatus.code) > -1;         
-            var isWCBInsuranceExist = insuranceCodes.indexOf('wcb') > -1;
-            var isAllWCBInsurance = _.every(selectedStudies, function(data) {
-                return data.insurance_code == 'wcb';
+            var isWCBInsuranceExist = _.some(selectedStudies, function(data) {
+                return data.insurance_code === 'wcb';
             });
 
             if (isWCBInsuranceExist) {
+                var isAllWCBInsurance = _.every(selectedStudies, function(data) {
+                    return data.insurance_code === 'wcb';
+                });
+
                 canShowWCBClaimStatus = isAllWCBInsurance
                     ? isWCBStatus || isAlbWCBCommonStatus
                     : commonjs.can_ab_common_claim_status.indexOf(claimStatus.code) > -1 || !claimStatus.is_system_status;
@@ -308,7 +310,7 @@ define('grid', [
                     $.each(app.claim_status, function (index, claimStatus) {
                         var isWCBStatus = commonjs.can_ab_wcb_claim_status.indexOf(claimStatus.code) > -1;
 
-                        if (isAlbertaBilling && !showWCBClaimStatus(claimStatus, insurance_codes, selectedStudies, isWCBStatus)) {
+                        if (isAlbertaBilling && !showWCBClaimStatus(claimStatus, selectedStudies, isWCBStatus)) {
                             return;
                         }
 
