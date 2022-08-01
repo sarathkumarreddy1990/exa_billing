@@ -88,20 +88,18 @@ function (
          *
          * @param {object} args
          * @prop  {number} args.order_id
-         * @prop  {number} args.patient_insurance_id
          * @prop  {string} args.coverage_level
-         * @prop  {string} args.orientation
-         * @prop  {object} args.parent_view
-         * @prop  {string} args.getter_function_name
+         * @prop  {object} args.parent
+         * @prop  {object} args.parent.view
+         * @prop  {string} args.parent.getter
+         * @prop  {string} args.parent.setter
          */
         initGlobalVariables: function (args) {
             this.rendered = true;
             this.order_id = ~~args.order_id;
-            this.patient_insurance_id = ~~args.patient_insurance_id;
             this.coverage_level = args.coverage_level || "";
             this.key = _.capitalize(this.coverage_level);
-            this.parent_view = args.parent_view || null;
-            this.getter_function_name = args.getter_function_name || "";
+            this.parent = args.parent || {};
 
             this.template_options = {
                 key: this.key,
@@ -543,8 +541,8 @@ function (
          * and the name of a function used to retrieve the data.
          */
         setDataFromParentView: function () {
-            if (this.parent_view && this.getter_function_name) {
-                var set_data = this.parent_view[this.getter_function_name](this.coverage_level);
+            if (!_.isEmpty(this.parent) && this.parent.view && this.parent.getter) {
+                var set_data = this.parent.view[this.parent.getter](this.coverage_level);
                 this.setOrderData(set_data);
             }
 
@@ -1051,35 +1049,58 @@ function (
          * @param {object} order_data
          */
         setOrderData: function (order_data) {
-            this.data = order_data || {};
+            this.original_order_data = _.cloneDeep(order_data || {});
+            this.data = _.cloneDeep(order_data || {});
             this.data.manually_verified = this.data.manually_verified === "true" || this.data.manually_verified === true;
             this.data.mode = this.data.mode || "params";
 
             this.determineStateEnabledServiceTypes()
                 .determineStateEnabledDate()
                 .determineStateEnabledButton()
-                .eligibilityDateVerified();
+                .eligibilityDateVerified(true, this.data.request_dt || this.data.eligibility_dt);
 
             return this;
         },
 
         /**
          * Hides or shows the Eligibility Date
+         * This is also called from the insuanceImagineSoftware view
+         *
+         * @param {string} request_dt
          */
-        eligibilityDateVerified: function () {
-            // eligibility_dt
+        eligibilityDateVerified: function (is_eligible, request_dt) {
             var $div = $(".eligibility-date");
 
             if (this.key) {
-                $div = $div.find("[data-key='" + this.key + "']");
+                $div = $(".eligibility-date[data-key='" + this.key + "']");
             }
 
-            if (!this.data.eligibility_dt) {
+            if (!request_dt) {
                 $div.hide();
                 return this;
             }
 
-            var text = commonjs.geti18NString("order.insuranceEligibility.statusMessage") + " " + moment(this.data.eligibility_dt).format("L LT z");
+            // Status Icon
+            var $icon = $div.find("i");
+            $icon
+                .removeClass("fa-check-circle")
+                .removeClass("fa-times-circle")
+                .removeClass("menu-icon-green")
+                .removeClass("menu-icon-red");
+
+            if (is_eligible) {
+                $icon
+                    .addClass("fa-check-circle")
+                    .addClass("menu-icon-green");
+            }
+            else {
+                $icon
+                    .addClass("fa-times-circle")
+                    .addClass("menu-icon-red");
+            }
+            
+            // Status Text
+            var text = commonjs.geti18NString("order.insuranceEligibility.statusMessage") + " " + moment(request_dt).format("L LT z");
             $div.find("span").text(text);
             $div.show();
 
@@ -1117,6 +1138,7 @@ function (
          */
         imagineSoftwareData: function () {
             return {
+                eligibility_view: this,
                 eligibility_id: ~~this.data.eligibility_id,
                 estimation_id: ~~this.data.estimation_id,
                 insurance: {
@@ -1137,6 +1159,8 @@ function (
                     subscriberDob: this.subscriberDateOfBirth()
                 },
                 mode: this.data.mode,
+                original_order_data: _.cloneDeep(this.original_order_data),
+                parent: this.parent,
                 patient: {
                     id: this.data.patient_id,
                     name: this.data.patient_name,
