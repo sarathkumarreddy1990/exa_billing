@@ -144,7 +144,9 @@ function (
 
                 self.hydrateData()
                     .writeFormValues()
-                    .updateCulture();
+                    .updateEligibilityStatus()
+                    .updateCulture()
+                    .setParentData("eligibility", eligibility_data);
             });
 
             return this;
@@ -163,7 +165,11 @@ function (
          */
         fetchEligibility: function (callback) {
             if (this.isMode("P")) {
-                return this.fetchEligibilityParams(callback);
+                var existing_data = this.existingEligibilityData();
+
+                return existing_data && !_.isEmpty(existing_data.eligibility)
+                    ? callback(existing_data.eligibility)
+                    : this.fetchEligibilityParams(callback);
             }
 
             if (this.isMode("S")) {
@@ -230,7 +236,11 @@ function (
          */
         fetchEstimation: function (callback) {
             if (this.isMode("P")) {
-                return this.fetchEstimationParams(callback);
+                var existing_data = this.existingEligibilityData();
+
+                return existing_data && !_.isEmpty(existing_data.estimation)
+                    ? callback(existing_data.estimation)
+                    : this.fetchEstimationParams(callback);
             }
 
             if (this.isMode("S")) {
@@ -374,7 +384,8 @@ function (
 
             this.scrollToTopOfEstimation()
                 .hydrateDataEstimation()
-                .writeFormValuesEstimation();
+                .writeFormValuesEstimation()
+                .setParentData("estimation", estimationData);
         },
 
         /**
@@ -387,7 +398,9 @@ function (
 
             this.hydrateData()
                 .writeFormValues()
-                .updateCulture();
+                .updateEligibilityStatus()
+                .updateCulture()
+                .setParentData("eligibility", eligibilityData);
         },
 
         /**
@@ -636,10 +649,23 @@ function (
         },
 
         /**
+         * Refresh the eligibility status and request date
+         */
+        updateEligibilityStatus: function () {
+            var is_eligible = !!~~_.get(this, "data.eligibility.isEligible");
+            var request_dt = _.get(this, "data.eligibility.dateCreated");
+
+            this.data.eligibility_view.eligibilityDateVerified(is_eligible, request_dt);
+
+            return this;
+        },
+
+        /**
          * Refresh i18n
          */
         updateCulture: function () {
             commonjs.updateCulture(app.currentCulture, commonjs.beautifyMe);
+            return this;
         },
 
         /**
@@ -1159,6 +1185,26 @@ function (
         },
         /* #endregion */
 
+        /* #region Setters */
+        // --------------------------------------------------------------------------------
+        //                                     SETTERS
+        // --------------------------------------------------------------------------------
+
+        /**
+         * Sets data on the parent view (New Order screen ATM) using the parent view and setter
+         *
+         * @param {string} prop 
+         * @param {object} data 
+         */
+        setParentData: function (prop, data) {
+            if (!_.isEmpty(this.data.parent) && this.data.parent.view && this.data.parent.setter) {
+                this.data.parent.view[this.data.parent.setter](prop, data);
+            }
+
+            return this;
+        },
+        /* #endregion */
+
         /* #region Getters */
         // --------------------------------------------------------------------------------
         //                                     GETTERS
@@ -1230,6 +1276,22 @@ function (
                 "minPatientResponsibilityAmount",
                 "patientResponsibleAmount"
             ];
+        },
+
+        /**
+         * Returns existing
+         *
+         * @returns {object|null}
+         */
+        existingEligibilityData: function () {
+            var view = _.get(this, "data.parent.view");
+            var data_prop = _.get(this, "data.parent.data");
+            var data_store = view && data_prop && view[data_prop] || [];
+            var original_order_data = this.data.original_order_data;
+
+            return data_store.filter(function (item) {
+                return item && _.isEqual(item.params, original_order_data);
+            })[0] || null;
         },
 
         /**
@@ -1502,72 +1564,6 @@ function (
             }
 
             return [];
-        },
-
-        // ----------------------------------------------------------------------------------------
-        // Test / Temp Functions - will be removed
-
-        getTestDataEstimation: function () {
-            return {
-                "estimationId": 4680.0,
-                "sessionId": 17853.0,
-                "requestId": 13327.0,
-                "dateCreated": "2022-02-15T15:57:16.923",
-                "allowedAmount": 382.0000,
-                "balanceDue": 20.0000,
-                "coInsurance": 0.0000,
-                "coPay": 20.0000,
-                "deductible": 0.0000,
-                "confidenceLevel": "Green",
-                "dateofService": null,
-                "encounter": "V98765",
-                "externalEstimationId": 24677.0,
-                "externalId": 24677.0,
-                "hra": 0.0,
-                "insuranceAdjustmentAmount": 628.0000,
-                "insurancePayment": 362.0000,
-                "maxAllowedAmount": 458.4000,
-                "maxBalanceDue": 20.0000,
-                "maxDeductible": 0.0000,
-                "maxOutOfPocket": 0.0000,
-                "maxPatientResponsibilityAmount": 20.0000,
-                "maxTotalCharges": 1212.0000,
-                "minPatientResponsibilityAmount": 20.0000,
-                "patientResponsibleAmount": 20.0000,
-                "stopLoss": 0.0000,
-                "totalCharges": 1010.0000,
-                "tierEstimate": {
-                    "tierAllowedAmount": 382.0000,
-                    "tierBalanceDue": 20.0000,
-                    "tierCoInsurance": 0.0000,
-                    "tierConfidenceLevel": "Green",
-                    "tierCoPay": 20.0000,
-                    "tierCreatedAt": "2022-02-15T20:57:16.873",
-                    "tierDeductible": 0.0000,
-                    "tierDeleted": false,
-                    "tierDeletedAt": null,
-                    "tierDos": "2021-11-03T23:35:13",
-                    "tierEncounter": "V98765",
-                    "tierEstimationId": 24677.0,
-                    "tierHra": 0.0,
-                    "tierId": 24677.0,
-                    "tierInsuranceAdjustments": 628.0000,
-                    "tierInsurancePayment": 362.0000,
-                    "tierMaxAllowedAmount": 458.4000,
-                    "tierMaxBalanceDue": 20.0000,
-                    "tierMaxCoInsurance": 0.0000,
-                    "tierMaxDeductible": 0.0000,
-                    "tierMaxOutOfPocket": 0.0000,
-                    "tierMaxPatientResponsibility": 20.0000,
-                    "tierMaxTotalCharges": 1212.0000,
-                    "tierMinPatientResponsibility": 20.0000,
-                    "tierModifiedAt": "2022-02-15T20:57:16.873",
-                    "tierPatientResponsibility": 20.0000,
-                    "tierStopLoss": 0.0000,
-                    "tierTotalCharges": 1010.0000
-                },
-                "eligibilityId": 12310.0
-            }
         }
         /* #endregion */
     });
