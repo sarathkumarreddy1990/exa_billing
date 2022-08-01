@@ -518,7 +518,6 @@ const ahsData = {
                 LEFT JOIN public.studies s ON s.id = bchs.study_id
                 LEFT JOIN public.skill_codes sc ON sc.id = s.can_ahs_skill_code_id
                 LEFT JOIN public.skill_codes scc ON scc.id = bc.can_ahs_skill_code_id
-                LEFT JOIN public.study_transcriptions st ON st.study_id = s.id
                 LEFT JOIN public.provider_contacts pc_app ON pc_app.id = bc.rendering_provider_contact_id
                 LEFT JOIN public.providers p_app ON p_app.id = pc_app.provider_id
                 LEFT JOIN public.provider_contacts pc_c ON pc_c.id = bc.referring_provider_contact_id
