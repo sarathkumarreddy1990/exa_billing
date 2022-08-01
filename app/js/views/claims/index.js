@@ -1346,10 +1346,9 @@ define(['jquery',
                         $('#ddlClaimResponsible').val('PPP');
                     }
                     $('#ddlClaimStatus').val($("option[data-desc = 'PV']").val());
-                    var frequency = [{ code: 7, desc: 'corrected' }, { code: 8, desc: 'void' }, { code: 1, desc: 'original' }];
-                    if (claim_data.frequency) {
-                        var code = _.find(frequency, function (item) { return item.code == parseInt(claim_data.frequency); });
-                        $('#ddlFrequencyCode').val(code.desc || '');
+
+                    if (app.billingRegionCode !== 'can_AB') {
+                        $('#ddlFrequencyCode').val(claim_data.frequency || '');
                     }
 
                     var ddlPOSType = $('#ddlPOSType');

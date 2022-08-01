@@ -168,6 +168,36 @@ define('grid', [
                 type : type
             });
         };
+
+       /**
+        * WCB status display handling
+        * @param {Object} claimStatus contains claim status data
+        * @param {Object} selectedStudies contains selected studies data
+        * @param {Boolean} isWCBStatus contains status is WCB or not
+        * @returns {Boolean} canShowWCBClaimStatus AS true or false
+        */
+        var showWCBClaimStatus = function(claimStatus, selectedStudies, isWCBStatus) {
+            var canShowWCBClaimStatus;
+            var isAlbWCBCommonStatus = commonjs.can_ab_claim_status.indexOf(claimStatus.code) > -1;         
+            var isWCBInsuranceExist = _.some(selectedStudies, function(data) {
+                return data.insurance_code === 'wcb';
+            });
+
+            if (isWCBInsuranceExist) {
+                var isAllWCBInsurance = _.every(selectedStudies, function(data) {
+                    return data.insurance_code === 'wcb';
+                });
+
+                canShowWCBClaimStatus = isAllWCBInsurance
+                    ? isWCBStatus || isAlbWCBCommonStatus
+                    : commonjs.can_ab_common_claim_status.indexOf(claimStatus.code) > -1 || !claimStatus.is_system_status;
+            } else {
+                canShowWCBClaimStatus = !isWCBStatus;
+            }
+            
+            return canShowWCBClaimStatus;           
+        }
+
         var openCreateClaim = function (rowID, event, isClaimGrid, store) {
             var target = event.currentTarget;
             var $target = $(target);
@@ -275,25 +305,21 @@ define('grid', [
                     var liArray = [];
 
                     // Claim status updation
-                    $.each(app.claim_status, function (index, claimStatus) {
-                        var can_show_wcb_claim_status = (app.billingRegionCode === "can_AB"
-                                                        && (insurance_codes.length == 1 && insurance_codes[0] === "wcb")
-                                                        && commonjs.can_ab_claim_status.indexOf(claimStatus.code) == -1
-                                                        && commonjs.can_ab_wcb_claim_status.indexOf(claimStatus.code) == -1);
-                        var can_show_other_claim_status = ((app.billingRegionCode != "can_AB"
-                                                        || (insurance_codes.length == 1 && insurance_codes[0] != "wcb"))
-                                                        && commonjs.can_ab_wcb_claim_status.indexOf(claimStatus.code) > -1);
-                        var can_show_common_claim_status = (selectedCount > 1 && app.billingRegionCode === "can_AB"
-                                                        && insurance_codes.indexOf('wcb') > -1 && insurance_codes.indexOf('ahs') > -1
-                                                        && commonjs.can_ab_common_claim_status.indexOf(claimStatus.code) == -1
-                                                        && claimStatus.is_system_status );
+                    var isAlbertaBilling =  app.billingRegionCode === 'can_AB';
 
-                        if ((app.billingRegionCode === 'can_MB' && claimStatus.code === 'P77') || (app.billingRegionCode === 'can_BC' && claimStatus.code === 'OH')
-                            || can_show_wcb_claim_status || can_show_other_claim_status || can_show_common_claim_status) {
+                    $.each(app.claim_status, function (index, claimStatus) {
+                        var isWCBStatus = commonjs.can_ab_wcb_claim_status.indexOf(claimStatus.code) > -1;
+
+                        if (isAlbertaBilling && !showWCBClaimStatus(claimStatus, selectedStudies, isWCBStatus)) {
                             return;
                         }
 
-                        var resubmissionFlag = app.billingRegionCode === 'can_AB'
+                        if ((app.billingRegionCode === 'can_MB' && claimStatus.code === 'P77') || (app.billingRegionCode === 'can_BC' && claimStatus.code === 'OH')
+                            || (!isAlbertaBilling && isWCBStatus)) {
+                            return;
+                        }
+
+                        var resubmissionFlag = isAlbertaBilling
                                                && isClaimGrid
                                                && gridData.claim_resubmission_flag === 'true';
 
