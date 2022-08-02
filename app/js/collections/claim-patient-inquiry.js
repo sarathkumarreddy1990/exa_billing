@@ -4,10 +4,16 @@ define(['backbone'], function (Backbone) {
         initialize: function () {
         },
         parse: function (response) {
-            var patientClaimAlerts = response && response.length && response[0].claim_comments;
+            var patientClaimAlerts = {};
 
-            if (patientClaimAlerts) {
-                commonjs.showClaimAlerts(patientClaimAlerts);
+            $.each(response, function (i, data) {
+                if (data.claim_comments) {
+                    patientClaimAlerts[data.claim_id] = data.claim_comments;
+                }
+            });
+
+            if (Object.keys(patientClaimAlerts).length) {
+                commonjs.showClaimAlerts(patientClaimAlerts, 'patientClaims');
             }
             
             return response;

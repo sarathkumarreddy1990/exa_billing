@@ -88,9 +88,17 @@ module.exports = {
                     array_agg(pcc.display_code) AS display_description,
                     (SELECT charges_bill_fee_total from billing.get_claim_totals(bc.id)) AS billing_fee,
                     (SELECT charges_bill_fee_total - (payments_applied_total + adjustments_applied_total + refund_amount) FROM billing.get_claim_totals(bc.id)) AS balance,
-                    COUNT(1) OVER (range unbounded preceding) AS total_records
+                    COUNT(1) OVER (range unbounded preceding) AS total_records,
+                    claim_alt.show_alert_icon
                 FROM billing.claims bc
                 INNER JOIN public.patients pp on pp.id = bc.patient_id
+                LEFT JOIN LATERAL (
+                    SELECT
+                        true AS show_alert_icon
+                    FROM billing.claim_comments bcc
+                    WHERE bcc.claim_id = bc.id
+                        AND 'payment_reconciliation' = ANY(bcc.alert_screens)
+                ) AS claim_alt ON TRUE
                 INNER JOIN billing.charges bch on bch.claim_id = bc.id
                 INNER JOIN public.cpt_codes pcc on pcc.id = bch.cpt_id
             `;
@@ -105,7 +113,12 @@ module.exports = {
                 sql.append(whereQuery.join(' AND '));
             }
 
-            sql.append(SQL` GROUP BY  bc.id, pp.last_name, pp.first_name,  pp.account_no`);
+            sql.append(SQL` GROUP BY 
+                bc.id,
+                pp.last_name,
+                pp.first_name,
+                pp.account_no,
+                claim_alt.show_alert_icon `);
 
             if (sortField) {
                 sql.append(` , ${sortField}  `);
@@ -242,11 +255,19 @@ module.exports = {
                     claim_totals.claim_cpt_description AS display_description,
                     claim_totals.charges_bill_fee_total as billing_fee,
                     claim_totals.charges_bill_fee_total - (claim_totals.payments_applied_total + claim_totals.adjustments_applied_total + refund_amount) AS balance,
-                    of.name AS ordering_facility_name
+                    of.name AS ordering_facility_name,
+                    claim_alt.show_alert_icon
 
                 FROM billing.claims bc
                 INNER JOIN billing.get_claim_totals(bc.id) AS claim_totals ON true
                 INNER JOIN public.patients pp on pp.id = bc.patient_id
+                LEFT JOIN LATERAL (
+                    SELECT 
+                        true AS show_alert_icon
+                    FROM billing.claim_comments bcc
+                    WHERE bcc.claim_id = bc.id
+                        AND 'payment_reconciliation' = ANY(bcc.alert_screens)			
+                ) AS claim_alt ON TRUE
                 LEFT JOIN ordering_facility_contacts ofc on ofc.id = bc.ordering_facility_contact_id
                 LEFT JOIN public.ordering_facilities of on of.id = ofc.ordering_facility_id`;
 

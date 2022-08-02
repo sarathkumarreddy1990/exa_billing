@@ -1053,11 +1053,11 @@ define('grid', [
             var icon_width = 24;
             colName = colName.concat([
                 ('<input type="checkbox" i18nt="billing.payments.selectAllStudies" id="chkStudyHeader_' + filterID + '" class="chkheader" onclick="commonjs.checkMultiple(event)" />'),
-                '','','','','', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', 'Assigned To', '', '', '', ''
+                '','','','','','', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', 'Assigned To', '', '', '', ''
             ]);
 
             i18nName = i18nName.concat([
-                '','','','','', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '','', '', 'billing.claims.assignedTo', '', '', '', ''
+                '','','','','', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '','', '', 'billing.claims.assignedTo', '', '', '', ''
             ]);
 
             colModel = colModel.concat([
@@ -1081,6 +1081,17 @@ define('grid', [
                     },
                     customAction: function (rowID, e, that) {
                     }
+                },
+                {
+                    name: 'alert', width: 20, sortable: false, search: false,
+                    className: 'icon-ic-info',
+                    formatter: function (e, model, data) {
+                        if (data.show_alert_icon) {
+                            return '<i class="icon-ic-info" i18nt="shared.buttons.alert" id="alertInfoRow_' + model.rowId + '"></i>';
+                        }
+
+                        return "";
+                    },
                 },
                 {
                     name: 'as_edit',

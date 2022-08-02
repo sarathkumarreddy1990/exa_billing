@@ -1385,9 +1385,20 @@ define(['jquery',
                     gridelementid: '#tblpendPaymentsGridOnly',
                     custompager: this.pendPaymtInvoicePager,
                     emptyMessage: commonjs.geti18NString("messages.status.noRecordFound"),
-                    colNames: ['', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '',''],
-                    i18nNames: ['', '', '', '', '', '', 'billing.fileInsurance.claimNo','billing.fileInsurance.ordFacility','billing.fileInsurance.invoiceNo', 'billing.payments.patient', 'billing.fileInsurance.claimDt', 'billing.payments.billFee', 'billing.payments.balance', 'shared.fields.cptCodes', 'setup.userSettings.accountNo', '', ''],
+                    colNames: ['','', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '',''],
+                    i18nNames: ['','', '', '', '', '', '', 'billing.fileInsurance.claimNo','billing.fileInsurance.ordFacility','billing.fileInsurance.invoiceNo', 'billing.payments.patient', 'billing.fileInsurance.claimDt', 'billing.payments.billFee', 'billing.payments.balance', 'shared.fields.cptCodes', 'setup.userSettings.accountNo', '', ''],
                     colModel: [
+                        {
+                            name: 'alert', width: 20, sortable: false, search: false,
+                            className: 'icon-ic-info',
+                            formatter: function (e, model, data) {
+                                if (data.show_alert_icon) {
+                                    return '<i class="icon-ic-info" i18nt="shared.buttons.alert" id="alertInfoRow_' + model.rowId + '"></i>';
+                                }
+        
+                                return "";
+                            },
+                        },
                         {
                             name: 'edit', width: 20, sortable: false, search: false,
                             className: 'icon-ic-edit',
@@ -1492,9 +1503,20 @@ define(['jquery',
                         gridelementid: '#tblpendPaymentsGrid',
                         custompager: this.pendPaymtPager,
                         emptyMessage: commonjs.geti18NString("messages.status.noRecordFound"),
-                        colNames: ['', '', '', '', '', '', '', '', '', '', '', '', '', '', '', ''],
-                        i18nNames: ['', '', '', '', '', '', 'billing.fileInsurance.claimNo', 'billing.fileInsurance.invoiceNo', 'billing.payments.patient', 'billing.fileInsurance.claimDt', 'billing.payments.billFee', 'billing.payments.balance', 'shared.fields.cptCodes', 'setup.userSettings.accountNo', '', ''],
+                        colNames: ['', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', ''],
+                        i18nNames: ['', '', '', '', '', '', '', 'billing.fileInsurance.claimNo', 'billing.fileInsurance.invoiceNo', 'billing.payments.patient', 'billing.fileInsurance.claimDt', 'billing.payments.billFee', 'billing.payments.balance', 'shared.fields.cptCodes', 'setup.userSettings.accountNo', '', ''],
                         colModel: [
+                            {
+                                name: 'alert', width: 20, sortable: false, search: false,
+                                className: 'icon-ic-info',
+                                formatter: function (e, model, data) {
+                                    if (data.show_alert_icon) {
+                                        return '<i class="icon-ic-info" i18nt="shared.buttons.alert" id="alertInfoRow_' + model.rowId + '"></i>';
+                                    }
+            
+                                    return "";
+                                },
+                            },
                             {
                                 name: 'edit', width: 20, sortable: false, search: false,
                                 className: 'icon-ic-edit',
