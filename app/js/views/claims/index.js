@@ -431,7 +431,7 @@ define(['jquery',
                     return this;
                 }
 
-                if (coverage_level /*&& !this.insuranceEligibilityView[coverage_level]*/) {
+                if (coverage_level) {
                     this.insuranceEligibilityView[coverage_level] = new InsuranceEligibilityView({
                         el: "#divEligibility" + _.capitalize(coverage_level)
                     });
@@ -441,7 +441,8 @@ define(['jquery',
                         coverage_level: coverage_level,
                         show_service_type: this.showServiceType(),
                         show_benefits_on_date: this.showBenefitsOnDate(),
-                        container_class: "col-xs-12"
+                        container_class: "col-xs-12",
+                        disabled: !app.checkPermissionCode("ELIG")
                     });
                 }
 
