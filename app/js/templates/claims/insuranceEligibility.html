@@ -7,7 +7,7 @@
         </div>
 
         <div class="col-form-content">
-            <select id="ddlServiceType<%= data.key %>" multiple="multiple" />
+            <select id="ddlServiceType<%= data.key %>" multiple="multiple" <%= data.disabled %> />
         </div>
     </div>
 </div>
@@ -23,7 +23,7 @@
 
         <div class="col-form-content">
             <div id="divBenefitOnDate<%= data.key %>" class="input-group">
-                <input type="text" id="txtBenefitOnDate<%= data.key %>" class="form-control maskDateLocale" i18np="dateFormat">
+                <input type="text" id="txtBenefitOnDate<%= data.key %>" class="form-control maskDateLocale" i18np="dateFormat" <%= data.disabled %>>
 
                 <span class="input-group-addon add-on">
                     <i class="icon-ic-schedule"></i>
@@ -36,7 +36,7 @@
 
 <div class="<%= data.container_class %>">
     <div class="eligibility-button" data-key="<%= data.key %>">
-        <button type="button" class="btn btn-green btn-eligibility" i18n="<%= data.btnI18n %>"></button>
+        <button id="btnEligibility<%= data.key %>" type="button" class="btn btn-green btn-eligibility" i18n="<%= data.btnI18n %>" <%= data.disabled %>></button>
     </div>
 
     <div class="eligibility-loader start-hidden" data-key="<%= data.key %>">

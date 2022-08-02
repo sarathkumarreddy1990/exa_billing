@@ -86,13 +86,14 @@ function (
         /**
          * Initializes global view variables on render
          *
-         * @param {object} args
-         * @prop  {number} args.order_id
-         * @prop  {string} args.coverage_level
-         * @prop  {object} args.parent
-         * @prop  {object} args.parent.view
-         * @prop  {string} args.parent.getter
-         * @prop  {string} args.parent.setter
+         * @param {object}  args
+         * @prop  {number}  args.order_id
+         * @prop  {string}  args.coverage_level
+         * @prop  {boolean} args.disabled
+         * @prop  {object}  args.parent
+         * @prop  {object}  args.parent.view
+         * @prop  {string}  args.parent.getter
+         * @prop  {string}  args.parent.setter
          */
         initGlobalVariables: function (args) {
             this.rendered = true;
@@ -106,7 +107,8 @@ function (
                 btnI18n: this.buttonI18n(),
                 show_service_type: !!args.show_service_type,
                 show_benefits_on_date: !!args.show_benefits_on_date,
-                container_class: args.container_class || ""
+                container_class: args.container_class || "",
+                disabled: args.disabled ? "disabled" : ""
             }
 
             return this;
@@ -819,7 +821,7 @@ function (
          */
         determineStateEnabledButton: function () {
             var disabled = this.readOnlyNoEligibility();
-            $(".btn-eligibility").prop("disabled", disabled);
+            $("#btnEligibility" + this.key).prop("disabled", disabled);
 
             return this;
         },
@@ -1128,7 +1130,7 @@ function (
          * @returns {boolean}
          */
         eligibilityExists: function () {
-            return ~~this.data.eligibility_id > 0;
+            return ~~_.get(this, "data.eligibility_id", 0) > 0;
         },
 
         /**
@@ -1330,7 +1332,7 @@ function (
             return (
                 !app.checkPermissionCode("ELIG") &&
                 app.checkPermissionCode("ELGR") &&
-                app.default_country_alpha_3_code === "usa"
+                app.country_alpha_3_code === "usa"
             )
         },
 
@@ -1404,11 +1406,11 @@ function (
         serviceTypesImagineSoftware: function () {
             var arr_service_types = [];
             var add_4 = this.data.studies.some(function (study) {
-                var modality = study.modality || study.modality_name || "";
+                var modality = study.modality || study.modality_name || study.modality_code || "";
                 return !_.includes(["CT", "MR"], modality);
             });
             var add_62 = this.data.studies.some(function (study) {
-                var modality = study.modality || study.modality_name || "";
+                var modality = study.modality || study.modality_name || study.modality_code || "";
                 return _.includes(["CT", "MR"], modality);
             });
 
