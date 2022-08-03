@@ -480,9 +480,8 @@ function (
                 }
             });
 
-            $ddlServiceType
-                .multiselect("deselectAll", false)
-                .multiselect("refresh");
+            $ddlServiceType.multiselect("deselectAll", false)
+            $ddlServiceType.multiselect("refresh");
 
             return this;
         },
