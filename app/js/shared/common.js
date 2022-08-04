@@ -1,6 +1,5 @@
 
 var moment;
-
 require.config({
     waitSeconds: 0,
     paths: {
@@ -9,11 +8,7 @@ require.config({
     }
 });
 
-define([
-    'moment-timezone'
-], function (
-    momenttz
-) {
+define(['moment-timezone'], function (momenttz) {
     moment = momenttz;
 });
 
@@ -5478,7 +5473,8 @@ var commonjs = {
         } else {
             callback();
         }
-    },
+    }
+};
 
 var siteLayouts = {
     facility: 'Facility',
