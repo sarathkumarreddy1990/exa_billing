@@ -24,7 +24,8 @@ define([
     'text!templates/claims/claim-inquiry-cas.html',
     'shared/report-utils',
     'text!templates/claims/claim-inquiry-cas-header.html',
-    'views/reports/patient-statement'
+    'views/reports/patient-statement',
+    'shared/claim-alerts'
 ], function (
     $,
     _,
@@ -51,7 +52,8 @@ define([
     casTemplate,
     UI,
     claimEnquiryCasHeader,
-    PatientStatementView
+    PatientStatementView,
+    claimAlertsView
 ) {
         var paperClaim = new PaperClaim(true);
 
@@ -261,11 +263,11 @@ define([
                             }
                             self.clearFaxInfo();
                             self.disableElementsForProvince(claim_data);
-                            
+
                             var claimInquiryAlerts = claim_data.claim_comments || null;
 
                             if (claimInquiryAlerts) {
-                                commonjs.showClaimAlerts(claimInquiryAlerts);
+                                claimAlertsView.showClaimAlerts(claimInquiryAlerts);
                             }
                         }
                     },
@@ -1054,7 +1056,7 @@ define([
                     height: '20%',
                     html: $('#divCIFormComment').html()
                 });
-                
+
                 var $nestedModel = $('#siteModalNested');
                 var $addComment = $nestedModel.find('#txtCIAddComment');
 

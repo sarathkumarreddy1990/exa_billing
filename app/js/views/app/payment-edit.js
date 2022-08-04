@@ -19,9 +19,9 @@ define(['jquery',
     'collections/app/studycpt-list',
     'shared/trackFormChanges',
     'text!templates/app/addtional-cas.html',
-    'views/reports/patient-statement'],
-
-    function (
+    'views/reports/patient-statement',
+    'shared/claim-alerts'
+], function (
         jQuery,
         Immutable,
         _,
@@ -43,7 +43,8 @@ define(['jquery',
         studycptCollection,
         trackFormChanges,
         AdditionCASTemplate,
-        PatientStatementView
+        PatientStatementView,
+        claimAlertsView
     ) {
         return Backbone.View.extend({
             el: null,
@@ -1395,7 +1396,7 @@ define(['jquery',
                                 if (data.show_alert_icon) {
                                     return '<i class="icon-ic-info" i18nt="shared.buttons.alert" id="alertInfoRow_' + model.rowId + '"></i>';
                                 }
-        
+
                                 return "";
                             },
                         },
@@ -1513,7 +1514,7 @@ define(['jquery',
                                     if (data.show_alert_icon) {
                                         return '<i class="icon-ic-info" i18nt="shared.buttons.alert" id="alertInfoRow_' + model.rowId + '"></i>';
                                     }
-            
+
                                     return "";
                                 },
                             },
@@ -2228,9 +2229,9 @@ define(['jquery',
                         var paymentReconAlerts = allData.claim_comments || null;
 
                         if (isInitialBind && paymentReconAlerts) {
-                            commonjs.showClaimAlerts(paymentReconAlerts);
+                            claimAlertsView.showClaimAlerts(paymentReconAlerts);
                         }
-                        
+
                         // To get focus after binding on claim charges
                         var thisPayment = $($('.payment__this_pay')[0]);
                         thisPayment.focus();

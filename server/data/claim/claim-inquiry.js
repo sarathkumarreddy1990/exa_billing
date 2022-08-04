@@ -154,7 +154,7 @@ module.exports = {
             ) AS ins
         )
     SELECT * FROM  claim_details, payment_details, icd_details, insurance_details, patient_details `);
-    
+
         return await query(sql);
     },
 
@@ -735,8 +735,7 @@ module.exports = {
             pageNo,
             pageSize,
             patientId,
-            billProvId,
-            claimID
+            billProvId
         } = params;
 
         let billProvWhereQuery = billProvId && billProvId != 0 && billProvId != '' ? `AND claims.billing_provider_id = ${billProvId}` : '';

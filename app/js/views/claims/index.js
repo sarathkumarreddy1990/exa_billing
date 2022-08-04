@@ -23,7 +23,8 @@ define(['jquery',
 'text!templates/claims/ahs_charges_today.html',
 'text!templates/app/patient-recent-claims.html',
 'views/claims/addInjuryDetails',
-'sweetalert2'
+'sweetalert2',
+'shared/claim-alerts'
 ],
     function ($,
         moment,
@@ -50,7 +51,8 @@ define(['jquery',
         patientChargesTemplate,
         patientClaimTemplate,
         injuryDetailsView,
-        swal2
+        swal2,
+        claimAlertsView
     ) {
         var claimView = Backbone.View.extend({
             el: null,
@@ -1126,9 +1128,9 @@ define(['jquery',
                             }
 
                             var editClaimAlerts = claimDetails.edit_claim_alerts || null;
-                            
+
                             if (isFrom !== 'reload' && editClaimAlerts) {
-                                commonjs.showClaimAlerts(editClaimAlerts);
+                                claimAlertsView.showClaimAlerts(editClaimAlerts);
                             }
 
                             self.toggleOtherClaimNumber();

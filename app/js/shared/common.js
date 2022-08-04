@@ -1,6 +1,6 @@
 
 var moment;
-var swal2;
+
 require.config({
     waitSeconds: 0,
     paths: {
@@ -10,13 +10,11 @@ require.config({
 });
 
 define([
-    'moment-timezone',
-    'sweetalert2'
+    'moment-timezone'
 ], function (
-    momenttz, sweetalert2
+    momenttz
 ) {
     moment = momenttz;
-    swal2 = sweetalert2;
 });
 
 var settingsReceived = false
@@ -5481,47 +5479,6 @@ var commonjs = {
             callback();
         }
     },
-
-    /**
-    * Show claim comments as alert
-    * @param {Array} claimAlerts contains comments data
-    * @param {String} isFrom contains screen name
-    */
-    showClaimAlerts: function (claimAlerts, isFrom) {
-        var liAlerts = [];
-
-        if (isFrom === 'patientClaims') {
-            $.each(claimAlerts, function (claimNo, ptClaimAlerts) {
-                liAlerts.push('<li> <b>Claim No.' + claimNo + ': </b> </li>');
-                $.each(ptClaimAlerts, function (i, alert) {
-                    liAlerts.push('<li>' + alert + '</li>');
-                });
-                liAlerts.push('<br/>');
-            });
-        } else {
-            $.each(claimAlerts, function (i, alert) {
-                liAlerts.push('<li>' + alert + '</li>');
-            });
-        }
-
-        swal2.fire({
-            title: commonjs.geti18NString("billing.claims.alert"),
-            html: "<ul id='alertContent'> </ul>",
-            onOpen: function (e) {
-                $('.swal2-checkbox').addClass('d-none');
-                $('#alertContent')
-                    .css('padding', '0px')
-                    .append(liAlerts);
-
-                $('#swal2-content').css({
-                    'max-height': '250px',
-                    'overflow': 'auto'
-                });
-            }
-        });
-    }
-};
-
 
 var siteLayouts = {
     facility: 'Facility',
