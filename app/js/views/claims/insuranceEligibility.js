@@ -465,10 +465,11 @@ function (
 
             // Make multi-select
             $ddlServiceType.multiselect({
-                nonSelectedText: i18n.get("shared.buttons.noneSelected"),
-                maxHeight: 200,
                 enableFiltering: true,
                 enableCaseInsensitiveFiltering: true,
+                maxHeight: 200,
+                nonSelectedText: i18n.get("shared.buttons.noneSelected"),
+                numberDisplayed: 1,
                 onInitialized: function ($select, $container) {
                     $('.dropdown-toggle', $container).dropdown();
                     $(document).mousedown(function (e) {
@@ -480,7 +481,7 @@ function (
                 }
             });
 
-            $ddlServiceType.multiselect("deselectAll", false)
+            $ddlServiceType.multiselect("deselectAll", false);
             $ddlServiceType.multiselect("refresh");
 
             return this;
