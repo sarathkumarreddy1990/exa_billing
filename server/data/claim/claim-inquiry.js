@@ -52,9 +52,11 @@ module.exports = {
             LEFT JOIN LATERAL (
                 SELECT
                     ARRAY_AGG(note) AS claim_comments
-                FROM billing.claim_comments bcc
-                WHERE bcc.claim_id = ${claim_id}
-                AND 'claim_inquiry' = ANY(bcc.alert_screens)
+                FROM
+                    billing.claim_comments bcc
+                WHERE
+                    bcc.claim_id = ${claim_id}
+                    AND 'claim_inquiry' = ANY(bcc.alert_screens)
             ) AS ci_alerts ON TRUE
             WHERE
                 bc.id = ${claim_id}
@@ -783,10 +785,12 @@ module.exports = {
                     LEFT JOIN LATERAL (
                     	SELECT
                     	    ARRAY_AGG(note) AS claim_comments
-                    	FROM billing.claim_comments bcc
-                    	WHERE ${initialLoad}
-                        AND bcc.claim_id = claims.id
-                    	AND 'patient_claims' = ANY(bcc.alert_screens)
+                    	FROM
+                            billing.claim_comments bcc
+                    	WHERE
+                            ${initialLoad}
+                            AND bcc.claim_id = claims.id
+                    	    AND 'patient_claims' = ANY(bcc.alert_screens)
                     ) AS pc_alerts ON TRUE
                     WHERE patients.id = ${patientId}
                     `);

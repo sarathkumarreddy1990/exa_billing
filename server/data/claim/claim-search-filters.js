@@ -742,10 +742,12 @@ const api = {
             INNER JOIN billing.claims ON FinalClaims.claim_id = claims.id
             INNER JOIN facilities ON facilities.id = claims.facility_id
             LEFT JOIN LATERAL (
-                SELECT 
+                SELECT
                     true AS show_alert_icon
-                FROM billing.claim_comments bcc
-                WHERE bcc.claim_id = claims.id
+                FROM
+                    billing.claim_comments bcc
+                WHERE
+                    bcc.claim_id = claims.id
                     AND 'edit_claim' = ANY(bcc.alert_screens)
             ) AS claim_alt ON TRUE
             ${api.getWLQueryJoin(columns, '', args.customArgs.filter_id, args.user_id, args.isCount, args)}

@@ -263,7 +263,6 @@ define([
                             }
                             self.clearFaxInfo();
                             self.disableElementsForProvince(claim_data);
-
                             var claimInquiryAlerts = claim_data.claim_comments || null;
 
                             if (claimInquiryAlerts) {

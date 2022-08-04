@@ -95,8 +95,10 @@ module.exports = {
                 LEFT JOIN LATERAL (
                     SELECT
                         true AS show_alert_icon
-                    FROM billing.claim_comments bcc
-                    WHERE bcc.claim_id = bc.id
+                    FROM
+                        billing.claim_comments bcc
+                    WHERE
+                        bcc.claim_id = bc.id
                         AND 'payment_reconciliation' = ANY(bcc.alert_screens)
                 ) AS claim_alt ON TRUE
                 INNER JOIN billing.charges bch on bch.claim_id = bc.id
@@ -262,11 +264,13 @@ module.exports = {
                 INNER JOIN billing.get_claim_totals(bc.id) AS claim_totals ON true
                 INNER JOIN public.patients pp on pp.id = bc.patient_id
                 LEFT JOIN LATERAL (
-                    SELECT 
+                    SELECT
                         true AS show_alert_icon
-                    FROM billing.claim_comments bcc
-                    WHERE bcc.claim_id = bc.id
-                        AND 'payment_reconciliation' = ANY(bcc.alert_screens)			
+                    FROM
+                        billing.claim_comments bcc
+                    WHERE
+                        bcc.claim_id = bc.id
+                        AND 'payment_reconciliation' = ANY(bcc.alert_screens)
                 ) AS claim_alt ON TRUE
                 LEFT JOIN ordering_facility_contacts ofc on ofc.id = bc.ordering_facility_contact_id
                 LEFT JOIN public.ordering_facilities of on of.id = ofc.ordering_facility_id`;
@@ -431,12 +435,15 @@ module.exports = {
                 INNER JOIN billing.claims bc ON bc.id = bch.claim_id
                 INNER JOIN public.patients pp ON pp.id = bc.patient_id
                 LEFT JOIN LATERAL (
-                    SELECT 
+                    SELECT
                         true AS show_alert_icon
-                    FROM billing.claim_comments bcc
-                    WHERE bcc.claim_id = bc.id
-                    AND 'payment_reconciliation' = ANY(bcc.alert_screens)
-                    GROUP BY bcc.claim_id
+                    FROM
+                        billing.claim_comments bcc
+                    WHERE
+                        bcc.claim_id = bc.id
+                        AND 'payment_reconciliation' = ANY(bcc.alert_screens)
+                    GROUP BY
+                        bcc.claim_id
                 ) AS claim_alt ON TRUE
                 INNER JOIN billing.get_claim_totals(bc.id) gct ON TRUE
                 INNER JOIN billing.get_claim_patient_other_payment(bc.id) gcp_other_payment ON TRUE
@@ -546,7 +553,7 @@ module.exports = {
             WHERE bc.id =  ${claimId}
             ) AS payer_types ),
             adjustment_codes AS(
-                SELECT JSON_AGG(Row_to_json(adjustment_codes)) adjustment_codes
+                SELECT JSON_AGG(ROW_TO_JSON(adjustment_codes)) adjustment_codes
                 FROM (
                     SELECT
                         id,
@@ -560,7 +567,7 @@ module.exports = {
                 ) AS adjustment_codes
             ),
             charges AS(
-                SELECT JSON_AGG(Row_to_json(charges)) charges
+                SELECT JSON_AGG(ROW_TO_JSON(charges)) charges
                 FROM (
                     SELECT
                         bch.id,
@@ -578,23 +585,24 @@ module.exports = {
                     WHERE bch.claim_id = ${claimId}
                     GROUP BY bch.id ${groupByQuery}
                 ) AS charges
-            ),            
+            ),
             payment_recon_alerts AS (
                 SELECT
                     ARRAY_AGG(note) AS claim_comments
-                FROM billing.claim_comments bcc
-                WHERE bcc.claim_id = ${claimId}
-                AND 'payment_reconciliation' = ANY(bcc.alert_screens)
+                FROM
+                    billing.claim_comments bcc
+                WHERE
+                    bcc.claim_id = ${claimId}
+                    AND 'payment_reconciliation' = ANY(bcc.alert_screens)
             )
-            
-            SELECT 
+            SELECT
                 *
             FROM
-            payer_types,
-            adjustment_codes,
-            charges,
-            payment_recon_alerts `);
-                
+                payer_types,
+                adjustment_codes,
+                charges,
+                payment_recon_alerts `);
+
         return await query(sql);
     },
 

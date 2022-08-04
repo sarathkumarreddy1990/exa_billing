@@ -769,9 +769,11 @@ module.exports = {
                     , (
                         SELECT
                             ARRAY_AGG(note)
-                        FROM billing.claim_comments bcc
-                        WHERE bcc.claim_id = ${id}
-                        AND 'edit_claim' = ANY(bcc.alert_screens)
+                        FROM
+                            billing.claim_comments bcc
+                        WHERE
+                            bcc.claim_id = ${id}
+                            AND 'edit_claim' = ANY(bcc.alert_screens)
                     ) AS edit_claim_alerts
                     , (
                         SELECT
