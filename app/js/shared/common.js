@@ -5520,6 +5520,29 @@ var commonjs = {
     },
 
     /**
+     * Ensures that variable passed returns as an array
+     *   1. If already array, return it.
+     *   2. If it is a comma-delimited string, split it into an array.
+     *   3. If neither, simply wrap the value sent into a single-element array.
+     *   4. Lastly, map array before returning if provided.
+     *
+     * @param {*}             maybe_array  Array or string to split
+     * @param {type|function} map          Variable type (Number, String, Boolean) or function to use as map [optional]
+     * @returns {*[]}
+     */
+    ensureArray: function (maybe_array, map) {
+        var new_arr = Array.isArray(maybe_array)
+            ? maybe_array                               // Already array - Use it as is
+            : _.includes(_.toString(maybe_array), ",")
+                ? _.toString(maybe_array).split(",")    // Comma-delimited string - Split into array
+                : [maybe_array];                        // Doesn't need split - Preserve data type
+
+        return map
+            ? new_arr.map(map)
+            : new_arr;
+    },
+
+    /**
      * Ensures callback paramters are a function to avoid crashes when not passed
      *
      * @param {function} callback
