@@ -92,6 +92,7 @@ const sftpService = {
                 user: sftpData.user,
                 password: sftpData.password,
                 port: sftpData.port,
+                readyTimeout: parseInt(sftpData.readyTimeout) || 20000,
 
                 algorithms: {
                     cipher: [
