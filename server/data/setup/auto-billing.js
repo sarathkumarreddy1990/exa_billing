@@ -159,6 +159,7 @@ const getSaveClaimParams = async (params) => {
             wcb_injury_area_code: claim_details.area_of_injury_code_id || null,
             wcb_injury_nature_code: claim_details.nature_of_injury_code_id || null,
             billing_type,
+            is_insurance_split: claim_details.is_insurance_split,
             ord_fac_place_of_service: claim_details.ord_fac_place_of_service,
             order_id,
             study_id
@@ -228,10 +229,18 @@ const splitClaimMobileBilling = async (claim) => {
     });
 
     // EXA-22773 | For technical claim responsible must be ordering facility
+    let billingMethod = claim.is_insurance_split
+        ? claim.billing_method
+        : 'direct_billing';
+                    
+    let payerType = claim.is_insurance_split
+        ? claim.payer_type
+        : 'ordering_facility';
+
     newClaimsArray.push({
         ...claim,
-        billing_method: 'direct_billing',
-        payer_type: 'ordering_facility',
+        billing_method: billingMethod,
+        payer_type: payerType,
         claim_charges: newCharges,
         billing_type: 'split_t',
         place_of_service_id: claim.ord_fac_place_of_service

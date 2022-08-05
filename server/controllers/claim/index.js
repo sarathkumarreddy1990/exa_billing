@@ -62,13 +62,21 @@ const api= {
             });
         });
 
-        // EXA-22773 | For technical claim responsible must be ordering facility        
+        // EXA-22773 | For technical claim responsible must be ordering facility
+        let billingMethod = claims.is_insurance_split
+            ? claims.billing_method
+            : 'direct_billing';
+            
+        let payerType = claims.is_insurance_split
+            ? claims.payer_type
+            : 'ordering_facility';
+
         claimsArray.push({
             claims: {
                 ...claims,
                 place_of_service_id: claims.technical_place_of_service || null,
-                billing_method: 'direct_billing',
-                payer_type: 'ordering_facility',
+                billing_method: billingMethod,
+                payer_type: payerType,
                 billing_type: 'split_t'
             },
             charges: newCharges

@@ -226,6 +226,18 @@ module.exports = {
                                             THEN 'void'
                                             ELSE NULL
                                         END AS frequency,
+                                        CASE
+                                            WHEN (${params.isMobileBillingEnabled} = 'true' 
+                                                AND (
+                                                    SELECT
+                                                        is_split_claim_enabled
+                                                    FROM insurances
+                                                    WHERE coverage_level = 'primary' 
+                                                        AND is_split_claim_enabled)
+                                                AND (SELECT billing_type from get_study_date) = 'global'
+                                            ) THEN true
+                                            ELSE false
+                                        END AS is_insurance_split,
                                         COALESCE(NULLIF(order_info->'oa',''), 'false')::boolean AS is_other_accident,
                                         COALESCE(NULLIF(order_info->'aa',''), 'false')::boolean AS is_auto_accident,
                                         COALESCE(NULLIF(order_info->'emp',''), 'false')::boolean AS is_employed,

@@ -1331,6 +1331,7 @@ define(['jquery',
                 self.ordering_facility_name = orderingFacility;
                 self.ordering_facility_contact_id = claim_data.ordering_facility_contact_id || claim_data.service_facility_contact_id || null;
                 self.billing_type = claim_data.billing_type || 'global';
+                self.is_insurance_split = claim_data.is_insurance_split;
                 var patientAltAaccNo;
                 if (claim_data.patient_alt_acc_nos && app.country_alpha_3_code === 'can') {
                     patientAltAaccNo = claim_data.can_issuer_id
@@ -4351,6 +4352,7 @@ define(['jquery',
                     is_split_claim: app.isMobileBillingEnabled && self.is_split_claim,
                     order_id: self.options && self.options.order_id,
                     is_mobile_billing_enabled: app.isMobileBillingEnabled,
+                    is_insurance_split: self.is_insurance_split,
                     can_ahs_encounter_no: $('#txtEncounterNo').val(),
                     can_issuer_id: self.ACSelect && self.ACSelect.patientAltAccNo
                         ? self.ACSelect.patientAltAccNo.issuer_id
