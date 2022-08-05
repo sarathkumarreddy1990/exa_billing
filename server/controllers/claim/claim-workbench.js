@@ -130,6 +130,7 @@ module.exports = {
                     enableFtp: true,
                     host: header.ftpHostName,
                     user: header.ftpUserName,
+                    readyTimeout: header.ftpReadyTimeout,
                     password: header.ftpPassword,
                     port: header.ftpPort,
                     privateKey: header.ftpIdentityFile,
