@@ -400,7 +400,8 @@ define(['jquery',
                         customScreenName: 'Census',
                         isAllCensus: false,
                         isAllStudies: false,
-                        isMobileBillingEnabled: app.isMobileBillingEnabled
+                        isMobileBillingEnabled: app.isMobileBillingEnabled,
+                        isMobileRadEnabled: app.settings.enableMobileRad
                     },
                     success: function (data) {
                         commonjs.hideLoading();

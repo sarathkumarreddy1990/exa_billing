@@ -41,6 +41,7 @@ module.exports = {
                                  , exam_prep_instructions
                                  , rvu
                                  , COUNT(1) OVER (range unbounded preceding) as total_records
+                                 , charge_type
                                 FROM
                                     cpt_codes
                                 WHERE
@@ -188,6 +189,7 @@ module.exports = {
                                 , hstore_to_json(insurance_info) AS insurance_info
                                 , ipd.billing_method
                                 , COUNT(1) OVER (range unbounded preceding) as total_records
+                                , ipd.is_split_claim_enabled
                             FROM
                                 insurance_providers
                             LEFT JOIN billing.insurance_provider_details ipd on ipd.insurance_provider_id = insurance_providers.id

@@ -164,6 +164,7 @@ module.exports = {
                                 , additional_info
                                 , sc.cpt_code_id AS cpt_id
                                 , sc.is_billable
+                                , cpt_codes.charge_type
                             FROM public.study_cpt sc
                             INNER JOIN public.studies s ON s.id = sc.study_id
                             INNER JOIN public.cpt_codes on sc.cpt_code_id = cpt_codes.id
