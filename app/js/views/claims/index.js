@@ -4136,6 +4136,16 @@ define(['jquery',
 
                 return can_ahs_skill_code_id;
             },
+
+            isOrderingFacilityMissing: function(chargeId) {
+                return (
+                    app.country_alpha_3_code === 'usa'
+                    && app.settings.enableMobileRad
+                    && $("#chargeType_" + chargeId).text() === 'ordering_facility_invoice'
+                    && !this.ordering_facility_contact_id
+                );
+            },
+
             setClaimDetails: function () {
                 var self = this;
                 var claim_model = {}, billingMethod;
@@ -4590,7 +4600,6 @@ define(['jquery',
                                         commonjs.getClaimStudy(self.claim_Id, function (result) {
                                             self.rendered = false;
                                             self.clearDependentVariables();
-                                            var split_claim_ids = (result && result.split_claim_ids && result.split_claim_ids.length && result.split_claim_ids) || [];
                                             self.showEditClaimForm(self.claim_Id, 'reload', {
                                                 'study_id': result && result.study_id ? result.study_id : 0,
                                                 'patient_name': self.cur_patient_name,
@@ -4598,7 +4607,7 @@ define(['jquery',
                                                 'order_id': result && result.order_id ? result.order_id : 0,
                                                 'grid_id': self.options && self.options.grid_id || null,
                                                 'from': self.options && self.options.from || self.openedFrom || null,
-                                                split_claim_ids
+                                                split_claim_ids: result && result.split_claim_ids
                                             });
                                         });
                                     }
@@ -4876,13 +4885,9 @@ define(['jquery',
                         unmatchedChargeDates.push(id);
                     }
 
-                    if (app.country_alpha_3_code === 'usa'
-                        && app.settings.enableMobileRad
-                        && $("#chargeType_" + id).text() === 'ordering_facility_invoice'
-                        && !self.ordering_facility_contact_id
-                    ) {
+                    if (self.isOrderingFacilityMissing(id)) {
                         isOrderingFacilityMissing = true;
-                        return false;                     
+                        return false;
                     }
 
                     var modifiers = [
@@ -5448,14 +5453,13 @@ define(['jquery',
                                 var study_id = result && result.study_id ? result.study_id : 0;
                                 var patient_id = data.hidden_patient_id;
                                 var order_id = result && result.order_id ? result.order_id : 0;
-                                var split_claim_ids = (result && result.split_claim_ids && result.split_claim_ids.length && result.split_claim_ids) || [];
                                 self.showEditClaimForm(rowId, null, {
                                     'study_id': self.openedFrom === 'studies' ? data.hidden_study_id : study_id,
                                     'patient_name': data.patient_name,
                                     'patient_id': patient_id,
                                     'order_id': order_id,
                                     'grid_id': self.options.grid_id || null,
-                                    split_claim_ids
+                                    split_claim_ids: result && result.split_claim_ids
                                 });
 
                                 self.updateReportURL();
@@ -6929,7 +6933,6 @@ define(['jquery',
                     commonjs.getClaimStudy(self.claim_Id, function (result) {
                         self.rendered = false;
                         self.clearDependentVariables();
-                        var split_claim_ids = (result && result.split_claim_ids && result.split_claim_ids.length && result.split_claim_ids) || [];
 
                         self.showEditClaimForm(self.claim_Id, 'reload', {
                             study_id: self.options && self.options.study_id || 0,
@@ -6938,7 +6941,7 @@ define(['jquery',
                             order_id: self.options && self.options.order_id,
                             grid_id: self.options && self.options.grid_id || null,
                             from: self.options && self.options.from || self.openedFrom || null,
-                            split_claim_ids
+                            split_claim_ids: result && result.split_claim_ids
                         });
                     });
                 }

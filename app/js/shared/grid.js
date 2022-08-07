@@ -79,7 +79,7 @@ define('grid', [
                 commonjs.getClaimStudy(studyInfo.studyIds, function (result) {
                     studyInfo.study_id = (result && result.study_id && gridName != 'studies') ? result.study_id : studyInfo.study_id;
                     studyInfo.order_id = (result && result.order_id) ? result.order_id : 0;
-                    studyInfo.split_claim_ids = (result && result.split_claim_ids && result.split_claim_ids.length) ? result.split_claim_ids : [];
+                    studyInfo.split_claim_ids = result && result.split_claim_ids;
                     claimView.showEditClaimForm(studyInfo.studyIds, gridName, studyInfo);
                 });
             }

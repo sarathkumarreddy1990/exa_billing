@@ -31,7 +31,7 @@ const api= {
         } = args;
 
         let { professional_modifier_id, technical_modifier_id } = (await data.getTechnicalAndProfessionalModifier()).pop();
-        let claimsArray = [];        
+        let claimsArray = [];
 
         claimsArray.push({
             claims: {
@@ -45,18 +45,12 @@ const api= {
         let newCharges = [];
 
         charges.forEach((charge) => {
-
-            let modifier1 = charge.modifier1_id == professional_modifier_id ? technical_modifier_id : charge.modifier1_id;
-            let modifier2 = charge.modifier2_id == professional_modifier_id ? technical_modifier_id : charge.modifier2_id;
-            let modifier3 = charge.modifier3_id == professional_modifier_id ? technical_modifier_id : charge.modifier3_id;
-            let modifier4 = charge.modifier4_id == professional_modifier_id ? technical_modifier_id : charge.modifier4_id;
-
             newCharges.push({
                 ...charge,
-                modifier1_id: modifier1,
-                modifier2_id: modifier2,
-                modifier3_id: modifier3,
-                modifier4_id: modifier4,
+                modifier1_id: charge.modifier1_id == professional_modifier_id ? technical_modifier_id : charge.modifier1_id,
+                modifier2_id: charge.modifier2_id == professional_modifier_id ? technical_modifier_id : charge.modifier2_id,
+                modifier3_id: charge.modifier3_id == professional_modifier_id ? technical_modifier_id : charge.modifier3_id,
+                modifier4_id: charge.modifier4_id == professional_modifier_id ? technical_modifier_id : charge.modifier4_id,
                 bill_fee: charge.is_custom_bill_fee === 'true' ? charge.bill_fee : 0,
                 allowed_amount: charge.is_custom_bill_fee === 'true' ? charge.allowed_amount : 0
             });
@@ -66,7 +60,7 @@ const api= {
         let billingMethod = claims.is_insurance_split
             ? claims.billing_method
             : 'direct_billing';
-            
+
         let payerType = claims.is_insurance_split
             ? claims.payer_type
             : 'ordering_facility';
@@ -113,47 +107,47 @@ const api= {
         if (is_us_billing && isMobileRadEnabled && claims.payer_type != 'ordering_facility') {
             let orderingFacilityInvoiceCharges = [];
             let otherCharges = [];
-            
+
             claimsArray = [];
 
             for (let i = 0; i < charges.length; i++) {
                 let item = charges[i];
-                
+
                 if (item.charge_type === 'ordering_facility_invoice') {
                     orderingFacilityInvoiceCharges.push(item);
                 } else {
                     otherCharges.push(item);
                 }
             }
-            
+
             if (otherCharges.length) {
-                claimsArray.push({                
+                claimsArray.push({
                     claims,
                     charges: otherCharges
                 });
-            }            
+            }
 
-            if (orderingFacilityInvoiceCharges.length) {              
+            if (orderingFacilityInvoiceCharges.length) {
                 claimsArray.push({
                     claims: {
                         ...claims,
                         billing_method: 'direct_billing',
                         payer_type: 'ordering_facility'
-                    },                    
+                    },
                     charges: orderingFacilityInvoiceCharges
                 });
-            }           
+            }
         }
 
         if (claims.is_split_claim || claims.is_insurance_split) {
             let newClaimsArray = [];
 
-            for (let i = 0; i < claimsArray.length; i++) {    
+            for (let i = 0; i < claimsArray.length; i++) {
                 newClaimsArray.push(...await api.splitClaimMobileBilling(claimsArray[i]));
             }
 
             claimsArray = newClaimsArray;
-        }        
+        }
 
         let claimsDetails = [];
 

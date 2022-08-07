@@ -211,18 +211,12 @@ const splitClaimMobileBilling = async (claim) => {
     let newCharges = [];
 
     claim.claim_charges.forEach((charge, index) => {
-
-        let modifier1 = charge.modifier1_id == professional_modifier_id ? technical_modifier_id : charge.modifier1_id;
-        let modifier2 = charge.modifier2_id == professional_modifier_id ? technical_modifier_id : charge.modifier2_id;
-        let modifier3 = charge.modifier3_id == professional_modifier_id ? technical_modifier_id : charge.modifier3_id;
-        let modifier4 = charge.modifier4_id == professional_modifier_id ? technical_modifier_id : charge.modifier4_id;
-
         newCharges.push({
             ...claim.claim_charges[index],
-            modifier1_id: modifier1,
-            modifier2_id: modifier2,
-            modifier3_id: modifier3,
-            modifier4_id: modifier4,
+            modifier1_id: charge.modifier1_id == professional_modifier_id ? technical_modifier_id : charge.modifier1_id,
+            modifier2_id: charge.modifier2_id == professional_modifier_id ? technical_modifier_id : charge.modifier2_id,
+            modifier3_id: charge.modifier3_id == professional_modifier_id ? technical_modifier_id : charge.modifier3_id,
+            modifier4_id: charge.modifier4_id == professional_modifier_id ? technical_modifier_id : charge.modifier4_id,
             bill_fee: claim.claim_charges[index].is_custom_bill_fee === 'true' ? claim.claim_charges[index].bill_fee : 0,
             allowed_amount: claim.claim_charges[index].is_custom_bill_fee === 'true' ? claim.claim_charges[index].allowed_amount : 0
         });
@@ -232,7 +226,7 @@ const splitClaimMobileBilling = async (claim) => {
     let billingMethod = claim.is_insurance_split
         ? claim.billing_method
         : 'direct_billing';
-                    
+
     let payerType = claim.is_insurance_split
         ? claim.payer_type
         : 'ordering_facility';
@@ -955,7 +949,7 @@ module.exports = {
           FROM purge_cte pc
         `;
         return await query(sql);
-    },    
+    },
 
     executeAutobillingRules: async (params) => {
         const {
@@ -1116,42 +1110,41 @@ module.exports = {
                     let orderingFacilityInvoiceCharges = [];
                     let otherCharges = [];
 
-                    
                     saveClaimParams.claims = [];
-        
+
                     for (let i = 0; i < claim.claim_charges.length; i++) {
                         let item = claim.claim_charges[i];
-                        
+
                         if (item.charge_type === 'ordering_facility_invoice') {
                             orderingFacilityInvoiceCharges.push(item);
                         } else {
                             otherCharges.push(item);
                         }
                     }
-                    
+
                     if (otherCharges.length) {
                         saveClaimParams.claims.push({
                             ...claim,
                             claim_charges: otherCharges
                         });
-                    }                    
+                    }
 
-                    if (orderingFacilityInvoiceCharges.length) {   
+                    if (orderingFacilityInvoiceCharges.length) {
                         if (!claim.ordering_facility_contact_id) {
                             logger.logError('Ordering facility not available for splitting claims. Claim creation failed.');
                             return;
                         }
-                
+
                         saveClaimParams.claims.push({
                             ...claim,
                             claim_charges: orderingFacilityInvoiceCharges,
                             billing_method: 'direct_billing',
                             payer_type: 'ordering_facility'
                         });
-                    }                               
-                }    
+                    }
+                }
 
-                if(claim.is_split_claim) {
+                if (claim.is_split_claim) {
                     let newClaimsArray = [];
 
                     for (let i = 0; i < saveClaimParams.claims.length; i++) {
