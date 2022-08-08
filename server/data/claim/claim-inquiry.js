@@ -383,7 +383,7 @@ module.exports = {
             claim_id,
             assignedTo,
             notes,
-            altScreens,
+            alertScreens,
             screenName,
             moduleName,
             clientIp,
@@ -545,7 +545,7 @@ module.exports = {
                         billing.claim_comments
                     SET
                           note = ${note}
-                        , alert_screens = ${JSON.parse(altScreens)}
+                        , alert_screens = ${JSON.parse(alertScreens)}
                     WHERE
                         id = ${commentId}
                     RETURNING *,
@@ -587,7 +587,7 @@ module.exports = {
             type,
             claim_id,
             userId,
-            altScreens
+            alertScreens
         } = params;
 
         let sql = SQL`INSERT INTO billing.claim_comments
@@ -605,7 +605,7 @@ module.exports = {
                 , ${claim_id}
                 , ${userId}
                 , now()
-                , ${JSON.parse(altScreens)}
+                , ${JSON.parse(alertScreens)}
             ) RETURNING *, '{}'::jsonb old_values`;
 
 

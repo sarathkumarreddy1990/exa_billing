@@ -89,7 +89,7 @@ module.exports = {
                     (SELECT charges_bill_fee_total from billing.get_claim_totals(bc.id)) AS billing_fee,
                     (SELECT charges_bill_fee_total - (payments_applied_total + adjustments_applied_total + refund_amount) FROM billing.get_claim_totals(bc.id)) AS balance,
                     COUNT(1) OVER (range unbounded preceding) AS total_records,
-                    claim_alt.show_alert_icon
+                    claim_alert.show_alert_icon
                 FROM billing.claims bc
                 INNER JOIN public.patients pp on pp.id = bc.patient_id
                 LEFT JOIN LATERAL (
@@ -100,7 +100,7 @@ module.exports = {
                     WHERE
                         bcc.claim_id = bc.id
                         AND 'payment_reconciliation' = ANY(bcc.alert_screens)
-                ) AS claim_alt ON TRUE
+                ) AS claim_alert ON TRUE
                 INNER JOIN billing.charges bch on bch.claim_id = bc.id
                 INNER JOIN public.cpt_codes pcc on pcc.id = bch.cpt_id
             `;
@@ -120,7 +120,7 @@ module.exports = {
                 pp.last_name,
                 pp.first_name,
                 pp.account_no,
-                claim_alt.show_alert_icon `);
+                claim_alert.show_alert_icon `);
 
             if (sortField) {
                 sql.append(` , ${sortField}  `);
@@ -258,7 +258,7 @@ module.exports = {
                     claim_totals.charges_bill_fee_total as billing_fee,
                     claim_totals.charges_bill_fee_total - (claim_totals.payments_applied_total + claim_totals.adjustments_applied_total + refund_amount) AS balance,
                     of.name AS ordering_facility_name,
-                    claim_alt.show_alert_icon
+                    claim_alert.show_alert_icon
 
                 FROM billing.claims bc
                 INNER JOIN billing.get_claim_totals(bc.id) AS claim_totals ON true
@@ -271,7 +271,7 @@ module.exports = {
                     WHERE
                         bcc.claim_id = bc.id
                         AND 'payment_reconciliation' = ANY(bcc.alert_screens)
-                ) AS claim_alt ON TRUE
+                ) AS claim_alert ON TRUE
                 LEFT JOIN ordering_facility_contacts ofc on ofc.id = bc.ordering_facility_contact_id
                 LEFT JOIN public.ordering_facilities of on of.id = ofc.ordering_facility_id`;
 
@@ -420,7 +420,7 @@ module.exports = {
                 gct.charges_bill_fee_total AS bill_fee,
                 gct.claim_cpt_description as display_description,
                 gct.claim_balance_total AS balance,
-                claim_alt.show_alert_icon,
+                claim_alert.show_alert_icon,
                 COUNT(1) OVER (range unbounded preceding) AS total_records `;
 
         if (isFromClaim && paymentApplicationId) {
@@ -444,7 +444,7 @@ module.exports = {
                         AND 'payment_reconciliation' = ANY(bcc.alert_screens)
                     GROUP BY
                         bcc.claim_id
-                ) AS claim_alt ON TRUE
+                ) AS claim_alert ON TRUE
                 INNER JOIN billing.get_claim_totals(bc.id) gct ON TRUE
                 INNER JOIN billing.get_claim_patient_other_payment(bc.id) gcp_other_payment ON TRUE
         `);
@@ -466,7 +466,7 @@ module.exports = {
             adjustments_applied_total,
             charges_bill_fee_total,
             patient_paid, others_paid,
-            claim_alt.show_alert_icon `);
+            claim_alert.show_alert_icon `);
 
         if (havingQuery.length) {
             sql.append(SQL` HAVING `)

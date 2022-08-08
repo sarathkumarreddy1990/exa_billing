@@ -737,7 +737,7 @@ const api = {
             SELECT
             ${columns},
             FinalClaims.number,
-            claim_alt.show_alert_icon
+            claim_alert.show_alert_icon
             FROM (${innerQuery}) as FinalClaims
             INNER JOIN billing.claims ON FinalClaims.claim_id = claims.id
             INNER JOIN facilities ON facilities.id = claims.facility_id
@@ -749,7 +749,7 @@ const api = {
                 WHERE
                     bcc.claim_id = claims.id
                     AND 'edit_claim' = ANY(bcc.alert_screens)
-            ) AS claim_alt ON TRUE
+            ) AS claim_alert ON TRUE
             ${api.getWLQueryJoin(columns, '', args.customArgs.filter_id, args.user_id, args.isCount, args)}
             ORDER BY FinalClaims.number
             `

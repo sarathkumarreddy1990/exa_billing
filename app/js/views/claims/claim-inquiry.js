@@ -1046,7 +1046,7 @@ define([
                 })
             },
 
-            showCommentPopup: function (from, comment, commentId, altScreens) {
+            showCommentPopup: function (from, comment, commentId, alertScreens) {
                 var self = this;
                 commonjs.showNestedDialog({
                     header: 'Add Comment',
@@ -1061,8 +1061,8 @@ define([
 
                 if (from == 'edit') {
                     $addComment.val(comment);
-                    altScreens && altScreens.forEach(function (altScreen) {
-                        $nestedModel.find('#chkalertScreens input[value=' + altScreen + ']').prop('checked', true);
+                    alertScreens && alertScreens.forEach(function (alertScreen) {
+                        $nestedModel.find('#chkalertScreens input[value=' + alertScreen + ']').prop('checked', true);
                     });
                 } else {
                     commentId = 0;
@@ -1136,7 +1136,7 @@ define([
                             'commentId': commentId,
                             'note': comment,
                             'from': 'tmt',
-                            'altScreens': JSON.stringify(selectedScreens)
+                            'alertScreens': JSON.stringify(selectedScreens)
                         },
                         success: function (data, response) {
                             commonjs.showStatus("messages.status.recordSaved");
@@ -1159,7 +1159,7 @@ define([
                             'note': comment,
                             'type': type || 'manual',
                             'claim_id': self.claim_id,
-                            'altScreens': JSON.stringify(selectedScreens)
+                            'alertScreens': JSON.stringify(selectedScreens)
                         },
                         success: function (data, response) {
                             commonjs.showStatus("messages.status.recordSaved");
