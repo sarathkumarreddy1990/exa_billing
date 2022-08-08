@@ -2,7 +2,6 @@ define([
     "jquery",
     "underscore",
     "backbone",
-    "shared/dtp-storage",
     "views/claims/insuranceImagineSoftware",
     "text!templates/claims/insuranceEligibility.html",
     "text!templates/claims/insurancePokitdokpopup.html",
@@ -15,7 +14,6 @@ function (
     $,
     _,
     Backbone,
-    dtpStore,
     InsuranceImagineSoftwareView,
     InsuranceEligibilityTemplate,
     InsurancePokitdokForm,
@@ -73,17 +71,6 @@ function (
         },
 
         /**
-         * Initializes the Benefits On Date DTP
-         */
-        initializeDateTimePickers: function () {
-            dtpStore
-                .initialize("benefit", "divBenefitOnDate" + this.key)
-                .set("benefit", commonjs.getCompanyCurrentDateTime());
-
-            return this;
-        },
-
-        /**
          * Initializes global view variables on render
          *
          * @param {object}  args
@@ -115,17 +102,6 @@ function (
         },
 
         /**
-         * Returns the button i18n string based on the coverage level
-         *
-         * @returns {string}
-         */
-        buttonI18n: function () {
-            return this.coverage_level === "primary"
-                ? "shared.fields.eligibilityEstimation"
-                : "shared.fields.eligibility";
-        },
-
-        /**
          * Entry point for this view
          *
          * @param {object} args
@@ -146,10 +122,13 @@ function (
                 }));
 
                 if (args.show_service_type) {
-                    this.initializeDateTimePickers();
                     this.fetchServiceTypes(function (data) {
                         self.buildServiceTypesDropdown(data);
                     });
+                }
+
+                if (args.show_benefits_on_date) {
+                    this.initializeBenefitsOnDate();
                 }
             }
 
@@ -185,7 +164,7 @@ function (
                 data: {
                     patient_id: this.data.patient_id,
                     patient_insurance_id: this.data.patient_insurance_id,
-                    eligibility_dt: dtpStore.get("benefit", "YYYY-MM-DD") || moment().format("YYYY-MM-DD"),
+                    eligibility_dt: this.benefitOnDate("YYYY-MM-DD"),
                     phn: this.data.phn_alt_account_no,
                     birth_date: this.data.patient_birth_date,
                     facility_id: app.default_facility_id
@@ -267,7 +246,7 @@ function (
                     FederalTaxID: this.data.federal_tax_id || "",
                     billing_provider_name: this.data.billing_provider_name,
                     billing_provider_npi_no: this.data.billing_provider_npi_no,
-                    BenefitOnDate: dtpStore.get("benefit", "YYYY-MM-DD") || moment().format("YYYY-MM-DD"),
+                    BenefitOnDate: this.benefitOnDate("YYYY-MM-DD") || moment().format("YYYY-MM-DD"),
                     LastName: this.data.subscriber_lastname,
                     FirstName: this.data.subscriber_firstname,
                     address: this.data.subscriber_address_line1,
@@ -296,10 +275,9 @@ function (
                 },
                 error: function (response) {
                     commonjs.hideLoading();
-                    self.openEligibilityErrorUsa(response);
                     self.stateLoading(false);
 
-                    return callback({});
+                    return callback(response);
                 }
             });
 
@@ -432,12 +410,6 @@ function (
         },
         /* #endregion */
 
-        /* #region Save Data */
-        // --------------------------------------------------------------------------------
-        //                                    SAVE DATA
-        // --------------------------------------------------------------------------------
-        /* #endregion */
-
         /* #region Functionality */
         // --------------------------------------------------------------------------------
         //                                  FUNCTIONALITY
@@ -529,8 +501,10 @@ function (
                     return self.openPokitdok(data);
                 }
 
-                if (data.error && _.get(data, "sys.data.errors")) {
-                    return self.openPokitdokError(data);
+                var errors = _.get(data, "responseJSON.sys.data.errors");
+
+                if (!_.isEmpty(errors)) {
+                    return self.openPokitdokError(errors.validation || {});
                 }
 
                 return self.openReportGeneral();
@@ -547,26 +521,6 @@ function (
                 var set_data = this.parent.view[this.parent.getter](this.coverage_level);
                 this.setOrderData(set_data);
             }
-
-            return this;
-        },
-
-        /**
-         * Opens an error modal when a request comes back in error for USA
-         */
-        openEligibilityErrorUsa: function () {
-            var error_obj = request.responseText ? JSON.parse(request.responseText) : {};
-            var error_main = _.get(error_obj, "sys.data.errors");
-            var error_table = error_main && eligibilityErrorTemplateForm({ "error_obj": error_main });
-            var error_alt = _.get(error_obj, "sys.error");
-            var error_last_resort = "Error: " + error_obj.error;
-
-            commonjs.showNestedDialog({
-                header: this.subscriberNameHeader(),
-                width: "75%",
-                height: "70%",
-                html: error_table || error_alt || error_last_resort
-            });
 
             return this;
         },
@@ -624,27 +578,16 @@ function (
         /**
          * Opens the Pokitdok error modal
          *
-         * @param {object} data
+         * @param {object} errors
          */
-        openPokitdokError: function (data) {
-            var $failedReasons = $("#bodyFailedReasons");
-            var errors = _.get(data, "sys.data.errors", []);
+        openPokitdokError: function (errors) {
+            var html = this.eligibilityErrorTemplateForm({ "error_obj": errors });
 
-            $failedReasons.empty();
-
-            $.each(errors, function (key, data) {
-                var tr = $("<tr></tr>")
-                    .append($("<td></td>").text(key))
-                    .append($("<td></td>").text(JSON.stringify(data)));
-
-                $failedReasons.append(tr);
-            });
-
-            commonjs.showNestedDialog({
-                header: "Eligibility Response",
+            commonjs.showDialog({
+                header: this.subscriberNameHeader(),
                 width: "75%",
-                height: "65%",
-                html: $("#divPokitdokError").html()
+                height: "70%",
+                html: html
             });
 
             return this;
@@ -809,7 +752,7 @@ function (
          */
         determineStateEnabledDate: function () {
             var disabled = this.readOnlyNoEligibility();
-            dtpStore.setStateEnabled("benefit", !disabled);
+            $("#txtBenefitOnDate" + this.key).prop("disabled", disabled);
 
             return this;
         },
@@ -1046,6 +989,16 @@ function (
         // --------------------------------------------------------------------------------
 
         /**
+         * Initializes the Benefits on Date to the current company date
+         */
+        initializeBenefitsOnDate: function () {
+            var date = commonjs.getCompanyCurrentDateTime().format("L");
+            $("#txtBenefitOnDate" + this.key).val(date);
+
+            return this;
+        },
+
+        /**
          * Sets the order data to the view
          *
          * @param {object} order_data
@@ -1114,6 +1067,35 @@ function (
         // --------------------------------------------------------------------------------
         //                                     GETTERS
         // --------------------------------------------------------------------------------
+
+        /**
+         * Returns the Benefit On Date
+         *
+         * @param {string} format 
+         * @returns {string}
+         */
+        benefitOnDate: function (format) {
+            var date = $("#txtBenefitOnDate" + this.key).val();
+
+            if (!date) {
+                return "";
+            }
+
+            return format
+                ? moment(date).format(format)
+                : date;
+        },
+
+        /**
+         * Returns the button i18n string based on the coverage level
+         *
+         * @returns {string}
+         */
+        buttonI18n: function () {
+            return this.coverage_level === "primary"
+                ? "shared.fields.eligibilityEstimation"
+                : "shared.fields.eligibility";
+        },
 
         /**
          * Returns the date of service
@@ -1201,7 +1183,7 @@ function (
         invalidBenefitOnDate: function () {
             return (
                 this.template_options.show_benefits_on_date &&
-                !dtpStore.get("benefit", "YYYY-MM-DD")
+                !this.benefitOnDate()
             );
         },
 
