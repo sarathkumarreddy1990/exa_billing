@@ -79,7 +79,7 @@ define('grid', [
                 commonjs.getClaimStudy(studyInfo.studyIds, function (result) {
                     studyInfo.study_id = (result && result.study_id && gridName != 'studies') ? result.study_id : studyInfo.study_id;
                     studyInfo.order_id = (result && result.order_id) ? result.order_id : 0;
-                    studyInfo.split_claim_id = (result && result.split_claim_id && result.split_claim_id.length) ? result.split_claim_id[0] : 0;
+                    studyInfo.split_claim_ids = result && result.split_claim_ids;
                     claimView.showEditClaimForm(studyInfo.studyIds, gridName, studyInfo);
                 });
             }
@@ -928,7 +928,8 @@ define('grid', [
                             isClaimGrid: false
                         },
                         isBatchClaim: true,
-                        isMobileBillingEnabled: app.isMobileBillingEnabled
+                        isMobileBillingEnabled: app.isMobileBillingEnabled,
+                        isMobileRadEnabled: app.settings.enableMobileRad
                     }
                 } else {
                     param = {
@@ -936,7 +937,8 @@ define('grid', [
                         company_id: app.companyID,
                         isAllStudies: false,
                         isAllCensus: false,
-                        isMobileBillingEnabled: app.isMobileBillingEnabled
+                        isMobileBillingEnabled: app.isMobileBillingEnabled,
+                        isMobileRadEnabled: app.settings.enableMobileRad
                     }
                 }
                     $.ajax({

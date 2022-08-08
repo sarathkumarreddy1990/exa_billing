@@ -22,6 +22,61 @@ const api= {
     getPatientInsurancesById: async (params) => {
 
         return await data.getPatientInsurancesById(params);
+    },    
+
+    splitClaimMobileBilling: async (args) => {
+        let {
+            claims,
+            charges
+        } = args;
+
+        let { professional_modifier_id, technical_modifier_id } = (await data.getTechnicalAndProfessionalModifier()).pop();
+        let claimsArray = [];
+
+        claimsArray.push({
+            claims: {
+                ...claims,
+                billing_type: 'split_p'
+            },
+            charges
+        });
+
+        // creating a technical claim since it is split claim
+        let newCharges = [];
+
+        charges.forEach((charge) => {
+            newCharges.push({
+                ...charge,
+                modifier1_id: charge.modifier1_id == professional_modifier_id ? technical_modifier_id : charge.modifier1_id,
+                modifier2_id: charge.modifier2_id == professional_modifier_id ? technical_modifier_id : charge.modifier2_id,
+                modifier3_id: charge.modifier3_id == professional_modifier_id ? technical_modifier_id : charge.modifier3_id,
+                modifier4_id: charge.modifier4_id == professional_modifier_id ? technical_modifier_id : charge.modifier4_id,
+                bill_fee: charge.is_custom_bill_fee === 'true' ? charge.bill_fee : 0,
+                allowed_amount: charge.is_custom_bill_fee === 'true' ? charge.allowed_amount : 0
+            });
+        });
+
+        // EXA-22773 | For technical claim responsible must be ordering facility
+        let billingMethod = claims.is_insurance_split
+            ? claims.billing_method
+            : 'direct_billing';
+
+        let payerType = claims.is_insurance_split
+            ? claims.payer_type
+            : 'ordering_facility';
+
+        claimsArray.push({
+            claims: {
+                ...claims,
+                place_of_service_id: claims.technical_place_of_service || null,
+                billing_method: billingMethod,
+                payer_type: payerType,
+                billing_type: 'split_t'
+            },
+            charges: newCharges
+        });
+
+        return claimsArray;
     },
 
     save: async (params) => {
@@ -40,66 +95,71 @@ const api= {
             , charges
             , is_alberta_billing
             , is_ohip_billing
+            , is_us_billing
+            , isMobileRadEnabled
         } = params;
 
-        let newClaim = [];
+        let claimsArray = [{
+            claims,
+            charges
+        }];
 
-        if(claims.is_split_claim) {
-            let {professional_modifier_id, technical_modifier_id} = (await data.getTechnicalAndProfessionalModifier()).pop();
+        if (is_us_billing && isMobileRadEnabled && claims.payer_type != 'ordering_facility') {
+            let orderingFacilityInvoiceCharges = [];
+            let otherCharges = [];
 
-            newClaim.push({
-                ...claims,
-                claim_charges: charges,
-                billing_type: 'split_p'
-            });
+            claimsArray = [];
 
-            // creating a technical claim since it is split claim
-            let newCharges = [];
+            for (let i = 0; i < charges.length; i++) {
+                let item = charges[i];
 
-            await Promise.all(charges.map(async (charge, index) => {
+                if (item.charge_type === 'ordering_facility_invoice') {
+                    orderingFacilityInvoiceCharges.push(item);
+                } else {
+                    otherCharges.push(item);
+                }
+            }
 
-                let modifier1 = charge.modifier1_id == professional_modifier_id ? technical_modifier_id : charge.modifier1_id;
-                let modifier2 = charge.modifier2_id == professional_modifier_id ? technical_modifier_id : charge.modifier2_id;
-                let modifier3 = charge.modifier3_id == professional_modifier_id ? technical_modifier_id : charge.modifier3_id;
-                let modifier4 = charge.modifier4_id == professional_modifier_id ? technical_modifier_id : charge.modifier4_id;
-
-                newCharges.push({
-                    ...charges[index],
-                    modifier1_id: modifier1,
-                    modifier2_id: modifier2,
-                    modifier3_id: modifier3,
-                    modifier4_id: modifier4,
-                    bill_fee: charges[index].is_custom_bill_fee  === 'true' ? charges[index].bill_fee :  0,
-                    allowed_amount: charges[index].is_custom_bill_fee  === 'true'  ? charges[index].allowed_amount : 0
+            if (otherCharges.length) {
+                claimsArray.push({
+                    claims,
+                    charges: otherCharges
                 });
-            }));
+            }
 
-            // EXA-22773 | For technical claim responsible must be ordering facility
-            newClaim.push({
-                ...claims,
-                place_of_service_id: claims.technical_place_of_service || null,
-                billing_method: 'direct_billing',
-                payer_type: 'ordering_facility',
-                claim_charges: newCharges,
-                billing_type: 'split_t'
-            });
-
-            return await data.save({
-                claims: newClaim
-                , insurances
-                , claim_icds
-                , auditDetails
-                , is_alberta_billing
-                , is_ohip_billing
-            });
-
+            if (orderingFacilityInvoiceCharges.length) {
+                claimsArray.push({
+                    claims: {
+                        ...claims,
+                        billing_method: 'direct_billing',
+                        payer_type: 'ordering_facility'
+                    },
+                    charges: orderingFacilityInvoiceCharges
+                });
+            }
         }
 
+        if (claims.is_split_claim || claims.is_insurance_split) {
+            let newClaimsArray = [];
+
+            for (let i = 0; i < claimsArray.length; i++) {
+                newClaimsArray.push(...await api.splitClaimMobileBilling(claimsArray[i]));
+            }
+
+            claimsArray = newClaimsArray;
+        }
+
+        let claimsDetails = [];
+
+        claimsArray.forEach((item, index) => {
+            claimsDetails[index] = {
+                ...item.claims,
+                claim_charges: item.charges
+            };
+        });
+
         return await data.save({
-            claims: [{
-                ...claims,
-                claim_charges: charges
-            }]
+            claims: claimsDetails
             , insurances
             , claim_icds
             , auditDetails

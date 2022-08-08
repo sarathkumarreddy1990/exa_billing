@@ -140,6 +140,7 @@ define(['backbone', 'collections/app-settings'], function (Backbone, AppCollecti
                     app.billingRegionCode = app.country_alpha_3_code + '_' + app.province_alpha_2_code;
                     var scan_document__types = app.company.scan_document_types ? app.company.scan_document_types.scan_document_type : [];
                     app.scanDocumentTypes = scan_document__types;
+                    app.settings.enableMobileRad = app.enable_mobile_rad && app.enable_mobile_rad.value;
 
                     if (app.userInfo.user_settings) {
                         app.sessionTimeout = app.userInfo.user_settings.sessionInterval || app.sessionTimeout;

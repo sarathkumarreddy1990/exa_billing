@@ -164,6 +164,7 @@ module.exports = {
                                 , additional_info
                                 , sc.cpt_code_id AS cpt_id
                                 , sc.is_billable
+                                , cpt_codes.charge_type
                             FROM public.study_cpt sc
                             INNER JOIN public.studies s ON s.id = sc.study_id
                             INNER JOIN public.cpt_codes on sc.cpt_code_id = cpt_codes.id
@@ -225,6 +226,18 @@ module.exports = {
                                             THEN 'void'
                                             ELSE NULL
                                         END AS frequency,
+                                        CASE
+                                            WHEN (${params.isMobileBillingEnabled} = 'true' 
+                                                AND (
+                                                    SELECT
+                                                        is_split_claim_enabled
+                                                    FROM insurances
+                                                    WHERE coverage_level = 'primary' 
+                                                        AND is_split_claim_enabled)
+                                                AND (SELECT billing_type from get_study_date) = 'global'
+                                            ) THEN true
+                                            ELSE false
+                                        END AS is_insurance_split,
                                         COALESCE(NULLIF(order_info->'oa',''), 'false')::boolean AS is_other_accident,
                                         COALESCE(NULLIF(order_info->'aa',''), 'false')::boolean AS is_auto_accident,
                                         COALESCE(NULLIF(order_info->'emp',''), 'false')::boolean AS is_employed,

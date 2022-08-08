@@ -538,9 +538,10 @@ module.exports = {
 
     validateBatchClaims: async (studyDetails) => {
         let validCharges = await data.validateBatchClaimCharge(JSON.stringify(studyDetails));
+        let row = validCharges?.rows?.[0];
         let errorData;
 
-        if (studyDetails.length !== parseInt(validCharges.rows[0].charges_count)) {
+        if (studyDetails.length !== parseInt(row.charges_count)) {
             errorData = {
                 code: '55802'
                 , message: 'No charge in claim'
@@ -555,7 +556,7 @@ module.exports = {
             };
         }
 
-        if (parseInt(validCharges.rows[0].invalid_split_claim_count)) {
+        if (parseInt(row.invalid_split_claim_count) || parseInt(row.invalid_study_count)) {
             errorData = {
                 code: '23156'
                 , message: 'No ordering facility in claim'
@@ -623,7 +624,7 @@ module.exports = {
             }
 
             params.studyDetails = JSON.stringify(studyDetails);
-        } else if (params.isMobileBillingEnabled === 'true') {
+        } else if (params.isMobileBillingEnabled === 'true' || (params.isMobileRadEnabled === 'true' && params.is_us_billing)) {
             let result = await this.validateBatchClaims(JSON.parse(params.studyDetails));
 
             if (result.err) {
