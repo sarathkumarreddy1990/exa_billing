@@ -768,6 +768,15 @@ module.exports = {
                     , p.gender AS patient_gender
                     , (
                         SELECT
+                            ARRAY_AGG(note)
+                        FROM
+                            billing.claim_comments bcc
+                        WHERE
+                            bcc.claim_id = ${id}
+                            AND 'edit_claim' = ANY(bcc.alert_screens)
+                    ) AS edit_claim_alerts
+                    , (
+                        SELECT
                             jsonb_agg(jsonb_build_object(
                                 'issuer_id', paa.issuer_id,
                                 'issuer_type', i_.issuer_type,

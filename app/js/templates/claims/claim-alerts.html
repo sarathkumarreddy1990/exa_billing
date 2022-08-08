@@ -1,0 +1,21 @@
+<ul id="alertContent">
+<% if (isFrom === 'patientClaims') { %>
+   <% _.each(claimAlerts, function (ptClaimAlerts, claimNo) { %>
+        <li>
+            <b> Claim No.<%= claimNo %>: </b>
+        </li>
+        <% _.each(ptClaimAlerts, function(claimAlert) { %>
+            <li> 
+                <%= claimAlert %> 
+            </li>
+        <% }) %>
+        <br/>
+    <% }) %>
+<% } else { %>
+    <% _.each(claimAlerts, function(claimAlert) { %>
+        <li> 
+            <%= claimAlert %> 
+        </li>
+    <% }) %>
+<% } %>
+</ul>
