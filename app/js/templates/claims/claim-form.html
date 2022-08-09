@@ -558,12 +558,21 @@
                 </div>
                 <% if (billingRegionCode !== 'can_AB') { %>
                 <div class="form-group row">
-                    <label for="ddlOrdFacility" class="col-sm-3 col-form-label" i18n="billing.fileInsurance.serviceFacilityLocation"></label>
+                    <label id="lblOrdFacility" for="ddlOrdFacility" class="col-sm-3 col-form-label"></label>
                     <div class="col-sm-5">
                         <select class="form-control select-box" id="ddlOrdFacility">
                         </select>
                     </div>
                 </div>
+                <% if (isMobileBillingEnabled && isMobileRadEnabled) { %>
+                <div class="form-group row">
+                    <label for="ddlServiceFacilityLocation" class="col-sm-3 col-form-label" i18n="billing.fileInsurance.serviceFacilityLocation"></label>
+                    <div class="col-sm-5">
+                        <select class="form-control select-box" id="ddlServiceFacilityLocation">
+                        </select>
+                    </div>
+                </div>
+                <% } %>
                 <% } %>
                 <% if (billingRegionCode === 'can_MB') { %>
                     <div class="form-group row">

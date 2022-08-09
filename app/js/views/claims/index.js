@@ -86,7 +86,8 @@ define(['jquery',
                 { payer_type: "PIP_S", payer_type_name: "secondary_insurance", payer_id: null, coverage_level: "S", payer_name: null, billing_method: null },
                 { payer_type: "PIP_T", payer_type_name: "tertiary_insurance", payer_id: null, coverage_level: "T", payer_name: null, billing_method: null },
                 { payer_type: "POF", payer_type_name: "ordering_facility", payer_id: null, payer_name: null },
-                { payer_type: "RF", payer_type_name: "referring_provider", payer_id: null, payer_name: null }
+                { payer_type: "RF", payer_type_name: "referring_provider", payer_id: null, payer_name: null },
+                { payer_type: "PSF", payer_type_name: "service_facility_location", payer_id: null, payer_name: null }
             ],
             usermessage: {
                 selectStudyRefProvider: 'Select Refer. Provider',
@@ -173,6 +174,7 @@ define(['jquery',
             claimTotalRecords: 0,
             chargeTotalRecords: 0,
             patientClaimsPager: null,
+            claimResponsible: '',
             elIDs: {
                 'primaryInsAddress1': '#txtPriSubPriAddr',
                 'primaryInsAddress2': '#txtPriSubSecAddr',
@@ -331,9 +333,20 @@ define(['jquery',
                         isSplitClaim: app.isMobileBillingEnabled,
                         delayReasons: app.delay_reasons,
                         can_ab_claim_status: commonjs.can_ab_claim_status,
-                        can_ab_wcb_claim_status: commonjs.can_ab_wcb_claim_status
+                        can_ab_wcb_claim_status: commonjs.can_ab_wcb_claim_status,
+                        isMobileBillingEnabled: app.isMobileBillingEnabled,
+                        isMobileRadEnabled: app.settings.enableMobileRad
                     })
                 });
+
+                if(app.isMobileBillingEnabled && app.settings.enableMobileRad) {
+                    self.claimResponsible = '(Ordering Facility)';
+                    $('#lblOrdFacility').text(commonjs.geti18NString('shared.fields.orderingFacility'));
+                } else {
+                    self.claimResponsible = '(Service Facility)';
+                    $('#lblOrdFacility').text(commonjs.geti18NString('billing.fileInsurance.serviceFacilityLocation'));
+                }
+                commonjs.updateCulture(app.currentCulture, commonjs.beautifyMe);
 
                 address.bindCountrySelectToCityStateZip('#divPriAddressInfo', {}, this.cszFieldMap[0]);
                 if (app.country_alpha_3_code !== 'can') {
@@ -357,16 +370,16 @@ define(['jquery',
 
                     splitClaimIds.forEach(function(value, index) {
                         if (index === 0) {
-                            msg = msg.replace('$CLAIM_ID', '<a href="javascript: void(0)" id="nextSplitClaim_' + value + '">' + value + '</a>' + (splitClaimIds.length !== 1 ? '$CLAIM_ID' : '' ));                            
+                            msg = msg.replace('$CLAIM_ID', '<a href="javascript: void(0)" id="nextSplitClaim_' + value + '">' + value + '</a>' + (splitClaimIds.length !== 1 ? '$CLAIM_ID' : '' ));
                             return;
                         }
 
                         if (index === splitClaimIds.length - 1) {
-                            msg = msg.replace('$CLAIM_ID', ' and <a href="javascript: void(0)" id="nextSplitClaim_' + value + '">' + value + '</a>');                            
+                            msg = msg.replace('$CLAIM_ID', ' and <a href="javascript: void(0)" id="nextSplitClaim_' + value + '">' + value + '</a>');
                             return;
                         }
 
-                        msg = msg.replace('$CLAIM_ID', ', <a href="javascript: void(0)" id="nextSplitClaim_' + value + '">' + value + '</a>$CLAIM_ID');                        
+                        msg = msg.replace('$CLAIM_ID', ', <a href="javascript: void(0)" id="nextSplitClaim_' + value + '">' + value + '</a>$CLAIM_ID');
                     });
 
                     nextSplitClaimSpan.removeClass('hidden').append(msg);
@@ -374,7 +387,7 @@ define(['jquery',
                         $('#nextSplitClaim_' + value).off().click(function(){
                             self.openSplitClaim($(this).text());
                         });
-                    });                    
+                    });
                 } else {
                     nextSplitClaimSpan.addClass('hidden');
                 }
@@ -1114,6 +1127,32 @@ define(['jquery',
                                 .fail(function(err) {
                                     commonjs.handleXhrError(err);
                                 });
+                            } else if (app.isMobileBillingEnabled && app.settings.enableMobileRad) {
+                                self.fetchPlaceOfService({
+                                    siteId: app.siteID,
+                                    from: 'LOAD'
+                                })
+                                .done(function (response) {
+                                    var $ddlServiceFacilityLocation = $('#ddlServiceFacilityLocation');
+                                    $ddlServiceFacilityLocation.empty();
+                                    $ddlServiceFacilityLocation.append($('<option/>', { value: "", text: "Select" }));
+                                    if (response.result && response.result.length) {
+                                        var posMapList = _.map(response.result, function (posMap) {
+                                            return (
+                                                $('<option/>', {
+                                                    value: posMap.id,
+                                                    text: posMap.name
+                                                }).attr('data-posmap', posMap.pos_map)
+                                                  .attr('data-code', posMap.code)
+                                            );
+                                        });
+                                        $ddlServiceFacilityLocation.append(posMapList);
+                                    }
+                                    self.bindDefaultClaimDetails(claimDetails);
+                                })
+                                .fail(function(err) {
+                                    commonjs.handleXhrError(err);
+                                });
                             } else {
                                 self.bindDefaultClaimDetails(claimDetails);
                             }
@@ -1184,6 +1223,14 @@ define(['jquery',
                     data: params
                 });
             },
+
+            fetchPlaceOfService: function (params) {
+                return $.ajax({
+                     url: "/getBillingProviderInfo",
+                     type: "GET",
+                     data: params
+                 });
+             },
 
             createCptCodesUI: function(rowIndex) {
                 $('#divChargeCpt_' + rowIndex)
@@ -1521,7 +1568,7 @@ define(['jquery',
                     self.updateResponsibleList({
                         payer_type: 'POF',
                         payer_id: self.ordering_facility_id,
-                        payer_name: self.ordering_facility_name + '(Service Facility)'
+                        payer_name: self.ordering_facility_name + self.claimResponsible
                     }, null);
                 }
 
@@ -1545,6 +1592,7 @@ define(['jquery',
                     $('#ddlPOSType').val(["can_MB", "can_ON"].indexOf(app.billingRegionCode) === -1 && claim_data.place_of_service_id || '');
                     document.querySelector('#txtClaimDate').value = claim_data.claim_dt ? self.convertToTimeZone(claim_data.facility_id, claim_data.claim_dt).format('L') : '';
                     $('#txtClaimCreatedDt').val(claim_data.created_dt ? self.convertToTimeZone(claim_data.facility_id, claim_data.created_dt).format('L') : '');
+                    $('#ddlServiceFacilityLocation').val(claim_data.pos_map_id);
                     self.displayClaimStatusByProvider(claim_data.p_insurance_code);
                 } else {
                     var responsibleIndex = _.find(self.responsible_list, function (item) {
@@ -1578,7 +1626,17 @@ define(['jquery',
                     var defaultStudyDate = moment(currentDate).format('L');
                     var lineItemStudyDate = self.studyDate && self.studyDate != '' ?  self.studyDate : '';
                     $('#txtClaimDate').val(self.studyDate ? lineItemStudyDate : defaultStudyDate);
+                    $('#ddlServiceFacilityLocation').val($('option[data-code = ' + claim_data.pos_map_code + ']').val());
                     $('#divClaimDate').hide();
+                }
+
+                var posMap = $("#ddlServiceFacilityLocation option:selected").attr('data-posmap');
+                if ((claim_data.pos_map_id || claim_data.pos_map_code) && posMap !== "OF") {
+                    self.updateResponsibleList({
+                        payer_type: 'PSF',
+                        payer_id: $('#ddlServiceFacilityLocation option:selected').val(),
+                        payer_name: $('#ddlServiceFacilityLocation option:selected').text() + '(Service Facility)'
+                    }, null);
                 }
 
                 if (app.billingRegionCode === 'can_BC') {
@@ -1747,6 +1805,19 @@ define(['jquery',
                     self.bindWCBDetails(containerID, res);
                     return res.code + ' - ' + res.description;
                 }
+            },
+
+            onChangeServiceLocation: function (e) {
+                if ($("#ddlServiceFacilityLocation option:selected").attr('data-posmap') !== "OF") {
+                    this.updateResponsibleList({
+                        payer_type: 'PSF',
+                        payer_id: $('#ddlServiceFacilityLocation option:selected').val(),
+                        payer_name: $('#ddlServiceFacilityLocation option:selected').text() + '(Service Facility)'
+                    }, null);
+                } else {
+                    $("#ddlClaimResponsible  option[value='PSF']").remove();
+                }
+
             },
 
             toggleWCBInjuryTypes: function() {
@@ -2161,7 +2232,11 @@ define(['jquery',
 
                 $("#btnAddSupportingText").off().click(function (e) {
                     self.insertSupportingText();
-                })
+                });
+
+                $('#ddlServiceFacilityLocation').off().change(function (e) {
+                    self.onChangeServiceLocation();
+                });
 
             },
 
@@ -2288,7 +2363,36 @@ define(['jquery',
                                 }
 
                                 setTimeout(function () {
-                                    self.bindDefaultClaimDetails(_defaultDetails);
+                                    if (app.isMobileBillingEnabled && app.settings.enableMobileRad) {
+                                        self.fetchPlaceOfService({
+                                            siteId: app.siteID,
+                                            from: 'LOAD'
+                                        })
+                                        .done(function (response) {
+                                            var $ddlServiceFacilityLocation = $('#ddlServiceFacilityLocation');
+                                            $ddlServiceFacilityLocation.empty();
+                                            $ddlServiceFacilityLocation.append($('<option/>', { value: "", text: "Select" }));
+                                            if (response.result && response.result.length) {
+                                                var posMapList = _.map(response.result, function (posMap) {
+                                                    return (
+                                                        $('<option/>', {
+                                                            value: posMap.id,
+                                                            text: posMap.name
+                                                        }).attr('data-posmap', posMap.pos_map)
+                                                          .attr('data-code', posMap.code)
+                                                    );
+                                                });
+                                                $ddlServiceFacilityLocation.append(posMapList);
+                                            }
+                                            self.bindDefaultClaimDetails(_defaultDetails);
+                                        })
+                                        .fail(function(err) {
+                                            commonjs.handleXhrError(err);
+                                        });
+                                    } else {
+                                        self.bindDefaultClaimDetails(_defaultDetails);
+                                    }
+
                                 }, 200);
 
 
@@ -3703,12 +3807,12 @@ define(['jquery',
                     }
 
                     self.is_insurance_split = app.isMobileBillingEnabled && res.billing_type === 'global';
-                    
+
                     if (res && res.id) {
                         self.updateResponsibleList({
                             payer_type: 'POF',
                             payer_id: res.ordering_facility_id,
-                            payer_name: res.ordering_facility_name + '(Service Facility)'
+                            payer_name: res.ordering_facility_name + self.claimResponsible
                         }, null);
 
                         if(app.isMobileBillingEnabled && res.billing_type === 'facility'){
@@ -4377,7 +4481,8 @@ define(['jquery',
                         ? self.ACSelect.patientAltAccNo.issuer_id
                         : null,
                     wcb_injury_details: JSON.stringify(injury_details),
-                    deleted_injury_level: self.getDeletedInjuryLevels()
+                    deleted_injury_level: self.getDeletedInjuryLevels(),
+                    pos_map_id: $('#ddlServiceFacilityLocation option:selected').val()
                 };
 
                 // Pay-to Details are only saved when Pay-to Code is Other
@@ -5958,7 +6063,35 @@ define(['jquery',
                                     }
                                     else {
                                         commonjs.patientRecentSearchResult(~~patientId, 'addSearchResult', null, patientDetailsFormatted);
-                                        self.claimWOStudy(patient_details);
+                                        if (app.isMobileBillingEnabled && app.settings.enableMobileRad) {
+                                            self.fetchPlaceOfService({
+                                                siteId: app.siteID,
+                                                from: 'LOAD'
+                                            })
+                                            .done(function (response) {
+                                                var $ddlServiceFacilityLocation = $('#ddlServiceFacilityLocation');
+                                                $ddlServiceFacilityLocation.empty();
+                                                $ddlServiceFacilityLocation.append($('<option/>', { value: "", text: "Select" }));
+                                                if (response.result && response.result.length) {
+                                                    var posMapList = _.map(response.result, function (posMap) {
+                                                        return (
+                                                            $('<option/>', {
+                                                                value: posMap.id,
+                                                                text: posMap.name
+                                                            }).attr('data-posmap', posMap.pos_map)
+                                                              .attr('data-code', posMap.code)
+                                                        );
+                                                    });
+                                                    $ddlServiceFacilityLocation.append(posMapList);
+                                                }
+                                                self.claimWOStudy(patient_details);
+                                            })
+                                            .fail(function(err) {
+                                                commonjs.handleXhrError(err);
+                                            });
+                                        } else {
+                                            self.claimWOStudy(patient_details);
+                                        }
                                     }
 
                                 });
@@ -6090,7 +6223,7 @@ define(['jquery',
                     self.updateResponsibleList({
                         payer_type: 'POF',
                         payer_id: patient_details.service_facility_id,
-                        payer_name: patient_details.service_facility_name + '(Service Facility)'
+                        payer_name: patient_details.service_facility_name + self.claimResponsible
                     }, null);
                 }
                 var claimResponsibleEle = $('#ddlClaimResponsible');
