@@ -276,6 +276,7 @@ module.exports = {
                                         bfs.default_provider_id AS fac_billing_provider_id,
                                         orders.order_status AS order_status,
                                         order_info -> 'pos_type_code' AS pos_type_code,
+                                        order_info -> 'pos_map_code' AS pos_map_code,
                                         facilities.place_of_service_id AS fac_place_of_service_id,
                                         p.full_name AS patient_name,
                                         p.account_no AS patient_account_no,
@@ -732,6 +733,7 @@ module.exports = {
                     , claim_ins.secondary_patient_insurance_id
                     , claim_ins.tertiary_patient_insurance_id
                     , c.place_of_service_id
+                    , c.pos_map_id
                     , c.billing_code_id
                     , c.billing_class_id
                     , c.created_by
