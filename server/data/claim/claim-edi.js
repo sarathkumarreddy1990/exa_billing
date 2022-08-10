@@ -266,6 +266,7 @@ module.exports = {
 						communication_info->'ftp_sent_folder' as "ftpSentFolder",
 						communication_info->'ftp_receive_folder' as "ftpReceiveFolder",
 						communication_info->'ftp_identity_file' as "ftpIdentityFile",
+						communication_info->'ftp_readyTimeout' AS "ftpReadyTimeout",
 						'837' as "tsIDCode",
 						'0001' as "tsControlNo",
 						edi_clearinghouses.name as clearinghouses_name,

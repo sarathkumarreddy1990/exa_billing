@@ -216,6 +216,7 @@ define(['jquery',
                                     $('#txtSentFolder').val(info.ftp_sent_folder || '');
                                     $('#txtReceiveFolder').val(info.ftp_receive_folder || '');
                                     $('#txtIdentityFilePath').val(info.ftp_identity_file || '');
+                                    $('#txtReadyTimeout').val(info.ftp_readyTimeout || '');
                                 }
 
                                 self.showFTPDetails();
@@ -367,7 +368,8 @@ define(['jquery',
                     ftp_type: isFtpEnabled ? $('#ddlFtpType').val() : "",
                     ftp_sent_folder: isFtpEnabled ? $('#txtSentFolder').val() : "",
                     ftp_receive_folder: isFtpEnabled ? $('#txtReceiveFolder').val() : "",
-                    ftp_identity_file: isFtpEnabled ? $('#txtIdentityFilePath').val() : ""
+                    ftp_identity_file: isFtpEnabled ? $('#txtIdentityFilePath').val() : "",
+                    ftp_readyTimeout: isFtpEnabled ? $('#txtReadyTimeout').val() : ""
                 }
                 this.model.set({
                     "name": $('#txtName').val(),
