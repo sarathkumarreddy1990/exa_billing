@@ -1626,7 +1626,10 @@ define(['jquery',
                     var defaultStudyDate = moment(currentDate).format('L');
                     var lineItemStudyDate = self.studyDate && self.studyDate != '' ?  self.studyDate : '';
                     $('#txtClaimDate').val(self.studyDate ? lineItemStudyDate : defaultStudyDate);
-                    $('#ddlServiceFacilityLocation').val($('option[data-code = ' + claim_data.pos_map_code + ']').val());
+
+                    if (claim_data.pos_map_code) {
+                        $('#ddlServiceFacilityLocation').val($('option[data-code = ' + claim_data.pos_map_code + ']').val());
+                    }
                     $('#divClaimDate').hide();
                 }
 
@@ -4482,7 +4485,7 @@ define(['jquery',
                         : null,
                     wcb_injury_details: JSON.stringify(injury_details),
                     deleted_injury_level: self.getDeletedInjuryLevels(),
-                    pos_map_id: $('#ddlServiceFacilityLocation option:selected').val()
+                    pos_map_id: $('#ddlServiceFacilityLocation option:selected').val() || null
                 };
 
                 // Pay-to Details are only saved when Pay-to Code is Other
@@ -6356,7 +6359,8 @@ define(['jquery',
                     { payer_type: "PIP_S", payer_type_name: "secondary_insurance", payer_id: null, coverage_level: "S", payer_name: null, billing_method: null },
                     { payer_type: "PIP_T", payer_type_name: "tertiary_insurance", payer_id: null, coverage_level: "T", payer_name: null, billing_method: null },
                     { payer_type: "POF", payer_type_name: "ordering_facility", payer_id: null, payer_name: null },
-                    { payer_type: "RF", payer_type_name: "referring_provider", payer_id: null, payer_name: null }
+                    { payer_type: "RF", payer_type_name: "referring_provider", payer_id: null, payer_name: null },
+                    { payer_type: "PSF", payer_type_name: "service_facility_location", payer_id: null, payer_name: null }
                 ]
             },
 
