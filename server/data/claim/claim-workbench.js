@@ -807,8 +807,9 @@ module.exports = {
                         FROM studies s
                         INNER JOIN study_cpt sc ON sc.study_id = s.id
                         INNER JOIN cpt_codes cc ON cc.id = sc.cpt_code_id
+                        INNER JOIN facilities f ON f.id = s.facility_id
                         WHERE s.id = ANY(SELECT study_id FROM batch_claim_details)
-                        AND s.ordering_facility_contact_id IS NULL
+                        AND s.ordering_facility_contact_id IS NULL AND f.ordering_facility_id IS NULL
                         AND cc.charge_type = 'ordering_facility_invoice'
                         AND sc.deleted_dt IS NULL
                     )
