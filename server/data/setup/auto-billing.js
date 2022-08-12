@@ -96,7 +96,7 @@ const getSaveClaimParams = async (params) => {
         charge.pointer4 = getPointer(problems[3]);
         charge.is_excluded = CHARGE_IS_EXCLUDED;
         charge.is_canada_billing = isCanadaBilling;
-        charge.is_custom_bill_fee = false;
+        charge.is_custom_bill_fee = charge.is_custom_bill_fee || false;
         return charge;
     });
 

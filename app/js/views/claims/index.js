@@ -2338,7 +2338,7 @@ define(['jquery',
                                 _.each(modelDetails.charges, function (item) {
                                     var index = $('#tBodyCharge').find('tr').length;
                                     item.data_row_id = index;
-                                    item.is_custom_bill_fee = false;
+                                    item.is_custom_bill_fee = item.is_custom_bill_fee || false;
                                     self.addLineItems(item, index, true);
 
                                     self.chargeModel.push({
@@ -2349,7 +2349,7 @@ define(['jquery',
                                         study_id: item.study_id,
                                         data_row_id: index,
                                         cpt_id: item.cpt_id,
-                                        is_custom_bill_fee: false
+                                        is_custom_bill_fee: item.is_custom_bill_fee || false
                                     });
                                 });
 
@@ -4558,7 +4558,7 @@ define(['jquery',
                         charge_dt: commonjs.shiftToFacilityTimeZone(facility_id, $('#txtScheduleDate_' + id).val()).format('YYYY-MM-DD LT z') || null,
                         study_id: rowData.study_id || null,
                         is_deleted: false,
-                        is_custom_bill_fee: $('#txtBillFee_' + id).attr('data-edit'),
+                        is_custom_bill_fee: rowData.is_custom_bill_fee || $('#txtBillFee_' + id).attr('data-edit'),
                         is_excluded: $('#checkExclude_' + id).is(':checked'),
                         is_canada_billing: app.country_alpha_3_code === 'can',
                         study_cpt_id: rowData.ref_charge_id || null,

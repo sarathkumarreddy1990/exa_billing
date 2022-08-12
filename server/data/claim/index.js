@@ -140,7 +140,10 @@ module.exports = {
                                 , modifiers.modifier3_id AS m3
                                 , modifiers.modifier4_id AS m4
                                 , string_to_array(regexp_replace(study_cpt_info->'diagCodes_pointer', '[^0-9,]', '', 'g'),',')::int[] AS icd_pointers
-                                , (CASE WHEN (${params.isMobileBillingEnabled} AND (SELECT billing_type from get_study_date) = 'facility') THEN
+                                , (CASE 
+                                        WHEN sc.is_custom_bill_fee
+                                        THEN sc.bill_fee::NUMERIC
+                                        WHEN (${params.isMobileBillingEnabled} AND (SELECT billing_type from get_study_date) = 'facility') THEN
                                             billing.get_computed_bill_fee(null, cpt_codes.id, modifiers.modifier1_id, modifiers.modifier2_id, modifiers.modifier3_id, modifiers.modifier4_id, 'billing', 'ordering_facility',
                                             (SELECT ordering_facility_contact_id FROM get_study_date), o.facility_id)::NUMERIC
                                         WHEN (select id from beneficiary_details) IS NOT NULL THEN
@@ -165,6 +168,10 @@ module.exports = {
                                 , sc.cpt_code_id AS cpt_id
                                 , sc.is_billable
                                 , cpt_codes.charge_type
+                                , sc.is_custom_bill_fee
+                                , sc.professional_fee
+                                , sc.technical_fee
+                                , sc.is_billing_rule_applied
                             FROM public.study_cpt sc
                             INNER JOIN public.studies s ON s.id = sc.study_id
                             INNER JOIN public.cpt_codes on sc.cpt_code_id = cpt_codes.id
