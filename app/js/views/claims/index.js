@@ -78,6 +78,7 @@ define(['jquery',
             federalTaxId: '',
             enableInsuranceEligibility: '',
             tradingPartnerId: '',
+            splitClaimEnabled: false,
             ACSelect: { refPhy: {}, readPhy: {}, skillCodes: {}, patientAltAccNo: {} },
             icd9to10Template : _.template(icd9to10Template),
             responsible_list: [
@@ -3809,7 +3810,7 @@ define(['jquery',
                         self.changeMobileBillingDefaultValues(res.billing_type);
                     }
 
-                    self.is_insurance_split = app.isMobileBillingEnabled && res.billing_type === 'global';
+                    self.is_insurance_split = (self.is_insurance_split || self.splitClaimEnabled) && app.isMobileBillingEnabled && res.billing_type === 'global';
 
                     if (res && res.id) {
                         self.updateResponsibleList({
@@ -4090,6 +4091,7 @@ define(['jquery',
                             }, null);
                             self.is_primary_available = true;
                             self.priClaimInsID = result.id;
+                            self.splitClaimEnabled = result.is_split_claim_enabled;
                             self.displayClaimStatusByProvider(self.priInsCode);
                             break;
 

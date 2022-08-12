@@ -537,7 +537,12 @@ module.exports = {
         return await data.updateFollowUp(params);
     },
 
-    validateBatchClaims: async (studyDetails) => {
+    validateBatchClaims: async (params) => {
+        let {
+            studyDetails,
+            isMobileBillingEnabled,
+            is_us_billing_mobile_rad
+        } = params;
         let validCharges = await data.validateBatchClaimCharge(JSON.stringify(studyDetails));
         let row = validCharges?.rows?.[0];
         let errorData;
@@ -557,7 +562,7 @@ module.exports = {
             };
         }
 
-        if (parseInt(row.invalid_split_claim_count) || parseInt(row.invalid_study_count)) {
+        if ((isMobileBillingEnabled && parseInt(row.invalid_split_claim_count)) || (is_us_billing_mobile_rad && parseInt(row.invalid_study_count))) {
             errorData = {
                 code: '23156'
                 , message: 'No ordering facility in claim'
@@ -590,6 +595,7 @@ module.exports = {
         };
         params.auditDetails = auditDetails;
         params.created_by = parseInt(params.userId);
+        let is_us_billing_mobile_rad = params.is_us_billing && params.isMobileRadEnabled === 'true';
 
         if (params.isAllStudies == 'true'  || params.isAllCensus === 'true') {
             const studyData = await(params.isAllCensus === 'true' ?  censusController.getData(params) : studiesController.getData(params));
@@ -618,15 +624,23 @@ module.exports = {
                 });
             }
 
-            let result = await this.validateBatchClaims(studyDetails);
+            let result = await this.validateBatchClaims({ 
+                studyDetails,
+                isMobileBillingEnabled: params.isMobileBillingEnabled === 'true',
+                is_us_billing_mobile_rad
+            });
 
             if (result.err) {
                 return result.err;
             }
 
             params.studyDetails = JSON.stringify(studyDetails);
-        } else if (params.isMobileBillingEnabled === 'true' || (params.isMobileRadEnabled === 'true' && params.is_us_billing)) {
-            let result = await this.validateBatchClaims(JSON.parse(params.studyDetails));
+        } else if (params.isMobileBillingEnabled === 'true' || is_us_billing_mobile_rad) {
+            let result = await this.validateBatchClaims({
+                studyDetails: JSON.parse(params.studyDetails),
+                isMobileBillingEnabled: params.isMobileBillingEnabled === 'true',
+                is_us_billing_mobile_rad
+            });
 
             if (result.err) {
                 return result.err;

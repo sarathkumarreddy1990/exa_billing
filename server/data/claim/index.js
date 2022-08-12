@@ -525,6 +525,7 @@ module.exports = {
                             , pi.subscriber_zipcode_plus
                             , pi.assign_benefits_to_patient
                             , ipd.billing_method
+                            , ipd.is_split_claim_enabled
                         FROM
                             public.patient_insurances pi
                         INNER JOIN public.insurance_providers ip ON ip.id= pi.insurance_provider_id
