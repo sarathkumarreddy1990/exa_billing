@@ -167,7 +167,7 @@ function (
                     eligibility_dt: this.benefitOnDate("YYYY-MM-DD"),
                     phn: this.data.phn_alt_account_no,
                     birth_date: this.data.patient_birth_date,
-                    facility_id: app.default_facility_id
+                    facility_id: this.data.facility_id || app.default_facility_id
                 },
                 success: function (result) {
                     commonjs.hideLoading();
@@ -1116,6 +1116,15 @@ function (
         },
 
         /**
+         * Returns the Imagine Software external provider id of the facility id
+         *
+         * @returns {number}
+         */
+        externalProviderId: function () {
+            return ~~_.get(commonjs.getFacilityById(this.data.facility_id), "external_provider_id");
+        },
+
+        /**
          * Returns data for the Imagine Software view
          *
          * @returns {object}
@@ -1127,8 +1136,9 @@ function (
                 estimation_id: ~~this.data.estimation_id,
                 insurance: {
                     id: this.data.patient_insurance_id,
-                    coverage_level: this.coverage_level,
-                    relation_id: this.data.insurance_relation,
+                    code: this.data.insurance_code,
+                    coverageLevel: this.coverage_level,
+                    relationId: this.data.relation_id,
                     providerName: this.data.insurance_name,
                     address1: this.data.insurance_address_1,
                     address2: this.data.insurance_address_2,
@@ -1140,7 +1150,8 @@ function (
                     subscriberLastName: this.data.subscriber_lastname,
                     subscriberName: this.data.subscriber_name,
                     subscriberGender: this.data.subscriber_gender,
-                    subscriberDob: this.subscriberDateOfBirth()
+                    subscriberDob: this.subscriberDateOfBirth(),
+                    tradingPartnerId: this.data.trading_partner_id
                 },
                 mode: this.data.mode,
                 original_order_data: _.cloneDeep(this.original_order_data),
@@ -1168,9 +1179,8 @@ function (
                 visit: {
                     procedures: this.visitProcedures(),
                     dateOfService: this.dateOfService(),
-                    referringPhysician: this.referringPhysician(),
-                    facility_id: this.data.facility_id,
-                    referringPhysicianPhone: ""  // This is going to be replaced by an details icon popup
+                    facilityId: this.data.facility_id,
+                    externalProviderId: this.externalProviderId()
                 }
             }
         },
@@ -1325,15 +1335,6 @@ function (
          */
         readOnlyNoEligibility: function () {
             return this.readOnly() && !this.eligibilityExists();
-        },
-
-        /**
-         * Returns the referring physician
-         *
-         * @returns {string}
-         */
-        referringPhysician: function () {
-            return _.get(this, "data.studies[0].referring_physician_name", "");
         },
 
         /**

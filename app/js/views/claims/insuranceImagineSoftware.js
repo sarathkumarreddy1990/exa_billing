@@ -427,7 +427,7 @@ function (
             var self = this;
 
             var facility = app.facilities.find(function (item) {
-                return  item.id === self.data.visit.facility_id;
+                return  item.id === self.data.visit.facilityId;
             });
 
             this.data.currentDate = new Date().toLocaleDateString();
@@ -735,7 +735,7 @@ function (
          * No need for the Print button for secondary and tertiary insurances
          */
         removePrintButton: function () {
-            if (this.data.insurance.coverage_level !== "primary") {
+            if (this.data.insurance.coverageLevel !== "primary") {
                 $("#btnPrintEligibility").remove();
             }
 
@@ -1004,7 +1004,6 @@ function (
          * Writes the study selection checkboxes to the form
          */
         writeStudyIdSelection: function () {
-            var self = this;
             var html = "";
 
             this.data.studies.forEach(function (study) {
@@ -1025,7 +1024,7 @@ function (
 
             // Bind on-click event for all study checkboxes
             $("INPUT[id^='chkStudy']").off("click").click(function (e) {
-                self.visibleStateUpdateSelectedButton();
+                $("#btnUpdateSelected").show();
             });
 
             return this;
@@ -1035,20 +1034,9 @@ function (
          * Hide or shows the Estimation tab based on the coverage level
          */
         visibleStateEstimationTab: function () {
-            this.data.insurance.coverage_level === "primary" && (!this.readOnlyPermission() || this.data.estimation_id > 0)
+            this.data.insurance.coverageLevel === "primary" && (!this.readOnlyPermission() || this.data.estimation_id > 0)
                 ? $(".clickImagineEstimation").show()
                 : $(".clickImagineEstimation").hide();
-
-            return this;
-        },
-
-        /**
-         * Hide or shows the Update Selected button based on how many studies are selected
-         */
-        visibleStateUpdateSelectedButton: function () {
-            this.selectedStudyIds().length < this.allStudyIds().length
-                ? $("#btnUpdateSelected").show()
-                : $("#btnUpdateSelected").hide();
 
             return this;
         },
@@ -1349,18 +1337,10 @@ function (
                 case "co-insurance": return o.coInsuranceDisplay;
                 case "co-pay": return o.coPayDisplay;
                 case "deductible": return o.deductibleDisplay;
-                case "insurance-adjustment": return o.insuranceAdjustmentAmountDisplay;
-                case "insurance-payment": return o.insurancePaymentDisplay;
-                case "patient-responsibility": return o.patientResponsibleAmountDisplay;
-                case "stop-loss": return o.stopLossDisplay;
-                case "total-charges": return o.totalChargesDisplay;
                 case "max-allowed-amount": return o.maxAllowedAmountDisplay;
                 case "max-balance-due": return o.maxBalanceDueDisplay;
                 case "max-deductible": return o.maxDeductibleDisplay;
                 case "max-out-of-pocket": return o.maxOutOfPocketDisplay;
-                case "max-patient-responsibility": return o.maxPatientResponsibilityAmountDisplay;
-                case "max-total-charges": return o.maxTotalChargesDisplay;
-                case "min-patient-responsibility": return o.minPatientResponsibilityAmountDisplay;
             }
 
             return "";
@@ -1429,38 +1409,30 @@ function (
             var v = this.data.visit;
 
             return {
-                requestId: null,
-                eligibilityPayerId: "62308",
-                eligibilityServiceTypeId: "30",
-                modalityCode: "APA",
-                estimationType: "OutPatient",
-                // npi: null,
-                // insPlanCode: null,
+                requestId: this.requestId(),
+                eligibilityPayerId: i.tradingPartnerId,
+                insPlanCode: i.code,
                 insuredGender: i.subscriberGender,
                 insuredFirstName: i.subscriberFirstName,
                 insuredLastName: i.subscriberLastName,
                 insuredDob: i.subscriberDob,
-                insuredRelation: this.getRealationById(i.relation_id),
+                insuredRelation: this.getRealationById(i.relationId),
                 policyNumber: i.policyNumber,
                 insuranceProviderName: i.providerName,
                 patient_id: p.id,
+                providerId: v.externalProviderId,
 
-                providerId: 25,
                 patientIdentifier: p.mrn,
                 patientFirstName: p.firstName,
                 patientLastName: p.lastName,
                 visitIdentifier: commonjs.generateRandomNumber(),
-                // balance: null,
                 dateOfService: v.dateOfService,
-                // maximumAmount: null,
-                // minimumAmount: null,
                 patientAddress: p.address1,
                 patientAddress2: p.address2,
                 patientCity: p.city,
                 patientDOB: p.dob,
                 patientGender: p.gender,
                 patientMiddleName: p.middleName,
-                // patientSSN: null,
                 patientState: p.state,
                 patientZip: p.zip,
                 patientEmail: p.email,
@@ -1468,17 +1440,10 @@ function (
                 procedureCode: this.firstProcedure().code,
                 procedureFee: ~~this.firstProcedure().fee,
                 procedureDescription: this.firstProcedure().description,
-                // npiNumber: null,
                 isTrueSelfPay: false,
-                planCode: "C1",
+                planCode: i.code,
                 serviceType: this.serviceTypes(),
                 additionalProcedures: this.additionalProcedures()
-                // priorBalance: null,
-                // planName: null,
-                // planId: null,
-                // planAddress: null,
-                // planZip: null,
-                // planLocation: null
             }
         },
 
