@@ -5010,6 +5010,17 @@ var commonjs = {
     },
 
     /**
+     * To return facility info by id
+     *
+     * @param {number} facilityId
+     */
+    getFacilityById: function (facilityId) {
+        return _.find(app.facilities, {
+            id: ~~facilityId
+        }) || {};
+    },
+
+    /**
      * Given a modality id, return the modality code if it exists
      *
      * @param {Number} id
