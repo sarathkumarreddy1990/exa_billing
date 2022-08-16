@@ -1048,6 +1048,18 @@ function (
         // --------------------------------------------------------------------------------
 
         /**
+         * Formats a date while avoiding empty and bad date formats which would return Invalid Date
+         *
+         * @param {string} date
+         * @returns {string}
+         */
+        formatDate: function (date) {
+            return date && moment(date).isValid()
+                ? moment(date).format("L")
+                : "";
+        },
+
+        /**
          * Parses an eligibility item to be written to the DOM
          *
          * @param {string} text
@@ -1095,7 +1107,11 @@ function (
          * Hydrates formatted data for display
          */
         hydrateData: function () {
+            // Patient
+            this.data.patient.dobDisplay = this.formatDate(this.data.patient.dob);
+
             // Visit
+            this.data.visit.dateOfServiceDisplay = this.formatDate(this.data.visit.dateOfService);
             this.data.visit.proceduresDisplay = (this.data.visit.procedures || []).map(function (cpt) {
                 return cpt.code;
             }).join(", ");
@@ -1107,6 +1123,7 @@ function (
             // Insurance
             this.data.insurance.address1Display = commonjs.formatAddress(this.data.insurance.address1, this.data.insurance.address2);
             this.data.insurance.address2Display = commonjs.formatCityStateZip(this.data.insurance.city, this.data.insurance.state, this.data.insurance.zip);
+            this.data.insurance.subscriberDobDisplay = this.formatDate(this.data.insurance.subscriberDob);
 
             // Eligibility
             this.data.eligibility.planDetailsDisplay = _.get(this, "data.eligibility.planDetails", "").replace(/\|/g, " - ").replace(/~~/g, " ");
@@ -1114,13 +1131,7 @@ function (
             this.data.eligibility.coPay = this.formatEligibilityItem(this.data.eligibility.discoveredPlanCopayIndividual);
             this.data.eligibility.deductible = this.formatEligibilityItem(this.data.eligibility.discoveredPlanDeductibleIndividual);
             this.data.eligibility.outOfPocket = this.formatEligibilityItem(this.data.eligibility.discoveredPlanOutofPocketIndividual);
-
-            // Benefits Date
-            var benefits_date = _.get(this, "data.eligibility.dateCreated");
-            var display_date = benefits_date && !moment.isMoment(benefits_date)
-                ? moment(benefits_date).format("L")
-                : "";
-            this.data.eligibility.dateCreatedDisplay = display_date;
+            this.data.eligibility.dateCreatedDisplay = this.formatDate(_.get(this.data, "eligibility.dateCreated"));
 
             // Eligibility Status
             var is_eligible = !!~~this.data.eligibility.isEligible;
@@ -1245,23 +1256,13 @@ function (
          */
         estimationValueProps: function () {
             return [
-                "allowedAmount",
                 "balanceDue",
                 "coInsurance",
                 "coPay",
                 "deductible",
-                "insuranceAdjustmentAmount",
-                "insurancePayment",
-                "patientResponsibleAmount",
-                "stopLoss",
-                "totalCharges",
-                "maxAllowedAmount",
                 "maxBalanceDue",
                 "maxDeductible",
                 "maxOutOfPocket",
-                "maxPatientResponsibilityAmount",
-                "maxTotalCharges",
-                "minPatientResponsibilityAmount",
                 "patientResponsibleAmount"
             ];
         },
@@ -1332,12 +1333,10 @@ function (
             var o = this.data.estimation;
 
             switch (name) {
-                case "allowed-amount": return o.allowedAmountDisplay;
                 case "balance-due": return o.balanceDueDisplay;
                 case "co-insurance": return o.coInsuranceDisplay;
                 case "co-pay": return o.coPayDisplay;
                 case "deductible": return o.deductibleDisplay;
-                case "max-allowed-amount": return o.maxAllowedAmountDisplay;
                 case "max-balance-due": return o.maxBalanceDueDisplay;
                 case "max-deductible": return o.maxDeductibleDisplay;
                 case "max-out-of-pocket": return o.maxOutOfPocketDisplay;
