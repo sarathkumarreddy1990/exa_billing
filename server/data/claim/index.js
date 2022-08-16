@@ -275,6 +275,12 @@ module.exports = {
                                         ordering_facility.ordering_facility_name,
                                         ordering_facility.location,
                                         ordering_facility.place_of_service_id AS ord_fac_place_of_service,
+                                        ordering_facility_ptn.ordering_facility_contact_id AS ptn_ordering_facility_contact_id,
+                                        ordering_facility_ptn.id AS ptn_ordering_facility_id,
+                                        ordering_facility_ptn.ordering_facility_name AS ptn_ordering_facility_name,
+                                        ordering_facility_ptn.location AS ptn_location,
+                                        ordering_facility_ptn.place_of_service_id AS ptn_ord_fac_place_of_service,
+                                        order_info->'pos' AS pos,
                                         (CASE
                                             WHEN (SELECT split_types IS NOT NULL FROM census_fee_charges_details)
                                             THEN 'split'
@@ -339,6 +345,23 @@ module.exports = {
                                             INNER JOIN ordering_facilities of ON of.id = ofc.ordering_facility_id
                                             WHERE studies.id = ${firstStudyId}
                                         ) ordering_facility  ON TRUE
+                                        LEFT JOIN LATERAL (
+                                            SELECT
+                                                ofc.id AS ordering_facility_contact_id,
+                                                ofc.location,
+                                                ofc.billing_type,
+                                                of.name AS ordering_facility_name,
+                                                of.id,
+                                                ofc.place_of_service_id
+                                            FROM
+                                                public.ordering_facilities of
+                                            INNER JOIN ordering_facility_contacts ofc
+                                                ON ofc.ordering_facility_id = of.id
+                                            INNER JOIN patients p
+                                                ON p.default_ordering_facility_contact_id = ofc.id
+                                            WHERE
+                                                p.id = orders.patient_id
+                                        ) ordering_facility_ptn  ON TRUE
                                         LEFT JOIN LATERAL (
                                             SELECT
                                                 pc.id,
