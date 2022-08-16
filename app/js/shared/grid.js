@@ -873,7 +873,7 @@ define('grid', [
                 var rowId = $checkedInputs[r].parentNode.parentNode.id;
                 var gridData = $(gridID).jqGrid('getRowData', rowId);
 
-                if (app.isMobileBillingEnabled && gridData.billing_type === 'census') {
+                if (app.isMobileBillingEnabled && gridData.hidden_billing_type === 'census') {
                     commonjs.showWarning("messages.warning.validBillingType");
                     return false;
                 }
@@ -889,7 +889,7 @@ define('grid', [
                 }
 
                 if (app.isMobileBillingEnabled
-                    && (gridData.hidden_is_split_enabled_primary_insurance === 'true' || gridData.billing_type === 'split')
+                    && (gridData.hidden_is_split_enabled_primary_insurance === 'true' || gridData.hidden_billing_type === 'split')
                     && gridData.hidden_ordering_facility === 'null') {
                     commonjs.showWarning(commonjs.geti18NString("messages.confirm.batchSplitClaim").replace('$ACCESSION_NO$', gridData.accession_no));
                     return false;
@@ -900,7 +900,7 @@ define('grid', [
                     patient_id: gridData.hidden_patient_id,
                     study_id: gridData.hidden_study_id,
                     order_id: gridData.hidden_order_id,
-                    billing_type: app.isMobileBillingEnabled && gridData.billing_type ? gridData.billing_type : 'global'
+                    billing_type: (app.isMobileBillingEnabled && gridData.hidden_billing_type) || 'global'
                 });
             }
 
