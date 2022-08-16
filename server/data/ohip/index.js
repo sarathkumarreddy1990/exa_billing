@@ -434,7 +434,8 @@ const updateClaimStatus = async (args) => {
         screenName,
         entityName,
         moduleName,
-        auditDesc
+        auditDesc,
+        isFrom = ''
     } = args;
 
     const sql = SQL`
@@ -478,6 +479,15 @@ const updateClaimStatus = async (args) => {
         .append(SQL`
                     WHERE
                         id = ANY(${claimIds}::int[])
+                        AND NOT EXISTS (
+                            SELECT
+                                id
+                            FROM 
+                                billing.claim_status bcs
+                            WHERE 'acknowledge' = ${isFrom}
+                                AND code IN ('PIF','PAP','OP')
+                                AND bcs.id = claims.claim_status_id
+                        )
                     RETURNING *
                     , (SELECT row_to_json(old_row) FROM (
                         SELECT * FROM billing.claims i_bc
@@ -646,6 +656,15 @@ const applyRejectMessage = async (args) => {
             claim_ids
         WHERE
             id = claim_ids.claim_id
+            AND NOT EXISTS (
+                SELECT 
+                    id 
+                FROM
+                    billing.claim_status bcs
+                WHERE
+                    code IN ('PIF','PAP','OP')
+                    AND bcs.id = claims.claim_status_id
+            )
         RETURNING
             id;
     `;
@@ -744,6 +763,7 @@ const applyBatchEditReport = async (args) => {
     if (dbResults && dbResults.length) {
         await updateClaimStatus({
             claimStatusCode: claimStatus,  // Batch Rejected or Pending Payment
+            isFrom: 'acknowledge',
             claimIds: dbResults.map((claim_file) => {
                 return claim_file.claim_id;
             }),
@@ -823,6 +843,15 @@ const applyErrorReport = async (args) => {
             WHERE
                 -- TODO extract affected claimIDs/accountingNumbers from parsedFile and pass as array (dont cast)
                 id = correction.key::bigint
+                AND NOT EXISTS (
+                    SELECT
+                        id
+                    FROM 
+                        billing.claim_status bcs
+                    WHERE
+                        code IN ('PIF','PAP','OP')
+                        AND bcs.id = claims.claim_status_id
+                )
             RETURNING
                  id
         )
@@ -917,6 +946,7 @@ const applyErrorReport = async (args) => {
 
         await updateClaimStatus({
             claimStatusCode: deniedStatus,  // Pending Payment
+            isFrom: 'acknowledge',
             claimIds,
             claimNote: 'Electronically corrected via MCEDT-EBS',
             userId: 1,
