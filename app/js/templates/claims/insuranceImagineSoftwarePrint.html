@@ -83,10 +83,22 @@
             <field><%= data.patient.name %></field>
         </item>
 
+        <!-- Home Phone -->
+        <item>
+            <label i18n="shared.fields.homePhone"></label>
+            <field><%= data.patient.homePhone %></field>
+        </item>
+
+        <!-- Mobile Phone -->
+        <item>
+            <label i18n="shared.fields.mobilePhone"></label>
+            <field><%= data.patient.mobilePhone %></field>
+        </item>
+
         <!-- Date of Birth -->
         <item>
             <label i18n="shared.fields.dateofBirth"></label>
-            <field><%= data.patient.dob %></field>
+            <field><%= data.patient.dobDisplay %></field>
         </item>
 
         <!-- MRN -->
@@ -125,7 +137,7 @@
         <!-- Date of Service -->
         <item>
             <label i18n="patient.patientInsurance.eligibility.dateOfService"></label>
-            <field><%= data.visit.dateOfService %></field>
+            <field><%= data.visit.dateOfServiceDisplay %></field>
         </item>
 
         <!-- Referring Physician -->
@@ -179,7 +191,7 @@
         <!-- Subscriber DOB -->
         <item>
             <label i18n="patient.patientInsurance.subscriberDob"></label>
-            <field><%= data.insurance.subscriberDob %></field>
+            <field><%= data.insurance.subscriberDobDisplay %></field>
         </item>
     </section>
 
@@ -289,18 +301,6 @@
             <span i18n="patient.patientInsurance.eligibility.estimation"></span>
         </header>
 
-        <!-- Allowed Amount -->
-        <item>
-            <blurb>
-                <div i18n="patient.patientInsurance.eligibility.allowedAmount" class="bold"></div>
-                <description i18n="patient.patientInsurance.eligibility.allowedAmountEstimation"></description>
-            </blurb>
-
-            <value>
-                <%= data.estimation.allowedAmountDisplay %> / <%= data.estimation.maxAllowedAmountDisplay %>
-            </value>
-        </item>
-
         <!-- Co-Insurance -->
         <item>
             <blurb>
@@ -337,69 +337,6 @@
             </value>
         </item>
 
-        <!-- Insurance Adjustment -->
-        <item>
-            <blurb>
-                <div i18n="patient.patientInsurance.eligibility.insuranceAdjustments" class="bold"></div>
-                <description i18n="patient.patientInsurance.eligibility.insuranceAdjustmentsEstimation"></description>
-            </blurb>
-
-            <value>
-                <%= data.estimation.insuranceAdjustmentAmountDisplay %>
-            </value>
-        </item>
-
-        <!-- Insurance Payment -->
-        <item>
-            <blurb>
-                <div i18n="patient.patientInsurance.eligibility.insurancePayment" class="bold"></div>
-                <description i18n="patient.patientInsurance.eligibility.insurancePaymentEstimation"></description>
-            </blurb>
-
-            <value>
-                <%= data.estimation.insurancePaymentDisplay %>
-            </value>
-        </item>
-
-        <!-- Patient Responsibility -->
-        <item>
-            <blurb>
-                <div i18n="patient.patientInsurance.eligibility.patientResponsibility" class="bold"></div>
-                <description i18n="patient.patientInsurance.eligibility.patientResponsibilityEstimation"></description>
-            </blurb>
-
-            <value>
-                <%= data.estimation.maxAllowedAmountDisplay %> /
-                <%= data.estimation.patientResponsibleAmountDisplay %> /
-                <%= data.estimation.maxPatientResponsibilityAmountDisplay %>
-            </value>
-        </item>
-
-        <!-- Stop Loss -->
-        <item>
-            <blurb>
-                <div i18n="patient.patientInsurance.eligibility.stopLoss" class="bold"></div>
-                <description i18n="patient.patientInsurance.eligibility.stopLossEstimation"></description>
-            </blurb>
-
-            <value>
-                <%= data.estimation.stopLossDisplay %>
-            </value>
-        </item>
-
-        <!-- Total Charges -->
-        <item>
-            <blurb>
-                <div i18n="patient.patientInsurance.eligibility.totalCharges" class="bold"></div>
-                <description i18n="patient.patientInsurance.eligibility.totalChargesEstimation"></description>
-            </blurb>
-
-            <value>
-                <%= data.estimation.totalChargesDisplay %> / <%= data.estimation.maxTotalChargesDisplay %>
-            </value>
-        </item>
-
-
         <!-- Max Balance Due -->
         <item>
             <blurb i18n="patient.patientInsurance.eligibility.maxBalanceDue" class="bold"></blurb>
@@ -420,7 +357,7 @@
         <item>
             <blurb i18n="patient.patientInsurance.eligibility.patientBalance" class="bold"></blurb>
             <value id="divEstimationPatientBalance">
-                <%= data.estimation.patientResponsibleAmountDisplay %>
+                <%= data.estimation.balanceDueDisplay %>
             </value>
         </item>
     </section>
