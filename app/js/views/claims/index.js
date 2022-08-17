@@ -1343,7 +1343,10 @@ define(['jquery',
 
                 var skillCode = claim_data.skill_code || self.usermessage.selectSkillCodes;
                 var renderingProvider = renderingProviderFullName || self.usermessage.selectStudyReadPhysician;
-                var orderingFacility = claim_data.ordering_facility_name || claim_data.service_facility_name || self.usermessage.selectOrdFacility;
+
+                var orderingFacility = claim_data.pos == "OFP" ? claim_data.ptn_ordering_facility_name : claim_data.ordering_facility_name;
+                orderingFacility = orderingFacility || claim_data.service_facility_name || self.usermessage.selectOrdFacility;
+
                 var referringProviderNpi;
                 var is_pri_ref_contact;
 
@@ -1384,9 +1387,14 @@ define(['jquery',
                     self.toggleSkillCodeSection();
                 }
 
-                self.ordering_facility_id = claim_data.ordering_facility_id || claim_data.service_facility_id || null;
+                self.ordering_facility_id = claim_data.pos == "OFP" ? claim_data.ptn_ordering_facility_id : claim_data.ordering_facility_id;
+                self.ordering_facility_id = self.ordering_facility_id || claim_data.service_facility_id || null;
+
                 self.ordering_facility_name = orderingFacility;
-                self.ordering_facility_contact_id = claim_data.ordering_facility_contact_id || claim_data.service_facility_contact_id || null;
+
+                self.ordering_facility_contact_id = claim_data.pos == "OFP" ? claim_data.ptn_ordering_facility_contact_id :claim_data.ordering_facility_contact_id;
+                self.ordering_facility_contact_id = self.ordering_facility_contact_id || claim_data.service_facility_contact_id || null;
+
                 self.billing_type = claim_data.billing_type || 'global';
                 self.is_insurance_split = claim_data.is_insurance_split;
                 var patientAltAaccNo;
