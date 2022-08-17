@@ -89,12 +89,15 @@
                     </legend>
                     <div class="form-group form-inline">
                         <div>
-                            <% if (InsuranceData && InsuranceData.coverage && InsuranceData.coverage.copay && InsuranceData.coverage.copay.length > 0 ) {
-                                var v_flag = false; %>
-                                <% _.each(InsuranceData.service_type_codes, function(serviceTypeDetails) { %>
-                                    <% _.each(InsuranceData.coverage.copay, function(resultServiceType,index) { %>
-                                        <% if ( resultServiceType.service_type_codes && resultServiceType.service_type_codes == serviceTypeDetails ) {
-                                            v_flag = true; %>
+                            <%
+                            if (InsuranceData && InsuranceData.coverage && InsuranceData.coverage.copay && InsuranceData.coverage.copay.length > 0 ) {
+                                var v_flag = false;
+
+                                _.each(InsuranceData.service_type_codes, function(serviceTypeDetails, idx) {
+                                    _.each(InsuranceData.coverage.copay, function(resultServiceType, index) {
+                                        if ( _.includes(resultServiceType.service_type_codes, serviceTypeDetails) ) {
+                                            v_flag = true;
+                                            %>
                                             <table class="table table-bordered">
                                                 <tbody>
                                                     <tr>
@@ -125,38 +128,49 @@
                                                         <td width="30%" class="boldLabel">Authorization Required?</td>
                                                         <td width="70%"> <%= resultServiceType.authorization_required ? 'Yes' : 'No' %> </td>
                                                     </tr>
-                                                    <% if (resultServiceType.messages) { %>
-                                                        <% _.each(resultServiceType.messages, function(msgDetails, index) { %>
+                                                    <%
+                                                    if (resultServiceType.messages) {
+                                                        _.each(resultServiceType.messages, function(msgDetails, index) {
+                                                            %>
                                                             <tr>
                                                                 <td width="30%" class="boldLabel"><%= index === 0 ? 'Messages' : '' %></td>
                                                                 <td width="70%">* <%= msgDetails.message %> </td>
                                                             </tr>
-                                                        <% }); %>
-                                                    <% } else { %>
+                                                            <%
+                                                        });
+                                                    } else {
+                                                        %>
                                                         <tr>
                                                             <td width="30%" class="boldLabel">Messages</td>
                                                             <td width="70%">-</td>
                                                         </tr>
-                                                    <% } %>
+                                                        <%
+                                                    } %>
                                                     <tr>
                                                         <td width="30%" class="boldLabel">Additional Information</td>
                                                         <td width="70%"> <%= resultServiceType.description ? resultServiceType.description : '-' %> </td>
                                                     </tr>
                                                 </tbody>
                                             </table>
-                                        <% } %>
-                                    <% }); %>
-                                <% }); %>
-                                <% if ( !v_flag ) { %>
+                                            <%
+                                        }
+                                    });
+                                });
+                                
+                                if ( !v_flag ) {
+                                    %>
                                     <div class="col-form-content" align="center">
                                         <label>No Record Found</label>
                                     </div>
-                                <% } %>
-                            <% } else { %>
+                                    <%
+                                }
+                            } else {
+                                %>
                                 <div class="col-form-content" align="center">
                                     <label>No Record Found</label>
                                 </div>
-                            <% } %>
+                                <%
+                            } %>
                         </div>
                     </div>
                 </div>

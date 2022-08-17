@@ -568,8 +568,8 @@ function (
                 })
             });
 
-            $("#btnPrintInsuranceEligibility" + this.key).off("click").click(function () {
-                self.printInsuranceEligibility(data.data);
+            $("#btnPrintInsuranceEligibility").off("click").click(function () {
+                self.print(data.data);
             });
 
             return this;
@@ -721,8 +721,8 @@ function (
                 })
             });
 
-            $("#btnPrintInsuranceEligibility" + this.key).off("click").click(function () {
-                self.printInsuranceEligibility(data);
+            $("#btnPrintInsuranceEligibility").off("click").click(function () {
+                self.print(data);
             });
 
             return this;
@@ -731,12 +731,19 @@ function (
         /**
          * Print non-third party eligibility
          */
-        printInsuranceEligibility: function (data) {
-            console.log("PRINT", data);
-            // Construct print view from template
-            // commonjs.print(html);
+        print: function (data) {
+            var win = window.open('');
+            if (!win) { return; }
 
-            return this;
+            var print_data = this.setEligibilityInfoForPrint(data);
+            var print_info = this.insuranceUsaTemplate({ "eligibilityInfo": print_data });
+
+            win.document.write(print_info);
+            win.document.close();
+            win.print();
+            win.close();
+
+            commonjs.hideLoading();
         },
         /* #endregion */
 
@@ -1098,6 +1105,20 @@ function (
         },
 
         /**
+         * No idea what this does. Used for Pokitdok print.
+         */
+        chkVar: function (p0, p1, p2, p3, p4, p5, p6) {
+            if (p6 !== undefined) return (p0 && p0[p1] && p0[p1][p2] && p0[p1][p2][p3] && p0[p1][p2][p3][p4] && p0[p1][p2][p3][p4][p5] && p0[p1][p2][p3][p4][p5][p6] ? true : false);
+            else if (p5 !== undefined) return (p0 && p0[p1] && p0[p1][p2] && p0[p1][p2][p3] && p0[p1][p2][p3][p4] && p0[p1][p2][p3][p4][p5] ? true : false);
+            else if (p4 !== undefined) return (p0 && p0[p1] && p0[p1][p2] && p0[p1][p2][p3] && p0[p1][p2][p3][p4] ? true : false);
+            else if (p3 !== undefined) return (p0 && p0[p1] && p0[p1][p2] && p0[p1][p2][p3] ? true : false);
+            else if (p2 !== undefined) return (p0 && p0[p1] && p0[p1][p2] ? true : false);
+            else if (p1 !== undefined) return (p0 && p0[p1] ? true : false);
+            else if (p0 !== undefined) return (p0 ? true : false);
+            else return false;
+        },
+
+        /**
          * Returns the date of service
          *
          * @returns {string}
@@ -1406,6 +1427,176 @@ function (
             }
 
             return arr_service_types;
+        },
+
+        /**
+         * Hydrates Pokitdok print data
+         *
+         * @param {object} InsuranceData
+         * @returns {object}
+         */
+        setEligibilityInfoForPrint: function (InsuranceData) {
+            var self = this;
+            var eligibilityInfo = {};
+            eligibilityInfo.subscriberInfo = {};
+            eligibilityInfo.subscriberInfo.subscriberFirstName = self.chkVar(InsuranceData, 'subscriber', 'first_name') ? InsuranceData && InsuranceData.subscriber && InsuranceData.subscriber.first_name : '-';
+            eligibilityInfo.subscriberInfo.subscriberLastName = self.chkVar(InsuranceData, 'subscriber', 'last_name') ? InsuranceData.subscriber.last_name : '-';
+            eligibilityInfo.subscriberInfo.subscriberID = self.chkVar(InsuranceData, 'subscriber', 'id') ? InsuranceData.subscriber.id : '-';
+            eligibilityInfo.subscriberInfo.birthDate = self.chkVar(InsuranceData, 'subscriber', 'birth_date') ? InsuranceData.subscriber.birth_date : '-';
+            eligibilityInfo.subscriberInfo.gender = self.chkVar(InsuranceData, 'coverage') ? (InsuranceData.coverage.active !== undefined && InsuranceData.coverage.active ? 'Yes' : 'No') : '-';
+            eligibilityInfo.subscriberInfo.isActive = self.chkVar(InsuranceData, 'coverage') ? (InsuranceData.coverage.active !== undefined && InsuranceData.coverage.active ? 'Yes' : 'No') : '-';
+
+            eligibilityInfo.moreInfo = {};
+            eligibilityInfo.moreInfo.coverage = self.chkVar(InsuranceData, 'coverage') ? (InsuranceData.coverage.active !== undefined && InsuranceData.coverage.active ? 'Yes' : 'No') : '-';
+            eligibilityInfo.moreInfo.coverageLevel = self.chkVar(InsuranceData, 'coverage', 'plan_benefit_description', 'coverage_level') ? InsuranceData.coverage.plan_benefit_description.coverage_level : '-';
+            eligibilityInfo.moreInfo.insuaranceType = self.chkVar(InsuranceData, 'coverage', 'coverage_details', 'insurance_type') ? InsuranceData.coverage.coverage_details.insurance_type : '-';
+            eligibilityInfo.moreInfo.groupDescription = self.chkVar(InsuranceData, 'coverage', 'coverage_details', 'plan_description') ? InsuranceData.coverage.coverage_details.plan_description : '-';
+            eligibilityInfo.moreInfo.groupNumber = self.chkVar(InsuranceData, 'coverage', 'coverage_details', 'group_or_policy_number') ? InsuranceData.coverage.coverage_details.group_or_policy_number : '-';
+            eligibilityInfo.moreInfo.planBeginDate = self.chkVar(InsuranceData, 'coverage', 'plan_begin_date') ? InsuranceData.coverage.plan_begin_date : '-';
+            eligibilityInfo.moreInfo.planEndDate = self.chkVar(InsuranceData, 'coverage', 'plan_end_date') ? InsuranceData.coverage.plan_end_date : '-';
+            eligibilityInfo.moreInfo.planDescription = self.chkVar(InsuranceData, 'coverage', 'plan_description') ? InsuranceData.coverage.plan_description : '-';
+            eligibilityInfo.moreInfo.planNumber = self.chkVar(InsuranceData, 'coverage', 'plan_number') ? InsuranceData.coverage.plan_number : '-';
+            eligibilityInfo.moreInfo.serviceDate = self.chkVar(InsuranceData, 'coverage', 'service_date') ? InsuranceData.coverage.service_date : '-';
+
+            var coverageDataMessages = (self.chkVar(InsuranceData, 'coverage', 'messages') ? InsuranceData.coverage.messages : []).concat(self.chkVar(InsuranceData, 'coverage', 'coverage_details', 'messages') ? InsuranceData.coverage.coverage_details.messages : []);
+            coverageDataMessages = coverageDataMessages.concat(self.chkVar(InsuranceData, 'coverage', 'plan_benefit_description', 'messages') ? InsuranceData.coverage.plan_benefit_description.messages : []);
+
+            eligibilityInfo.messages = {};
+            if (coverageDataMessages) {
+                eligibilityInfo.messages = coverageDataMessages ? coverageDataMessages : '-';
+            }
+
+            eligibilityInfo.deductiblesData = {};
+            var deductiblesData = [];
+            deductiblesData = self.chkVar(InsuranceData, 'coverage', 'deductibles');
+            if (deductiblesData && InsuranceData.coverage.deductibles.length > 0) {
+                eligibilityInfo.deductiblesData = InsuranceData.coverage.deductibles;
+            }
+
+            eligibilityInfo.out_of_pocketData = {};
+            if (self.chkVar(InsuranceData, 'coverage', 'out_of_pocket') && InsuranceData.coverage.out_of_pocket.length > 0) {
+                eligibilityInfo.out_of_pocketData = InsuranceData.coverage.out_of_pocket;
+            }
+
+            eligibilityInfo.summaryDeductable = {};
+            eligibilityInfo.summaryDeductable.inNetwork = {};
+
+            eligibilityInfo.summaryDeductable.inNetwork.totalDeductable = ((self.chkVar(InsuranceData, 'summary', 'deductible', 'individual', 'in_network', 'limit', 'currency') && InsuranceData.summary.deductible.individual.in_network.limit.currency == 'USD' ? '$' : '')) + (self.chkVar(InsuranceData, 'summary', 'deductible', 'individual', 'in_network', 'limit', 'amount') ? InsuranceData.summary.deductible.individual.in_network.limit.amount : '-');
+            eligibilityInfo.summaryDeductable.inNetwork.spentYTD = ((self.chkVar(InsuranceData, 'summary', 'deductible', 'individual', 'in_network', 'applied', 'currency') && InsuranceData.summary.deductible.individual.in_network.applied.currency == 'USD' ? '$' : '')) + (self.chkVar(InsuranceData, 'summary', 'deductible', 'individual', 'in_network', 'applied', 'amount') ? InsuranceData.summary.deductible.individual.in_network.applied.amount : '-');
+            eligibilityInfo.summaryDeductable.inNetwork.remaining = ((self.chkVar(InsuranceData, 'summary', 'deductible', 'individual', 'in_network', 'remaining', 'currency') && InsuranceData.summary.deductible.individual.in_network.remaining.currency == 'USD' ? '$' : '')) + (self.chkVar(InsuranceData, 'summary', 'deductible', 'individual', 'in_network', 'remaining', 'amount') ? InsuranceData.summary.deductible.individual.in_network.remaining.amount : '-');
+
+            eligibilityInfo.summaryDeductable.inNetwork.totalDeductable1 = ((self.chkVar(InsuranceData, 'summary', 'out_of_pocket', 'individual', 'in_network', 'limit', 'currency') && InsuranceData.summary.out_of_pocket.individual.in_network.limit.currency == 'USD' ? '$' : '')) + (self.chkVar(InsuranceData, 'summary', 'out_of_pocket', 'individual', 'in_network', 'limit', 'amount') ? InsuranceData.summary.out_of_pocket.individual.in_network.limit.amount : '-');
+            eligibilityInfo.summaryDeductable.inNetwork.spentYTD1 = ((self.chkVar(InsuranceData, 'summary', 'out_of_pocket', 'individual', 'in_network', 'applied', 'currency') && InsuranceData.summary.out_of_pocket.individual.in_network.applied.currency == 'USD' ? '$' : '')) + (self.chkVar(InsuranceData, 'summary', 'out_of_pocket', 'individual', 'in_network', 'applied', 'amount') ? InsuranceData.summary.out_of_pocket.individual.in_network.applied.amount : '-');
+            eligibilityInfo.summaryDeductable.inNetwork.remaining1 = ((self.chkVar(InsuranceData, 'summary', 'out_of_pocket', 'individual', 'in_network', 'remaining', 'currency') && InsuranceData.summary.out_of_pocket.individual.in_network.remaining.currency == 'USD' ? '$' : '')) + (self.chkVar(InsuranceData, 'summary', 'out_of_pocket', 'individual', 'in_network', 'remaining', 'amount') ? InsuranceData.summary.out_of_pocket.individual.in_network.remaining.amount : '-');
+
+            eligibilityInfo.summaryDeductable.outOfNetwork = {};
+            eligibilityInfo.summaryDeductable.outOfNetwork.totalDeductable = ((self.chkVar(InsuranceData, 'summary', 'deductible', 'individual', 'out_of_network', 'limit', 'currency') && InsuranceData.summary.deductible.individual.out_of_network.limit.currency == 'USD' ? '$' : '')) + (self.chkVar(InsuranceData, 'summary', 'deductible', 'individual', 'out_of_network', 'limit', 'amount') ? InsuranceData.summary.deductible.individual.out_of_network.limit.amount : '-');
+            eligibilityInfo.summaryDeductable.outOfNetwork.spentYTD = ((self.chkVar(InsuranceData, 'summary', 'deductible', 'individual', 'out_of_network', 'applied', 'currency') && InsuranceData.summary.deductible.individual.out_of_network.applied.currency == 'USD' ? '$' : '')) + (self.chkVar(InsuranceData, 'summary', 'deductible', 'individual', 'out_of_network', 'applied', 'amount') ? InsuranceData.summary.deductible.individual.out_of_network.applied.amount : '-');
+            eligibilityInfo.summaryDeductable.outOfNetwork.remaining = ((self.chkVar(InsuranceData, 'summary', 'deductible', 'individual', 'out_of_network', 'remaining', 'currency') && InsuranceData.summary.deductible.individual.out_of_network.remaining.currency == 'USD' ? '$' : '')) + (self.chkVar(InsuranceData, 'summary', 'deductible', 'individual', 'out_of_network', 'remaining', 'amount') ? InsuranceData.summary.deductible.individual.out_of_network.remaining.amount : '-');
+
+            eligibilityInfo.summaryDeductable.outOfNetwork.totalDeductable1 = ((self.chkVar(InsuranceData, 'summary', 'out_of_pocket', 'individual', 'out_of_network', 'limit', 'currency') && InsuranceData.summary.out_of_pocket.individual.out_of_network.limit.currency == 'USD' ? '$' : '')) + (self.chkVar(InsuranceData, 'summary', 'out_of_pocket', 'individual', 'out_of_network', 'limit', 'amount') ? InsuranceData.summary.out_of_pocket.individual.out_of_network.limit.amount : '-');
+            eligibilityInfo.summaryDeductable.outOfNetwork.spentYTD1 = ((self.chkVar(InsuranceData, 'summary', 'out_of_pocket', 'individual', 'out_of_network', 'applied', 'currency') && InsuranceData.summary.out_of_pocket.individual.out_of_network.applied.currency == 'USD' ? '$' : '')) + (self.chkVar(InsuranceData, 'summary', 'out_of_pocket', 'individual', 'out_of_network', 'applied', 'amount') ? InsuranceData.summary.out_of_pocket.individual.out_of_network.applied.amount : '-');
+            eligibilityInfo.summaryDeductable.outOfNetwork.remaining1 = ((self.chkVar(InsuranceData, 'summary', 'out_of_pocket', 'individual', 'out_of_network', 'remaining', 'currency') && InsuranceData.summary.out_of_pocket.individual.out_of_network.remaining.currency == 'USD' ? '$' : '')) + (self.chkVar(InsuranceData, 'summary', 'out_of_pocket', 'individual', 'out_of_network', 'remaining', 'amount') ? InsuranceData.summary.out_of_pocket.individual.out_of_network.remaining.amount : '-');
+
+            eligibilityInfo.coInsuranceData = [];
+            if (self.chkVar(InsuranceData, 'coverage', 'coinsurance') && InsuranceData.coverage.coinsurance.length > 0 && self.chkVar(InsuranceData, 'service_type_codes') && InsuranceData.service_type_codes.length > 0) {
+                for (var k = 0; k < InsuranceData.service_type_codes.length; k++) {
+                    for (var j = 0; j < InsuranceData.coverage.coinsurance.length; j++) {
+                        var idx = _.indexOf(InsuranceData.coverage.coinsurance[j].service_type_codes, InsuranceData.service_type_codes[k]);
+
+                        if (idx !== -1) {
+                            eligibilityInfo.coInsuranceData.push({
+                                "benefit_percent": InsuranceData.coverage.coinsurance[j].benefit_percent !== undefined ? InsuranceData.coverage.coinsurance[j].benefit_percent + '%' : '-',
+                                "in_plan_network": InsuranceData.coverage.coinsurance[j].in_plan_network !== undefined ? InsuranceData.coverage.coinsurance[j].in_plan_network : '-',
+                                "coverage_level": InsuranceData.coverage.coinsurance[j].coverage_level !== undefined ? InsuranceData.coverage.coinsurance[j].coverage_level : '-',
+                                "authorization_required": InsuranceData.coverage.coinsurance[j].authorization_required !== undefined ? InsuranceData.coverage.coinsurance[j].authorization_required : '-',
+                                "service_types": InsuranceData.coverage.coinsurance[j].service_types !== undefined ? InsuranceData.coverage.coinsurance[j].service_types[idx] : '-'
+                            });
+                        }
+                    }
+                }
+            }
+
+            eligibilityInfo.copayData = [];
+            if (self.chkVar(InsuranceData, 'coverage', 'copay') && InsuranceData.coverage.copay.length > 0 && self.chkVar(InsuranceData, 'service_type_codes') && InsuranceData.service_type_codes.length > 0) {
+                for (var k = 0; k < InsuranceData.service_type_codes.length; k++) {
+                    for (var j = 0; j < InsuranceData.coverage.copay.length; j++) {
+                        var idx = _.indexOf(InsuranceData.coverage.copay[j].service_type_codes, InsuranceData.service_type_codes[k]);
+
+                        if (idx !== -1) {
+                            eligibilityInfo.copayData.push({
+                                "amount": (InsuranceData.coverage.copay[j].copayment !== undefined && InsuranceData.coverage.copay[j].copayment.currency !== undefined ? (InsuranceData.coverage.copay[j].copayment.currency === 'USD' ? '$' : '') : '') + (InsuranceData.coverage.copay[j].copayment !== undefined && InsuranceData.coverage.copay[j].copayment.amount !== undefined ? InsuranceData.coverage.copay[j].copayment.amount : '-'),
+                                "in_plan_network": InsuranceData.coverage.copay[j].in_plan_network !== undefined ? InsuranceData.coverage.copay[j].in_plan_network : '-',
+                                "coverage_level": InsuranceData.coverage.copay[j].coverage_level !== undefined ? InsuranceData.coverage.copay[j].coverage_level : '-',
+                                "insurance_type": InsuranceData.coverage.copay[j].insurance_type !== undefined ? InsuranceData.coverage.copay[j].insurance_type : '-',
+                                "plan_description": InsuranceData.coverage.copay[j].plan_description !== undefined ? InsuranceData.coverage.copay[j].plan_description : '-',
+                                "service_types": InsuranceData.coverage.copay[j].service_types !== undefined ? InsuranceData.coverage.copay[j].service_types[idx] : '-',
+                                "authorization_required": InsuranceData.coverage.copay[j].authorization_required !== undefined ? (InsuranceData.coverage.copay[j].authorization_required ? 'Yes' : 'No') : '-'
+                            });
+                        }
+                    }
+                }
+            }
+
+            eligibilityInfo.requestDetails = {};
+            eligibilityInfo.requestDetails.subscriberId = self.chkVar(InsuranceData, 'subscriber', 'id') ? InsuranceData.subscriber.id : '-';
+            eligibilityInfo.requestDetails.first_name = self.chkVar(InsuranceData, 'subscriber', 'first_name') ? InsuranceData && InsuranceData.subscriber && InsuranceData.subscriber.first_name : '-';
+            eligibilityInfo.requestDetails.last_name = self.chkVar(InsuranceData, 'subscriber', 'last_name') ? InsuranceData.subscriber.last_name : '-';
+            eligibilityInfo.requestDetails.birth_date = self.chkVar(InsuranceData, 'subscriber', 'birth_date') ? InsuranceData.subscriber.birth_date : '-';
+            eligibilityInfo.requestDetails.gender = self.chkVar(InsuranceData, 'subscriber', 'gender') ? InsuranceData.subscriber.gender : '-';
+            eligibilityInfo.requestDetails.address_lines = self.chkVar(InsuranceData, 'subscriber', 'address', 'address_lines') ? InsuranceData.subscriber.address.address_lines.toString() : '-';
+            eligibilityInfo.requestDetails.city = self.chkVar(InsuranceData, 'subscriber', 'address', 'city') ? InsuranceData.subscriber.address.city : '-';
+            eligibilityInfo.requestDetails.state = self.chkVar(InsuranceData, 'subscriber', 'address', 'state') ? InsuranceData.subscriber.address.state : '';
+            eligibilityInfo.requestDetails.zipcode = self.chkVar(InsuranceData, 'subscriber', 'address', 'zipcode') ? InsuranceData.subscriber.address.zipcode : '-';
+            eligibilityInfo.requestDetails.valid_request = self.chkVar(InsuranceData) ? (InsuranceData.valid_request !== undefined ? InsuranceData.valid_request : '-') : '-';
+            eligibilityInfo.requestDetails.service_type_codes = self.chkVar(InsuranceData, 'service_type_codes') ? InsuranceData.service_type_codes.toString() : '-';
+            eligibilityInfo.requestDetails.trace_number = self.chkVar(InsuranceData, 'trace_number') ? InsuranceData.trace_number : '-';
+            eligibilityInfo.requestDetails.originating_company_id = self.chkVar(InsuranceData, 'originating_company_id') ? InsuranceData.originating_company_id : '-';
+
+            eligibilityInfo.payerInfo = {};
+            eligibilityInfo.payerInfo.payerId = self.chkVar(InsuranceData, 'payer', 'id') ? InsuranceData.payer.id : '-';
+            eligibilityInfo.payerInfo.payerName = self.chkVar(InsuranceData, 'payer', 'name') ? InsuranceData.payer.name : '-';
+
+            eligibilityInfo.providerInfo = {};
+            eligibilityInfo.providerInfo.npi = self.chkVar(InsuranceData, 'provider', 'npi') ? InsuranceData.provider.npi : '-';
+            eligibilityInfo.providerInfo.organization_name = self.chkVar(InsuranceData, 'provider', 'organization_name') ? InsuranceData.provider.organization_name : '-';
+
+            eligibilityInfo.pharmacyInfo = {};
+            eligibilityInfo.pharmacyInfo.is_eligible = self.chkVar(InsuranceData, 'pharmacy') ? (InsuranceData.pharmacy.is_eligible !== undefined && InsuranceData.pharmacy.is_eligible ? 'Yes' : 'No') : '-';
+
+            eligibilityInfo.pharmacyData = [];
+            if (self.chkVar(InsuranceData, 'pharmacy', 'copay') && InsuranceData.pharmacy.copay.length > 0) {
+                for (var j = 0; j < InsuranceData.pharmacy.copay.length; j++) {
+                    eligibilityInfo.pharmacyData.push({
+                        "copayment": (InsuranceData.pharmacy.copay[j].copayment !== undefined && InsuranceData.pharmacy.copay[j].copayment.currency !== undefined ? (InsuranceData.pharmacy.copay[j].copayment.currency === 'USD' ? '$' : '') : '') + (InsuranceData.pharmacy.copay[j].copayment !== undefined && InsuranceData.pharmacy.copay[j].copayment.amount !== undefined ? InsuranceData.pharmacy.copay[j].copayment.amount : '-'),
+                        "type": InsuranceData.pharmacy.copay[j].type !== undefined ? InsuranceData.pharmacy.copay[j].type : '-',
+                        "notes": InsuranceData.pharmacy.copay[j].notes !== undefined ? InsuranceData.pharmacy.copay[j].notes : '-'
+                    })
+                }
+            }
+
+            eligibilityInfo.limitationsData = [];
+            if (self.chkVar(InsuranceData, 'coverage', 'limitations') && InsuranceData.coverage.limitations.length > 0 && self.chkVar(InsuranceData, 'service_type_codes') && InsuranceData.service_type_codes.length > 0) {
+                for (var k = 0; k < InsuranceData.service_type_codes.length; k++) {
+                    for (var j = 0; j < InsuranceData.coverage.limitations.length; j++) {
+                        var idx = _.indexOf(InsuranceData.coverage.limitations[j].service_type_codes, InsuranceData.service_type_codes[k]);
+
+                        if (idx !== -1) {
+                            eligibilityInfo.limitationsData.push({
+                                "benefit_amount": (InsuranceData.coverage.limitations[j].benefit_amount !== undefined && InsuranceData.coverage.limitations[j].benefit_amount.currency !== undefined ? (InsuranceData.coverage.limitations[j].benefit_amount.currency === 'USD' ? '$' : '') : '') + (InsuranceData.coverage.limitations[j].benefit_amount !== undefined && InsuranceData.coverage.limitations[j].benefit_amount.amount !== undefined ? InsuranceData.coverage.limitations[j].benefit_amount.amount : '-'),
+                                "description": InsuranceData.coverage.limitations[j].description !== undefined ? InsuranceData.coverage.limitations[j].description : '-',
+                                "service_types": InsuranceData.coverage.limitations[j].service_types !== undefined ? InsuranceData.coverage.limitations[j].service_types[idx] : '-'
+                            })
+                        }
+                    }
+                }
+            }
+
+            eligibilityInfo.diclaimerData = [];
+            if (self.chkVar(InsuranceData, 'coverage', 'disclaimer', 'messages') && InsuranceData.coverage.disclaimer.messages.length > 0) {
+                eligibilityInfo.diclaimerData = InsuranceData.coverage.disclaimer.messages;
+            }
+            return eligibilityInfo;
         },
 
         /**
