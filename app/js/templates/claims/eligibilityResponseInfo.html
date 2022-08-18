@@ -243,10 +243,6 @@
         <td style="text-align: center;">No Record Found</td>
     </tr>
     <% } %>
-
-    <!--<tr>-->
-        <!--<td style="text-align: center;">No Record Found</td>-->
-    <!--</tr>-->
     </tbody>
 </table>
 <br><br>
@@ -289,7 +285,7 @@
     </tr>
     <tr>
         <td width="25%" class="boldLabel">Authorization Required?</td>
-        <td width="75%"> <%= copayData.authorization_required ? authorization_required.service_types: '-' %> </td>
+        <td width="75%"> <%= copayData.authorization_required ? copayData.authorization_required : '-' %> </td>
     </tr>
     <% }); %>
     <% } else { %>
@@ -297,10 +293,6 @@
         <td style="text-align: center;">No Record Found</td>
     </tr>
     <% } %>
-
-    <!--<tr>-->
-        <!--<td style="text-align: center;">No Record Found</td>-->
-    <!--</tr>-->
     </tbody>
 </table>
 <br><br>
@@ -339,10 +331,6 @@
         <td style="text-align: center;">No Record Found</td>
     </tr>
     <% } %>
-
-    <!--<tr>-->
-        <!--<td style="text-align: center;">No Record Found</td>-->
-    <!--</tr>-->
     </tbody>
 </table>
 <br><br>
