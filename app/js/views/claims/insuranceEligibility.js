@@ -955,6 +955,18 @@ function (
         // --------------------------------------------------------------------------------
 
         /**
+         * Formats a date while avoiding empty and bad date formats which would return Invalid Date
+         *
+         * @param {string} date
+         * @returns {string}
+         */
+        formatDate: function (date) {
+            return date && moment(date).isValid()
+                ? moment(date).format("YYYY-MM-DD")
+                : "";
+        },
+
+        /**
          * Formats the insurance data from the BC eligibility check
          *
          * @param {object} data
@@ -1103,7 +1115,7 @@ function (
          * @returns {string}
          */
         dateOfService: function () {
-            return moment(_.get(this, "data.studies[0].study_dt")).format("YYYY-MM-DD");
+            return this.formatDate(_.get(this, "data.studies[0].study_dt"));
         },
 
         /**
@@ -1312,7 +1324,7 @@ function (
          * @returns {string}
          */
         patientDateOfBirth: function () {
-            return this.data.patient_birth_date && moment(this.data.patient_birth_date).format("YYYY-MM-DD") || "";
+            return this.formatDate(this.data.patient_birth_date);
         },
 
         /**
@@ -1414,7 +1426,7 @@ function (
          * @returns {string}
          */
         subscriberDateOfBirth: function () {
-            return this.data.subscriber_dob && moment(this.data.subscriber_dob).format("YYYY-MM-DD") || "";
+            return this.formatDate(this.data.subscriber_dob);
         },
 
         /**
