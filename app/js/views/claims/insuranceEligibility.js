@@ -1367,7 +1367,7 @@ function (
          * @returns {boolean}
          */
         readOnlyNoEligibility: function () {
-            return this.readOnly() && !this.eligibilityExists();
+            return (this.readOnly() && !this.eligibilityExists()) || _.isEmpty(this.original_order_data);
         },
 
         /**

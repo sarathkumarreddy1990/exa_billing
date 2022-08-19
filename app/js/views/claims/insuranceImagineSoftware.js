@@ -187,7 +187,7 @@ function (
         fetchEligibilityParams: function (callback) {
             callback = commonjs.ensureCallback(callback);
 
-            commonjs.showLoading();
+            this.showLoading("eligibility");
 
             $.ajax({
                 url: "/imagineSoftware/eligibilityForParams",
@@ -212,7 +212,7 @@ function (
         fetchEligibilityStudies: function (callback) {
             callback = commonjs.ensureCallback(callback);
 
-            commonjs.showLoading();
+            this.showLoading("eligibility");
 
             $.ajax({
                 url: "/imagineSoftware/eligibilityForStudies",
@@ -258,7 +258,7 @@ function (
         fetchEstimationParams: function (callback) {
             callback = commonjs.ensureCallback(callback);
 
-            commonjs.showLoading();
+            this.showLoading("estimation");
 
             $.ajax({
                 url: "/imagineSoftware/estimationForParams",
@@ -283,7 +283,7 @@ function (
         fetchEstimationStudies: function (callback) {
             callback = commonjs.ensureCallback(callback);
 
-            commonjs.showLoading();
+            this.showLoading("estimation");
 
             $.ajax({
                 url: "/imagineSoftware/estimationForStudies",
@@ -298,6 +298,77 @@ function (
                     return callback({});
                 }
             });
+        },
+
+        /**
+         * Recheck eligibility
+         *
+         * @param {function} callback
+         */
+        recheckEligibility: function (callback) {
+            callback = commonjs.ensureCallback(callback);
+
+            var self = this;
+
+            this.showLoading("eligibility");
+
+            $.ajax({
+                url: "/imagineSoftware/recheckEligibility",
+                type: "POST",
+                data: {
+                    studyIds: this.selectedStudyIds(),
+                    patientInsuranceId: this.data.insurance.id,
+                    serviceType: this.serviceTypes()
+                },
+                success: function (data) {
+                    commonjs.hideLoading();
+                    // Rechecking eligibility invalidates the existing estimation
+                    self.data.estimation = {};
+                    return callback(data.result);
+                },
+                error: function (err) {
+                    commonjs.handleXhrError(err);
+                    return callback({});
+                }
+            });
+
+            return this;
+        },
+
+        /**
+         * Re-estimate
+         *
+         * @param {function} callback
+         */
+        reestimate: function (callback) {
+            callback = commonjs.ensureCallback(callback);
+
+            var self = this;
+
+            this.showLoading("estimation");
+
+            $.ajax({
+                url: "/imagineSoftware/recheckEstimation",
+                type: "POST",
+                data: {
+                    studyIds: this.selectedStudyIds(),
+                    patientInsuranceId: this.data.insurance.id,
+                    serviceType: this.serviceTypes()
+                },
+                success: function (data) {
+                    commonjs.hideLoading();
+                    // Re-estimating invalidates the existing eligibility
+                    self.data.eligibility = {};
+                    self.activateEstimation();
+                    return callback(data.result);
+                },
+                error: function (err) {
+                    commonjs.handleXhrError(err);
+                    return callback({});
+                }
+            });
+
+            return this;
         },
         /* #endregion */
 
@@ -570,81 +641,23 @@ function (
         },
 
         /**
-         * Re-estimate
-         *
-         * @param {function} callback
-         */
-        reestimate: function (callback) {
-            callback = commonjs.ensureCallback(callback);
-
-            var self = this;
-
-            commonjs.showLoading();
-
-            $.ajax({
-                url: "/imagineSoftware/recheckEstimation",
-                type: "POST",
-                data: {
-                    studyIds: this.selectedStudyIds(),
-                    patientInsuranceId: this.data.insurance.id,
-                    serviceType: this.serviceTypes()
-                },
-                success: function (data) {
-                    commonjs.hideLoading();
-                    // Re-estimating invalidates the existing eligibility
-                    self.data.eligibility = {};
-                    self.activateEstimation();
-                    return callback(data.result);
-                },
-                error: function (err) {
-                    commonjs.handleXhrError(err);
-                    return callback({});
-                }
-            });
-
-            return this;
-        },
-
-        /**
-         * Recheck eligibility
-         *
-         * @param {function} callback
-         */
-        recheckEligibility: function (callback) {
-            callback = commonjs.ensureCallback(callback);
-
-            var self = this;
-
-            commonjs.showLoading();
-
-            $.ajax({
-                url: "/imagineSoftware/recheckEligibility",
-                type: "POST",
-                data: {
-                    studyIds: this.selectedStudyIds(),
-                    patientInsuranceId: this.data.insurance.id,
-                    serviceType: this.serviceTypes()
-                },
-                success: function (data) {
-                    commonjs.hideLoading();
-                    // Rechecking eligibility invalidates the existing estimation
-                    self.data.estimation = {};
-                    return callback(data.result);
-                },
-                error: function (err) {
-                    commonjs.handleXhrError(err);
-                    return callback({});
-                }
-            });
-
-            return this;
-        },
-
-        /**
          * Scrolls the estimation area to the top
          */
         scrollToTopOfEstimation: function () {
             $("#divImagineEstimation").animate({ scrollTop: 0 }, "fast");
+            return this;
+        },
+
+        /**
+         * Shows either the eligibility or estimation loading message
+         *
+         * @param {string} type  "eligibility" or "estimation"
+         */
+        showLoading: function (type) {
+            type === "estimation"
+                ? commonjs.showLoading(commonjs.geti18NString("patient.patientInsurance.eligibility.fetchEstimation"))
+                : commonjs.showLoading(commonjs.geti18NString("patient.patientInsurance.eligibility.fetchEligibility"));
+
             return this;
         },
 
