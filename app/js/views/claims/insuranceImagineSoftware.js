@@ -501,7 +501,7 @@ function (
                 return  item.id === self.data.visit.facilityId;
             });
 
-            this.data.currentDate = new Date().toLocaleDateString();
+            this.data.currentDate = moment().format('MM/DD/YYYY');
             this.data.facilityLogo = facility.facility_logo || '';
 
             var raw_html = this.printLetterTemplate({ data: this.data });
