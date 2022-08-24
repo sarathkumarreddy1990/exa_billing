@@ -482,7 +482,7 @@ const updateClaimStatus = async (args) => {
                         AND NOT EXISTS (
                             SELECT
                                 id
-                            FROM 
+                            FROM
                                 billing.claim_status bcs
                             WHERE 'acknowledge' = ${isFrom}
                                 AND code IN ('PIF','PAP','OP')
@@ -657,8 +657,8 @@ const applyRejectMessage = async (args) => {
         WHERE
             id = claim_ids.claim_id
             AND NOT EXISTS (
-                SELECT 
-                    id 
+                SELECT
+                    id
                 FROM
                     billing.claim_status bcs
                 WHERE
@@ -846,7 +846,7 @@ const applyErrorReport = async (args) => {
                 AND NOT EXISTS (
                     SELECT
                         id
-                    FROM 
+                    FROM
                         billing.claim_status bcs
                     WHERE
                         code IN ('PIF','PAP','OP')
@@ -1203,7 +1203,7 @@ const OHIPDataAPI = {
                     CASE
                         WHEN pcc.charge_type = 'technical' AND pcc.display_code = ANY(${technicalProcedureCodesExceptions})
                         THEN (
-                            CASE 
+                            CASE
                                 WHEN pcc.display_code LIKE '%A'
                                 THEN 'professional_facility'
                                 WHEN pcc.display_code ILIKE '%C'
@@ -1690,7 +1690,7 @@ const OHIPDataAPI = {
                                     , type TEXT
                                 )
                             INNER JOIN matched_claims mc ON (
-                                LPAD(mc.claim_id::TEXT, 11, '0') =  LPAD(TRIM(claim_notes.claim_number), 11, '0') OR 
+                                LPAD(mc.claim_id::TEXT, 11, '0') =  LPAD(TRIM(claim_notes.claim_number), 11, '0') OR
                                 (NOT mc.is_exa_claim AND LPAD(mc.invoice_no, 11, '0') = LPAD(TRIM(claim_notes.claim_number), 11, '0'))
                             )
                             RETURNING id AS claim_comment_id
