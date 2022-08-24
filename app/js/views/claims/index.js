@@ -1120,7 +1120,7 @@ define(['jquery',
                 self.ACSelect.readPhy.contact_id = claim_data.rendering_provider_contact_id || claim_data.fac_rendering_provider_contact_id || null;
                 self.ACSelect.skillCodes.ID = claim_data.can_ahs_skill_code_id || null;
 
-                if (!claim_data.rendering_provider_contact_id && claim_data.fac_rendering_provider_contact_id) {
+                if ((!claim_data.rendering_provider_contact_id || !claim_data.can_ahs_skill_code_id) && claim_data.fac_rendering_provider_contact_id ) {
                     self.toggleSkillCodeSection();
                 }
 
@@ -5804,6 +5804,10 @@ define(['jquery',
                 self.ordering_facility_name = service_facility_name;
                 self.ordering_facility_contact_id = patient_details.service_facility_contact_id || null;
                 self.isClaimWOStudy = true;
+
+                if (patient_details.rendering_provider_id) {
+                    self.toggleSkillCodeSection();
+                }
 
                 $('#ddlPOSType').val(["can_AB", "can_MB", "can_ON"].indexOf(app.billingRegionCode) === -1 && patient_details.fac_place_of_service_id || '');
                 $('#ddlBillingProvider').val(patient_details.billing_provider_id || '');

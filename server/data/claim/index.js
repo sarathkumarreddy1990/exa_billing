@@ -895,6 +895,7 @@ module.exports = {
                     , f.facility_info -> 'npino' as npi_no
                     , f.facility_info -> 'federal_tax_id' as federal_tax_id
                     , f.facility_info -> 'enable_insurance_eligibility' as enable_insurance_eligibility
+                    , f.facility_info -> 'rendering_provider_id' AS fac_rendering_provider_contact_id
                     , c.can_wcb_rejected
                     , c.can_mhs_receipt_date::text AS can_mhs_receipt_date
                     , c.can_mhs_microfilm_no
