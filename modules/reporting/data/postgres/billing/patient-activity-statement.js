@@ -41,7 +41,7 @@ WITH claim_data AS(
         INNER JOIN claim_data cd ON cd.claim_id = bc.id
         INNER JOIN facilities f ON f.id = bc.facility_id
         WHERE TRUE
-        <% if(selectedClaimIds) { %> AND <% print(selectedClaimIds); } %>
+        <% if(insuranceClaimIds) { %> AND <% print(insuranceClaimIds); } %>
         ORDER BY cov_level
     ),
     billing_comments AS
@@ -1209,6 +1209,7 @@ const api = {
             billingAddressTaxNpi:null,
             claimId: null,
             selectedClaimIds: null,
+            insuranceClaimIds: null,
             billingPayers: null,
             countryCode: null
         };
@@ -1270,6 +1271,7 @@ const api = {
         if (claimIds) {
             params.push(claimIds);
             filters.selectedClaimIds = queryBuilder.whereIn('bc.id', [params.length]);
+            filters.insuranceClaimIds = queryBuilder.whereIn('bcpi.claim_id', [params.length]);
         }
 
         filters.countryCode = countryCode;
