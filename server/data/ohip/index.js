@@ -494,7 +494,7 @@ const updateClaimStatus = async (args) => {
                         WHERE i_bc.id = claims.id) old_row
                     ) old_values
                 )
-                SELECT 
+                SELECT
                     us.id AS claim_id
                     , us.claim_status_id
                     , billing.create_audit (
@@ -507,10 +507,10 @@ const updateClaimStatus = async (args) => {
                         ${clientIp},
                         json_build_object(
                             'old_values', COALESCE(us.old_values, '{}'),
-                            'new_values', ( 
-                                    SELECT 
-                                        row_to_json(temp_row)::jsonb - 'old_values'::text 
-                                    FROM 
+                            'new_values', (
+                                    SELECT
+                                        row_to_json(temp_row)::jsonb - 'old_values'::text
+                                    FROM
                                         ( SELECT * FROM update_status i_us where i_us.id = us.id) temp_row)
                         )::jsonb,
                         ${userId}
@@ -657,9 +657,9 @@ const applyRejectMessage = async (args) => {
         WHERE
             id = claim_ids.claim_id
             AND NOT EXISTS (
-                SELECT 
-                    id 
-                FROM 
+                SELECT
+                    id
+                FROM
                     billing.claim_status bcs
                 WHERE
                     code IN ('PIF','PAP','OP')
@@ -1202,7 +1202,7 @@ const OHIPDataAPI = {
                     CASE
                         WHEN pcc.charge_type = 'technical' AND pcc.display_code = ANY(${technicalProcedureCodesExceptions})
                         THEN (
-                            CASE 
+                            CASE
                                 WHEN pcc.display_code LIKE '%A'
                                 THEN 'professional_facility'
                                 WHEN pcc.display_code ILIKE '%C'
