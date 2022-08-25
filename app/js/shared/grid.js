@@ -178,7 +178,7 @@ define('grid', [
         */
         var showWCBClaimStatus = function(claimStatus, selectedStudies, isWCBStatus) {
             var canShowWCBClaimStatus;
-            var isAlbWCBCommonStatus = commonjs.can_ab_claim_status.indexOf(claimStatus.code) > -1;         
+            var isAlbWCBCommonStatus = commonjs.can_ab_claim_status.indexOf(claimStatus.code) > -1;
             var isWCBInsuranceExist = _.some(selectedStudies, function(data) {
                 return data.insurance_code === 'wcb';
             });
@@ -194,8 +194,8 @@ define('grid', [
             } else {
                 canShowWCBClaimStatus = !isWCBStatus;
             }
-            
-            return canShowWCBClaimStatus;           
+
+            return canShowWCBClaimStatus;
         }
 
         var openCreateClaim = function (rowID, event, isClaimGrid, store) {
@@ -458,10 +458,20 @@ define('grid', [
                                     liPayerTypeArray.push($(payerTypeSubmenu(billingPayers, 'tertiary')));
                                 }
                                 if (billingPayers.ordering_facility_contact_id) {
-                                    liPayerTypeArray.push($(commonjs.getRightClickMenu('ancOrderingFacility_' + billingPayers.ordering_facility_contact_id, '', true, billingPayers.ordering_facility_name + '( Service Facility )', false)));
+                                    var payerType = '';
+                                    if (app.isMobileBillingEnabled && app.settings.enableMobileRad) {
+                                        payerType = '( Ordering Facility )';
+                                    } else {
+                                        payerType = '( Service Facility )';
+                                    }
+
+                                    liPayerTypeArray.push($(commonjs.getRightClickMenu('ancOrderingFacility_' + billingPayers.ordering_facility_contact_id, '', true, billingPayers.ordering_facility_name + payerType, false)));
                                 }
                                 if (billingPayers.referring_provider_contact_id) {
                                     liPayerTypeArray.push($(commonjs.getRightClickMenu('ancRenderingProvider_' + billingPayers.referring_provider_contact_id, '', true, billingPayers.ref_prov_full_name + '( Referring Provider )', false)));
+                                }
+                                if (billingPayers.pos_map_id && app.isMobileBillingEnabled && app.settings.enableMobileRad) {
+                                    liPayerTypeArray.push($(commonjs.getRightClickMenu('ancServiceFacility_' + billingPayers.pos_map_id, '', true, billingPayers.service_location + '( Service Facility )', false)));
                                 }
                                 $('#ul_change_payer_type').append(liPayerTypeArray);
                                 $('#ul_change_payer_type li').click(function (e) {
@@ -485,6 +495,8 @@ define('grid', [
                                             break;
                                         case 'ancRenderingProvider':
                                             payer_type = 'referring_provider';
+                                        case 'ancServiceFacility':
+                                            payer_type = 'service_facility_location';
                                             break;
                                     }
                                     $.ajax({
@@ -588,7 +600,7 @@ define('grid', [
                 if (studyArray.length === 1 && statusIndex < 0) {
                     var liDeleteClaim = commonjs.getRightClickMenu('anc_delete_claim', 'setup.rightClickMenu.deleteClaim', false, 'Delete Claim', false);
                     var isWCBBilling = gridData.hidden_insurance_provider_codes
-                        && gridData.hidden_insurance_provider_codes.toLowerCase() === 'wcb'; 
+                        && gridData.hidden_insurance_provider_codes.toLowerCase() === 'wcb';
                     $divObj.append(liDeleteClaim);
                     self.checkRights('anc_delete_claim');
 

@@ -34,6 +34,7 @@ module.exports = {
                 , pos.description AS pos_name
                 , bpr.name AS billing_provider_name
                 , orders.order_no
+                , public.get_service_facility_name(bc.id, bc.pos_map_id) AS service_location
             FROM billing.claims bc
             INNER JOIN billing.claim_status st ON st.id = bc.claim_status_id
             INNER JOIN public.facilities f ON f.id = bc.facility_id
@@ -748,12 +749,14 @@ module.exports = {
                         claims.id as claim_id
                         ,(CASE
                             WHEN (payer_type = 'primary_insurance') OR
-                                (payer_type  = 'secondary_insurance') OR
-                                (payer_type  = 'tertiary_insurance') THEN insurance_providers.insurance_name
-                            WHEN payer_type  = 'ordering_facility' THEN pof.name
-                            WHEN payer_type  = 'referring_provider' THEN ref_provider.full_name
-                            WHEN payer_type  = 'rendering_provider' THEN render_provider.full_name
-                            WHEN payer_type  = 'patient' THEN patients.full_name        END) AS payer_name
+                                (payer_type = 'secondary_insurance') OR
+                                (payer_type = 'tertiary_insurance') THEN insurance_providers.insurance_name
+                            WHEN payer_type = 'ordering_facility' THEN pof.name
+                            WHEN payer_type = 'referring_provider' THEN ref_provider.full_name
+                            WHEN payer_type = 'rendering_provider' THEN render_provider.full_name
+                            WHEN payer_type = 'patient' THEN patients.full_name
+                            WHEN payer_type = 'service_facility_location' THEN public.get_service_facility_name(claims.id, claims.pos_map_id)
+                          END) AS payer_name
                         , claim_dt
                         , claims.facility_id
                         , claims.created_dt

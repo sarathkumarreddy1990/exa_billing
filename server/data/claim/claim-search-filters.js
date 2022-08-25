@@ -597,13 +597,16 @@ const api = {
             `payer_insurance.insurance_info->'edi_template'
             as edi_template`,
             `(  CASE payer_type
-            WHEN 'primary_insurance' THEN payer_insurance.insurance_name
-            WHEN 'secondary_insurance' THEN payer_insurance.insurance_name
-            WHEN 'tertiary_insurance' THEN payer_insurance.insurance_name
-            WHEN 'ordering_facility' THEN ordering_facilities.name
-            WHEN 'referring_provider' THEN ref_provider.full_name
-            WHEN 'rendering_provider' THEN render_provider.full_name
-            WHEN 'patient' THEN patients.full_name        END) as payer_name`,
+                    WHEN 'primary_insurance' THEN payer_insurance.insurance_name
+                    WHEN 'secondary_insurance' THEN payer_insurance.insurance_name
+                    WHEN 'tertiary_insurance' THEN payer_insurance.insurance_name
+                    WHEN 'ordering_facility' THEN ordering_facilities.name
+                    WHEN 'referring_provider' THEN ref_provider.full_name
+                    WHEN 'rendering_provider' THEN render_provider.full_name
+                    WHEN 'patient' THEN patients.full_name
+                    WHEN 'service_facility_location' THEN public.get_service_facility_name(claims.id, claims.pos_map_id)
+                END
+              ) AS payer_name`,
             'bgct.claim_balance_total as claim_balance',
             'billing_codes.description as billing_code',
             'billing_codes.id as billing_code_id',

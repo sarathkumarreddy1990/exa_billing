@@ -435,6 +435,8 @@ module.exports = {
                             , ref_pr.full_name AS ref_prov_full_name
                             , p.full_name AS patient_full_name
                             , f.facility_name
+                            , c.pos_map_id
+                            , public.get_service_facility_name(c.id, c.pos_map_id) AS service_location
                         FROM
                             billing.claims c
                         INNER JOIN public.patients p ON p.id = c.patient_id`
