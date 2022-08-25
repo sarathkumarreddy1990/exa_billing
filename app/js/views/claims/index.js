@@ -1219,6 +1219,16 @@ define(['jquery',
                  });
             },
 
+            isServiceFacilityLocation: function(claim_data) {
+                var posMap = $("#ddlServiceFacilityLocation option:selected").attr('data-posmap');
+                return (
+                    app.isMobileBillingEnabled
+                    && app.settings.enableMobileRad
+                    && (claim_data.pos_map_id || claim_data.pos_map_code)
+                    && posMap !== "OF"
+                );
+            },
+
             appendPOSOptions: function(posMap) {
                 var $ddlServiceFacilityLocation = $('#ddlServiceFacilityLocation');
                 $ddlServiceFacilityLocation.empty();
@@ -1235,7 +1245,6 @@ define(['jquery',
                 });
 
                 $ddlServiceFacilityLocation.append(posMapList);
-
             },
 
             createCptCodesUI: function(rowIndex) {
@@ -1600,8 +1609,8 @@ define(['jquery',
                     $('#ddlServiceFacilityLocation').val(claim_data.pos_map_id);
                 }
 
-                var posMap = $("#ddlServiceFacilityLocation option:selected").attr('data-posmap');
-                if ((claim_data.pos_map_id || claim_data.pos_map_code) && posMap !== "OF") {
+
+                if (self.isServiceFacilityLocation(claim_data)) {
                     self.updateResponsibleList({
                         payer_type: 'PSF',
                         payer_id: $('#ddlServiceFacilityLocation option:selected').val(),

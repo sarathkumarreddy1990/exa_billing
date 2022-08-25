@@ -564,7 +564,7 @@ module.exports = {
 											WHERE  rendering_pro_contact.id=claims.rendering_provider_contact_id)
 											as renderingProvider)
 
-							, (SELECT JSONB_AGG(servicefacility) "servicefacility"
+                            , (SELECT JSONB_AGG(servicefacility) "servicefacility"
                                     FROM
                                         ( SELECT
                                             public.get_claim_service_facility_address(claims.id,claims.pos_map_id) AS servicefacility
