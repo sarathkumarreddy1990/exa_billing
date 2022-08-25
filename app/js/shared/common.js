@@ -2928,6 +2928,9 @@ var commonjs = {
             case "tertiary_insurance":
                 payer = "Tertiary Insurance";
                 break;
+            case "service_facility_location":
+                payer = "Service Facility Location";
+                break;
             default:
                 payer = "";
                 break;

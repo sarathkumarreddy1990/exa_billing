@@ -206,7 +206,7 @@ define([
                                 $('#lblCIBillProv').text(claim_data.billing_provider_name)
                                 $('#lblCIReadPhy').text(claim_data.rend_provider_name);
                                 $('#lblCIRefPhy').text(claim_data.ref_provider_name);
-                                $('#lblCIOrdFac').text(claim_data.ordering_facility_name);
+                                $('#lblCIOrdFac').text((app.isMobileBillingEnabled && app.settings.enableMobileRad) ? claim_data.service_location : claim_data.ordering_facility_name);
                                 $('#lblCIPOS').text(claim_data.pos_name)
                                 $('#lblCIStatus').text(claim_data.claim_status);
                                 $('#lblCIBillFee').text(claim_data.bill_fee && claim_data.bill_fee != 'undefined' ? claim_data.bill_fee : '$0.00');

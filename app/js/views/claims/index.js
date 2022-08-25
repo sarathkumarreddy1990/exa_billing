@@ -1134,21 +1134,7 @@ define(['jquery',
                                     from: 'LOAD'
                                 })
                                 .done(function (response) {
-                                    var $ddlServiceFacilityLocation = $('#ddlServiceFacilityLocation');
-                                    $ddlServiceFacilityLocation.empty();
-                                    $ddlServiceFacilityLocation.append($('<option/>', { value: "", text: "Select" }));
-                                    if (response.result && response.result.length) {
-                                        var posMapList = _.map(response.result, function (posMap) {
-                                            return (
-                                                $('<option/>', {
-                                                    value: posMap.id,
-                                                    text: posMap.name
-                                                }).attr('data-posmap', posMap.pos_map)
-                                                  .attr('data-code', posMap.code)
-                                            );
-                                        });
-                                        $ddlServiceFacilityLocation.append(posMapList);
-                                    }
+                                    self.appendPOSOptions(response.result);
                                     self.bindDefaultClaimDetails(claimDetails);
                                 })
                                 .fail(function(err) {
@@ -1231,7 +1217,26 @@ define(['jquery',
                      type: "GET",
                      data: params
                  });
-             },
+            },
+
+            appendPOSOptions: function(posMap) {
+                var $ddlServiceFacilityLocation = $('#ddlServiceFacilityLocation');
+                $ddlServiceFacilityLocation.empty();
+                $ddlServiceFacilityLocation.append($('<option/>', { value: "", text: "Select" }));
+
+                var posMapList = _.map(posMap, function (pos) {
+                    return (
+                        $('<option/>', {
+                            value: pos.id,
+                            text: pos.name
+                        }).attr('data-posmap', pos.pos_map)
+                          .attr('data-code', pos.code)
+                    );
+                });
+
+                $ddlServiceFacilityLocation.append(posMapList);
+
+            },
 
             createCptCodesUI: function(rowIndex) {
                 $('#divChargeCpt_' + rowIndex)
@@ -1588,6 +1593,22 @@ define(['jquery',
                         payer_name: self.ACSelect.refPhy.Desc + '(Referring Provider)'
                     }, null);
                 }
+
+                if (claim_data.pos_map_code) {
+                    $('#ddlServiceFacilityLocation').val($('option[data-code = ' + claim_data.pos_map_code + ']').val());
+                } else if (claim_data.pos_map_id) {
+                    $('#ddlServiceFacilityLocation').val(claim_data.pos_map_id);
+                }
+
+                var posMap = $("#ddlServiceFacilityLocation option:selected").attr('data-posmap');
+                if ((claim_data.pos_map_id || claim_data.pos_map_code) && posMap !== "OF") {
+                    self.updateResponsibleList({
+                        payer_type: 'PSF',
+                        payer_id: $('#ddlServiceFacilityLocation option:selected').val(),
+                        payer_name: $('#ddlServiceFacilityLocation option:selected').text() + '(Service Facility)'
+                    }, null);
+                }
+
                 /* ResponsibleList End*/
                 /* Common Details Edit & Claim creation */
                 if (self.isEdit) {
@@ -1601,7 +1622,6 @@ define(['jquery',
                     $('#ddlPOSType').val(["can_MB", "can_ON"].indexOf(app.billingRegionCode) === -1 && claim_data.place_of_service_id || '');
                     document.querySelector('#txtClaimDate').value = claim_data.claim_dt ? self.convertToTimeZone(claim_data.facility_id, claim_data.claim_dt).format('L') : '';
                     $('#txtClaimCreatedDt').val(claim_data.created_dt ? self.convertToTimeZone(claim_data.facility_id, claim_data.created_dt).format('L') : '');
-                    $('#ddlServiceFacilityLocation').val(claim_data.pos_map_id);
                     self.displayClaimStatusByProvider(claim_data.p_insurance_code);
                 } else {
                     var responsibleIndex = _.find(self.responsible_list, function (item) {
@@ -1635,20 +1655,7 @@ define(['jquery',
                     var defaultStudyDate = moment(currentDate).format('L');
                     var lineItemStudyDate = self.studyDate && self.studyDate != '' ?  self.studyDate : '';
                     $('#txtClaimDate').val(self.studyDate ? lineItemStudyDate : defaultStudyDate);
-
-                    if (claim_data.pos_map_code) {
-                        $('#ddlServiceFacilityLocation').val($('option[data-code = ' + claim_data.pos_map_code + ']').val());
-                    }
                     $('#divClaimDate').hide();
-                }
-
-                var posMap = $("#ddlServiceFacilityLocation option:selected").attr('data-posmap');
-                if ((claim_data.pos_map_id || claim_data.pos_map_code) && posMap !== "OF") {
-                    self.updateResponsibleList({
-                        payer_type: 'PSF',
-                        payer_id: $('#ddlServiceFacilityLocation option:selected').val(),
-                        payer_name: $('#ddlServiceFacilityLocation option:selected').text() + '(Service Facility)'
-                    }, null);
                 }
 
                 if (app.billingRegionCode === 'can_BC') {
@@ -2381,21 +2388,7 @@ define(['jquery',
                                             from: 'LOAD'
                                         })
                                         .done(function (response) {
-                                            var $ddlServiceFacilityLocation = $('#ddlServiceFacilityLocation');
-                                            $ddlServiceFacilityLocation.empty();
-                                            $ddlServiceFacilityLocation.append($('<option/>', { value: "", text: "Select" }));
-                                            if (response.result && response.result.length) {
-                                                var posMapList = _.map(response.result, function (posMap) {
-                                                    return (
-                                                        $('<option/>', {
-                                                            value: posMap.id,
-                                                            text: posMap.name
-                                                        }).attr('data-posmap', posMap.pos_map)
-                                                          .attr('data-code', posMap.code)
-                                                    );
-                                                });
-                                                $ddlServiceFacilityLocation.append(posMapList);
-                                            }
+                                            self.appendPOSOptions(response.result);
                                             self.bindDefaultClaimDetails(_defaultDetails);
                                         })
                                         .fail(function(err) {
@@ -6082,21 +6075,7 @@ define(['jquery',
                                                 from: 'LOAD'
                                             })
                                             .done(function (response) {
-                                                var $ddlServiceFacilityLocation = $('#ddlServiceFacilityLocation');
-                                                $ddlServiceFacilityLocation.empty();
-                                                $ddlServiceFacilityLocation.append($('<option/>', { value: "", text: "Select" }));
-                                                if (response.result && response.result.length) {
-                                                    var posMapList = _.map(response.result, function (posMap) {
-                                                        return (
-                                                            $('<option/>', {
-                                                                value: posMap.id,
-                                                                text: posMap.name
-                                                            }).attr('data-posmap', posMap.pos_map)
-                                                              .attr('data-code', posMap.code)
-                                                        );
-                                                    });
-                                                    $ddlServiceFacilityLocation.append(posMapList);
-                                                }
+                                                self.appendPOSOptions(response.result);
                                                 self.claimWOStudy(patient_details);
                                             })
                                             .fail(function(err) {
