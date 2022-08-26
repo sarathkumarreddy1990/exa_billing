@@ -252,6 +252,17 @@ li.select2-results__option.select2-results__option--load-more { // hiding lode m
     &:hover { background-color: rgb(200, 0, 0) !important; }
 }
 
+.btn-green:disabled, .btn-green[disabled],
+.btn-orange:disabled, .btn-orange[disabled],
+.btn-black:disabled, .btn-black[disabled],
+.btn-red:disabled, .btn-red[disabled] {
+  background-color: gray !important;
+  &:hover {
+    color: white !important;
+    background-color: gray !important;
+  }
+}
+
 .name-icon {
     border-radius: 50%;
     cursor: pointer;
