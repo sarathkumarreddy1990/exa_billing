@@ -961,6 +961,19 @@ var commonjs = {
         commonjs.initHideEvent(options);
     },
 
+    showEstimationLetterDialog: function (options) {
+        options.modalContainerId = '#siteModalEstimationLetter';
+        options.spanHeaderId = '#spanModalHeaderEstimationLetter';
+        options.modalBodyId = '#modalBodyEstimationLetter';
+        options.modalDialogId = '#modalDialogEstimationLetter';
+        options.modalDivContainerId = '#modal_div_container_estimation_letter';
+        options.iframeContainerId = 'site_modal_iframe_container_estimation_letter';
+        options.isNested = true;
+
+        commonjs.showDefaultDialog(options);
+        commonjs.initHideEvent(options);
+    },
+
     initHideEvent: function (options) {
 
         var modalContainerId = options.modalContainerId || '#siteModal';
