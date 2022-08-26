@@ -60,7 +60,8 @@ module.exports = {
                                             time_zone,
                                             hstore_to_json(sys_config) as sys_config,
                                             scan_document_types,
-                                            file_store_id
+                                            file_store_id,
+                                            email_config
                                     FROM   companies
                                     WHERE  id=${companyID}
                                     AND    deleted_dt IS NULL )AS company )

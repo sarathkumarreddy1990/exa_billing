@@ -507,24 +507,15 @@ function (
             var raw_html = this.printLetterTemplate({ data: this.data });
             var translated_html = commonjs.i18nHtmlTranslate(raw_html);
 
-            $('<div id="estimationLetterDialog"></div>').dialog( {
-                modal: true,
-                width: 900,
-                height: 300,
-                resizable : false,
-                draggable: false,
-                title: commonjs.geti18NString('patient.patientInsurance.eligibility.estimationLetter'),
-                open: function () {
-                    $('#estimationLetterDialog').append(self.letterTemplate());
-                    $('#divLetterPrint').append(translated_html);
-                    self.initializeLetterCustomDialog();
-                },
-                close: function() {
-                    $("#siteModal").prop('style').removeProperty("z-index");
-                    $(this).dialog("destroy");
-                }
+            commonjs.showEstimationLetterDialog({
+                header: "Estimation Letter",
+                i18nHeader: 'patient.patientInsurance.eligibility.estimationLetter',
+                width: "60%",
+                height: "80%",
+                html: self.letterTemplate
             });
 
+            $('#divLetterPrint').append(translated_html);
             $('#txtPatientEmail').val(this.data.patient.email);
 
             if (this.isValidEmailConfig()) {
@@ -555,47 +546,6 @@ function (
                 }
 
             return true;
-        },
-
-        initializeLetterCustomDialog: function () {
-            var windowWidth = $window.width();
-            var windowHeight = $window.height();
-            var width = (windowWidth / 100) * 60;
-            var height = (windowHeight / 100) * 80;
-
-            width = Math.min(width, window.innerWidth * 0.95);
-            height = Math.min(height, window.innerHeight - 130);
-
-            $("#estimationLetterDialog")
-                .closest(".ui-dialog")
-                .find(".ui-dialog-titlebar-close")
-                .removeClass("ui-dialog-titlebar-close")
-                .html("<span class='ui-button-icon-primary ui-icon ui-icon-closethick'></span>");
-
-            $("#estimationLetterDialog").parent().css('background-color','white');
-            $('.ui-widget-overlay, .ui-widget-header').css('background', 'rgb(43, 84, 126)');
-            $('.ui-dialog-title').css("color", "white");
-            $("#divEstimationLetter").css('height', height - 50 + 'px');
-            $("#siteModal").css("z-index", "1");
-
-            $(".ui-dialog").css({
-                top: '100px',
-                width: width + 'px',
-                height: height + 'px'
-            });
-            $(".ui-dialog").addClass('imagine-letter__dialog')
-            $('#estimationLetterDialog')
-                .closest(".ui-dialog")
-                .find("button")
-                .addClass('imagine-letter-close__button')
-
-            if (window.innerHeight > window.innerWidth) {
-                var height = $window.height() / 2;
-                $("#estimationLetterDialog").css('height', (height - 100) + 'px');
-            }
-            else {
-                $("#estimationLetterDialog").css('height', height + 'px');
-            }
         },
 
          /**
@@ -732,7 +682,7 @@ function (
                 $("#btnEstimationLetter").show();
                 $("#btnReestimate").hide();
                 $("#btnReestimateWarning").hide();
-    
+
                 self.data.eligibility.isStale
                     ? $("#btnReestimateWarning").show()
                     : $("#btnReestimate").show();
@@ -1205,8 +1155,8 @@ function (
         /**
          * Sets data on the parent view (New Order screen ATM) using the parent view and setter
          *
-         * @param {string} prop 
-         * @param {object} data 
+         * @param {string} prop
+         * @param {object} data
          */
         setParentData: function (prop, data) {
             if (!_.isEmpty(this.data.parent) && this.data.parent.view && this.data.parent.setter) {
