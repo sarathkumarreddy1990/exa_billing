@@ -225,13 +225,6 @@ const getNewResourceIDs = async (args, callback) => {
             return callback(listErr, []);
         }
 
-        numPages = listResponse.results[0] && listResponse.results[0].resultSize || 0;
-
-        for (let pageNo = 2; pageNo <= numPages; pageNo++) {
-            // spin off a bunch of asynchronous service-calls and pass processListResults as the callback
-            await ebs[EDT_LIST]({ providerNumber, resourceType, pageNo }, processListResults);
-        }
-
         processListResults(listErr, listResponse);
     });
 };
