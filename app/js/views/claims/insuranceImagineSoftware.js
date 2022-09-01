@@ -706,10 +706,16 @@ function (
         },
 
         /**
+         * Disable Re-Check buttons for read-only users
          * No need for the Re-Check buttons on the New Order screen
          */
         removeRecheckButtons: function () {
-            if (this.isMode("P") || this.readOnlyPermission()) {
+            if (this.readOnlyPermission()) {
+                $("#btnRecheckEligibility").prop("disabled", true);
+                $("#btnReestimate").prop("disabled", true);
+            }
+
+            if (this.isMode("P")) {
                 $("#btnRecheckEligibility").remove();
                 $("#btnReestimate").remove();
             }
