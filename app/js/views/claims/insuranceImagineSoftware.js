@@ -238,6 +238,8 @@ function (
             if (this.isMode("P")) {
                 var existing_data = this.existingEligibilityData();
 
+                this.createNewParentEligibilityData();
+
                 return existing_data && !_.isEmpty(existing_data.estimation)
                     ? callback(existing_data.estimation)
                     : this.fetchEstimationParams(callback);
@@ -976,7 +978,7 @@ function (
             var html = "";
 
             this.data.studies.forEach(function (study) {
-                var id = study.id;
+                var id = study.id || study.lock_slot_id;
                 var cpt_codes = (study.cptDetails || []).map(function (cpt) {
                     return cpt.code;
                 }).join(", ");
@@ -1159,16 +1161,36 @@ function (
         // --------------------------------------------------------------------------------
 
         /**
+         * Creates a new eligibility data entry on the parent view to track request
+         * locally until order creation
+         */
+        createNewParentEligibilityData: function () {
+            var view = _.get(this, "data.parent.view");
+            var getter_fn = _.get(this, "data.parent.getter");
+            var coverage_level = this.data.insurance.coverageLevel;
+            var lock_slot_ids = this.selectedStudyIds();
+
+            if (view && getter_fn) {
+                view[getter_fn](coverage_level, lock_slot_ids);
+            }
+
+            return this;
+        },
+
+        /**
          * Sets data on the parent view (New Order screen ATM) using the parent view and setter
          *
          * @param {string} prop
          * @param {object} data
          */
         setParentData: function (prop, data) {
-            if (!_.isEmpty(this.data.parent) && this.data.parent.view && this.data.parent.setter) {
-                this.data.parent.view[this.data.parent.setter](prop, data);
-            }
+            var view = _.get(this, "data.parent.view");
+            var setter_fn = _.get(this, "data.parent.setter");
 
+            if (view && setter_fn) {
+                view[setter_fn](prop, data);
+            }
+            
             return this;
         },
         /* #endregion */
@@ -1200,6 +1222,18 @@ function (
             return $("INPUT[id^='chkStudy']").map(function (el) {
                 return this.value;
             }).toArray();
+        },
+
+        /**
+         * Returns the data stored in the eligibility view
+         *
+         * @returns {object[]}
+         */
+        dataStore: function () {
+            var view = _.get(this, "data.parent.view");
+            var data_prop = _.get(this, "data.parent.data");
+
+            return view && data_prop && view[data_prop] || [];
         },
 
         /**
@@ -1237,18 +1271,16 @@ function (
         },
 
         /**
-         * Returns existing
+         * Returns existing eligibility data from a request that's already been run
          *
          * @returns {object|null}
          */
         existingEligibilityData: function () {
-            var view = _.get(this, "data.parent.view");
-            var data_prop = _.get(this, "data.parent.data");
-            var data_store = view && data_prop && view[data_prop] || [];
-            var original_order_data = this.data.original_order_data;
+            var data_store = this.dataStore();
+            var order_data = this.orderDataBySelectedIds();
 
             return data_store.filter(function (item) {
-                return item && _.isEqual(item.params, original_order_data);
+                return item && _.isEqual(item.params, order_data);
             })[0] || null;
         },
 
@@ -1364,6 +1396,23 @@ function (
          */
         needEstimationData: function () {
             return _.isEmpty(this.data.estimation);
+        },
+
+        /**
+         * Returns the original order data filtered by the studies selected
+         *
+         * @returns {object}
+         */
+        orderDataBySelectedIds: function () {
+            var order_data = _.cloneDeep(this.data.original_order_data);
+            var lock_slot_ids = this.selectedStudyIds();
+            var filtered_studies = (order_data.studies || []).filter(function (study) {
+                return _.includes(lock_slot_ids, study.lock_slot_id);
+            });
+
+            order_data.studies = filtered_studies || [];
+
+            return order_data;
         },
 
         /**
