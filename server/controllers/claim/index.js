@@ -194,7 +194,7 @@ const api= {
             , isMobileBillingEnabled
         } = params;        
 
-        let claimsDetails = await api.splitClaim(claims, charges, insurances, isMobileBillingEnabled);          
+        let claimsDetails = await api.splitClaim(claims, charges, insurances, isMobileBillingEnabled);
 
         return await data.save({
             claims: claimsDetails

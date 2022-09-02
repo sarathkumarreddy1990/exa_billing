@@ -4982,7 +4982,7 @@ define(['jquery',
 
                     if ($curChargeDt.val() !== $('#txtClaimDate').val()) {
                         unmatchedChargeDates.push(id);
-                    }                    
+                    }
 
                     var modifiers = [
                         $(this).find("#txtModifier1_" + index).val() ? $(this).find("#txtModifier1_" + index).val() : '',
@@ -5006,7 +5006,7 @@ define(['jquery',
                         invalidCount++;
                         return false;
                     }
-                });                
+                });
 
                 if (invalidCount > 0) {
                     commonjs.showWarning("messages.warning.claims.modifiersRequired");

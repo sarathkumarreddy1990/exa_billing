@@ -146,7 +146,7 @@ module.exports = {
                                         (SELECT ordering_facility_contact_id FROM get_study_date), o.facility_id)::NUMERIC
                                     WHEN (SELECT id FROM beneficiary_details) IS NOT NULL AND NOT sc.is_custom_bill_fee 
                                     THEN billing.get_computed_bill_fee(null,cpt_codes.id,sc.modifier1_id,sc.modifier2_id,sc.modifier3_id,sc.modifier4_id,'billing','primary_insurance',
-                                        (SELECT id FROM beneficiary_details), o.facility_id)::NUMERIC                                       
+                                        (SELECT id FROM beneficiary_details), o.facility_id)::NUMERIC
                                     WHEN sc.is_custom_bill_fee
                                     THEN sc.bill_fee::NUMERIC
                                     ELSE
@@ -187,7 +187,7 @@ module.exports = {
 			                LEFT JOIN professional_modifier ON TRUE
                             LEFT JOIN LATERAL (
                                 SELECT UNNEST(census_fee_charges_details.split_types) AS split_type FROM census_fee_charges_details
-                            ) AS split ON TRUE                            
+                            ) AS split ON TRUE
                             WHERE
                                 study_id = ANY(${studyIds}) AND sc.deleted_dt IS NULL
                             ORDER BY sc.cpt_code ASC
@@ -216,7 +216,7 @@ module.exports = {
                                             WHEN order_info ->'frequency_code' = '8'
                                             THEN 'void'
                                             ELSE NULL
-                                        END AS frequency,                                        
+                                        END AS frequency,
                                         COALESCE(NULLIF(order_info->'oa',''), 'false')::boolean AS is_other_accident,
                                         COALESCE(NULLIF(order_info->'aa',''), 'false')::boolean AS is_auto_accident,
                                         COALESCE(NULLIF(order_info->'emp',''), 'false')::boolean AS is_employed,
