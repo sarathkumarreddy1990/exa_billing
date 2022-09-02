@@ -32,6 +32,7 @@ module.exports = {
                                         time_zone,
                                         file_store_id,
                                         imagine_software_external_provider_id AS external_provider_id,
+                                        facility_logo,
                                         is_active
                                     FROM   facilities
                                     WHERE  company_id=${companyID}
