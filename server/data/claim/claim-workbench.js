@@ -620,8 +620,7 @@ module.exports = {
             is_alberta_billing,
             is_ohip_billing,
             is_us_billing,
-            isMobileBillingEnabled,
-            isMobileRadEnabled
+            isMobileBillingEnabled
         } = params;
         let createClaimFunction = 'billing.create_claim_charge';
 
@@ -649,7 +648,7 @@ module.exports = {
                            batch_claim_details bcd
                         LEFT JOIN LATERAL (
                             SELECT *
-                            FROM billing.get_batch_claim_details(bcd.study_id, ${params.created_by}, bcd.patient_id, bcd.order_id, bcd.billing_type, ${isMobileBillingEnabled}, ${is_us_billing && isMobileRadEnabled})
+                            FROM billing.get_batch_claim_details(bcd.study_id, ${params.created_by}, bcd.patient_id, bcd.order_id, bcd.billing_type, ${isMobileBillingEnabled}, ${is_us_billing})
                         ) d ON true
                       )
                       SELECT `

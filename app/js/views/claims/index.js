@@ -176,6 +176,7 @@ define(['jquery',
             chargeTotalRecords: 0,
             patientClaimsPager: null,
             claimResponsible: '',
+            isSplitClaimEnabled: false,
             elIDs: {
                 'primaryInsAddress1': '#txtPriSubPriAddr',
                 'primaryInsAddress2': '#txtPriSubSecAddr',
@@ -1410,7 +1411,6 @@ define(['jquery',
                 self.ordering_facility_contact_id = self.ordering_facility_contact_id || claim_data.service_facility_contact_id || null;
 
                 self.billing_type = claim_data.billing_type || 'global';
-                self.is_insurance_split = claim_data.is_insurance_split;
                 var patientAltAaccNo;
                 if (claim_data.patient_alt_acc_nos && app.country_alpha_3_code === 'can') {
                     patientAltAaccNo = claim_data.can_issuer_id
@@ -2340,7 +2340,8 @@ define(['jquery',
                                 $('#txtClaimDate').val(self.studyDate || '');
                                 self.claim_dt_iso = self.claim_dt_iso.format('YYYY-MM-DD LT z');
                                 self.is_split_claim = _defaultDetails.is_split_claim;
-                                if(app.isMobileBillingEnabled && _defaultDetails.is_split_claim) {
+                                self.isSplitClaimEnabled = _defaultDetails.is_split_claim_enabled;
+                                if(app.isMobileBillingEnabled) {
                                     $('.splitNotification').removeClass('hidden');
                                 }
 
@@ -2374,7 +2375,10 @@ define(['jquery',
                                         study_id: item.study_id,
                                         data_row_id: index,
                                         cpt_id: item.cpt_id,
-                                        is_custom_bill_fee: item.is_custom_bill_fee || false
+                                        is_custom_bill_fee: item.is_custom_bill_fee || false,
+                                        is_billing_rule_applied: item.is_billing_rule_applied || false,
+                                        is_billing_rule_cpt_add_fee: item.is_billing_rule_cpt_add_fee || false,
+                                        billing_rule_fee: item.billing_rule_fee
                                     });
                                 });
 
@@ -3720,34 +3724,7 @@ define(['jquery',
                 }
             },
 
-            changeMobileBillingDefaultValues: function (currentBillingType) {
-
-                /**
-                 * Remove modifier 26 if exiting type is split
-                 * Add modifier 26 if new type is split if not present
-                 */
-
-                for (var index = 0; index < this.chargeModel.length; index++) {
-                    for (var i = 0; i < 4; i++) {
-                        var txtModifier = $('#txtModifier' + i + '_' + index);
-
-                        if (this.billing_type === 'split'
-                            && currentBillingType !== 'split'
-                            && txtModifier.val() === '26') {
-                            txtModifier.val('');
-                        } else if (this.billing_type !== 'split'
-                            && currentBillingType === 'split'
-                            && $('#txtModifier0_' + index).val() != '26'
-                            && $('#txtModifier1_' + index).val() != '26'
-                            && $('#txtModifier2_' + index).val() != '26'
-                            && $('#txtModifier3_' + index).val() != '26'
-                        ) {
-                            txtModifier.val('26');
-                        }
-                    }
-
-                };
-
+            changeMobileBillingDefaultValues: function (currentBillingType) {             
                 var ddlClaimResponsible = $('#ddlClaimResponsible');
 
                 if (currentBillingType === 'facility') {
@@ -3820,7 +3797,7 @@ define(['jquery',
                         self.changeMobileBillingDefaultValues(res.billing_type);
                     }
 
-                    self.is_insurance_split = (self.is_insurance_split || self.splitClaimEnabled) && app.isMobileBillingEnabled && res.billing_type === 'global';
+                    self.billing_type = res.billing_type;
 
                     if (res && res.id) {
                         self.updateResponsibleList({
@@ -3981,7 +3958,7 @@ define(['jquery',
                     $('#ddlClaimResponsible').val('PPP');
                 }
 
-                self.is_insurance_split = app.isMobileBillingEnabled && res.is_split_claim_enabled;
+                self.isSplitClaimEnabled = res.is_split_claim_enabled;
             },
 
             displayClaimStatusByProvider: function(primary_insurance_code) {
@@ -4263,16 +4240,7 @@ define(['jquery',
                 }
 
                 return can_ahs_skill_code_id;
-            },
-
-            isOrderingFacilityMissing: function(chargeId) {
-                return (
-                    app.country_alpha_3_code === 'usa'
-                    && app.settings.enableMobileRad
-                    && $("#chargeType_" + chargeId).text() === 'ordering_facility_invoice'
-                    && !this.ordering_facility_contact_id
-                );
-            },
+            },            
 
             setClaimDetails: function () {
                 var self = this;
@@ -4490,7 +4458,7 @@ define(['jquery',
                     is_split_claim: app.isMobileBillingEnabled && self.is_split_claim,
                     order_id: self.options && self.options.order_id,
                     is_mobile_billing_enabled: app.isMobileBillingEnabled,
-                    is_insurance_split: self.is_insurance_split,
+                    is_split_claim_enabled: self.isSplitClaimEnabled,
                     can_ahs_encounter_no: $('#txtEncounterNo').val(),
                     can_issuer_id: self.ACSelect && self.ACSelect.patientAltAccNo
                         ? self.ACSelect.patientAltAccNo.issuer_id
@@ -4571,6 +4539,9 @@ define(['jquery',
                         study_id: rowData.study_id || null,
                         is_deleted: false,
                         is_custom_bill_fee: rowData.is_custom_bill_fee || $('#txtBillFee_' + id).attr('data-edit'),
+                        is_billing_rule_applied: rowData.is_billing_rule_applied || false,
+                        is_billing_rule_cpt_add_fee: rowData.is_billing_rule_cpt_add_fee || false,
+                        billing_rule_fee: rowData.billing_rule_fee,
                         is_excluded: $('#checkExclude_' + id).is(':checked'),
                         is_canada_billing: app.country_alpha_3_code === 'can',
                         study_cpt_id: rowData.ref_charge_id || null,
@@ -4998,7 +4969,6 @@ define(['jquery',
                 var invalidCount = 0;
                 var invalidCptDateCount = 0;
                 var unmatchedChargeDates = [];
-                var isOrderingFacilityMissing = false;
 
                 $("#tBodyCharge").find("tr").each(function (index) {
                     var id = $(this).attr('data_row_id');
@@ -5012,12 +4982,7 @@ define(['jquery',
 
                     if ($curChargeDt.val() !== $('#txtClaimDate').val()) {
                         unmatchedChargeDates.push(id);
-                    }
-
-                    if (self.isOrderingFacilityMissing(id)) {
-                        isOrderingFacilityMissing = true;
-                        return false;
-                    }
+                    }                    
 
                     var modifiers = [
                         $(this).find("#txtModifier1_" + index).val() ? $(this).find("#txtModifier1_" + index).val() : '',
@@ -5041,12 +5006,7 @@ define(['jquery',
                         invalidCount++;
                         return false;
                     }
-                });
-
-                if (isOrderingFacilityMissing) {
-                    commonjs.showWarning("messages.warning.payments.pleaseSelectOrderingFacility");
-                    return false;
-                }
+                });                
 
                 if (invalidCount > 0) {
                     commonjs.showWarning("messages.warning.claims.modifiersRequired");
