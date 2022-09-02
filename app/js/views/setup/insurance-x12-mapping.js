@@ -92,8 +92,8 @@ define(['jquery',
                     gridelementid: '#tblInsuranceX12MappingGrid',
                     custompager: new Pager(),
                     emptyMessage: commonjs.geti18NString("messages.status.noRecordFound"),
-                    colNames: ['','','','','',''],
-                    i18nNames: ['', '', 'setup.insuranceX12Mapping.insuranceName', 'billing.fileInsurance.billingmethod', 'setup.insuranceX12Mapping.claimClearingHouse', 'billing.fileInsurance.ediCode'],
+                    colNames: ['','','','','','',''],
+                    i18nNames: ['', '', 'setup.insuranceX12Mapping.insuranceName', 'setup.insuranceX12Mapping.insuranceCode', 'billing.fileInsurance.billingmethod', 'setup.insuranceX12Mapping.claimClearingHouse', 'billing.fileInsurance.ediCode'],
                     colModel: [
                         {
                             name: 'id',
@@ -115,6 +115,9 @@ define(['jquery',
                         },
                         {
                             name: 'insurance_name',
+                        },
+                        {
+                            name: 'insurance_code',
                         },
                         {
                             name: 'billing_method',
@@ -209,6 +212,7 @@ define(['jquery',
                                 if (data) {
                                     model.set({insurance_code: data.insurance_code});
                                     $('#lblInsuranceName ').html(data.insurance_name ? data.insurance_name : '');
+                                    $('#lblInsuranceCode ').html(data.insurance_code ? data.insurance_code : '');
                                     $('#ddlClaimClearingHouse').val(data.claimclearinghouse ? data.claimclearinghouse : '');
                                     $('#ddlClaimBillingMethod').val(data.billing_method ? data.billing_method : '');
                                     $('#txtClaimFileIndicatorCode').val(data.indicator_code ? data.indicator_code : '');
