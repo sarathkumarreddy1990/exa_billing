@@ -271,6 +271,7 @@ function (
                     return callback(data.result);
                 },
                 error: function (err) {
+                    commonjs.hideLoading();
                     return callback(err);
                 }
             });
@@ -295,6 +296,7 @@ function (
                     return callback(data.result);
                 },
                 error: function (err) {
+                    commonjs.hideLoading();
                     return callback(err);
                 }
             });
@@ -363,6 +365,7 @@ function (
                     return callback(data.result);
                 },
                 error: function (err) {
+                    commonjs.hideLoading();
                     return callback(err);
                 }
             });
@@ -686,6 +689,9 @@ function (
                 if (self.estimationRequestError()) {
                     $("#divImagineEstimation").hide();
                     $("#divImagineEstimationError").show();
+
+                    var message = self.estimationErrorMessage();
+                    $("#divImagineEstimationError span").text(message);
                 }
                 else {
                     $("#divImagineEstimationError").hide();
@@ -1267,6 +1273,21 @@ function (
         },
 
         /**
+         * Returns the estimation error message
+         *
+         * @returns {string}
+         */
+        estimationErrorMessage: function () {
+            var estimation = this.data.estimation || {};
+
+            return (
+                estimation.message ||
+                _.get(estimation, "responseJSON.errorDesc") ||
+                i18n.get("messages.warning.patient.estimationCouldNotBePerformed")
+            );
+        },
+
+        /**
          * Indicates if the estimation request resulted in an error
          *
          * At the moment, the only way I can tell this is to see if there is a message property
@@ -1275,7 +1296,13 @@ function (
          * @returns {boolean}
          */
         estimationRequestError: function () {
-            return (this.data.estimation || {}).hasOwnProperty("message");
+            var estimation = this.data.estimation || {};
+
+            return (
+                estimation.hasOwnProperty("message") ||
+                !_.includes([0, 200], ~~estimation.status) ||
+                _.get(estimation, ".responseJSON.errorDesc")
+            );
         },
 
         /**
