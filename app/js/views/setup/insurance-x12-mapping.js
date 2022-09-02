@@ -93,7 +93,7 @@ define(['jquery',
                     custompager: new Pager(),
                     emptyMessage: commonjs.geti18NString("messages.status.noRecordFound"),
                     colNames: ['','','','','','',''],
-                    i18nNames: ['', '', 'setup.insuranceX12Mapping.insuranceName','setup.insuranceX12Mapping.insuranceCode', 'billing.fileInsurance.billingmethod', 'setup.insuranceX12Mapping.claimClearingHouse', 'billing.fileInsurance.ediCode'],
+                    i18nNames: ['', '', 'setup.insuranceX12Mapping.insuranceName', 'setup.insuranceX12Mapping.insuranceCode', 'billing.fileInsurance.billingmethod', 'setup.insuranceX12Mapping.claimClearingHouse', 'billing.fileInsurance.ediCode'],
                     colModel: [
                         {
                             name: 'id',
