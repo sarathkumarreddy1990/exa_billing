@@ -3724,7 +3724,7 @@ define(['jquery',
                 }
             },
 
-            changeMobileBillingDefaultValues: function (currentBillingType) {             
+            changeMobileBillingDefaultValues: function (currentBillingType) {
                 var ddlClaimResponsible = $('#ddlClaimResponsible');
 
                 if (currentBillingType === 'facility') {
@@ -4240,7 +4240,7 @@ define(['jquery',
                 }
 
                 return can_ahs_skill_code_id;
-            },            
+            },
 
             setClaimDetails: function () {
                 var self = this;

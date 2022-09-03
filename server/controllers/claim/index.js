@@ -44,11 +44,11 @@ const api= {
         return 'modifier4_id';
     },
 
-    splitClaim: async (claims, charges, insurances, isMobileBillingEnabled) => {
+    splitClaim: async (claim, charges, insurances, isMobileBillingEnabled) => {
         let claimsDetails = [];
         let { professional_modifier_id, technical_modifier_id } = (await data.getTechnicalAndProfessionalModifier()).pop();
 
-        if (isMobileBillingEnabled && claims.billing_type !== 'facility') {
+        if (isMobileBillingEnabled && claim.billing_type !== 'facility') {
             let professionalClaimCharges = [];
             let technicalClaimCharges = [];
             let ofRespClaimCharges = [];
@@ -77,7 +77,7 @@ const api= {
                 otherCharges.push(item);
             });
 
-            if (claims.billing_type === 'split' || (claims.billing_type === 'global' && claims.is_split_claim_enabled)) {
+            if (claim.billing_type === 'split' || (claim.billing_type === 'global' && claim.is_split_claim_enabled)) {
                 otherCharges.forEach(charge => {
                     let modifier_id = api.findModifier(charge);
                     let professionalCharge = {
@@ -103,7 +103,7 @@ const api= {
             }
 
             if (orderingFacilityInvoiceCharges.length) {
-                if (claims.billing_type === 'split') {
+                if (claim.billing_type === 'split') {
                     technicalClaimCharges.push(...orderingFacilityInvoiceCharges);
                 } else {
                     ofRespClaimCharges.push(...orderingFacilityInvoiceCharges);
@@ -118,7 +118,7 @@ const api= {
                         professionalClaimCharges.push(...noSplitCharges);
                     }
                 } else {
-                    if (claims.billing_type === 'split') {
+                    if (claim.billing_type === 'split') {
                         technicalClaimCharges.push(...noSplitCharges);
                     } else {
                         ofRespClaimCharges.push(...noSplitCharges);
@@ -128,33 +128,33 @@ const api= {
 
             if (otherCharges.length) {
                 claimsDetails.push({
-                    ...claims,
+                    ...claim,
                     claim_charges: otherCharges
                 });
             }
 
             if (professionalClaimCharges.length) {
                 claimsDetails.push({
-                    ...claims,
+                    ...claim,
                     claim_charges: professionalClaimCharges
                 });
             }
 
             if (technicalClaimCharges.length) {
                 claimsDetails.push({
-                    ...claims,
+                    ...claim,
                     claim_charges: technicalClaimCharges,
-                    place_of_service_id: claims.technical_place_of_service || null,
-                    billing_method: claims.billing_type !== 'global' ? 'direct_billing' : claims.billing_method,
-                    payer_type: claims.billing_type !== 'global' ? 'ordering_facility' : claims.payer_type
+                    place_of_service_id: claim.technical_place_of_service || null,
+                    billing_method: claim.billing_type !== 'global' ? 'direct_billing' : claim.billing_method,
+                    payer_type: claim.billing_type !== 'global' ? 'ordering_facility' : claim.payer_type
                 });
             }
 
             if (ofRespClaimCharges.length) {
                 claimsDetails.push({
-                    ...claims,
+                    ...claim,
                     claim_charges: ofRespClaimCharges,
-                    place_of_service_id: claims.technical_place_of_service || null,
+                    place_of_service_id: claim.technical_place_of_service || null,
                     billing_method: 'direct_billing',
                     payer_type: 'ordering_facility'
                 });
@@ -167,7 +167,7 @@ const api= {
             });
         
             claimsDetails.push({
-                ...claims,
+                ...claim,
                 claim_charges: charges
             });
         }
