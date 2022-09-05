@@ -562,12 +562,12 @@ module.exports = {
             };
         }
 
-        if ((isMobileBillingEnabled && parseInt(row.invalid_split_claim_count)) || (is_us_billing && parseInt(row.invalid_study_count))) {
+        if (isMobileBillingEnabled && parseInt(row.invalid_split_claim_count)) {
             errorData = {
                 code: '23156'
-                , message: 'No ordering facility in claim'
+                , message: 'Insurance Provider is not valid in claim'
                 , name: 'error'
-                , Error: 'No ordering facility in claim'
+                , Error: 'Insurance Provider is not valid in claim'
                 , severity: 'Error'
             };
 

@@ -798,26 +798,13 @@ module.exports = {
                         INNER JOIN public.insurance_providers ip ON ip.id= ppi.insurance_provider_id
                         INNER JOIN billing.insurance_provider_details ipd on ipd.insurance_provider_id = ip.id
                         WHERE s.id = ANY(SELECT study_id FROM batch_claim_details)
-                        AND s.ordering_facility_contact_id IS NULL
                         AND (ppi.valid_to_date >= COALESCE(s.study_dt, now())::DATE OR ppi.valid_to_date IS NULL)
                         AND ipd.is_split_claim_enabled IS TRUE
                         AND ip.inactivated_dt IS NULL
-                    ), study_charge_details AS (
-                        SELECT
-                            COUNT(s.id) AS invalid_study_count
-                        FROM studies s
-                        INNER JOIN study_cpt sc ON sc.study_id = s.id
-                        INNER JOIN cpt_codes cc ON cc.id = sc.cpt_code_id
-                        INNER JOIN facilities f ON f.id = s.facility_id
-                        WHERE s.id = ANY(SELECT study_id FROM batch_claim_details)
-                        AND s.ordering_facility_contact_id IS NULL AND f.ordering_facility_id IS NULL
-                        AND cc.charge_type = 'ordering_facility_invoice'
-                        AND sc.deleted_dt IS NULL
                     )
                     SELECT
                         (SELECT invalid_split_claim_count FROM invalid_split_claim_details)
                         , (SELECT charges_count FROM invalid_charges_details)
-                        , (SELECT invalid_study_count from study_charge_details)
                     `;
         return await query(sql.text, sql.values);
     },
