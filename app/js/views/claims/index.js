@@ -5057,6 +5057,24 @@ define(['jquery',
                     return false;
                 }
 
+                if (!commonjs.validateFutureDate(commonjs.getISODateString($('#txtPriDOB').val()))) {
+                    $("#txtPriDOB").focus();
+                    commonjs.showWarning('messages.warning.shared.entervaliddob');
+                    return false;
+                }
+
+                if (!commonjs.validateFutureDate(commonjs.getISODateString($('#txtSecDOB').val()))) {
+                    $("#txtSecDOB").focus();
+                    commonjs.showWarning('messages.warning.shared.entervaliddob');
+                    return false;
+                }
+
+                if (!commonjs.validateFutureDate(commonjs.getISODateString($('#txtTerDOB').val()))) {
+                    $("#txtTerDOB").focus();
+                    commonjs.showWarning('messages.warning.shared.entervaliddob');
+                    return false;
+                }
+
                 /* Additional Info Section */
                 var accidentState = $('#selAccidentState');
 
