@@ -4,6 +4,7 @@ const {
 } = require('../index');
 
 const claimsData = require('../../data/claim/index');
+const claimController = require('../../controllers/claim/index');
 const config = require('../../config');
 const logger = require('../../../logger');
 const COMPANY_ID = 1;
@@ -97,6 +98,8 @@ const getSaveClaimParams = async (params) => {
         charge.is_excluded = CHARGE_IS_EXCLUDED;
         charge.is_canada_billing = isCanadaBilling;
         charge.is_custom_bill_fee = charge.is_custom_bill_fee || false;
+        charge.is_billing_rule_applied = charge.is_billing_rule_applied || false;
+        charge.is_billing_rule_cpt_add_fee = charge.is_billing_rule_cpt_add_fee || false;
         return charge;
     });
 
@@ -196,51 +199,6 @@ const getSaveClaimParams = async (params) => {
 
     saveClaimParams.claims = [saveClaimParams.claims];
     return saveClaimParams;
-};
-
-const splitClaimMobileBilling = async (claim) => {
-    let { professional_modifier_id, technical_modifier_id } = (await claimsData.getTechnicalAndProfessionalModifier()).pop();
-    let newClaimsArray = [];
-
-    newClaimsArray.push({
-        ...claim,
-        billing_type: 'split_p'
-    });
-
-    // creating a technical claim since it is split claim
-    let newCharges = [];
-
-    claim.claim_charges.forEach((charge, index) => {
-        newCharges.push({
-            ...claim.claim_charges[index],
-            modifier1_id: charge.modifier1_id == professional_modifier_id ? technical_modifier_id : charge.modifier1_id,
-            modifier2_id: charge.modifier2_id == professional_modifier_id ? technical_modifier_id : charge.modifier2_id,
-            modifier3_id: charge.modifier3_id == professional_modifier_id ? technical_modifier_id : charge.modifier3_id,
-            modifier4_id: charge.modifier4_id == professional_modifier_id ? technical_modifier_id : charge.modifier4_id,
-            bill_fee: claim.claim_charges[index].is_custom_bill_fee === 'true' ? claim.claim_charges[index].bill_fee : 0,
-            allowed_amount: claim.claim_charges[index].is_custom_bill_fee === 'true' ? claim.claim_charges[index].allowed_amount : 0
-        });
-    });
-
-    // EXA-22773 | For technical claim responsible must be ordering facility
-    let billingMethod = claim.is_insurance_split
-        ? claim.billing_method
-        : 'direct_billing';
-
-    let payerType = claim.is_insurance_split
-        ? claim.payer_type
-        : 'ordering_facility';
-
-    newClaimsArray.push({
-        ...claim,
-        billing_method: billingMethod,
-        payer_type: payerType,
-        claim_charges: newCharges,
-        billing_type: 'split_t',
-        place_of_service_id: claim.ord_fac_place_of_service
-    });
-
-    return newClaimsArray;
 };
 
 module.exports = {
@@ -1084,78 +1042,13 @@ module.exports = {
             };
 
             const saveClaimParams = await getSaveClaimParams(baseParams);
-            let filteredClaims = [];
-            let claims = saveClaimParams.claims || [];
 
-            claims.forEach((claim) => {
+            let claim = saveClaimParams?.claims?.[0];
 
-                if (claim.billing_type === 'split' && claim.ordering_facility_contact_id) {
-                    filteredClaims.push({
-                        ...claim,
-                        billing_type: DEFAULT_BILLING_TYPE
-                    });
-                }
-                else if (['census', 'split'].indexOf(claim.billing_type) === -1) {
-                    filteredClaims.push(claim);
-                }
-            });
-
-            if (filteredClaims.length) {
-                saveClaimParams.claims = filteredClaims;
-                let claim = filteredClaims[0];
-
-                const settings = await getSettings();
-
-                if (settings.country_alpha_3_code === 'usa' && config.get('enableMobileRad') && claim.payer_type != 'ordering_facility') {
-                    let orderingFacilityInvoiceCharges = [];
-                    let otherCharges = [];
-
-                    saveClaimParams.claims = [];
-
-                    for (let i = 0; i < claim.claim_charges.length; i++) {
-                        let item = claim.claim_charges[i];
-
-                        if (item.charge_type === 'ordering_facility_invoice') {
-                            orderingFacilityInvoiceCharges.push(item);
-                        } else {
-                            otherCharges.push(item);
-                        }
-                    }
-
-                    if (otherCharges.length) {
-                        saveClaimParams.claims.push({
-                            ...claim,
-                            claim_charges: otherCharges
-                        });
-                    }
-
-                    if (orderingFacilityInvoiceCharges.length) {
-                        if (!claim.ordering_facility_contact_id) {
-                            logger.logError('Ordering facility not available for splitting claims. Claim creation failed.');
-                            return;
-                        }
-
-                        saveClaimParams.claims.push({
-                            ...claim,
-                            claim_charges: orderingFacilityInvoiceCharges,
-                            billing_method: 'direct_billing',
-                            payer_type: 'ordering_facility'
-                        });
-                    }
-                }
-
-                if (claim.is_split_claim) {
-                    let newClaimsArray = [];
-
-                    for (let i = 0; i < saveClaimParams.claims.length; i++) {
-                        newClaimsArray.push(...await splitClaimMobileBilling(saveClaimParams.claims[i]));
-                    }
-
-                    saveClaimParams.claims = newClaimsArray;
-                }
-
-                await claimsData.save(saveClaimParams);
-            }
+            let claimDetails = await claimController.splitClaim(claim, claim.claim_charges, saveClaimParams.insurances, config.get('enableMobileBilling'));
+            saveClaimParams.claims = claimDetails;
+            
+            await claimsData.save(saveClaimParams);
         }
 
         return rows;
