@@ -325,7 +325,7 @@ module.exports = {
                                             ordering_facility_contacts.ordering_facility_id = facilities.ordering_facility_id
                                             AND ordering_facility_contacts.is_primary
                                         )
-                                        LEFT JOIN get_ordering_facility_data ofd ON ofd.study_id = ${firstStudyId}                                   
+                                        LEFT JOIN get_ordering_facility_data ofd ON ofd.study_id = ${firstStudyId}
                                         LEFT JOIN LATERAL (
                                             SELECT
                                                 ofc.id AS ordering_facility_contact_id,
