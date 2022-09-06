@@ -4780,6 +4780,11 @@ define(['jquery',
                         mandatory_fields.primaryfieldObjs[mandatory_fields.primaryfields.indexOf('')].obj.focus();
                         return false;
                     }
+                    else if (!commonjs.validateFutureDate(commonjs.getISODateString($('#txtPriDOB').val()))) {
+                        $("#txtPriDOB").focus();
+                        commonjs.showWarning('messages.warning.shared.entervaliddob');
+                        return false;
+                    }
                     else
                         self.is_primary_available = true;
                 }
@@ -4795,6 +4800,11 @@ define(['jquery',
                             commonjs.showWarning(mandatory_fields.secondaryfieldObjs[mandatory_fields.secondaryfields.indexOf('')].msg);
                             mandatory_fields.secondaryfieldObjs[mandatory_fields.secondaryfields.indexOf('')].obj.focus();
                             // commonjs.showWarning("messages.warning.shared.secInsValidation");
+                            return false;
+                        }
+                        else if (!commonjs.validateFutureDate(commonjs.getISODateString($('#txtSecDOB').val()))) {
+                            $("#txtSecDOB").focus();
+                            commonjs.showWarning('messages.warning.shared.entervaliddob');
                             return false;
                         }
                         else
@@ -4814,6 +4824,11 @@ define(['jquery',
                             commonjs.showWarning(mandatory_fields.tertiaryfieldObjs[mandatory_fields.tertiaryfields.indexOf('')].msg);
                             mandatory_fields.tertiaryfieldObjs[mandatory_fields.tertiaryfields.indexOf('')].obj.focus();
 
+                            return false;
+                        }
+                        else if (!commonjs.validateFutureDate(commonjs.getISODateString($('#txtTerDOB').val()))) {
+                            $("#txtTerDOB").focus();
+                            commonjs.showWarning('messages.warning.shared.entervaliddob');
                             return false;
                         }
                         else
@@ -4918,24 +4933,6 @@ define(['jquery',
                 if (!$('#ddlClaimResponsible').val()) {
                     commonjs.showWarning("messages.warning.shared.missingResponsible");
                     $('#ddlClaimResponsible').focus();
-                    return false;
-                }
-
-                if (!commonjs.validateFutureDate(commonjs.getISODateString($('#txtPriDOB').val()))) {
-                    $("#txtPriDOB").focus();
-                    commonjs.showWarning('messages.warning.shared.entervaliddob');
-                    return false;
-                }
-
-                if (!commonjs.validateFutureDate(commonjs.getISODateString($('#txtSecDOB').val()))) {
-                    $("#txtSecDOB").focus();
-                    commonjs.showWarning('messages.warning.shared.entervaliddob');
-                    return false;
-                }
-
-                if (!commonjs.validateFutureDate(commonjs.getISODateString($('#txtTerDOB').val()))) {
-                    $("#txtTerDOB").focus();
-                    commonjs.showWarning('messages.warning.shared.entervaliddob');
                     return false;
                 }
 
