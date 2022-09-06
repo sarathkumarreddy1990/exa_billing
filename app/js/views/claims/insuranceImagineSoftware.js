@@ -271,8 +271,8 @@ function (
                     return callback(data.result);
                 },
                 error: function (err) {
-                    commonjs.handleXhrError(err);
-                    return callback({});
+                    commonjs.hideLoading();
+                    return callback(err);
                 }
             });
         },
@@ -296,8 +296,8 @@ function (
                     return callback(data.result);
                 },
                 error: function (err) {
-                    commonjs.handleXhrError(err);
-                    return callback({});
+                    commonjs.hideLoading();
+                    return callback(err);
                 }
             });
         },
@@ -365,8 +365,8 @@ function (
                     return callback(data.result);
                 },
                 error: function (err) {
-                    commonjs.handleXhrError(err);
-                    return callback({});
+                    commonjs.hideLoading();
+                    return callback(err);
                 }
             });
 
@@ -617,7 +617,7 @@ function (
          * Refresh the eligibility status and request date
          */
         updateEligibilityStatus: function () {
-            var is_eligible = !!~~_.get(this, "data.eligibility.isEligible");
+            var is_eligible = this.isEligible();
             var request_dt = _.get(this, "data.eligibility.dateCreated");
 
             this.data.eligibility_view.eligibilityDateVerified(is_eligible, request_dt);
@@ -662,8 +662,12 @@ function (
                 $("#btnReestimateWarning").hide();
                 $("#btnEstimationLetter").hide();
                 $("#divImagineEstimation").hide();
+                $("#divImagineEstimationError").hide();
+
                 $("#divImagineEligibility").show();
                 $("#btnRecheckEligibility").show();
+                $("#btnPrintEligibility").show();
+
                 $(".clickImagineEstimation").removeClass("active");
                 $(".clickImagineEligibility").addClass("active");
             });
@@ -680,8 +684,22 @@ function (
             this.loadEstimation(function () {
                 $("#divImagineEligibility").hide();
                 $("#btnRecheckEligibility").hide();
-                $("#divImagineEstimation").show();
-                $("#btnEstimationLetter").show();
+                $("#btnPrintEligibility").hide();
+
+                if (self.estimationRequestError()) {
+                    $("#divImagineEstimation").hide();
+                    $("#divImagineEstimationError").show();
+
+                    var message = self.estimationErrorMessage();
+                    $("#divImagineEstimationError span").text(message);
+                }
+                else {
+                    $("#divImagineEstimationError").hide();
+                    $("#divImagineEstimation").show();
+                    $("#btnEstimationLetter").show();
+                    $("#btnPrintEligibility").show();
+                }
+
                 $("#btnReestimate").hide();
                 $("#btnReestimateWarning").hide();
 
@@ -779,9 +797,11 @@ function (
 
             $("#divEligibilityPlanDetails").text(this.data.eligibility.planDetailsDisplay);
 
-            this.eligibilityItems().forEach(function (item) {
-                self.writeEligibilityItem(item.el, item.value);
-            });
+            if (this.isEligible()) {
+                this.eligibilityItems().forEach(function (item) {
+                    self.writeEligibilityItem(item.el, item.value);
+                });
+            }
 
             return this;
         },
@@ -1105,7 +1125,7 @@ function (
             this.data.eligibility.dateCreatedDisplay = this.formatDate(_.get(this.data, "eligibility.dateCreated"));
 
             // Eligibility Status
-            var is_eligible = !!~~this.data.eligibility.isEligible;
+            var is_eligible = this.isEligible();
             var icon, color, printIcon, printColor;
 
             if (is_eligible) {
@@ -1253,6 +1273,39 @@ function (
         },
 
         /**
+         * Returns the estimation error message
+         *
+         * @returns {string}
+         */
+        estimationErrorMessage: function () {
+            var estimation = this.data.estimation || {};
+
+            return (
+                estimation.message ||
+                _.get(estimation, "responseJSON.errorDesc") ||
+                i18n.get("messages.warning.patient.estimationCouldNotBePerformed")
+            );
+        },
+
+        /**
+         * Indicates if the estimation request resulted in an error
+         *
+         * At the moment, the only way I can tell this is to see if there is a message property
+         * I will refine the function when I can get an actual error back from them
+         *
+         * @returns {boolean}
+         */
+        estimationRequestError: function () {
+            var estimation = this.data.estimation || {};
+
+            return (
+                estimation.hasOwnProperty("message") ||
+                !_.includes([0, 200], ~~estimation.status) ||
+                _.get(estimation, "responseJSON.errorDesc")
+            );
+        },
+
+        /**
          * Returns all estimation value property name
          *
          * @returns {string[]}
@@ -1358,6 +1411,15 @@ function (
             }) || {};
 
             return relation.description || "";
+        },
+
+        /**
+         * Indicates if the eligibility request is eligible
+         *
+         * @returns {boolean}
+         */
+        isEligible: function () {
+            return !!~~_.get(this, "data.eligibility.isEligible");
         },
 
         /**
