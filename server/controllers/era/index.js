@@ -136,6 +136,16 @@ module.exports = {
         return data.getEraFiles(params);
     },
 
+    getERAExtensions: async () => {
+        let fileExtensionData = await data.getERAExtensions();
+        
+        //Allow clearing house configured file extensions and default extensions
+        return (
+            [...new Set([...fileExtensionData[0].era_file_extension, ...fileExtensionData[0].sftp_era_file_extension, '.835', '.edi', '.era', '.txt'])]
+            .filter(allowedExtension => !['', null].includes(allowedExtension))
+        );
+    },
+
     getDetailedEob: async function (params) {
 
         if (!params.f) {

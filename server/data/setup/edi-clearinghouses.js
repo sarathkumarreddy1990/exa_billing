@@ -83,6 +83,8 @@ module.exports = {
                               , et.id AS edi_template_name
                               , ech.receiver_id
                               , ech.communication_info
+                              , ech.edi_file_ext
+                              , ech.era_file_ext
                         FROM   billing.edi_clearinghouses ech
                         LEFT JOIN billing.edi_templates et ON et.id = ech.edi_template_id
                         WHERE
@@ -101,7 +103,10 @@ module.exports = {
             ediTemplateName,
             receiverId,
             communicationInfo,
-            isActive } = params;
+            isActive,
+            ediFileExtension,
+            eraFileExtension
+         } = params;
         let inactivated_dt = isActive ? null : 'now()';
 
         communicationInfo = JSON.parse(communicationInfo);
@@ -114,6 +119,8 @@ module.exports = {
                                                   , receiver_name
                                                   , edi_template_id
                                                   , receiver_id
+                                                  , edi_file_ext
+                                                  , era_file_ext
                                                   , communication_info)
                                                 values
                                                 (
@@ -124,6 +131,8 @@ module.exports = {
                                                   , ${receiverName}
                                                   , ${ediTemplateName}
                                                   , ${receiverId}
+                                                  , ${ediFileExtension}
+                                                  , ${eraFileExtension}
                                                   , ${communicationInfo} )
                                                   RETURNING *, '{}'::jsonb old_values`;
 
@@ -143,7 +152,10 @@ module.exports = {
             ediTemplateName,
             receiverId,
             communicationInfo,
-            isActive } = params;
+            isActive,
+            ediFileExtension,
+            eraFileExtension
+         } = params;
         let inactivated_dt = isActive ? null : 'now()';
         communicationInfo = JSON.parse(communicationInfo);
 
@@ -157,6 +169,8 @@ module.exports = {
                             , receiver_id = ${receiverId}
                             , communication_info = ${communicationInfo}
                             , inactivated_dt = ${inactivated_dt}
+                            , edi_file_ext = ${ediFileExtension}
+                            , era_file_ext = ${eraFileExtension}
                          WHERE
                               id = ${id}
                               RETURNING *,

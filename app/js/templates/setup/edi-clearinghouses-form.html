@@ -93,31 +93,45 @@
                 </div>
                 <div class="col">
                     <div class="form-group row">
-                        <label for="txtPort" class="col-sm-3 col-form-label field-required"
+                        <label for="txtPort" class="col-sm-4 col-form-label field-required"
                             i18n="setup.billingProvider.port"></label>
                         <div class="col-sm-5">
                             <input type="text" class="form-control" id="txtPort" name="port">
                         </div>
                     </div>
                     <div class="form-group row">
-                        <label for="txtSentFolder" class="col-sm-3 col-form-label field-required"
+                        <label for="txtSentFolder" class="col-sm-4 col-form-label field-required"
                             i18n="setup.billingProvider.sentfolder"></label>
                         <div class="col-sm-5">
                             <input type="text" class="form-control" id="txtSentFolder" name="sentFolder">
                         </div>
                     </div>
                     <div class="form-group row">
-                        <label for="txtReceiveFolder" class="col-sm-3 col-form-label field-required"
+                        <label for="txtReceiveFolder" class="col-sm-4 col-form-label field-required"
                             i18n="setup.billingProvider.receivefolder"></label>
                         <div class="col-sm-5">
                             <input type="text" class="form-control" id="txtReceiveFolder" name="receiveFolder">
                         </div>
                     </div>
                     <div class="form-group row">
-                        <label for="txtIdentityFilePath" class="col-sm-3 col-form-label"
+                        <label for="txtIdentityFilePath" class="col-sm-4 col-form-label"
                             i18n="setup.billingProvider.identityfilepath"></label>
                         <div class="col-sm-5">
                             <input type="text" class="form-control" id="txtIdentityFilePath" name="identityFilePath">
+                        </div>
+                    </div>
+                    <div class="form-group row">
+                        <label for="sftpEdiExtension" class="col-sm-4 col-form-label field-required"
+                            i18n="setup.clearingHouse.sftpEdiExtension"></label>
+                        <div class="col-sm-5">
+                            <input type="text" class="form-control" id="sftpEdiExtension" name="sftpEdiExtension" pattern="\.[a-zA-Z0-9]{1,}$">
+                        </div>
+                    </div>
+                    <div class="form-group row">
+                        <label for="sftpEraExtension" class="col-sm-4 col-form-label field-required"
+                            i18n="setup.clearingHouse.sftpEraExtension"></label>
+                        <div class="col-sm-5">
+                            <input type="text" class="form-control" id="sftpEraExtension" name="sftpEraExtension" pattern="\.[a-zA-Z0-9]{1,}$">
                         </div>
                     </div>
                 </div>
@@ -219,6 +233,18 @@
                         <div class="col-sm-3 form-check form-check-inline">
                             <input class="form-check-input" type="radio" id="radTesting" name="radUsage" value="T">
                             <label class="form-check-label" for="radTesting" i18n="setup.ediClearingHouses.testing"></label>
+                        </div>
+                    </div>
+                    <div class="form-group row">
+                        <label for="ediExtension" class="col-sm-4 col-form-label field-required" i18n="setup.clearingHouse.ediFileExtension"></label>
+                        <div class="col-sm-5">
+                            <input type="text" class="form-control" id="ediExtension" name="ediFileExtension" pattern="\.[a-zA-Z0-9]{1,}$">
+                        </div>
+                    </div>
+                    <div class="form-group row">
+                        <label for="eraExtension" class="col-sm-4 col-form-label field-required" i18n="setup.clearingHouse.eraFileExtension"></label>
+                        <div class="col-sm-5">
+                            <input type="text" class="form-control" id="eraExtension" name="eraFileExtension" pattern="\.[a-zA-Z0-9]{1,}$">
                         </div>
                     </div>
                 </div>
