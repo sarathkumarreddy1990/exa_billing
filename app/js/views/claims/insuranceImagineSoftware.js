@@ -1301,7 +1301,7 @@ function (
             return (
                 estimation.hasOwnProperty("message") ||
                 !_.includes([0, 200], ~~estimation.status) ||
-                _.get(estimation, ".responseJSON.errorDesc")
+                _.get(estimation, "responseJSON.errorDesc")
             );
         },
 
