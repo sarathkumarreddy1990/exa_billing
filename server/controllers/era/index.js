@@ -138,10 +138,14 @@ module.exports = {
 
     getERAExtensions: async () => {
         let fileExtensionData = await data.getERAExtensions();
+        let {
+            era_file_extension = [],
+            sftp_era_file_extension = []
+        } = fileExtensionData?.[0] || {};
         
         //Allow clearing house configured file extensions and default extensions
         return (
-            [...new Set([...fileExtensionData[0].era_file_extension, ...fileExtensionData[0].sftp_era_file_extension, '.835', '.edi', '.era', '.txt'])]
+            [...new Set([...era_file_extension, ...sftp_era_file_extension, '.835', '.edi', '.era', '.txt'])]
             .filter(allowedExtension => !['', null].includes(allowedExtension))
         );
     },
