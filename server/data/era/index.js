@@ -124,6 +124,16 @@ module.exports = {
         return await query(sql);
     },
 
+    getERAExtensions: async () => {
+        const sql = SQL`
+            SELECT
+                ARRAY_AGG(era_file_ext) AS era_file_extension,
+                ARRAY_AGG(communication_info->>'sftp_era_file_ext') AS sftp_era_file_extension
+            FROM billing.edi_clearinghouses`
+
+        return await queryRows(sql);
+    },
+
     selectInsuranceEOB: async function (params) {
 
         const paymentSQL = SQL`WITH
@@ -811,6 +821,7 @@ module.exports = {
                         id AS clearing_house_id,
                         code AS clearing_house_code,
                         name AS clearing_house_name,
+                        era_file_ext AS era_file_extension,
                         jsonb_build_object(
                             'ftp_host', communication_info->>'ftp_host',
                             'ftp_port', communication_info->>'ftp_port',
@@ -818,7 +829,8 @@ module.exports = {
                             'enable_ftp', communication_info->>'enable_ftp',
                             'ftp_password', communication_info->>'ftp_password',
                             'ftp_user_name', communication_info->>'ftp_user_name',
-                            'ftp_receive_folder', communication_info->>'ftp_receive_folder'
+                            'ftp_receive_folder', communication_info->>'ftp_receive_folder',
+                            'era_file_extension', communication_info->>'sftp_era_file_ext'
                         ) AS config
                     FROM billing.edi_clearinghouses
                     WHERE inactivated_dt IS NULL

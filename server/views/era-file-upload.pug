@@ -20,11 +20,12 @@ html
                 return false;
             }
 
-            function doImport(e, billingRegionCode) {
-                const fileExtension = e.target.files[0].name.slice(-3);
+            function doImport(e, billingRegionCode, allowedExtensions) {
+                const fileExtension = e.target.files[0].name.slice(-4);
+                allowedExtensions = allowedExtensions || "";
 
-                if (!/edi|era|835|txt/i.test(fileExtension) && e.target.id !== 'eraPDFFile' && billingRegionCode !== 'can_AB') {
-                    parent.commonjs.showError('Allowed file extensions: era,835,txt');
+                if (!allowedExtensions.includes(fileExtension) && e.target.id !== 'eraPDFFile' && billingRegionCode !== 'can_AB') {
+                    parent.commonjs.showError(`Allowed file extensions: ${allowedExtensions.replaceAll('.','')}`);
                     e.target.form.reset();
                     return;
                 } else if(!/xml/i.test(fileExtension) && e.target.id !== 'eraPDFFile' && billingRegionCode === 'can_AB') {
@@ -79,7 +80,7 @@ html
             if ['can_MB', 'can_BC'].indexOf(billingRegionCode) == -1
                 button#btnPreview_EOB.eraProcessButton.btn.btn-primary.btn-sm(type="button", onClick="fireUpload(event);", style="background: #3c91f0; margin-top: 4px;", i18n="shared.fields.previewEOBFile")
 
-            input#eraFile(type="file", name="displayImage", onchange="doImport(event,'" + billingRegionCode +"');", style="visibility:hidden; height:0px; width: 0px" )
+            input#eraFile(type="file", name="displayImage", onchange="doImport(event,'" + billingRegionCode +"','" + allowedExtensions +"');", style="visibility:hidden; height:0px; width: 0px" )
             input#eraPDFFile(type="file", name="displayImage", onchange="doImport(event,'" + billingRegionCode +"');", accept="application/pdf" style="visibility:hidden; height:0px; width: 0px" )
             input#inSubmit(type="submit", style="visibility:hidden;height:0px")
 
