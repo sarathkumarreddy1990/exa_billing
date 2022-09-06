@@ -19,6 +19,8 @@ const {
     ATTACHMENT_SEGMENT,
     INVOICE_LINE_SEGMENT,
     ICD_POB_SEGMENT,
+    ICD_LST_SEGMENT,
+    ICD_CODE_SEGMENT,
     FEE_MODIFIER_SEGMENT,
     NAMESPACE,
     XMLSCHEMA_INSTANCE,
@@ -58,6 +60,7 @@ const bindArrayJson = (node, templateJson, data, templateName) => {
     let arrData = [];
     let isCorrectionTemplate = templateName === WCB_CORRECTION_CLAIM_TEMPLATE;
     let singleTemplateJson = !_.isEmpty(templateJson) && templateJson[0] || {};
+    let keysOrder = _.get(singleTemplateJson, "ORDER");
 
     switch (node) {
         case ICD_POB_SEGMENT:
@@ -65,14 +68,14 @@ const bindArrayJson = (node, templateJson, data, templateName) => {
             let pobArr = data?.orientation || [];
 
             for (let i = 0; i < icdArr.length; i++) {
-                let keysOrder = getObjKeys(singleTemplateJson);
+                keysOrder = keysOrder || getObjKeys(singleTemplateJson);
                 outputJson.push(createNode(node, singleTemplateJson, keysOrder, icdArr[i], templateName) || null);
             }
 
             if (!isCorrectionTemplate) {
                 for (let j = 0; j < pobArr.length; j++) { // loop over each part of body from database
                     for (let k = 1; k <= 3; k++) { // loop over part of body, side of body and nature of injury combinations
-                        let keysOrder = getObjKeys(templateJson[k]);
+                        keysOrder = keysOrder || getObjKeys(templateJson[k]);
                         outputJson.push(createNode(node, templateJson[k], keysOrder, pobArr[j], templateName) || null);
                     }
                 }
@@ -83,7 +86,7 @@ const bindArrayJson = (node, templateJson, data, templateName) => {
             arrData = data?.fee_modifiers || [];
 
             for (let i = 0; i < arrData.length; i++) {
-                let keysOrder = getObjKeys(singleTemplateJson);
+                keysOrder = keysOrder || getObjKeys(singleTemplateJson);
                 outputJson.push(createNode(node, singleTemplateJson, keysOrder, { 'fee_modifiers': arrData[i] }, templateName) || null);
             }
 
@@ -92,7 +95,7 @@ const bindArrayJson = (node, templateJson, data, templateName) => {
             arrData = templateJson || [];
 
             for (let i = 0; i < arrData.length; i++) {
-                let keysOrder = getObjKeys(arrData[i]);
+                keysOrder = keysOrder || getObjKeys(arrData[i]);
 
                 outputJson.push(
                     isCorrectionTemplate && i % 2 === 0
@@ -104,11 +107,15 @@ const bindArrayJson = (node, templateJson, data, templateName) => {
             break;
         case ATTACHMENT_SEGMENT:
             let attachments = data?.attachments || [];
-            let mandatoryFieldsCount = isCorrectionTemplate ? 2 : 3;
+            let mandatoryFieldsCount = isCorrectionTemplate ? 3 : 4;
             let templateLength = templateJson.length;
 
             for (let i = 0; i < mandatoryFieldsCount; i++) {
-                let keysOrder = getObjKeys(templateJson[i]);
+                if (_.get(templateJson[i], "ORDER")) {
+                    continue;
+                }
+
+                keysOrder = keysOrder || getObjKeys(templateJson[i]);
                 outputJson.push(createNode(node, templateJson[i], keysOrder, data, templateName) || null);
             }
 
@@ -125,7 +132,11 @@ const bindArrayJson = (node, templateJson, data, templateName) => {
                         };
 
                     for (let k = mandatoryFieldsCount; k < templateLength; k++) {
-                        let keysOrder = getObjKeys(templateJson[k]);
+                        if (_.get(templateJson[k], "ORDER")) {
+                            continue;
+                        }
+
+                        keysOrder = keysOrder || getObjKeys(templateJson[k]);
                         outputJson.push(createNode(node, templateJson[k], keysOrder, details, templateName) || null);
                     }
                 }
@@ -208,6 +219,8 @@ const bindSingleJson = (templateJson, keysOrder, data, outputJson, templateName)
  */
 const createNode = (node, templateJson, keysOrder, data, templateName) => {
     let output = null;
+    let order = templateJson['ORDER'];
+    keysOrder = order || keysOrder;
 
     if (templateJson) {
         if (typeof templateJson === 'object') {
@@ -407,6 +420,7 @@ const processOldData = async (data) => {
             data[INVOICE_TYPE_CODE] = 'CG';
             data[TRANSACTION_CODE] = '';
             data[TRANSACTION_DESCRIPTION] = '';
+            data[ICD_LST_SEGMENT][ICD_POB_SEGMENT] = _.filter(data[ICD_LST_SEGMENT][ICD_POB_SEGMENT], (diagData) => diagData[ICD_CODE_SEGMENT] === 'DIAGCD');
 
             response.old_data = data;
             return response;
