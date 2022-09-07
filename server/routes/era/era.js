@@ -19,11 +19,14 @@ router.get('/era_file_preview', async function (req, res) {
     httpHandler.send(req, res, data);
 });
 
-router.get('/upload', function (req, res) {
+router.get('/upload', async function (req, res) {
+    let allowedExtensions = await eraController.getERAExtensions();
+
     return res.render('../server/views/era-file-upload.pug', {
         staticAssetsRoot,
         csrfToken: req.csrfToken(),
-        billingRegionCode: req.session && req.session.billingRegionCode || ''
+        billingRegionCode: req.session && req.session.billingRegionCode || '',
+        allowedExtensions
     });
 });
 
@@ -43,6 +46,7 @@ router.post('/upload', upload.single('displayImage'), async function (req, res) 
     try {
         logger.info('Initiating ERA upload..');
         let response = await eraController.uploadFile(req);
+        let allowedExtensions = await eraController.getERAExtensions();
 
         return res.render('../server/views/era-file-upload.pug', {
             fileNameUploaded: 0,
@@ -53,7 +57,8 @@ router.post('/upload', upload.single('displayImage'), async function (req, res) 
             staticAssetsRoot,
             ...response,
             csrfToken: req.csrfToken(),
-            billingRegionCode: req.billingRegionCode || ''
+            billingRegionCode: req.billingRegionCode || '',
+            allowedExtensions
         });
     } catch (err) {
         httpHandler.sendError(req, res, err);

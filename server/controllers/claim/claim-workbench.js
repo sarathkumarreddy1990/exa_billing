@@ -135,7 +135,8 @@ module.exports = {
                     port: header.ftpPort,
                     privateKey: header.ftpIdentityFile,
                     uploadDirPath: header.ftpSentFolder || 'batches',
-                    clearingHouseName: header.clearinghouses_name
+                    clearingHouseName: header.clearinghouses_name,
+                    fileExtension: header.sftp_edi_file_extension || header.edi_file_extension
                 };
             }
 
@@ -173,6 +174,10 @@ module.exports = {
             };
 
             ediResponse = await ediConnect.generateEdi(result.rows[0].header.edi_template_name, ediRequestJson);
+            ediResponse.ediFileExtension = header.enableFtp
+                ? header.sftp_edi_file_extension
+                : header.edi_file_extension;
+
             let validation =[];
 
             if (ediResponse && ediResponse.ediTextWithValidations) {
