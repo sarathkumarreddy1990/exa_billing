@@ -425,6 +425,7 @@ module.exports = {
                                     , filter_type
                                     , filter_name
                                     , filter_info
+                                    , inactivated_dt IS NULL AS is_active
                                 FROM billing.grid_filters
                                 WHERE (user_id= ${userID}  OR is_global_filter)
                             ) AS grid_filter),

@@ -11,9 +11,9 @@
                     <option value="Follow_up_queue">Follow Up Queue</option>
                 <% } %>
                 <% _.each(grid_filters, function(grid_filter) { %>
-                    <% if (screenName == 'studies' && grid_filter.filter_type == 'studies') { %>
+                    <% if (screenName == 'studies' && grid_filter.filter_type == 'studies' && grid_filter.is_active) { %>
                             <option value="<%= grid_filter.user_setting_id %>"><%= grid_filter.filter_name %></option>
-                    <%} else if(screenName == 'claims' && grid_filter.filter_type == 'claims') { %>
+                    <%} else if(screenName == 'claims' && grid_filter.filter_type == 'claims' && grid_filter.is_active) { %>
                             <option value="<%= grid_filter.user_setting_id %>"><%= grid_filter.filter_name %></option>
                     <% } %>
                 <% }); %>
