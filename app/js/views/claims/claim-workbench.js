@@ -989,7 +989,7 @@ define(['jquery',
                     $('#modal_div_container .downloadEDI').on('click', function () {
                         var element = document.createElement('a');
                         element.setAttribute('href', 'data:text/plain;charset=utf-8,' + encodeURIComponent(data.ediText));
-                        element.setAttribute('download', 'edi.txt');
+                        element.setAttribute('download', 'edi' + (data.ediFileExtension || '.txt'));
 
                         element.style.display = 'none';
                         document.body.appendChild(element);
@@ -998,7 +998,7 @@ define(['jquery',
 
                         document.body.removeChild(element);
                         $('#modal_div_container .downloadEDI').on('click', function () {
-                            self.downloadClaimSubmission(data.ediText, 'edi.txt', 'utf-8');
+                            self.downloadClaimSubmission(data.ediText, 'edi' + (data.ediFileExtension || '.txt'), 'utf-8');
                         });
                     });
                 } else if (data && data.ohipText && data.ohipText.length) {

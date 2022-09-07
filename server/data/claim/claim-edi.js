@@ -272,7 +272,9 @@ module.exports = {
 						edi_clearinghouses.name as clearinghouses_name,
 						edi_clearinghouses.code as clearinghouses_code,
 						edi_clearinghouses.receiver_name as clearinghouses_receiver_name,
-						edi_clearinghouses.receiver_id as clearinghouses_receiver_id
+						edi_clearinghouses.receiver_id as clearinghouses_receiver_id,
+						edi_clearinghouses.edi_file_ext AS edi_file_extension,
+						communication_info->'sftp_edi_file_ext' AS sftp_edi_file_extension
                                     FROM   billing.edi_clearinghouses
                                     LEFT JOIN billing.edi_templates et ON et.id = billing.edi_clearinghouses.edi_template_id
                                     WHERE  billing.edi_clearinghouses.id=insurance_provider_details.clearing_house_id)
