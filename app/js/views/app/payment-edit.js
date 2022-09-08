@@ -424,6 +424,8 @@ define(['jquery',
                         this.setPatientAutoComplete();
                     }
 
+                    $('#chkIpInvoice').prop('checked', false);
+                    $('#txtInvoice').val('');
                     $('#lblIpEob').hide();
                     $('#divInputType span').hide();
                     $('#txtInvoice').hide();
