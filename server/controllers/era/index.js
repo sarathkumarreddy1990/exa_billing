@@ -142,7 +142,7 @@ module.exports = {
             era_file_extension = [],
             sftp_era_file_extension = []
         } = fileExtensionData?.[0] || {};
-        
+
         //Allow clearing house configured file extensions and default extensions
         return (
             [...new Set([...era_file_extension, ...sftp_era_file_extension, '.835', '.edi', '.era', '.txt'])]

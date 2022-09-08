@@ -772,7 +772,7 @@ module.exports = {
                     insurance_code = null
                 } = claimData;
                 let validationFields = {};
-    
+
                 if (billingMethod === 'electronic_billing') {
                     validationFields = insurance_code === 'wcb'
                         ? valdationClaimJson['wcb']
