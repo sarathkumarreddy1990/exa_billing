@@ -366,6 +366,7 @@ define(['jquery',
                     $('#selectPayerType').val(0);
                 }
 
+                $('#chkIpInvoice').prop('checked', false);
                 $('#txtInvoice').hide();
                 $('#txtNotes').val('');
                 this.changePayerMode('');
