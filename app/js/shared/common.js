@@ -1667,7 +1667,7 @@ var commonjs = {
     },
 
     validateFutureDate: function (txtBoxValue, msg) {
-        return moment(commonjs.getCurrentDate(), 'L').diff((txtBoxValue).format('L')) >= 0;
+        return moment(moment(), 'YYYY-MM-DD').diff(moment(txtBoxValue, 'YYYY-MM-DD')) >= 0;
     },
 
     dateRangesOverlap: function (startTime1, endTime1, startTime2, endTime2) {
@@ -2964,6 +2964,9 @@ var commonjs = {
                 break;
             case "tertiary_insurance":
                 payer = "Tertiary Insurance";
+                break;
+            case "service_facility_location":
+                payer = "Service Facility Location";
                 break;
             default:
                 payer = "";
@@ -4336,7 +4339,7 @@ var commonjs = {
                 if (data && data.length > 0) {
                     result.study_id = data[0].study_id;
                     result.order_id = data[0].order_id;
-                    result.split_claim_id = data[0].split_claim_ids;
+                    result.split_claim_ids = data[0].split_claim_ids;
                     result.patient_id = data[0].patient_id;
                 }
 
@@ -5591,7 +5594,6 @@ var commonjs = {
         }
     }
 };
-
 
 var siteLayouts = {
     facility: 'Facility',

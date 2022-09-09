@@ -7,6 +7,7 @@ module.exports = {
         params.sortOrder = params.sortOrder || ' DESC';
         let {
             insurance_name,
+            insurance_code,
             claimclearinghouse,
             payer_edi_code,
             sortOrder,
@@ -20,6 +21,10 @@ module.exports = {
 
         if (insurance_name) {
             whereQuery.push(` ip.insurance_name ILIKE '%${insurance_name}%'`);
+        }
+
+        if (insurance_code) {
+            whereQuery.push(` ip.insurance_code ILIKE '%${insurance_code}%'`);
         }
 
         if (claimclearinghouse) {
@@ -37,6 +42,7 @@ module.exports = {
         const sql = SQL`SELECT
                               ip.id
                             , ip.insurance_name
+                            , ip.insurance_code
                             , ch.id AS claimclearinghouse
                             , bip.payer_edi_code
                             , billing_method

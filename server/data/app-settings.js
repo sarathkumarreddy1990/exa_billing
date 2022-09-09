@@ -174,6 +174,15 @@ module.exports = {
                                     province_alpha_2_code
                                     FROM   sites
                                     WHERE  id=${siteID})
+                , cte_mobile_rad_details AS (
+                                SELECT
+                                    data AS enable_mobile_rad
+                                FROM( SELECT
+                                        jsonb_array_elements(web_config) AS data
+                                    FROM sites
+                                    WHERE  id=${siteID}
+                                ) AS row WHERE data->>'id' = 'enableMobileRad'
+                )        
                 , cte_hidden_reports AS (
                                 SELECT Json_agg(Row_to_json(hidden_reports)) hidden_reports
                                 FROM  (
@@ -428,6 +437,7 @@ module.exports = {
                                     , filter_type
                                     , filter_name
                                     , filter_info
+                                    , inactivated_dt IS NULL AS is_active
                                 FROM billing.grid_filters
                                 WHERE (user_id= ${userID}  OR is_global_filter)
                             ) AS grid_filter),
@@ -543,6 +553,7 @@ module.exports = {
                       cte_delay_reasons,
                       cte_wcb_injury_nature,
                       cte_wcb_injury_area,
+                      cte_mobile_rad_details,
                       cte_rendering_provider
                `;
 
