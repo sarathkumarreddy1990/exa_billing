@@ -76,6 +76,7 @@ WHEN payer_type = 'tertiary_insurance' THEN 'Insurance'
 WHEN payer_type = 'referring_provider' THEN 'Provider'
 WHEN payer_type = 'patient' THEN 'Patient'
 WHEN payer_type = 'ordering_facility' THEN 'Ordering Facility'
+WHEN payer_type = 'service_facility_location' THEN 'Service Facility'
 END AS "Responsible Party",
 <% } %>
 pippt.description AS "Insurance Group",
@@ -88,6 +89,7 @@ ELSE
         WHEN payer_type = 'referring_provider' THEN  ppr.full_name
         WHEN payer_type = 'patient' THEN get_full_name(pp.last_name,pp.first_name)
         WHEN payer_type = 'ordering_facility' THEN pof.name
+        WHEN payer_type = 'service_facility_location' THEN public.get_service_facility_name(bc.id, bc.pos_map_id)
     END
 END AS "Payer Name",
 <%} else {%>
@@ -97,6 +99,7 @@ WHEN payer_type = 'tertiary_insurance' THEN pip.insurance_name
 WHEN payer_type = 'referring_provider' THEN  ppr.full_name
 WHEN payer_type = 'patient' THEN get_full_name(pp.last_name,pp.first_name)
 WHEN payer_type = 'ordering_facility' THEN pof.name
+WHEN payer_type = 'service_facility_location' THEN public.get_service_facility_name(bc.id, bc.pos_map_id)
 END AS "Payer Name",
 <% } %>
  CASE

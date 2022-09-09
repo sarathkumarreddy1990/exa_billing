@@ -79,7 +79,7 @@ define('grid', [
                 commonjs.getClaimStudy(studyInfo.studyIds, function (result) {
                     studyInfo.study_id = (result && result.study_id && gridName != 'studies') ? result.study_id : studyInfo.study_id;
                     studyInfo.order_id = (result && result.order_id) ? result.order_id : 0;
-                    studyInfo.split_claim_id = (result && result.split_claim_id && result.split_claim_id.length) ? result.split_claim_id[0] : 0;
+                    studyInfo.split_claim_ids = result && result.split_claim_ids;
                     claimView.showEditClaimForm(studyInfo.studyIds, gridName, studyInfo);
                 });
             }
@@ -178,7 +178,7 @@ define('grid', [
         */
         var showWCBClaimStatus = function(claimStatus, selectedStudies, isWCBStatus) {
             var canShowWCBClaimStatus;
-            var isAlbWCBCommonStatus = commonjs.can_ab_claim_status.indexOf(claimStatus.code) > -1;         
+            var isAlbWCBCommonStatus = commonjs.can_ab_claim_status.indexOf(claimStatus.code) > -1;
             var isWCBInsuranceExist = _.some(selectedStudies, function(data) {
                 return data.insurance_code === 'wcb';
             });
@@ -194,8 +194,8 @@ define('grid', [
             } else {
                 canShowWCBClaimStatus = !isWCBStatus;
             }
-            
-            return canShowWCBClaimStatus;           
+
+            return canShowWCBClaimStatus;
         }
 
         var openCreateClaim = function (rowID, event, isClaimGrid, store) {
@@ -458,10 +458,20 @@ define('grid', [
                                     liPayerTypeArray.push($(payerTypeSubmenu(billingPayers, 'tertiary')));
                                 }
                                 if (billingPayers.ordering_facility_contact_id) {
-                                    liPayerTypeArray.push($(commonjs.getRightClickMenu('ancOrderingFacility_' + billingPayers.ordering_facility_contact_id, '', true, billingPayers.ordering_facility_name + '( Service Facility )', false)));
+                                    var payerType = '';
+                                    if (app.isMobileBillingEnabled && app.settings.enableMobileRad) {
+                                        payerType = '( Ordering Facility )';
+                                    } else {
+                                        payerType = '( Service Facility )';
+                                    }
+
+                                    liPayerTypeArray.push($(commonjs.getRightClickMenu('ancOrderingFacility_' + billingPayers.ordering_facility_contact_id, '', true, billingPayers.ordering_facility_name + payerType, false)));
                                 }
                                 if (billingPayers.referring_provider_contact_id) {
                                     liPayerTypeArray.push($(commonjs.getRightClickMenu('ancRenderingProvider_' + billingPayers.referring_provider_contact_id, '', true, billingPayers.ref_prov_full_name + '( Referring Provider )', false)));
+                                }
+                                if (billingPayers.pos_map_id && app.isMobileBillingEnabled && app.settings.enableMobileRad) {
+                                    liPayerTypeArray.push($(commonjs.getRightClickMenu('ancServiceFacility_' + billingPayers.pos_map_id, '', true, billingPayers.service_location + '( Service Facility )', false)));
                                 }
                                 $('#ul_change_payer_type').append(liPayerTypeArray);
                                 $('#ul_change_payer_type li').click(function (e) {
@@ -485,6 +495,8 @@ define('grid', [
                                             break;
                                         case 'ancRenderingProvider':
                                             payer_type = 'referring_provider';
+                                        case 'ancServiceFacility':
+                                            payer_type = 'service_facility_location';
                                             break;
                                     }
                                     $.ajax({
@@ -588,7 +600,7 @@ define('grid', [
                 if (studyArray.length === 1 && statusIndex < 0) {
                     var liDeleteClaim = commonjs.getRightClickMenu('anc_delete_claim', 'setup.rightClickMenu.deleteClaim', false, 'Delete Claim', false);
                     var isWCBBilling = gridData.hidden_insurance_provider_codes
-                        && gridData.hidden_insurance_provider_codes.toLowerCase() === 'wcb'; 
+                        && gridData.hidden_insurance_provider_codes.toLowerCase() === 'wcb';
                     $divObj.append(liDeleteClaim);
                     self.checkRights('anc_delete_claim');
 
@@ -888,14 +900,6 @@ define('grid', [
                     return false;
                 }
 
-                if (app.isMobileBillingEnabled
-                    && (gridData.hidden_is_split_enabled_primary_insurance === 'true' || gridData.hidden_billing_type === 'split')
-                    && gridData.hidden_ordering_facility === 'null') {
-                    commonjs.showWarning(commonjs.geti18NString("messages.confirm.batchSplitClaim").replace('$ACCESSION_NO$', gridData.accession_no));
-                    return false;
-                }
-
-
                 batchClaimArray.push({
                     patient_id: gridData.hidden_patient_id,
                     study_id: gridData.hidden_study_id,
@@ -928,7 +932,8 @@ define('grid', [
                             isClaimGrid: false
                         },
                         isBatchClaim: true,
-                        isMobileBillingEnabled: app.isMobileBillingEnabled
+                        isMobileBillingEnabled: app.isMobileBillingEnabled,
+                        isMobileRadEnabled: app.settings.enableMobileRad
                     }
                 } else {
                     param = {
@@ -936,7 +941,8 @@ define('grid', [
                         company_id: app.companyID,
                         isAllStudies: false,
                         isAllCensus: false,
-                        isMobileBillingEnabled: app.isMobileBillingEnabled
+                        isMobileBillingEnabled: app.isMobileBillingEnabled,
+                        isMobileRadEnabled: app.settings.enableMobileRad
                     }
                 }
                     $.ajax({
@@ -1053,11 +1059,11 @@ define('grid', [
             var icon_width = 24;
             colName = colName.concat([
                 ('<input type="checkbox" i18nt="billing.payments.selectAllStudies" id="chkStudyHeader_' + filterID + '" class="chkheader" onclick="commonjs.checkMultiple(event)" />'),
-                '','','','','', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', 'Assigned To', '', '', '', ''
+                '','','','','','', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', 'Assigned To', '', '', '', ''
             ]);
 
             i18nName = i18nName.concat([
-                '','','','','', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '','', '', 'billing.claims.assignedTo', '', '', '', ''
+                '','','','','', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '','', '', 'billing.claims.assignedTo', '', '', '', ''
             ]);
 
             colModel = colModel.concat([
@@ -1081,6 +1087,17 @@ define('grid', [
                     },
                     customAction: function (rowID, e, that) {
                     }
+                },
+                {
+                    name: 'alert', width: 20, sortable: false, search: false,
+                    className: 'icon-ic-info',
+                    formatter: function (e, model, data) {
+                        if (data.show_alert_icon) {
+                            return '<i class="icon-ic-info" i18nt="shared.buttons.alert" id="alertInfoRow_' + model.rowId + '"></i>';
+                        }
+
+                        return "";
+                    },
                 },
                 {
                     name: 'as_edit',

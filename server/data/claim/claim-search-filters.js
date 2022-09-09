@@ -597,13 +597,16 @@ const api = {
             `payer_insurance.insurance_info->'edi_template'
             as edi_template`,
             `(  CASE payer_type
-            WHEN 'primary_insurance' THEN payer_insurance.insurance_name
-            WHEN 'secondary_insurance' THEN payer_insurance.insurance_name
-            WHEN 'tertiary_insurance' THEN payer_insurance.insurance_name
-            WHEN 'ordering_facility' THEN ordering_facilities.name
-            WHEN 'referring_provider' THEN ref_provider.full_name
-            WHEN 'rendering_provider' THEN render_provider.full_name
-            WHEN 'patient' THEN patients.full_name        END) as payer_name`,
+                    WHEN 'primary_insurance' THEN payer_insurance.insurance_name
+                    WHEN 'secondary_insurance' THEN payer_insurance.insurance_name
+                    WHEN 'tertiary_insurance' THEN payer_insurance.insurance_name
+                    WHEN 'ordering_facility' THEN ordering_facilities.name
+                    WHEN 'referring_provider' THEN ref_provider.full_name
+                    WHEN 'rendering_provider' THEN render_provider.full_name
+                    WHEN 'patient' THEN patients.full_name
+                    WHEN 'service_facility_location' THEN public.get_service_facility_name(claims.id, claims.pos_map_id)
+                END
+              ) AS payer_name`,
             'bgct.claim_balance_total as claim_balance',
             'billing_codes.description as billing_code',
             'billing_codes.id as billing_code_id',
@@ -736,10 +739,20 @@ const api = {
         let sql = `
             SELECT
             ${columns},
-            FinalClaims.number
+            FinalClaims.number,
+            claim_alert.show_alert_icon
             FROM (${innerQuery}) as FinalClaims
             INNER JOIN billing.claims ON FinalClaims.claim_id = claims.id
             INNER JOIN facilities ON facilities.id = claims.facility_id
+            LEFT JOIN LATERAL (
+                SELECT
+                    true AS show_alert_icon
+                FROM
+                    billing.claim_comments bcc
+                WHERE
+                    bcc.claim_id = claims.id
+                    AND 'edit_claim' = ANY(bcc.alert_screens)
+            ) AS claim_alert ON TRUE
             ${api.getWLQueryJoin(columns, '', args.customArgs.filter_id, args.user_id, args.isCount, args)}
             ORDER BY FinalClaims.number
             `

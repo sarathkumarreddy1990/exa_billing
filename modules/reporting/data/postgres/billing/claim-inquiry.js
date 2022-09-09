@@ -82,6 +82,7 @@ const claimInquiryDataSetQueryTemplate = _.template(`
                   WHEN bc.payer_type = 'patient'  THEN p.full_name
                   WHEN bc.payer_type = 'ordering_facility' THEN pof.name
                   WHEN bc.payer_type = 'referring_provider' THEN pr.full_name
+                  WHEN bc.payer_type = 'service_facility_location' THEN public.get_service_facility_name(bc.id, bc.pos_map_id)
                   ELSE  NULL
                 END AS carrier,
                 COALESCE(coverage_level.primary_coverage_level,'{}'),

@@ -15,7 +15,11 @@ const claimActivityDataSetQueryTemplate = _.template(`
 WITH agg_claim AS(
     SELECT
          pippt.description AS provider_type
-	    , pof.name AS facility_name
+        , CASE
+            WHEN bc.payer_type = 'service_facility_location' THEN
+                public.get_service_facility_name(bc.id, bc.pos_map_id)
+            ELSE pof.name
+          END AS facility_name
     	, f.id as facility_id
         , bc.id AS claim_id
         , payer_type

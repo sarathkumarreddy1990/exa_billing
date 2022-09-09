@@ -33,6 +33,25 @@ module.exports = {
                             LEFT JOIN ordering_facility_contacts ofc ON ofc.id = studies.ordering_facility_contact_id
                             WHERE studies.id = ${firstStudyId}
                         ),
+                        get_ordering_facility_data AS (
+                            SELECT
+                                s.id AS study_id
+                                , ofc.id AS ordering_facility_contact_id
+                                , ofc.location
+                                , ofc.billing_type
+                                , of.name AS ordering_facility_name
+                                , of.id
+                                , ofc.place_of_service_id
+                            FROM studies s
+                            INNER JOIN facilities f ON f.id = s.facility_id
+                            LEFT JOIN ordering_facility_contacts ofcp ON (
+                                ofcp.ordering_facility_id = f.ordering_facility_id
+                                AND ofcp.is_primary
+                            )
+                            INNER JOIN ordering_facility_contacts ofc ON ofc.id = COALESCE(s.ordering_facility_contact_id, ofcp.id)
+                            INNER JOIN ordering_facilities of ON of.id = ofc.ordering_facility_id
+                            WHERE s.id = ${firstStudyId}
+                        ),
                         professional_modifier AS (
                             SELECT id FROM modifiers WHERE code = '26'
                         ), order_level_beneficiary AS (
@@ -123,9 +142,12 @@ module.exports = {
                                         is_split_claim_enabled
                                     FROM insurances
                                     WHERE coverage_level = 'primary' AND is_split_claim_enabled IS TRUE)
-                                    AND (SELECT billing_type from get_study_date) != 'facility'
-                                ) THEN ARRAY_AGG(ARRAY['insurance'])
-                                WHEN (${params.isMobileBillingEnabled} = 'true' AND  (SELECT billing_type from get_study_date) = 'split') THEN ARRAY_AGG(ARRAY['insurance']) ELSE NULL END) AS split_types
+                                    AND (SELECT billing_type from get_ordering_facility_data) != 'facility'
+                                ) THEN ARRAY['insurance']
+                                WHEN (${params.isMobileBillingEnabled} = 'true' AND  (SELECT billing_type from get_ordering_facility_data) = 'split')
+                                THEN ARRAY['insurance']
+                                ELSE NULL
+                            END) AS split_types
                         ),
                         claim_charges AS (
                             SELECT
@@ -135,28 +157,31 @@ module.exports = {
                                 , s.accession_no
                                 , sc.study_id
                                 , sc.cpt_code
-                                , modifiers.modifier1_id AS m1
-                                , modifiers.modifier2_id AS m2
-                                , modifiers.modifier3_id AS m3
-                                , modifiers.modifier4_id AS m4
+                                , sc.modifier1_id AS m1
+                                , sc.modifier2_id AS m2
+                                , sc.modifier3_id AS m3
+                                , sc.modifier4_id AS m4
                                 , string_to_array(regexp_replace(study_cpt_info->'diagCodes_pointer', '[^0-9,]', '', 'g'),',')::int[] AS icd_pointers
-                                , (CASE WHEN (${params.isMobileBillingEnabled} AND (SELECT billing_type from get_study_date) = 'facility') THEN
-                                            billing.get_computed_bill_fee(null, cpt_codes.id, modifiers.modifier1_id, modifiers.modifier2_id, modifiers.modifier3_id, modifiers.modifier4_id, 'billing', 'ordering_facility',
-                                            (SELECT ordering_facility_contact_id FROM get_study_date), o.facility_id)::NUMERIC
+                                , (CASE 
+                                    WHEN (${params.isMobileBillingEnabled} AND (SELECT billing_type from get_ordering_facility_data) = 'facility') AND NOT sc.is_custom_bill_fee 
+                                    THEN billing.get_computed_bill_fee(null, cpt_codes.id, sc.modifier1_id, sc.modifier2_id, sc.modifier3_id, sc.modifier4_id, 'billing', 'ordering_facility',
+                                        (SELECT ordering_facility_contact_id FROM get_ordering_facility_data), o.facility_id)::NUMERIC
+                                    WHEN (SELECT id FROM beneficiary_details) IS NOT NULL AND NOT sc.is_custom_bill_fee 
+                                    THEN billing.get_computed_bill_fee(null,cpt_codes.id,sc.modifier1_id,sc.modifier2_id,sc.modifier3_id,sc.modifier4_id,'billing','primary_insurance',
+                                        (SELECT id FROM beneficiary_details), o.facility_id)::NUMERIC
+                                    WHEN sc.is_custom_bill_fee
+                                    THEN sc.bill_fee::NUMERIC
+                                    ELSE
+                                        billing.get_computed_bill_fee(null,cpt_codes.id,sc.modifier1_id,sc.modifier2_id,sc.modifier3_id,sc.modifier4_id,'billing','patient',${params.patient_id},o.facility_id)::NUMERIC
+                                    END) as bill_fee
+                                , (CASE WHEN (${params.isMobileBillingEnabled} AND (SELECT billing_type from get_ordering_facility_data) = 'facility') THEN
+                                            billing.get_computed_bill_fee(null, cpt_codes.id, sc.modifier1_id, sc.modifier2_id, sc.modifier3_id, sc.modifier4_id, 'allowed', 'ordering_facility',
+                                            (SELECT ordering_facility_contact_id FROM get_ordering_facility_data), o.facility_id)::NUMERIC
                                         WHEN (select id from beneficiary_details) IS NOT NULL THEN
-                                            billing.get_computed_bill_fee(null,cpt_codes.id,modifiers.modifier1_id,modifiers.modifier2_id,modifiers.modifier3_id,modifiers.modifier4_id,'billing','primary_insurance',
+                                            billing.get_computed_bill_fee(null,cpt_codes.id,sc.modifier1_id,sc.modifier2_id,sc.modifier3_id,sc.modifier4_id,'allowed','primary_insurance',
                                             (select id from beneficiary_details), o.facility_id)::NUMERIC
                                         ELSE
-                                            billing.get_computed_bill_fee(null,cpt_codes.id,modifiers.modifier1_id,modifiers.modifier2_id,modifiers.modifier3_id,modifiers.modifier4_id,'billing','patient',${params.patient_id},o.facility_id)::NUMERIC
-                                        END) as bill_fee
-                                , (CASE WHEN (${params.isMobileBillingEnabled} AND (SELECT billing_type from get_study_date) = 'facility') THEN
-                                            billing.get_computed_bill_fee(null, cpt_codes.id, modifiers.modifier1_id, modifiers.modifier2_id, modifiers.modifier3_id, modifiers.modifier4_id, 'allowed', 'ordering_facility',
-                                            (SELECT ordering_facility_contact_id FROM get_study_date), o.facility_id)::NUMERIC
-                                        WHEN (select id from beneficiary_details) IS NOT NULL THEN
-                                            billing.get_computed_bill_fee(null,cpt_codes.id,modifiers.modifier1_id,modifiers.modifier2_id,modifiers.modifier3_id,modifiers.modifier4_id,'allowed','primary_insurance',
-                                            (select id from beneficiary_details), o.facility_id)::NUMERIC
-                                        ELSE
-                                            billing.get_computed_bill_fee(null,cpt_codes.id,modifiers.modifier1_id,modifiers.modifier2_id,modifiers.modifier3_id,modifiers.modifier4_id,'allowed','patient',${params.patient_id},o.facility_id)::NUMERIC
+                                            billing.get_computed_bill_fee(null,cpt_codes.id,sc.modifier1_id,sc.modifier2_id,sc.modifier3_id,sc.modifier4_id,'allowed','patient',${params.patient_id},o.facility_id)::NUMERIC
                                         END) as allowed_fee
                                 , COALESCE(sc.units,'1')::NUMERIC AS units
                                 , sca.authorization_no AS authorization_no
@@ -164,6 +189,13 @@ module.exports = {
                                 , additional_info
                                 , sc.cpt_code_id AS cpt_id
                                 , sc.is_billable
+                                , cpt_codes.charge_type
+                                , sc.is_custom_bill_fee
+                                , sc.professional_fee
+                                , sc.technical_fee
+                                , sc.is_billing_rule_applied
+                                , sc.is_billing_rule_cpt_add_fee
+                                , sc.billing_rule_fee::NUMERIC
                             FROM public.study_cpt sc
                             INNER JOIN public.studies s ON s.id = sc.study_id
                             INNER JOIN public.cpt_codes on sc.cpt_code_id = cpt_codes.id
@@ -178,24 +210,6 @@ module.exports = {
                             LEFT JOIN LATERAL (
                                 SELECT UNNEST(census_fee_charges_details.split_types) AS split_type FROM census_fee_charges_details
                             ) AS split ON TRUE
-                            LEFT JOIN LATERAL (
-                                SELECT ( CASE
-                                            WHEN split.split_type = 'insurance' AND sc.modifier1_id IS NULL AND professional_modifier.id IS DISTINCT FROM sc.modifier2_id AND professional_modifier.id IS DISTINCT FROM  sc.modifier3_id AND professional_modifier.id IS DISTINCT FROM sc.modifier4_id
-                                            THEN (SELECT id FROM modifiers WHERE code = '26')
-                                            ELSE sc.modifier1_id END) AS modifier1_id
-                                    , ( CASE
-                                            WHEN split.split_type = 'insurance' AND sc.modifier1_id IS NOT NULL AND sc.modifier2_id IS NULL AND professional_modifier.id IS DISTINCT FROM  sc.modifier3_id AND professional_modifier.id IS DISTINCT FROM sc.modifier4_id
-                                            THEN (SELECT id FROM modifiers WHERE code = '26')
-                                            ELSE sc.modifier2_id END)  AS modifier2_id
-                                    , ( CASE
-                                            WHEN split.split_type = 'insurance' AND sc.modifier1_id IS NOT NULL AND sc.modifier2_id IS NOT NULL AND sc.modifier3_id IS NULL AND professional_modifier.id IS DISTINCT FROM sc.modifier2_id AND professional_modifier.id IS DISTINCT FROM sc.modifier4_id
-                                            THEN (SELECT id FROM modifiers WHERE code = '26')
-                                            ELSE sc.modifier3_id END)  AS modifier3_id
-                                    , ( CASE
-                                            WHEN split.split_type = 'insurance' AND sc.modifier1_id IS NOT NULL AND sc.modifier2_id IS NOT NULL AND sc.modifier3_id IS NOT NULL
-                                            THEN (SELECT id FROM modifiers WHERE code = '26')
-                                            ELSE sc.modifier4_id END)  AS modifier4_id
-                                ) modifiers ON TRUE
                             WHERE
                                 study_id = ANY(${studyIds}) AND sc.deleted_dt IS NULL
                             ORDER BY sc.cpt_code ASC
@@ -249,20 +263,22 @@ module.exports = {
                                         providers.fac_rendering_prov_npi_no,
                                         facility_info->'service_facility_id' as service_facility_id,
                                         facility_info->'service_facility_name' as service_facility_name,
-                                        ordering_facility_contacts.id AS service_facility_contact_id,
-                                        ordering_facility.ordering_facility_contact_id,
-                                        ordering_facility.id AS ordering_facility_id,
-                                        ordering_facility.ordering_facility_name,
-                                        ordering_facility.location,
-                                        ordering_facility.place_of_service_id AS ord_fac_place_of_service,
-                                        (CASE
-                                            WHEN (SELECT split_types IS NOT NULL FROM census_fee_charges_details)
-                                            THEN 'split'
-                                            ELSE ordering_facility.billing_type
-                                        END) AS billing_type,
+                                        ofd.ordering_facility_contact_id,
+                                        ofd.id AS ordering_facility_id,
+                                        ofd.ordering_facility_name,
+                                        ofd.location,
+                                        ofd.place_of_service_id AS ord_fac_place_of_service,
+                                        ordering_facility_ptn.ordering_facility_contact_id AS ptn_ordering_facility_contact_id,
+                                        ordering_facility_ptn.id AS ptn_ordering_facility_id,
+                                        ordering_facility_ptn.ordering_facility_name AS ptn_ordering_facility_name,
+                                        ordering_facility_ptn.location AS ptn_location,
+                                        ordering_facility_ptn.place_of_service_id AS ptn_ord_fac_place_of_service,
+                                        order_info->'pos' AS pos,
+                                        ofd.billing_type AS billing_type,
                                         bfs.default_provider_id AS fac_billing_provider_id,
                                         orders.order_status AS order_status,
                                         order_info -> 'pos_type_code' AS pos_type_code,
+                                        order_info -> 'pos_map_code' AS pos_map_code,
                                         facilities.place_of_service_id AS fac_place_of_service_id,
                                         p.full_name AS patient_name,
                                         p.account_no AS patient_account_no,
@@ -276,7 +292,7 @@ module.exports = {
                                         studies_details.area_of_injury_code_id,
                                         studies_details.can_ahs_skill_code_id,
                                         studies_details.skill_code as skill_code,
-                                        COALESCE(NULLIF((SELECT split_types IS NOT NULL FROM census_fee_charges_details), FALSE), (SELECT billing_type from get_study_date) = 'split') AS is_split_claim,
+                                        COALESCE(NULLIF((SELECT split_types IS NOT NULL FROM census_fee_charges_details), FALSE), (SELECT billing_type from get_ordering_facility_data) = 'split') AS is_split_claim,
                                         (
                                             SELECT
                                                 jsonb_agg(jsonb_build_object(
@@ -294,7 +310,11 @@ module.exports = {
                                                 issuers iss ON paa.issuer_id = iss.id
                                             WHERE
                                                 patient_id = ${params.patient_id}
-                                        ) AS patient_alt_acc_nos
+                                        ) AS patient_alt_acc_nos,
+                                        (SELECT
+                                            is_split_claim_enabled
+                                        FROM insurances
+                                        WHERE coverage_level = 'primary') AS is_split_claim_enabled
                                     FROM
                                         orders
                                         INNER JOIN order_ids oi ON oi.order_id = orders.id
@@ -305,6 +325,7 @@ module.exports = {
                                             ordering_facility_contacts.ordering_facility_id = facilities.ordering_facility_id
                                             AND ordering_facility_contacts.is_primary
                                         )
+                                        LEFT JOIN get_ordering_facility_data ofd ON ofd.study_id = ${firstStudyId}
                                         LEFT JOIN LATERAL (
                                             SELECT
                                                 ofc.id AS ordering_facility_contact_id,
@@ -313,11 +334,15 @@ module.exports = {
                                                 of.name AS ordering_facility_name,
                                                 of.id,
                                                 ofc.place_of_service_id
-                                            FROM studies
-                                            INNER JOIN ordering_facility_contacts ofc ON ofc.id = COALESCE(studies.ordering_facility_contact_id, ordering_facility_contacts.id)
-                                            INNER JOIN ordering_facilities of ON of.id = ofc.ordering_facility_id
-                                            WHERE studies.id = ${firstStudyId}
-                                        ) ordering_facility  ON TRUE
+                                            FROM
+                                                public.ordering_facilities of
+                                            INNER JOIN ordering_facility_contacts ofc
+                                                ON ofc.ordering_facility_id = of.id
+                                            INNER JOIN patients p
+                                                ON p.default_ordering_facility_contact_id = ofc.id
+                                            WHERE
+                                                p.id = orders.patient_id
+                                        ) ordering_facility_ptn  ON TRUE
                                         LEFT JOIN LATERAL (
                                             SELECT
                                                 pc.id,
@@ -520,6 +545,7 @@ module.exports = {
                             , pi.subscriber_zipcode_plus
                             , pi.assign_benefits_to_patient
                             , ipd.billing_method
+                            , ipd.is_split_claim_enabled
                         FROM
                             public.patient_insurances pi
                         INNER JOIN public.insurance_providers ip ON ip.id= pi.insurance_provider_id
@@ -728,6 +754,7 @@ module.exports = {
                     , claim_ins.secondary_patient_insurance_id
                     , claim_ins.tertiary_patient_insurance_id
                     , c.place_of_service_id
+                    , c.pos_map_id
                     , c.billing_code_id
                     , c.billing_class_id
                     , c.created_by
@@ -775,6 +802,15 @@ module.exports = {
                     , p.birth_date::text AS patient_dob
                     , p.full_name AS patient_name
                     , p.gender AS patient_gender
+                    , (
+                        SELECT
+                            ARRAY_AGG(note)
+                        FROM
+                            billing.claim_comments bcc
+                        WHERE
+                            bcc.claim_id = ${id}
+                            AND 'edit_claim' = ANY(bcc.alert_screens)
+                    ) AS edit_claim_alerts
                     , (
                         SELECT
                             jsonb_agg(jsonb_build_object(

@@ -4,7 +4,9 @@ const {
 } = require('../index');
 
 const claimsData = require('../../data/claim/index');
+const claimController = require('../../controllers/claim/index');
 const config = require('../../config');
+const logger = require('../../../logger');
 const COMPANY_ID = 1;
 const WILDCARD_ID = "0";
 const RADMIN_USER_ID = 1;
@@ -95,7 +97,9 @@ const getSaveClaimParams = async (params) => {
         charge.pointer4 = getPointer(problems[3]);
         charge.is_excluded = CHARGE_IS_EXCLUDED;
         charge.is_canada_billing = isCanadaBilling;
-        charge.is_custom_bill_fee = false;
+        charge.is_custom_bill_fee = charge.is_custom_bill_fee || false;
+        charge.is_billing_rule_applied = charge.is_billing_rule_applied || false;
+        charge.is_billing_rule_cpt_add_fee = charge.is_billing_rule_cpt_add_fee || false;
         return charge;
     });
 
@@ -158,6 +162,7 @@ const getSaveClaimParams = async (params) => {
             wcb_injury_area_code: claim_details.area_of_injury_code_id || null,
             wcb_injury_nature_code: claim_details.nature_of_injury_code_id || null,
             billing_type,
+            is_insurance_split: claim_details.is_insurance_split,
             ord_fac_place_of_service: claim_details.ord_fac_place_of_service,
             order_id,
             study_id
@@ -195,7 +200,6 @@ const getSaveClaimParams = async (params) => {
     saveClaimParams.claims = [saveClaimParams.claims];
     return saveClaimParams;
 };
-
 
 module.exports = {
 
@@ -1038,73 +1042,13 @@ module.exports = {
             };
 
             const saveClaimParams = await getSaveClaimParams(baseParams);
-            let filteredClaims = [];
-            let claims = saveClaimParams.claims || [];
 
-            claims.forEach((claim) => {
+            let claim = saveClaimParams?.claims?.[0];
 
-                if (claim.billing_type === 'split' && claim.ordering_facility_contact_id) {
-                    filteredClaims.push({
-                        ...claim,
-                        billing_type: DEFAULT_BILLING_TYPE
-                    });
-                }
-                else if (['census', 'split'].indexOf(claim.billing_type) === -1) {
-                    filteredClaims.push(claim);
-                }
-            });
-
-            if (filteredClaims.length) {
-                saveClaimParams.claims = filteredClaims;
-                let claim = filteredClaims[0];
-
-                if(claim.is_split_claim) {
-                    let {professional_modifier_id, technical_modifier_id} = (await claimsData.getTechnicalAndProfessionalModifier()).pop();
-                    saveClaimParams.claims = [];
-
-                    saveClaimParams.claims.push({
-                        ...claim,
-                        claim_charges: claim.claim_charges,
-                        billing_type: 'split_p'
-                    });
-
-                    // creating a technical claim since it is split claim
-                    let newCharges = [];
-
-                    await Promise.all(claim.claim_charges.map(async (charge, index) => {
-
-                        let modifier1 = charge.modifier1_id == professional_modifier_id ? technical_modifier_id : charge.modifier1_id;
-                        let modifier2 = charge.modifier2_id == professional_modifier_id ? technical_modifier_id : charge.modifier2_id;
-                        let modifier3 = charge.modifier3_id == professional_modifier_id ? technical_modifier_id : charge.modifier3_id;
-                        let modifier4 = charge.modifier4_id == professional_modifier_id ? technical_modifier_id : charge.modifier4_id;
-
-                        newCharges.push({
-                            ...claim.claim_charges[index],
-                            modifier1_id: modifier1,
-                            modifier2_id: modifier2,
-                            modifier3_id: modifier3,
-                            modifier4_id: modifier4,
-                            bill_fee: claim.claim_charges[index].is_custom_bill_fee  === 'true' ? claim.claim_charges[index].bill_fee :  0,
-                            allowed_amount: claim.claim_charges[index].is_custom_bill_fee  === 'true'  ? claim.claim_charges[index].allowed_amount : 0
-                        });
-                    }));
-
-                    // EXA-22773 | For technical claim responsible must be ordering facility
-                    saveClaimParams.claims.push({
-                        ...claim,
-                        billing_method: 'direct_billing',
-                        payer_type: 'ordering_facility',
-                        claim_charges: newCharges,
-                        billing_type: 'split_t',
-                        place_of_service_id: claim.ord_fac_place_of_service
-                    });
-
-                } else {
-                    saveClaimParams.claims = filteredClaims;
-                }
-
-                await claimsData.save(saveClaimParams);
-            }
+            let claimDetails = await claimController.splitClaim(claim, claim.claim_charges, saveClaimParams.insurances, config.get('enableMobileBilling'));
+            saveClaimParams.claims = claimDetails;
+            
+            await claimsData.save(saveClaimParams);
         }
 
         return rows;
