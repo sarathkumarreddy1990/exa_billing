@@ -1,0 +1,470 @@
+<html>
+<head><title>Insurance Benefits/Eligibility</title></head>
+<body><br>SUBSCRIBER INFORMATION
+<hr>
+<table class="table table-bordered" style="margin: auto; width: 100%;">
+    <tbody>
+    <tr>
+        <td style="width: 30%; font-weight: bold;">Subscriber First Name</td>
+        <td style="width: 70%;"><%=eligibilityInfo.subscriberInfo.subscriberFirstName%></td>
+    </tr>
+    <tr>
+        <td style="width: 30%; font-weight: bold;">Subscriber Last Name</td>
+        <td style="width: 70%;"><%=eligibilityInfo.subscriberInfo.subscriberLastName%></td>
+    </tr>
+    <tr>
+        <td style="width: 30%; font-weight: bold;">Subscriber ID</td>
+        <td style="width: 70%;"><%=eligibilityInfo.subscriberInfo.subscriberID%></td>
+    </tr>
+    <tr>
+        <td style="width: 30%; font-weight: bold;">Subscriber Birth Date</td>
+        <td style="width: 70%;"><%=eligibilityInfo.subscriberInfo.birthDate%></td>
+    </tr>
+    <tr>
+        <td style="width: 30%; font-weight: bold;">Subscriber Gender</td>
+        <td style="width: 70%;"><%=eligibilityInfo.subscriberInfo.gender%></td>
+    </tr>
+    <tr>
+        <td style="width: 30%; font-weight: bold;">Active</td>
+        <td style="width: 70%;"><%=eligibilityInfo.subscriberInfo.isActive%></td>
+    </tr>
+    </tbody>
+</table>
+<br>MORE INFORMATION
+<hr>
+<table class="table table-bordered" style="margin: auto; width: 98%;">
+    <tbody>
+    <tr>
+        <td>COVERAGE</td>
+    </tr>
+    <tr>
+        <td style="width: 30%; font-weight: bold;">Active</td>
+        <td style="width: 70%;"><%=eligibilityInfo.moreInfo.coverage%></td>
+    </tr>
+    <tr>
+        <td style="width: 30%; font-weight: bold;">Coverage Level</td>
+        <td style="width: 70%;"><%=eligibilityInfo.moreInfo.coverageLevel%></td>
+    </tr>
+    <tr>
+        <td style="width: 30%; font-weight: bold;">Insurance Type</td>
+        <td style="width: 70%;"><%=eligibilityInfo.moreInfo.insuaranceType%></td>
+    </tr>
+    <tr>
+        <td style="width: 30%; font-weight: bold;">Group Description</td>
+        <td style="width: 70%;"><%=eligibilityInfo.moreInfo.groupDescription%></td>
+    </tr>
+    <tr>
+        <td style="width: 30%; font-weight: bold;">Group Number</td>
+        <td style="width: 70%;"><%=eligibilityInfo.moreInfo.groupNumber%></td>
+    </tr>
+    <tr>
+        <td style="width: 30%; font-weight: bold;">Plan Begin Date</td>
+        <td style="width: 70%;"><%=eligibilityInfo.moreInfo.planBeginDate%></td>
+    </tr>
+    <tr>
+        <td style="width: 30%; font-weight: bold;">Plan End Date</td>
+        <td style="width: 70%;"><%=eligibilityInfo.moreInfo.planEndDate%></td>
+    </tr>
+    <tr>
+        <td style="width: 30%; font-weight: bold;">Plan Description</td>
+        <td style="width: 70%;"><%=eligibilityInfo.moreInfo.planDescription%></td>
+    </tr>
+    <tr>
+        <td style="width: 30%; font-weight: bold;">Plan Number</td>
+        <td style="width: 70%;"><%=eligibilityInfo.moreInfo.planNumber%></td>
+    </tr>
+    <tr>
+        <td style="width: 30%; font-weight: bold;">Service Date</td>
+        <td style="width: 70%;"><%=eligibilityInfo.moreInfo.serviceDate%></td>
+    </tr>
+    <tr>
+        <td style="width: 25%; font-weight: bold;">Messages</td>
+        <td style="width: 75%;">-</td>
+    </tr>
+    </tbody>
+</table>
+<br><br>
+<table class="table table-bordered" style="margin: auto; width: 98%;">
+    <tbody>
+    <tr>
+        <td>OUT-OF-PACKET</td>
+    </tr>
+    <tr>
+        <td style="width: 50%;">Deductibles
+            <hr>
+        </td>
+        <td style="width: 50%;">Maximum Out-Of-Packets
+            <hr>
+        </td>
+    </tr>
+    </tbody>
+</table>
+<table class="table table-bordered" style="margin: auto; width: 98%;">
+    <tbody>
+
+    <% if (eligibilityInfo.deductiblesData && eligibilityInfo.deductiblesData.length) { %>
+    <% _.each(eligibilityInfo.deductiblesData, function(deductiblesData, index) { %>
+    <tr>
+        <td width="50%" class="boldLabel">In Network</td>
+        <td width="50%"> <%= deductiblesData.in_plan_network ? deductiblesData.in_plan_network: '-' %> </td>
+    </tr>
+    <tr>
+        <td width="50%" class="boldLabel">Coverage Level</td>
+        <td width="50%"> <%= deductiblesData.coverage_level ? deductiblesData.coverage_level: '-' %> </td>
+    </tr>
+    <tr>
+        <td width="50%" class="boldLabel">Total Deductible Amount</td>
+        <td width="50%"> <%= deductiblesData.benefit_amount ? deductiblesData.benefit_amount: '-' %> </td>
+    </tr>
+    <tr>
+        <td width="50%" class="boldLabel">Time Period</td>
+        <td width="50%"> <%= deductiblesData.time_period ? deductiblesData.time_period: '-' %> </td>
+    </tr>
+    <tr>
+        <td width="50%" class="boldLabel"> Service Type</td>
+        <td width="50%"> <%= deductiblesData.service_types ? deductiblesData.service_types: '-' %> </td>
+    </tr>
+    <% }); %>
+    <% } else { %>
+    <tr>
+        <td style="text-align: center;">No Record Found</td>
+    </tr>
+    <% } %>
+
+    </tbody>
+</table>
+<table class="table table-bordered" style="margin: auto; width: 98%;">
+    <tbody>
+    <tr>
+        <td style="width: 50%;">Summary Deductible
+            <hr>
+        </td>
+        <td style="width: 50%;">Summary Maximum Out-Of-Packet
+            <hr>
+        </td>
+    </tr>
+    <tr>
+        <td style="width: 50%;">In NetWork</td>
+        <td style="width: 50%;">In NetWork</td>
+    </tr>
+    </tbody>
+</table>
+<table class="table table-bordered" style="margin: auto; width: 98%;">
+    <tbody>
+    <tr>
+        <td style="width: 25%; font-weight: bold;">Total Deductible</td>
+        <td style="width: 25%;"><%=eligibilityInfo.summaryDeductable.inNetwork.totalDeductable%></td>
+        <td style="width: 25%; font-weight: bold;">Total Deductible</td>
+        <td style="width: 25%;"><%=eligibilityInfo.summaryDeductable.inNetwork.totalDeductable1%></td>
+    </tr>
+    <tr>
+        <td style="width: 25%; font-weight: bold;">Spent Y-T-D</td>
+        <td style="width: 25%;"><%=eligibilityInfo.summaryDeductable.inNetwork.spentYTD%></td>
+        <td style="width: 25%; font-weight: bold;">Spent Y-T-D</td>
+        <td style="width: 25%;"><%=eligibilityInfo.summaryDeductable.inNetwork.spentYTD1%></td>
+    </tr>
+    <tr>
+        <td style="width: 25%; font-weight: bold;">Remaining</td>
+        <td style="width: 25%;"><%=eligibilityInfo.summaryDeductable.inNetwork.remaining%></td>
+        <td style="width: 25%; font-weight: bold;">Remaining</td>
+        <td style="width: 25%;"><%=eligibilityInfo.summaryDeductable.inNetwork.remaining1%></td>
+    </tr>
+    </tbody>
+</table>
+<br>
+<table class="table table-bordered" style="margin: auto; width: 98%;">
+    <tbody>
+    <tr>
+        <td style="width: 50%;">Out Of NetWork</td>
+        <td style="width: 50%;">Out Of NetWork</td>
+    </tr>
+    </tbody>
+</table>
+<table class="table table-bordered" style="margin: auto; width: 98%;">
+    <tbody>
+    <tr>
+        <td style="width: 25%; font-weight: bold;">Total Deductible</td>
+        <td style="width: 25%;"><%=eligibilityInfo.summaryDeductable.outOfNetwork.totalDeductable%></td>
+        <td style="width: 25%; font-weight: bold;">Total Deductible</td>
+        <td style="width: 25%;"><%=eligibilityInfo.summaryDeductable.outOfNetwork.totalDeductable%></td>
+    </tr>
+    <tr>
+        <td style="width: 25%; font-weight: bold;">Spent Y-T-D</td>
+        <td style="width: 25%;"><%=eligibilityInfo.summaryDeductable.outOfNetwork.spentYTD%></td>
+        <td style="width: 25%; font-weight: bold;">Spent Y-T-D</td>
+        <td style="width: 25%;"><%=eligibilityInfo.summaryDeductable.outOfNetwork.spentYTD1%></td>
+    </tr>
+    <tr>
+        <td style="width: 25%; font-weight: bold;">Remaining</td>
+        <td style="width: 25%;"><%=eligibilityInfo.summaryDeductable.outOfNetwork.remaining%></td>
+        <td style="width: 25%; font-weight: bold;">Remaining</td>
+        <td style="width: 25%;"><%=eligibilityInfo.summaryDeductable.outOfNetwork.remaining1%></td>
+    </tr>
+    </tbody>
+</table>
+<br><br>
+<table class="table table-bordered" style="margin: auto; width: 98%;">
+    <tbody>
+    <tr>
+        <td style="width: 100%;">COINSURANCE
+            <hr>
+        </td>
+    </tr>
+    </tbody>
+</table>
+<table class="table table-bordered" style="margin: auto; width: 98%;">
+    <tbody>
+
+    <% if (eligibilityInfo.coInsuranceData && eligibilityInfo.coInsuranceData.length) { %>
+    <% _.each(eligibilityInfo.coInsuranceData, function(coInsuranceData, index) { %>
+    <tr>
+        <td width="25%" class="boldLabel">Benefit Percent</td>
+        <td width="75%"> <%= coInsuranceData.benefit_percent ? coInsuranceData.benefit_percent: '-' %> </td>
+    </tr>
+    <tr>
+        <td width="25%" class="boldLabel">In Plan Network</td>
+        <td width="75%"> <%= coInsuranceData.in_plan_network ? coInsuranceData.in_plan_network: '-' %> </td>
+    </tr>
+    <tr>
+        <td width="25%" class="boldLabel"> Coverage Level</td>
+        <td width="75%"> <%= coInsuranceData.coverage_level ? coInsuranceData.coverage_level: '-' %> </td>
+    </tr>
+    <tr>
+        <td width="25%" class="boldLabel">Authorization Required</td>
+        <td width="75%"> <%= coInsuranceData.authorization_required ? coInsuranceData.authorization_required: '-' %> </td>
+    </tr>
+    <tr>
+        <td width="25%" class="boldLabel">Service Type</td>
+        <td width="75%"> <%= coInsuranceData.service_types ? coInsuranceData.service_types: '-' %> </td>
+    </tr>
+    <% }); %>
+    <% } else { %>
+    <tr>
+        <td style="text-align: center;">No Record Found</td>
+    </tr>
+    <% } %>
+    </tbody>
+</table>
+<br><br>
+<table class="table table-bordered" style="margin: auto; width: 98%;">
+    <tbody>
+    <tr>
+        <td>COPAY
+            <hr>
+        </td>
+    </tr>
+    </tbody>
+</table>
+<table class="table table-bordered" style="margin: auto; width: 98%;">
+    <tbody>
+    <% if (eligibilityInfo.copayData && eligibilityInfo.copayData.length) { %>
+    <% _.each(eligibilityInfo.copayData, function(copayData, index) { %>
+    <tr>
+        <td width="25%" class="boldLabel">Amount</td>
+        <td width="75%"> <%= copayData.amount ? copayData.amount: '-' %> </td>
+    </tr>
+    <tr>
+        <td width="25%" class="boldLabel">In Plan Network</td>
+        <td width="75%"> <%= copayData.in_plan_network ? copayData.in_plan_network: '-' %> </td>
+    </tr>
+    <tr>
+        <td width="25%" class="boldLabel"> Coverage Level</td>
+        <td width="75%"> <%= copayData.coverage_level ? copayData.coverage_level: '-' %> </td>
+    </tr>
+    <tr>
+        <td width="25%" class="boldLabel">Type</td>
+        <td width="75%"> <%= copayData.insurance_type ? copayData.insurance_type: '-' %> </td>
+    </tr>
+    <tr>
+        <td width="25%" class="boldLabel">Plan Description</td>
+        <td width="75%"> <%= copayData.plan_description ? copayData.plan_description: '-' %> </td>
+    </tr>
+    <tr>
+        <td width="25%" class="boldLabel">Service Type</td>
+        <td width="75%"> <%= copayData.service_types ? copayData.service_types: '-' %> </td>
+    </tr>
+    <tr>
+        <td width="25%" class="boldLabel">Authorization Required?</td>
+        <td width="75%"> <%= copayData.authorization_required ? copayData.authorization_required : '-' %> </td>
+    </tr>
+    <% }); %>
+    <% } else { %>
+    <tr>
+        <td style="text-align: center;">No Record Found</td>
+    </tr>
+    <% } %>
+    </tbody>
+</table>
+<br><br>
+<table class="table table-bordered" style="margin: auto; width: 98%;">
+    <tbody>
+    <tr>
+        <td style="width: 60%;">LIMITATIONS
+            <hr>
+        </td>
+        <td style="width: 40%;">Disclaimer
+            <hr>
+        </td>
+    </tr>
+    </tbody>
+</table>
+<table class="table table-bordered" style="margin: auto; width: 98%;">
+    <tbody>
+
+    <% if (eligibilityInfo.limitationsData && eligibilityInfo.limitationsData.length) { %>
+    <% _.each(eligibilityInfo.limitationsData, function(limitationsData, index) { %>
+    <tr>
+        <td width="25%" class="boldLabel">Amount</td>
+        <td width="75%"> <%= limitationsData.benefit_amount ? limitationsData.benefit_amount: '-' %> </td>
+    </tr>
+    <tr>
+        <td width="25%" class="boldLabel">Limitations Description</td>
+        <td width="75%"> <%= limitationsData.description ? limitationsData.description: '-' %> </td>
+    </tr>
+    <tr>
+        <td width="25%" class="boldLabel">Service Type</td>
+        <td width="75%"> <%= limitationsData.service_types ? limitationsData.service_types: '-' %> </td>
+    </tr>
+    <% }); %>
+    <% } else { %>
+    <tr>
+        <td style="text-align: center;">No Record Found</td>
+    </tr>
+    <% } %>
+    </tbody>
+</table>
+<br><br>
+<table class="table table-bordered" style="margin: auto; width: 98%;">
+    <tbody>
+    <tr>
+        <td>REQUEST DETAILS</td>
+    </tr>
+    <tr>
+        <td>Subscriber Information
+            <hr>
+        </td>
+    </tr>
+    </tbody>
+</table>
+<table class="table table-bordered" style="margin: auto; width: 98%;">
+    <tbody>
+    <tr>
+        <td style="width: 30%; font-weight: bold;">Subscriber ID</td>
+        <td style="width: 70%;"><%=eligibilityInfo.requestDetails.subscriberId%></td>
+    </tr>
+    <tr>
+        <td style="width: 30%; font-weight: bold;">Subscriber First Name</td>
+        <td style="width: 70%;"><%=eligibilityInfo.requestDetails.first_name%></td>
+    </tr>
+    <tr>
+        <td style="width: 30%; font-weight: bold;">Subscriber Last Name</td>
+        <td style="width: 70%;"><%=eligibilityInfo.requestDetails.last_name%></td>
+    </tr>
+    <tr>
+        <td style="width: 30%; font-weight: bold;">Subscriber Birth Date</td>
+        <td style="width: 70%;"><%=eligibilityInfo.requestDetails.birth_date%></td>
+    </tr>
+    <tr>
+        <td style="width: 30%; font-weight: bold;">Subscriber Gender</td>
+        <td style="width: 70%;"><%=eligibilityInfo.requestDetails.gender%></td>
+    </tr>
+    <tr>
+        <td style="width: 30%; font-weight: bold;">Subscriber Address Lines</td>
+        <td style="width: 70%;"><%=eligibilityInfo.requestDetails.address_lines%></td>
+    </tr>
+    <tr>
+        <td style="width: 30%; font-weight: bold;">Subscriber City</td>
+        <td style="width: 70%;"><%=eligibilityInfo.requestDetails.city%></td>
+    </tr>
+    <tr>
+        <td style="width: 30%; font-weight: bold;">Subscriber State</td>
+        <td style="width: 70%;"><%=eligibilityInfo.requestDetails.state%></td>
+    </tr>
+    <tr>
+        <td style="width: 30%; font-weight: bold;">Subscriber Zipcode</td>
+        <td style="width: 70%;"><%=eligibilityInfo.requestDetails.zipcode%></td>
+    </tr>
+    <tr>
+        <td style="width: 30%; font-weight: bold;">Valid Request</td>
+        <td style="width: 70%;"><%=eligibilityInfo.requestDetails.valid_request%></td>
+    </tr>
+    <tr>
+        <td style="width: 30%; font-weight: bold;">Service Type Codes</td>
+        <td style="width: 70%;"><%=eligibilityInfo.requestDetails.service_type_codes%></td>
+    </tr>
+    <tr>
+        <td style="width: 30%; font-weight: bold;">Trace Number</td>
+        <td style="width: 70%;"><%=eligibilityInfo.requestDetails.trace_number%></td>
+    </tr>
+    <tr>
+        <td style="width: 30%; font-weight: bold;">Originating Company ID</td>
+        <td style="width: 70%;"><%=eligibilityInfo.requestDetails.originating_company_id%></td>
+    </tr>
+    </tbody>
+</table>
+<br>
+<table class="table table-bordered" style="margin: auto; width: 98%;">
+    <tbody>
+    <tr>
+        <td>Payer Information
+            <hr>
+        </td>
+    </tr>
+    </tbody>
+</table>
+<table class="table table-bordered" style="margin: auto; width: 98%;">
+    <tbody>
+    <tr>
+        <td style="width: 30%; font-weight: bold;">Payer ID</td>
+        <td style="width: 70%;"><%=eligibilityInfo.payerInfo.payerId%></td>
+    </tr>
+    <tr>
+        <td style="width: 30%; font-weight: bold;">Payer Name</td>
+        <td style="width: 70%;"><%=eligibilityInfo.payerInfo.payerName%></td>
+    </tr>
+    </tbody>
+</table>
+<br>
+<table class="table table-bordered" style="margin: auto; width: 98%;">
+    <tbody>
+    <tr>
+        <td>Provider Information
+            <hr>
+        </td>
+    </tr>
+    </tbody>
+</table>
+<table class="table table-bordered" style="margin: auto; width: 98%;">
+    <tbody>
+    <tr>
+        <td style="width: 30%; font-weight: bold;">Provider NPI</td>
+        <td style="width: 70%;"><%=eligibilityInfo.providerInfo.npi%></td>
+    </tr>
+    <tr>
+        <td style="width: 30%; font-weight: bold;">Provider Organization Name</td>
+        <td style="width: 70%;"><%=eligibilityInfo.providerInfo.organization_name%></td>
+    </tr>
+    </tbody>
+</table>
+<br><br>
+<table class="table table-bordered" style="margin: auto; width: 98%;">
+    <tbody>
+    <tr>
+        <td style="width: 100%;">PHARMACY
+            <hr>
+        </td>
+    </tr>
+    </tbody>
+</table>
+<table class="table table-bordered" style="margin: auto; width: 98%;">
+    <tbody>
+    <tr>
+        <td style="width: 30%; font-weight: bold;">Is Eligible</td>
+        <td style="width: 70%;"><%=eligibilityInfo.pharmacyInfo.is_eligible ? eligibilityInfo.pharmacyInfo.is_eligible: '-'%></td>
+    </tr>
+    </tbody>
+</table>
+<br>
+<hr>
+</body>
+</html>

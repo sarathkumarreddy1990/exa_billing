@@ -961,6 +961,19 @@ var commonjs = {
         commonjs.initHideEvent(options);
     },
 
+    showEstimationLetterDialog: function (options) {
+        options.modalContainerId = '#siteModalEstimationLetter';
+        options.spanHeaderId = '#spanModalHeaderEstimationLetter';
+        options.modalBodyId = '#modalBodyEstimationLetter';
+        options.modalDialogId = '#modalDialogEstimationLetter';
+        options.modalDivContainerId = '#modal_div_container_estimation_letter';
+        options.iframeContainerId = 'site_modal_iframe_container_estimation_letter';
+        options.isNested = true;
+
+        commonjs.showDefaultDialog(options);
+        commonjs.initHideEvent(options);
+    },
+
     initHideEvent: function (options) {
 
         var modalContainerId = options.modalContainerId || '#siteModal';
@@ -2134,6 +2147,30 @@ var commonjs = {
             return localizationString;
         }
         return i18nString;
+    },
+
+    /**
+     * Converts the i18n attributes in an HTML document.  Useful for html templates used for printing or emailing that
+     * aren't automatically converted because they're not being rendered in the browser.
+     *
+     * @param {string} html_string
+     * @returns {string}
+     */
+    i18nHtmlTranslate: function (html_string) {
+        var $jq = $(html_string);
+        var $i18n = $jq.find("[i18n]");
+
+        $i18n.each(function (index, el) {
+            var $el = $(el);
+            var attr = $el.attr("i18n");
+            var text = commonjs.geti18NString(attr);
+
+            $el.text(text);
+        });
+
+        var $translated_jq = $("<html />").append($jq);
+
+        return $translated_jq.html();
     },
 
     /**
@@ -4989,6 +5026,17 @@ var commonjs = {
     },
 
     /**
+     * To return facility info by id
+     *
+     * @param {number} facilityId
+     */
+    getFacilityById: function (facilityId) {
+        return _.find(app.facilities, {
+            id: ~~facilityId
+        }) || {};
+    },
+
+    /**
      * Given a modality id, return the modality code if it exists
      *
      * @param {Number} id
@@ -5463,6 +5511,74 @@ var commonjs = {
         }
 
         return isValidSearch;
+    },
+
+    /**
+     * Formats address 1 and 2 for display
+     *
+     * @param {string} address1
+     * @param {string} address2
+     * @returns {string}
+     */
+    formatAddress: function (address1, address2) {
+        if (!address1 && !address2) { return ""; }
+
+        return address2
+            ? address1 + ", " + address2
+            : address1;
+    },
+
+    /**
+     * Formats city, state and zip for display
+     *
+     * @param {string} city
+     * @param {string} state
+     * @param {string} zip
+     * @returns {string}
+     */
+    formatCityStateZip: function (city, state, zip) {
+        if (!city && !state && !zip) { return ""; }
+
+        var comma = state || zip
+            ? ", "
+            : "";
+
+        return (city + comma + state + " " + zip).trim();
+    },
+
+    /**
+     * Ensures that variable passed returns as an array
+     *   1. If already array, return it.
+     *   2. If it is a comma-delimited string, split it into an array.
+     *   3. If neither, simply wrap the value sent into a single-element array.
+     *   4. Lastly, map array before returning if provided.
+     *
+     * @param {*}             maybe_array  Array or string to split
+     * @param {type|function} map          Variable type (Number, String, Boolean) or function to use as map [optional]
+     * @returns {*[]}
+     */
+    ensureArray: function (maybe_array, map) {
+        var new_arr = Array.isArray(maybe_array)
+            ? maybe_array                               // Already array - Use it as is
+            : _.includes(_.toString(maybe_array), ",")
+                ? _.toString(maybe_array).split(",")    // Comma-delimited string - Split into array
+                : [maybe_array];                        // Doesn't need split - Preserve data type
+
+        return map
+            ? new_arr.map(map)
+            : new_arr;
+    },
+
+    /**
+     * Ensures callback paramters are a function to avoid crashes when not passed
+     *
+     * @param {function} callback
+     * @returns {function}
+     */
+    ensureCallback: function (callback) {
+        return (typeof callback === "function")
+            ? callback
+            : $.noop;
     },
 
     tinyMceLoad: function(callback){

@@ -1,0 +1,366 @@
+<html>
+<head>
+    <title>Print Eligibility / Estimation</title>
+
+    <style>
+        section {
+            display: block;
+            margin-bottom: 30px;
+        }
+
+        header {
+            border-bottom: solid #2b547e 1px;
+            color: #2b547e;
+            display: block;
+            font-size: larger;
+            font-weight: bold;
+            margin-bottom: 15px;
+        }
+
+        item {
+            display: block;
+            margin: 7px;
+        }
+
+        label {
+            display: inline-block;
+            font-weight: bold;
+            width: 25%;
+        }
+
+        field {
+            display: inline-block;
+            width: 70%;
+        }
+
+        blurb {
+            display: inline-block;
+            margin-bottom: 7px;
+            width: 75%;
+        }
+
+        description {
+            color: gray;
+            display: inline-block;
+            font-size: smaller;
+            margin-left: 30px;
+            width: 100%;
+        }
+
+        value {
+            color: green;
+            display: inline-block;
+            font-weight: bold;
+            text-align: right;
+            vertical-align: top;
+            width: 20%;
+        }
+
+        .bold {
+            font-weight: bold;
+        }
+    </style>
+</head>
+<body>
+    <%
+    data.patient = data.patient || {};
+    data.visit = data.visit || {};
+    data.insurance = data.insurance || {};
+    data.eligibilityStatus = data.eligibilityStatus || {};
+    data.eligibility = data.eligibility || {};
+    data.estimation = data.estimation || {};
+    %>
+
+    <!-- Patient -->
+    <section>
+        <header>
+            <span i18n="shared.fields.patient"></span>
+        </header>
+
+        <!-- Name -->
+        <item>
+            <label i18n="patient.patient.patientName"></label>
+            <field><%= data.patient.name %></field>
+        </item>
+
+        <!-- Home Phone -->
+        <item>
+            <label i18n="shared.fields.homePhone"></label>
+            <field><%= data.patient.homePhone %></field>
+        </item>
+
+        <!-- Mobile Phone -->
+        <item>
+            <label i18n="shared.fields.mobilePhone"></label>
+            <field><%= data.patient.mobilePhone %></field>
+        </item>
+
+        <!-- Date of Birth -->
+        <item>
+            <label i18n="shared.fields.dateofBirth"></label>
+            <field><%= data.patient.dobDisplay %></field>
+        </item>
+
+        <!-- MRN -->
+        <item>
+            <label i18n="shared.fields.mrn"></label>
+            <field><%= data.patient.mrn %></field>
+        </item>
+
+        <!-- Eligibility Status -->
+        <item>
+            <label i18n="patient.patientInsurance.eligibility.eligibilityStatus" class="bold"></label>
+            <field style="color: <%= data.eligibilityStatus.printColor %>;">
+                <%= data.eligibilityStatus.printIcon %>
+            </field>
+        </item>
+
+        <!-- Benefits Date -->
+        <item>
+            <label i18n="patient.patientInsurance.eligibility.benefitsDate" class="bold"></label>
+            <field><%= data.eligibility.dateCreatedDisplay %></field>
+        </item>
+    </section>
+
+    <!-- Visit -->
+    <section>
+        <header>
+            <span i18n="patient.patientInsurance.eligibility.visit"></span>
+        </header>
+
+        <!-- Procedures -->
+        <item>
+            <label i18n="patient.patientInsurance.eligibility.procedures"></label>
+            <field><%= data.visit.proceduresDisplay %></field>
+        </item>
+
+        <!-- Date of Service -->
+        <item>
+            <label i18n="patient.patientInsurance.eligibility.dateOfService"></label>
+            <field><%= data.visit.dateOfServiceDisplay %></field>
+        </item>
+
+        <!-- Referring Physician -->
+        <item>
+            <label i18n="order.patientOrderDetails.referringPhysician"></label>
+            <field>
+                <%
+                data.visit.referringPhysicianPrint.forEach(function (name) {
+                    print(name + "<br/>");
+                });
+                %>
+            </field>
+        </item>
+    </section>
+
+    <!-- Insurance -->
+    <section>
+        <header>
+            <span i18n="patient.studies.insurance"></span>
+        </header>
+
+        <!-- Provider Name -->
+        <item>
+            <label i18n="patient.patientInsurance.eligibility.providerName"></label>
+            <field><%= data.insurance.providerName %></field>
+        </item>
+
+        <!-- Address -->
+        <item>
+            <label i18n="patient.patientInsurance.address"></label>
+            <field><%= data.insurance.address1Display %></field>
+        </item>
+
+        <item>
+            <label></label>
+            <field><%= data.insurance.address2Display %></field>
+        </item>
+
+        <!-- Policy Number -->
+        <item>
+            <label i18n="shared.fields.policyNumber"></label>
+            <field><%= data.insurance.policyNumber %></field>
+        </item>
+
+        <!-- Subscriber Name -->
+        <item>
+            <label i18n="patient.patientInsurance.subscriberName"></label>
+            <field><%= data.insurance.subscriberName %></field>
+        </item>
+
+        <!-- Subscriber DOB -->
+        <item>
+            <label i18n="patient.patientInsurance.subscriberDob"></label>
+            <field><%= data.insurance.subscriberDobDisplay %></field>
+        </item>
+    </section>
+
+    <!-- Eligibility -->
+    <section>
+        <header>
+            <span i18n="patient.patientInsurance.eligibility.eligibility"></span>
+        </header>
+
+        <!-- Plan Details -->
+        <item>
+            <div i18n="patient.patientInsurance.eligibility.planDetails" class="bold"></div>
+            <item>
+                <%= data.eligibility.planDetailsDisplay %>
+            </item>
+        </item>
+
+        <!-- Co-Insurance -->
+        <item>
+            <div i18n="patient.patientInsurance.eligibility.coInsurance" class="bold"></div>
+            <item>
+                <%
+                (data.eligibility.coInsurance || []).forEach(function (item) {
+                    %>
+                    <blurb>
+                        <div><%= item.insurance %></div>
+                        <description><%= item.description %></description>
+                    </blurb>
+
+                    <value>
+                        <%= item.value %>
+                    </value>
+                    <%
+                });
+                %>
+            </item>
+        </item>
+
+        <!-- Co-Pay -->
+        <item>
+            <div i18n="patient.patientInsurance.eligibility.coPay" class="bold"></div>
+            <item>
+                <%
+                (data.eligibility.coPay || []).forEach(function (item) {
+                    %>
+                    <blurb>
+                        <div><%= item.insurance %></div>
+                        <description><%= item.description %></description>
+                    </blurb>
+
+                    <value>
+                        <%= item.value %>
+                    </value>
+                    <%
+                });
+                %>
+            </item>
+        </item>
+
+        <!-- Deductible -->
+        <item>
+            <div i18n="patient.patientInsurance.eligibility.deductible" class="bold"></div>
+            <item>
+                <%
+                (data.eligibility.deductible || []).forEach(function (item) {
+                    %>
+                    <blurb>
+                        <div><%= item.insurance %></div>
+                        <description><%= item.description %></description>
+                    </blurb>
+
+                    <value>
+                        <%= item.value %>
+                    </value>
+                    <%
+                });
+                %>
+            </item>
+        </item>
+
+        <!-- Out-of-Pocket -->
+        <item>
+            <div i18n="patient.patientInsurance.eligibility.outOfPocket" class="bold"></div>
+            <item>
+                <%
+                (data.eligibility.outOfPocket || []).forEach(function (item) {
+                    %>
+                    <blurb>
+                        <div><%= item.insurance %></div>
+                        <description><%= item.description %></description>
+                    </blurb>
+
+                    <value>
+                        <%= item.value %>
+                    </value>
+                    <%
+                });
+                %>
+            </item>
+        </item>
+    </section>
+
+    <% if (!_.isEmpty(data.estimation)) { %>
+    <!-- Estimation -->
+    <section>
+        <header>
+            <span i18n="patient.patientInsurance.eligibility.estimation"></span>
+        </header>
+
+        <!-- Co-Insurance -->
+        <item>
+            <blurb>
+                <div i18n="patient.patientInsurance.eligibility.coInsurance" class="bold"></div>
+                <description i18n="patient.patientInsurance.eligibility.coInsuranceEstimation"></description>
+            </blurb>
+
+            <value>
+                <%= data.estimation.coInsuranceDisplay %>
+            </value>
+        </item>
+
+        <!-- Co-Pay -->
+        <item>
+            <blurb>
+                <div i18n="patient.patientInsurance.eligibility.coPay" class="bold"></div>
+                <description i18n="patient.patientInsurance.eligibility.coPayEstimation"></description>
+            </blurb>
+
+            <value>
+                <%= data.estimation.coPayDisplay %>
+            </value>
+        </item>
+
+        <!-- Deductible -->
+        <item>
+            <blurb>
+                <div i18n="patient.patientInsurance.eligibility.deductible" class="bold"></div>
+                <description i18n="patient.patientInsurance.eligibility.deductibleEstimation"></description>
+            </blurb>
+
+            <value>
+                <%= data.estimation.deductibleDisplay %> / <%= data.estimation.maxDeductibleDisplay %>
+            </value>
+        </item>
+
+        <!-- Max Balance Due -->
+        <item>
+            <blurb i18n="patient.patientInsurance.eligibility.maxBalanceDue" class="bold"></blurb>
+            <value id="divEstimationMaxBalanceDue">
+                <%= data.estimation.maxBalanceDueDisplay %>
+            </value>
+        </item>
+
+        <!-- Max Out-of-Pocket -->
+        <item>
+            <blurb i18n="patient.patientInsurance.eligibility.maxOutOfPocket" class="bold"></blurb>
+            <value id="divEstimationMaxOutOfPocket">
+                <%= data.estimation.maxOutOfPocketDisplay %>
+            </value>
+        </item>
+
+        <!-- Patient Balance -->
+        <item>
+            <blurb i18n="patient.patientInsurance.eligibility.patientBalance" class="bold"></blurb>
+            <value id="divEstimationPatientBalance">
+                <%= data.estimation.balanceDueDisplay %>
+            </value>
+        </item>
+    </section>
+    <% } %>
+</body>
+</html>

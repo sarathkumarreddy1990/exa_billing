@@ -199,6 +199,87 @@ input[type="text"] {
 li.select2-results__option.select2-results__option--load-more { // hiding lode more.. when only one search result occur.
     display: none;
 }
+
 .wordBreak {
     word-break: break-all;
+}
+
+.start-hidden {
+    display: none;
+}
+
+.ib {
+    display: inline-block;
+}
+
+.boldLabel{
+  font-weight: bold;
+}
+
+.bold-text {
+    font-weight: bold;
+}
+
+.text-center {
+    text-align: center;
+}
+
+.text-justify {
+    text-align: justify;
+}
+
+.mb-20 {
+    margin-bottom: 20px;
+}
+
+.btn-green {
+    background-color: green !important;
+    &:hover { background-color: darkgreen !important; }
+}
+
+.btn-orange {
+    background-color: orangered !important;
+    &:hover { background-color: rgb(199, 54, 1) !important; }
+}
+
+.btn-black {
+    background-color: rgb(44, 44, 44) !important;
+    &:hover { background-color: black !important; }
+}
+
+.btn-red {
+    background-color: red !important;
+    &:hover { background-color: rgb(200, 0, 0) !important; }
+}
+
+.btn-green:disabled, .btn-green[disabled],
+.btn-orange:disabled, .btn-orange[disabled],
+.btn-black:disabled, .btn-black[disabled],
+.btn-red:disabled, .btn-red[disabled] {
+  background-color: gray !important;
+  &:hover {
+    color: white !important;
+    background-color: gray !important;
+  }
+}
+
+.name-icon {
+    border-radius: 50%;
+    cursor: pointer;
+    display: inline-block;
+    font-family: "";
+    height: 25px;
+    line-height: 23px;
+    text-align: center;
+    transition: 300ms;
+    width: 25px;
+
+    i {
+      line-height: 25px;
+    }
+
+    &:hover {
+        background-color: #bcd5e8;
+        color: darken(#bcd5e8, 50%);
+    }
 }
