@@ -24,7 +24,8 @@ define([
     'text!templates/claims/claim-inquiry-cas.html',
     'shared/report-utils',
     'text!templates/claims/claim-inquiry-cas-header.html',
-    'views/reports/patient-statement'
+    'views/reports/patient-statement',
+    'shared/claim-alerts'
 ], function (
     $,
     _,
@@ -51,7 +52,8 @@ define([
     casTemplate,
     UI,
     claimEnquiryCasHeader,
-    PatientStatementView
+    PatientStatementView,
+    claimAlertsView
 ) {
         var paperClaim = new PaperClaim(true);
 
@@ -204,7 +206,7 @@ define([
                                 $('#lblCIBillProv').text(claim_data.billing_provider_name)
                                 $('#lblCIReadPhy').text(claim_data.rend_provider_name);
                                 $('#lblCIRefPhy').text(claim_data.ref_provider_name);
-                                $('#lblCIOrdFac').text(claim_data.ordering_facility_name);
+                                $('#lblCIOrdFac').text((app.isMobileBillingEnabled && app.settings.enableMobileRad) ? claim_data.service_location : claim_data.ordering_facility_name);
                                 $('#lblCIPOS').text(claim_data.pos_name)
                                 $('#lblCIStatus').text(claim_data.claim_status);
                                 $('#lblCIBillFee').text(claim_data.bill_fee && claim_data.bill_fee != 'undefined' ? claim_data.bill_fee : '$0.00');
@@ -261,6 +263,11 @@ define([
                             }
                             self.clearFaxInfo();
                             self.disableElementsForProvince(claim_data);
+                            var claimInquiryAlerts = claim_data.claim_comments || null;
+
+                            if (claimInquiryAlerts) {
+                                claimAlertsView.showClaimAlerts(claimInquiryAlerts);
+                            }
                         }
                     },
                     error: function (err) {
@@ -527,7 +534,7 @@ define([
                     },
                     setCustomData: function (){
                         return {
-                            claimID: self.patientId,
+                            claimID: self.claimID,
                             patientId: self.patientId,
                             billProvId: self.billProvId
                         }
@@ -1039,7 +1046,7 @@ define([
                 })
             },
 
-            showCommentPopup: function (from, comment, commentId) {
+            showCommentPopup: function (from, comment, commentId, alertScreens) {
                 var self = this;
                 commonjs.showNestedDialog({
                     header: 'Add Comment',
@@ -1048,14 +1055,21 @@ define([
                     height: '20%',
                     html: $('#divCIFormComment').html()
                 });
+
+                var $nestedModel = $('#siteModalNested');
+                var $addComment = $nestedModel.find('#txtCIAddComment');
+
                 if (from == 'edit') {
-                    $('#siteModalNested').find('#txtCIAddComment').val(comment);
-                }
-                else {
+                    $addComment.val(comment);
+                    alertScreens && alertScreens.forEach(function (alertScreen) {
+                        $nestedModel.find('#chkalertScreens input[value=' + alertScreen + ']').prop('checked', true);
+                    });
+                } else {
                     commentId = 0;
                 }
-                $('#siteModalNested').find('#btnCICommentSave').off().click(function () {
-                    var comment = $('#siteModalNested').find('#txtCIAddComment').val();
+
+                $nestedModel.find('#btnCICommentSave').off().click(function () {
+                    var comment = $addComment.val();
                     if (comment != '')
                         self.saveClaimComment(commentId, comment);
                     else
@@ -1092,7 +1106,7 @@ define([
                     },
                     success: function (data, response) {
                         if (data) {
-                            self.showCommentPopup('edit', data[0].comments, commentId)
+                            self.showCommentPopup('edit', data[0].comments, commentId, data[0].alert_screens);
                         }
 
                     },
@@ -1104,7 +1118,15 @@ define([
 
             saveClaimComment: function (commentId, comment, type) {
                 var self = this;
-                $('#siteModalNested').find('#btnCICommentSave').prop('disabled', true)
+                var $nestedModel = $('#siteModalNested');
+                var $saveComments = $nestedModel.find('#btnCICommentSave');
+                var selectedScreens = [];
+
+                $nestedModel.find('#chkalertScreens input:checked').each(function() {
+                    selectedScreens.push($(this).val());
+                });
+
+                $saveComments.prop('disabled', true);
                 if (commentId != 0) {
 
                     $.ajax({
@@ -1113,11 +1135,12 @@ define([
                         data: {
                             'commentId': commentId,
                             'note': comment,
-                            'from': 'tmt'
+                            'from': 'tmt',
+                            'alertScreens': JSON.stringify(selectedScreens)
                         },
                         success: function (data, response) {
                             commonjs.showStatus("messages.status.recordSaved");
-                            $('#siteModalNested').find('#btnCICommentSave').prop('disabled', false)
+                            $saveComments.prop('disabled', false);
                             self.closeSaveComment();
                             self.showClaimCommentsGrid();
 
@@ -1135,11 +1158,12 @@ define([
                         data: {
                             'note': comment,
                             'type': type || 'manual',
-                            'claim_id': self.claim_id
+                            'claim_id': self.claim_id,
+                            'alertScreens': JSON.stringify(selectedScreens)
                         },
                         success: function (data, response) {
                             commonjs.showStatus("messages.status.recordSaved");
-                            $('#siteModalNested').find('#btnCICommentSave').prop('disabled', false)
+                            $saveComments.prop('disabled', false);
                             self.closeSaveComment();
                             self.showClaimCommentsGrid();
                         },

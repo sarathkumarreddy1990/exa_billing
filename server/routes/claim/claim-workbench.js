@@ -123,6 +123,7 @@ router.put('/follow_ups', async function (req, res) {
 router.post('/claims/batch', async (req, res) => {
     req.body.is_alberta_billing = req.session.billingRegionCode === 'can_AB';
     req.body.is_ohip_billing = req.session.billingRegionCode === 'can_ON';
+    req.body.is_us_billing = req.session.country_alpha_3_code === 'usa';
     const data = await claimWorkbenchController.createBatchClaims(req.body);
     httpHandler.sendRows(req, res, data);
 });

@@ -19,9 +19,9 @@ define(['jquery',
     'collections/app/studycpt-list',
     'shared/trackFormChanges',
     'text!templates/app/addtional-cas.html',
-    'views/reports/patient-statement'],
-
-    function (
+    'views/reports/patient-statement',
+    'shared/claim-alerts'
+], function (
         jQuery,
         Immutable,
         _,
@@ -43,7 +43,8 @@ define(['jquery',
         studycptCollection,
         trackFormChanges,
         AdditionCASTemplate,
-        PatientStatementView
+        PatientStatementView,
+        claimAlertsView
     ) {
         return Backbone.View.extend({
             el: null,
@@ -1388,9 +1389,20 @@ define(['jquery',
                     gridelementid: '#tblpendPaymentsGridOnly',
                     custompager: this.pendPaymtInvoicePager,
                     emptyMessage: commonjs.geti18NString("messages.status.noRecordFound"),
-                    colNames: ['', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '',''],
-                    i18nNames: ['', '', '', '', '', '', 'billing.fileInsurance.claimNo','billing.fileInsurance.ordFacility','billing.fileInsurance.invoiceNo', 'billing.payments.patient', 'billing.fileInsurance.claimDt', 'billing.payments.billFee', 'billing.payments.balance', 'shared.fields.cptCodes', 'setup.userSettings.accountNo', '', ''],
+                    colNames: ['','', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '',''],
+                    i18nNames: ['','', '', '', '', '', '', 'billing.fileInsurance.claimNo','billing.fileInsurance.ordFacility','billing.fileInsurance.invoiceNo', 'billing.payments.patient', 'billing.fileInsurance.claimDt', 'billing.payments.billFee', 'billing.payments.balance', 'shared.fields.cptCodes', 'setup.userSettings.accountNo', '', ''],
                     colModel: [
+                        {
+                            name: 'alert', width: 20, sortable: false, search: false,
+                            className: 'icon-ic-info',
+                            formatter: function (e, model, data) {
+                                if (data.show_alert_icon) {
+                                    return '<i class="icon-ic-info" i18nt="shared.buttons.alert" id="alertInfoRow_' + model.rowId + '"></i>';
+                                }
+
+                                return "";
+                            },
+                        },
                         {
                             name: 'edit', width: 20, sortable: false, search: false,
                             className: 'icon-ic-edit',
@@ -1495,9 +1507,20 @@ define(['jquery',
                         gridelementid: '#tblpendPaymentsGrid',
                         custompager: this.pendPaymtPager,
                         emptyMessage: commonjs.geti18NString("messages.status.noRecordFound"),
-                        colNames: ['', '', '', '', '', '', '', '', '', '', '', '', '', '', '', ''],
-                        i18nNames: ['', '', '', '', '', '', 'billing.fileInsurance.claimNo', 'billing.fileInsurance.invoiceNo', 'billing.payments.patient', 'billing.fileInsurance.claimDt', 'billing.payments.billFee', 'billing.payments.balance', 'shared.fields.cptCodes', 'setup.userSettings.accountNo', '', ''],
+                        colNames: ['', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', ''],
+                        i18nNames: ['', '', '', '', '', '', '', 'billing.fileInsurance.claimNo', 'billing.fileInsurance.invoiceNo', 'billing.payments.patient', 'billing.fileInsurance.claimDt', 'billing.payments.billFee', 'billing.payments.balance', 'shared.fields.cptCodes', 'setup.userSettings.accountNo', '', ''],
                         colModel: [
+                            {
+                                name: 'alert', width: 20, sortable: false, search: false,
+                                className: 'icon-ic-info',
+                                formatter: function (e, model, data) {
+                                    if (data.show_alert_icon) {
+                                        return '<i class="icon-ic-info" i18nt="shared.buttons.alert" id="alertInfoRow_' + model.rowId + '"></i>';
+                                    }
+
+                                    return "";
+                                },
+                            },
                             {
                                 name: 'edit', width: 20, sortable: false, search: false,
                                 className: 'icon-ic-edit',
@@ -1654,9 +1677,16 @@ define(['jquery',
                     gridelementid: '#tblAppliedPaymentsGrid',
                     custompager: this.appliedPager,
                     emptyMessage: commonjs.geti18NString("messages.status.noRecordFound"),
-                    colNames: ['', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', ''],
-                    i18nNames: ['', '', '', '', 'billing.fileInsurance.claimNo', 'billing.fileInsurance.invoiceNo', 'billing.payments.patient', 'billing.fileInsurance.claimDt', 'billing.payments.billFee', 'billing.payments.patientPaid', 'billing.payments.payerPaid', 'billing.payments.adjustment', 'billing.payments.thisAdj', 'billing.payments.thisPayment', 'billing.payments.balance', 'shared.fields.cptCodes', 'patient_id', 'facility_id', ''],
+                    colNames: ['','', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', ''],
+                    i18nNames: ['','', '', '', '', 'billing.fileInsurance.claimNo', 'billing.fileInsurance.invoiceNo', 'billing.payments.patient', 'billing.fileInsurance.claimDt', 'billing.payments.billFee', 'billing.payments.patientPaid', 'billing.payments.payerPaid', 'billing.payments.adjustment', 'billing.payments.thisAdj', 'billing.payments.thisPayment', 'billing.payments.balance', 'shared.fields.cptCodes', 'patient_id', 'facility_id', ''],
                     colModel: [
+                        {
+                            name: 'alert', width: 20, sortable: false, search: false,
+                            className: 'icon-ic-info',
+                            formatter: function (e, model, data) {
+                                return '<i class="icon-ic-info" i18nt="shared.buttons.alert" id="alertInfoRow_' + model.rowId + '"></i>';
+                            },
+                        },
                         {
                             name: 'edit', width: 20, sortable: false, search: false,
                             className: 'icon-ic-edit',
@@ -2197,6 +2227,12 @@ define(['jquery',
                         else {
                             $('.checkDebit').prop('checked', false);
                             self.updateRefundRecoupment();
+                        }
+
+                        var paymentReconAlerts = allData.claim_comments || null;
+
+                        if (isInitialBind && paymentReconAlerts) {
+                            claimAlertsView.showClaimAlerts(paymentReconAlerts);
                         }
 
                         // To get focus after binding on claim charges
@@ -3254,8 +3290,19 @@ define(['jquery',
             },
 
             afterAppliedGridBind: function (dataset, e, self) {
-                if (dataset && dataset.length > 0) {
-                    $('#selectPayerType').attr({ 'disabled': true, 'i18nt': 'billing.payments.youCannotChangeThePayerSinceThePaymentHasAlreadyApplied' })
+                var paymentRowId;
+
+                if (dataset && dataset.length) {
+                    $('#selectPayerType').attr({
+                        'disabled': true,
+                        'i18nt': 'billing.payments.youCannotChangeThePayerSinceThePaymentHasAlreadyApplied'
+                    });
+
+                    // Show alert icon if payment alerts exists for the claim
+                    $.each(dataset, function (i, paymentData) {
+                        paymentRowId = _.get(paymentData, "attributes.id");
+                        $('#alertInfoRow_' + paymentRowId).prop('hidden', !_.get(paymentData, "attributes.show_alert_icon"));
+                    });
                 }
             },
 

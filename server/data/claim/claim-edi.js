@@ -49,130 +49,133 @@ module.exports = {
                         , pof.zip_code AS "service_facility_zip"
 						, pos.id AS "claim_place_of_service_code"
 						, claim_icd.icd_id AS "claim_icd_code1"
-						, CASE  WHEN bc.payer_type = 'primary_insurance' THEN
-									json_build_object('payer_name', p_ip.insurance_name
-									, 'payer_address1', p_ip.insurance_info->'Address1'
-									, 'payer_city', p_ip.insurance_info->'City'
-									, 'payer_state', p_ip.insurance_info->'State'
-									, 'payer_zip_code', p_ip.insurance_info->'ZipCode'
-									, 'payer_zip_code_plus', p_ip.insurance_info->'ZipPlus'
-									, 'claimClearingHouse', p_edi_clearinghouse.receiver_name
-									, 'edi_request_templates_id', p_edi_clearinghouse.edi_template_id
-									)
-								WHEN bc.payer_type = 'secondary_insurance' THEN
-									json_build_object('payer_name',  s_ip.insurance_name
-									, 'payer_address1', s_ip.insurance_info->'Address1'
-									, 'payer_city', s_ip.insurance_info->'City'
-									, 'payer_state', s_ip.insurance_info->'State'
-									, 'payer_zip_code', s_ip.insurance_info->'ZipCode'
-									, 'payer_zip_code_plus', s_ip.insurance_info->'ZipPlus'
-									, 'claimClearingHouse',  s_edi_clearinghouse.receiver_name
-									, 'edi_request_templates_id',  s_edi_clearinghouse.edi_template_id
-									)
-								WHEN bc.payer_type = 'tertiary_insurance' THEN
-									json_build_object( 'payer_name', t_ip.insurance_name
-									, 'payer_address1', t_ip.insurance_info->'Address1'
-									, 'payer_city', t_ip.insurance_info->'City'
-									, 'payer_state', t_ip.insurance_info->'State'
-									, 'payer_zip_code', t_ip.insurance_info->'ZipCode'
-									, 'payer_zip_code_plus', t_ip.insurance_info->'ZipPlus'
-									, 'claimClearingHouse', t_edi_clearinghouse.receiver_name
-                                    , 'edi_request_templates_id', t_edi_clearinghouse.edi_template_id
-                                    )
-								WHEN bc.payer_type = 'ordering_facility' THEN
-								json_build_object(
-									'payer_name',  pof.name
-									, 'payer_address1', pof.address_line_1
-									, 'payer_city', pof.city
-									, 'payer_state', pof.state
-									, 'payer_zip_code', pof.zip_code)
-								WHEN bc.payer_type = 'referring_provider' THEN
-									json_build_object( 'payer_name',  ref_pr.last_name
-									, 'payer_address1', ref_pc.contact_info->'ADDR1'
-									, 'payer_city', ref_pc.contact_info->'CITY'
-									, 'payer_state', ref_pc.contact_info->'STATE'
-									, 'payer_zip_code', ref_pc.contact_info->'ZIP' )
-								WHEN bc.payer_type = 'patient' THEN
-                                	json_build_object( 'payer_name',  p.full_name
-									, 'payer_address1', p.patient_info->'c1AddressLine1'
-									, 'payer_city', p.patient_info->'c1City'
-									, 'payer_state', p.patient_info->'c1State'
-									, 'payer_zip_code', p.patient_info->'c1Zip' ) END AS payer_info
-									, bci.patient_insurance_id AS primary_patient_insurance_id
-									, p_ip.insurance_info->'Address1' AS "p_insurance_pro_address1"
-									, p_ip.insurance_info->'City' AS "p_insurance_pro_city"
-									, p_ip.insurance_info->'PayerID' AS "p_insurance_pro_payerID"
-									, p_ip.insurance_info->'State' AS "p_insurance_pro_state"
-									, p_ip.insurance_info->'ZipCode' AS "p_insurance_pro_zipCode"
-									, p_ip.insurance_info->'ZipPlus' AS "p_insurance_pro_zipPlus"
-									, p_ip.insurance_name AS "p_insurance_pro_companyName"
-									, bsi.patient_insurance_id AS secondary_patient_insurance_id
-									, s_ip.insurance_info->'Address1' AS "s_insurance_pro_address1"
-									, s_ip.insurance_info->'City' AS "s_insurance_pro_city"
-									, s_ip.insurance_info->'PayerID' AS "s_insurance_pro_payerID"
-									, s_ip.insurance_info->'State' AS "s_insurance_pro_state"
-									, s_ip.insurance_info->'ZipCode' AS "s_insurance_pro_zipCode"
-									, s_ip.insurance_info->'ZipPlus' AS "s_insurance_pro_zipPlus"
-									, s_ip.insurance_name AS "s_insurance_pro_companyName"
-									, bti.patient_insurance_id AS tertiary_patient_insurance_id
-									, t_ip.insurance_info->'Address1' AS "t_insurance_pro_address1"
-									, t_ip.insurance_info->'City' AS "t_insurance_pro_city"
-									, t_ip.insurance_info->'PayerID' AS "t_insurance_pro_payerID"
-									, t_ip.insurance_info->'State' AS "t_insurance_pro_state"
-									, t_ip.insurance_info->'ZipCode' AS "t_insurance_pro_zipCode"
-									, t_ip.insurance_info->'ZipPlus' AS "t_insurance_pro_zipPlus"
-									, t_ip.insurance_name AS "t_insurance_pro_companyName"
+						, CASE
+                            WHEN bc.payer_type = 'service_facility_location' THEN
+                                public.get_claim_service_facility_address(bc.id, bc.pos_map_id)
+                            WHEN bc.payer_type = 'primary_insurance' THEN
+                                json_build_object('payer_name', p_ip.insurance_name
+                                , 'payer_address1', p_ip.insurance_info->'Address1'
+                                , 'payer_city', p_ip.insurance_info->'City'
+                                , 'payer_state', p_ip.insurance_info->'State'
+                                , 'payer_zip_code', p_ip.insurance_info->'ZipCode'
+                                , 'payer_zip_code_plus', p_ip.insurance_info->'ZipPlus'
+                                , 'claimClearingHouse', p_edi_clearinghouse.receiver_name
+                                , 'edi_request_templates_id', p_edi_clearinghouse.edi_template_id
+                                )
+                            WHEN bc.payer_type = 'secondary_insurance' THEN
+                                json_build_object('payer_name',  s_ip.insurance_name
+                                , 'payer_address1', s_ip.insurance_info->'Address1'
+                                , 'payer_city', s_ip.insurance_info->'City'
+                                , 'payer_state', s_ip.insurance_info->'State'
+                                , 'payer_zip_code', s_ip.insurance_info->'ZipCode'
+                                , 'payer_zip_code_plus', s_ip.insurance_info->'ZipPlus'
+                                , 'claimClearingHouse',  s_edi_clearinghouse.receiver_name
+                                , 'edi_request_templates_id',  s_edi_clearinghouse.edi_template_id
+                                )
+                            WHEN bc.payer_type = 'tertiary_insurance' THEN
+                                json_build_object( 'payer_name', t_ip.insurance_name
+                                , 'payer_address1', t_ip.insurance_info->'Address1'
+                                , 'payer_city', t_ip.insurance_info->'City'
+                                , 'payer_state', t_ip.insurance_info->'State'
+                                , 'payer_zip_code', t_ip.insurance_info->'ZipCode'
+                                , 'payer_zip_code_plus', t_ip.insurance_info->'ZipPlus'
+                                , 'claimClearingHouse', t_edi_clearinghouse.receiver_name
+                                , 'edi_request_templates_id', t_edi_clearinghouse.edi_template_id
+                                )
+                            WHEN bc.payer_type = 'ordering_facility' THEN
+                            json_build_object(
+                                'payer_name',  pof.name
+                                , 'payer_address1', pof.address_line_1
+                                , 'payer_city', pof.city
+                                , 'payer_state', pof.state
+                                , 'payer_zip_code', pof.zip_code)
+                            WHEN bc.payer_type = 'referring_provider' THEN
+                                json_build_object( 'payer_name',  ref_pr.last_name
+                                , 'payer_address1', ref_pc.contact_info->'ADDR1'
+                                , 'payer_city', ref_pc.contact_info->'CITY'
+                                , 'payer_state', ref_pc.contact_info->'STATE'
+                                , 'payer_zip_code', ref_pc.contact_info->'ZIP' )
+                            WHEN bc.payer_type = 'patient' THEN
+                                json_build_object( 'payer_name',  p.full_name
+                                , 'payer_address1', p.patient_info->'c1AddressLine1'
+                                , 'payer_city', p.patient_info->'c1City'
+                                , 'payer_state', p.patient_info->'c1State'
+                                , 'payer_zip_code', p.patient_info->'c1Zip' ) END AS payer_info
+                        , bci.patient_insurance_id AS primary_patient_insurance_id
+                        , p_ip.insurance_info->'Address1' AS "p_insurance_pro_address1"
+                        , p_ip.insurance_info->'City' AS "p_insurance_pro_city"
+                        , p_ip.insurance_info->'PayerID' AS "p_insurance_pro_payerID"
+                        , p_ip.insurance_info->'State' AS "p_insurance_pro_state"
+                        , p_ip.insurance_info->'ZipCode' AS "p_insurance_pro_zipCode"
+                        , p_ip.insurance_info->'ZipPlus' AS "p_insurance_pro_zipPlus"
+                        , p_ip.insurance_name AS "p_insurance_pro_companyName"
+                        , bsi.patient_insurance_id AS secondary_patient_insurance_id
+                        , s_ip.insurance_info->'Address1' AS "s_insurance_pro_address1"
+                        , s_ip.insurance_info->'City' AS "s_insurance_pro_city"
+                        , s_ip.insurance_info->'PayerID' AS "s_insurance_pro_payerID"
+                        , s_ip.insurance_info->'State' AS "s_insurance_pro_state"
+                        , s_ip.insurance_info->'ZipCode' AS "s_insurance_pro_zipCode"
+                        , s_ip.insurance_info->'ZipPlus' AS "s_insurance_pro_zipPlus"
+                        , s_ip.insurance_name AS "s_insurance_pro_companyName"
+                        , bti.patient_insurance_id AS tertiary_patient_insurance_id
+                        , t_ip.insurance_info->'Address1' AS "t_insurance_pro_address1"
+                        , t_ip.insurance_info->'City' AS "t_insurance_pro_city"
+                        , t_ip.insurance_info->'PayerID' AS "t_insurance_pro_payerID"
+                        , t_ip.insurance_info->'State' AS "t_insurance_pro_state"
+                        , t_ip.insurance_info->'ZipCode' AS "t_insurance_pro_zipCode"
+                        , t_ip.insurance_info->'ZipPlus' AS "t_insurance_pro_zipPlus"
+                        , t_ip.insurance_name AS "t_insurance_pro_companyName"
 
-									, COALESCE (NULLIF(p_pi.subscriber_address_line1,'Migration Address'),'') AS "p_subscriber_addressLine1"
-									, COALESCE (NULLIF(p_pi.subscriber_city,'Migration City'),'') AS "p_subscriber_city"
-									, p_pi.subscriber_dob::text AS "p_subscriber_dob"
-									, COALESCE (NULLIF(p_pi.subscriber_firstname, ''), '')  AS "p_subscriber_firstName"
-									, COALESCE (NULLIF(p_pi.subscriber_middlename, ''), '')  AS "p_subscriber_middleName"
-									, COALESCE (NULLIF(p_pi.subscriber_name_suffix, ''), '')  AS "p_subscriber_suffixName"
-									, COALESCE (NULLIF(p_pi.subscriber_lastname, ''), '') AS "p_subscriber_lastName"
-									, COALESCE (NULLIF(p_pi.subscriber_gender, 'Migration Gender'), '') AS "p_subscriber_gender"
-									, COALESCE (NULLIF(p_pi.subscriber_state,'Migration State'), '') AS "p_subscriber_state"
-									, COALESCE (NULLIF(p_pi.subscriber_zipcode, 'Migration ZipCode'), '') AS "p_subscriber_zipCode"
-									, COALESCE (NULLIF(p_pi.subscriber_zipcode_plus, 'Migration ZipPlus'), '') AS "p_subscriber_zipcode_plus"
+                        , COALESCE (NULLIF(p_pi.subscriber_address_line1,'Migration Address'),'') AS "p_subscriber_addressLine1"
+                        , COALESCE (NULLIF(p_pi.subscriber_city,'Migration City'),'') AS "p_subscriber_city"
+                        , p_pi.subscriber_dob::text AS "p_subscriber_dob"
+                        , COALESCE (NULLIF(p_pi.subscriber_firstname, ''), '')  AS "p_subscriber_firstName"
+                        , COALESCE (NULLIF(p_pi.subscriber_middlename, ''), '')  AS "p_subscriber_middleName"
+                        , COALESCE (NULLIF(p_pi.subscriber_name_suffix, ''), '')  AS "p_subscriber_suffixName"
+                        , COALESCE (NULLIF(p_pi.subscriber_lastname, ''), '') AS "p_subscriber_lastName"
+                        , COALESCE (NULLIF(p_pi.subscriber_gender, 'Migration Gender'), '') AS "p_subscriber_gender"
+                        , COALESCE (NULLIF(p_pi.subscriber_state,'Migration State'), '') AS "p_subscriber_state"
+                        , COALESCE (NULLIF(p_pi.subscriber_zipcode, 'Migration ZipCode'), '') AS "p_subscriber_zipCode"
+                        , COALESCE (NULLIF(p_pi.subscriber_zipcode_plus, 'Migration ZipPlus'), '') AS "p_subscriber_zipcode_plus"
 
-									, COALESCE (NULLIF(s_pi.subscriber_address_line1 , 'Migration Address'), '') AS "s_subscriber_addressLine1"
-									, COALESCE (NULLIF(s_pi.subscriber_city , 'Migration City'), '') AS "s_subscriber_city"
-									, s_pi.subscriber_dob::text AS "s_subscriber_dob"
-									, COALESCE (NULLIF(s_pi.subscriber_firstname, ''), '')  AS "s_subscriber_firstName"
-									, COALESCE (NULLIF(s_pi.subscriber_middlename, ''), '')  AS "s_subscriber_middleName"
-									, COALESCE (NULLIF(s_pi.subscriber_name_suffix, ''), '')  AS "s_subscriber_suffixName"
-									, COALESCE (NULLIF(s_pi.subscriber_lastname, ''), '') AS "s_subscriber_lastName"
-									, COALESCE (NULLIF(s_pi.subscriber_gender, 'Migration Gender'), '') AS "s_subscriber_gender"
-									, COALESCE (NULLIF(s_pi.subscriber_state,'Migration State') , '') AS "s_subscriber_state"
-									, COALESCE (NULLIF(s_pi.subscriber_zipcode , 'Migration ZipCode'),'') AS "s_subscriber_zipCode"
-									, COALESCE (NULLIF(s_pi.subscriber_zipcode_plus , 'Migration ZipPlus'),'') AS "s_subscriber_zipPlus"
+                        , COALESCE (NULLIF(s_pi.subscriber_address_line1 , 'Migration Address'), '') AS "s_subscriber_addressLine1"
+                        , COALESCE (NULLIF(s_pi.subscriber_city , 'Migration City'), '') AS "s_subscriber_city"
+                        , s_pi.subscriber_dob::text AS "s_subscriber_dob"
+                        , COALESCE (NULLIF(s_pi.subscriber_firstname, ''), '')  AS "s_subscriber_firstName"
+                        , COALESCE (NULLIF(s_pi.subscriber_middlename, ''), '')  AS "s_subscriber_middleName"
+                        , COALESCE (NULLIF(s_pi.subscriber_name_suffix, ''), '')  AS "s_subscriber_suffixName"
+                        , COALESCE (NULLIF(s_pi.subscriber_lastname, ''), '') AS "s_subscriber_lastName"
+                        , COALESCE (NULLIF(s_pi.subscriber_gender, 'Migration Gender'), '') AS "s_subscriber_gender"
+                        , COALESCE (NULLIF(s_pi.subscriber_state,'Migration State') , '') AS "s_subscriber_state"
+                        , COALESCE (NULLIF(s_pi.subscriber_zipcode , 'Migration ZipCode'),'') AS "s_subscriber_zipCode"
+                        , COALESCE (NULLIF(s_pi.subscriber_zipcode_plus , 'Migration ZipPlus'),'') AS "s_subscriber_zipPlus"
 
-									, COALESCE (NULLIF(t_pi.subscriber_address_line1, 'Migration Address'),'') AS "t_subscriber_addressLine1"
-									, COALESCE (NULLIF(t_pi.subscriber_city, 'Migration City'),'') AS "t_subscriber_city"
-									, t_pi.subscriber_dob::text AS "t_subscriber_dob"
-									, COALESCE (NULLIF(t_pi.subscriber_firstname, ''), '')  AS "t_subscriber_firstName"
-									, COALESCE (NULLIF(t_pi.subscriber_middlename, ''), '')  AS "t_subscriber_middleName"
-									, COALESCE (NULLIF(t_pi.subscriber_name_suffix, ''), '')  AS "t_subscriber_suffixName"
-									, COALESCE (NULLIF(t_pi.subscriber_lastname, ''), '') AS "t_subscriber_lastName"
-									, COALESCE (NULLIF(t_pi.subscriber_gender, 'Migration Gender'), '') AS "t_subscriber_gender"
-									, COALESCE (NULLIF(t_pi.subscriber_state , 'Migration State'), '') AS "t_subscriber_state"
-									, COALESCE (NULLIF(t_pi.subscriber_zipcode , 'Migration ZipCode'), '') AS "t_subscriber_zipCode"
-									, COALESCE (NULLIF(t_pi.subscriber_zipcode_plus , 'Migration ZipPlus'), '') AS "t_subscriber_zipPlus"
-									, (SELECT array_agg(row_to_json(pointer)) AS charge_pointer FROM (
-										SELECT ch.id, pointer1, claim_id, cpt.ref_code, cpt.display_description FROM billing.charges ch INNER JOIN public.cpt_codes cpt ON ch.cpt_id = cpt.id WHERE ch.claim_id = bc.id
-														 ) pointer) AS charge_pointer
-									, lower(prs.description) = ('self') AS is_pri_relationship_self
-									, lower(srs.description) = ('self') AS is_sec_relationship_self
-									, lower(trs.description) = ('self') AS is_ter_relationship_self`;
+                        , COALESCE (NULLIF(t_pi.subscriber_address_line1, 'Migration Address'),'') AS "t_subscriber_addressLine1"
+                        , COALESCE (NULLIF(t_pi.subscriber_city, 'Migration City'),'') AS "t_subscriber_city"
+                        , t_pi.subscriber_dob::text AS "t_subscriber_dob"
+                        , COALESCE (NULLIF(t_pi.subscriber_firstname, ''), '')  AS "t_subscriber_firstName"
+                        , COALESCE (NULLIF(t_pi.subscriber_middlename, ''), '')  AS "t_subscriber_middleName"
+                        , COALESCE (NULLIF(t_pi.subscriber_name_suffix, ''), '')  AS "t_subscriber_suffixName"
+                        , COALESCE (NULLIF(t_pi.subscriber_lastname, ''), '') AS "t_subscriber_lastName"
+                        , COALESCE (NULLIF(t_pi.subscriber_gender, 'Migration Gender'), '') AS "t_subscriber_gender"
+                        , COALESCE (NULLIF(t_pi.subscriber_state , 'Migration State'), '') AS "t_subscriber_state"
+                        , COALESCE (NULLIF(t_pi.subscriber_zipcode , 'Migration ZipCode'), '') AS "t_subscriber_zipCode"
+                        , COALESCE (NULLIF(t_pi.subscriber_zipcode_plus , 'Migration ZipPlus'), '') AS "t_subscriber_zipPlus"
+                        , (SELECT array_agg(row_to_json(pointer)) AS charge_pointer FROM (
+                            SELECT ch.id, pointer1, claim_id, cpt.ref_code, cpt.display_description FROM billing.charges ch INNER JOIN public.cpt_codes cpt ON ch.cpt_id = cpt.id WHERE ch.claim_id = bc.id
+                                                ) pointer) AS charge_pointer
+                        , lower(prs.description) = ('self') AS is_pri_relationship_self
+                        , lower(srs.description) = ('self') AS is_sec_relationship_self
+                        , lower(trs.description) = ('self') AS is_ter_relationship_self`;
 
-                                    if (params.billingRegionCode === 'can_BC') {
-                                        sql.append(SQL`, ref_pc.can_prid AS "referring_pro_practitioner_number"
-                                        , rend_pc.can_prid AS "reading_pro_practitioner_number"
-                                        , bp.can_bc_data_centre_number AS "billing_pro_data_centre_number"
-                                        , bp.can_bc_payee_number AS "billing_pro_payeeNumber" `);
-                                    }
+                        if (params.billingRegionCode === 'can_BC') {
+                            sql.append(SQL`, ref_pc.can_prid AS "referring_pro_practitioner_number"
+                            , rend_pc.can_prid AS "reading_pro_practitioner_number"
+                            , bp.can_bc_data_centre_number AS "billing_pro_data_centre_number"
+                            , bp.can_bc_payee_number AS "billing_pro_payeeNumber" `);
+                        }
 
-									 sql.append(SQL` FROM
+                            sql.append(SQL` FROM
 						billing.claims bc
 					INNER JOIN billing.providers bp ON bp.id = bc.billing_provider_id
 					INNER JOIN public.patients p ON p.id = bc.patient_id
@@ -563,30 +566,11 @@ module.exports = {
 											WHERE  rendering_pro_contact.id=claims.rendering_provider_contact_id)
 											as renderingProvider)
 
-							,(SELECT Json_agg(Row_to_json(servicefacility)) "servicefacility"
-									FROM
-                                        (SELECT
-                                            pof.name AS "lastName",
-                                            pof.name AS "firstName",
-                                            pof.name AS "middleName",
-                                            pof.name AS "suffix",
-                                            '' as "prefix",
-                                            pof.npi_number AS "NPINO",
-                                            pof.federal_tax_id AS "federalTaxId",
-                                            pof.fax_number AS "fax",
-                                            pof.taxonomy_code AS "taxonomyCode",
-                                            pof.address_line_1 AS "addressLine1",
-                                            pof.address_line_2 AS "addressLine2",
-                                            pof.city AS "city",
-                                            pof.state AS "state",
-                                            pof.zip_code AS "zip",
-                                            pof.zip_plus AS "zipPlus",
-                                            pof.phone_number AS "phone",
-                                            pof.email AS "email",
-                                            pof.state_license_number AS "stateLicenseNo",
-                                            pof.clia_number AS "cliaNumber"
-                                        ) AS servicefacility)
-
+                            , (SELECT JSONB_AGG(servicefacility) "servicefacility"
+                                    FROM
+                                        ( SELECT
+                                            public.get_claim_service_facility_address(claims.id,claims.pos_map_id) AS servicefacility
+                                        )  AS servicefacility)
 							,(SELECT Json_agg(Row_to_json(referringProvider)) "referringProvider"
 									FROM
 										(SELECT

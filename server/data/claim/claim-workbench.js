@@ -435,6 +435,8 @@ module.exports = {
                             , ref_pr.full_name AS ref_prov_full_name
                             , p.full_name AS patient_full_name
                             , f.facility_name
+                            , c.pos_map_id
+                            , public.get_service_facility_name(c.id, c.pos_map_id) AS service_location
                         FROM
                             billing.claims c
                         INNER JOIN public.patients p ON p.id = c.patient_id`
@@ -617,6 +619,7 @@ module.exports = {
             auditDetails,
             is_alberta_billing,
             is_ohip_billing,
+            is_us_billing,
             isMobileBillingEnabled
         } = params;
         let createClaimFunction = 'billing.create_claim_charge';
@@ -645,7 +648,7 @@ module.exports = {
                            batch_claim_details bcd
                         LEFT JOIN LATERAL (
                             SELECT *
-                            FROM billing.get_batch_claim_details(bcd.study_id, ${params.created_by}, bcd.patient_id, bcd.order_id, bcd.billing_type, ${isMobileBillingEnabled})
+                            FROM billing.get_batch_claim_details(bcd.study_id, ${params.created_by}, bcd.patient_id, bcd.order_id, bcd.billing_type, ${isMobileBillingEnabled}, ${is_us_billing})
                         ) d ON true
                       )
                       SELECT `
@@ -795,11 +798,11 @@ module.exports = {
                         INNER JOIN public.insurance_providers ip ON ip.id= ppi.insurance_provider_id
                         INNER JOIN billing.insurance_provider_details ipd on ipd.insurance_provider_id = ip.id
                         WHERE s.id = ANY(SELECT study_id FROM batch_claim_details)
-                        AND s.ordering_facility_contact_id IS NULL
                         AND (ppi.valid_to_date >= COALESCE(s.study_dt, now())::DATE OR ppi.valid_to_date IS NULL)
                         AND ipd.is_split_claim_enabled IS TRUE
                         AND ip.inactivated_dt IS NULL
-                    ) SELECT
+                    )
+                    SELECT
                         (SELECT invalid_split_claim_count FROM invalid_split_claim_details)
                         , (SELECT charges_count FROM invalid_charges_details)
                     `;

@@ -22,6 +22,157 @@ const api= {
     getPatientInsurancesById: async (params) => {
 
         return await data.getPatientInsurancesById(params);
+    },    
+    
+    findModifier: ({
+        modifier1_id,
+        modifier2_id,
+        modifier3_id
+    }) => {
+        if (modifier1_id === null) {
+            return 'modifier1_id';
+        }
+
+        if (modifier2_id === null) {
+            return 'modifier2_id';
+        }
+
+        if (modifier3_id === null) {
+            return 'modifier3_id';
+        }
+
+        return 'modifier4_id';
+    },
+
+    splitClaim: async (claim, charges, insurances, isMobileBillingEnabled) => {
+        let claimsDetails = [];
+        let { professional_modifier_id, technical_modifier_id } = (await data.getTechnicalAndProfessionalModifier()).pop();
+
+        if (isMobileBillingEnabled && claim.billing_type !== 'facility') {
+            let professionalClaimCharges = [];
+            let technicalClaimCharges = [];
+            let ofRespClaimCharges = [];
+
+            let orderingFacilityInvoiceCharges = [];
+            let noSplitCharges = [];
+            let otherCharges = [];
+            let isInsuranceAvailable = insurances.some(item => item.coverage_level === 'primary');
+
+            charges.forEach(item => {
+                if (item.charge_type === 'ordering_facility_invoice') {
+                    orderingFacilityInvoiceCharges.push(item);
+                    return;
+                }
+
+                if (item.charge_type === 'no_split') {
+                    if (isInsuranceAvailable && item.is_billing_rule_applied && item.is_billing_rule_cpt_add_fee) {
+                        item.is_custom_bill_fee = false;
+                        item.bill_fee = 0;
+                    }
+
+                    noSplitCharges.push(item);
+                    return;
+                }
+
+                otherCharges.push(item);
+            });
+
+            if (claim.billing_type === 'split' || (claim.billing_type === 'global' && claim.is_split_claim_enabled)) {
+                otherCharges.forEach(charge => {
+                    let modifier_id = api.findModifier(charge);
+                    let professionalCharge = {
+                        ...charge,
+                        bill_fee: 0,
+                        allowed_amount: 0
+                    };
+
+                    professionalCharge[modifier_id] = professional_modifier_id;
+                    professionalClaimCharges.push(professionalCharge);
+
+                    let technicalCharge = {
+                        ...charge,
+                        bill_fee: 0,
+                        allowed_amount: 0
+                    };
+
+                    technicalCharge[modifier_id] = technical_modifier_id;
+                    technicalClaimCharges.push(technicalCharge);
+                });
+
+                otherCharges = [];
+            }
+
+            if (orderingFacilityInvoiceCharges.length) {
+                if (claim.billing_type === 'split') {
+                    technicalClaimCharges.push(...orderingFacilityInvoiceCharges);
+                } else {
+                    ofRespClaimCharges.push(...orderingFacilityInvoiceCharges);
+                }
+            }
+
+            if (noSplitCharges.length) {
+                if (isInsuranceAvailable) {
+                    if (otherCharges.length) {
+                        otherCharges.push(...noSplitCharges);
+                    } else {
+                        professionalClaimCharges.push(...noSplitCharges);
+                    }
+                } else {
+                    if (claim.billing_type === 'split') {
+                        technicalClaimCharges.push(...noSplitCharges);
+                    } else {
+                        ofRespClaimCharges.push(...noSplitCharges);
+                    }
+                }
+            }
+
+            if (otherCharges.length) {
+                claimsDetails.push({
+                    ...claim,
+                    claim_charges: otherCharges
+                });
+            }
+
+            if (professionalClaimCharges.length) {
+                claimsDetails.push({
+                    ...claim,
+                    claim_charges: professionalClaimCharges
+                });
+            }
+
+            if (technicalClaimCharges.length) {
+                claimsDetails.push({
+                    ...claim,
+                    claim_charges: technicalClaimCharges,
+                    place_of_service_id: claim.technical_place_of_service || null,
+                    billing_method: claim.billing_type !== 'global' ? 'direct_billing' : claim.billing_method,
+                    payer_type: claim.billing_type !== 'global' ? 'ordering_facility' : claim.payer_type
+                });
+            }
+
+            if (ofRespClaimCharges.length) {
+                claimsDetails.push({
+                    ...claim,
+                    claim_charges: ofRespClaimCharges,
+                    place_of_service_id: claim.technical_place_of_service || null,
+                    billing_method: 'direct_billing',
+                    payer_type: 'ordering_facility'
+                });
+            }
+        } else {
+            charges.forEach(item => {
+                if (item.charge_type === 'no_split'&& item.is_billing_rule_applied && item.is_billing_rule_cpt_add_fee) {
+                    item.bill_fee = item.billing_rule_fee;
+                }
+            });
+        
+            claimsDetails.push({
+                ...claim,
+                claim_charges: charges
+            });
+        }
+
+        return claimsDetails;
     },
 
     save: async (params) => {
@@ -40,66 +191,13 @@ const api= {
             , charges
             , is_alberta_billing
             , is_ohip_billing
-        } = params;
+            , isMobileBillingEnabled
+        } = params;        
 
-        let newClaim = [];
-
-        if(claims.is_split_claim) {
-            let {professional_modifier_id, technical_modifier_id} = (await data.getTechnicalAndProfessionalModifier()).pop();
-
-            newClaim.push({
-                ...claims,
-                claim_charges: charges,
-                billing_type: 'split_p'
-            });
-
-            // creating a technical claim since it is split claim
-            let newCharges = [];
-
-            await Promise.all(charges.map(async (charge, index) => {
-
-                let modifier1 = charge.modifier1_id == professional_modifier_id ? technical_modifier_id : charge.modifier1_id;
-                let modifier2 = charge.modifier2_id == professional_modifier_id ? technical_modifier_id : charge.modifier2_id;
-                let modifier3 = charge.modifier3_id == professional_modifier_id ? technical_modifier_id : charge.modifier3_id;
-                let modifier4 = charge.modifier4_id == professional_modifier_id ? technical_modifier_id : charge.modifier4_id;
-
-                newCharges.push({
-                    ...charges[index],
-                    modifier1_id: modifier1,
-                    modifier2_id: modifier2,
-                    modifier3_id: modifier3,
-                    modifier4_id: modifier4,
-                    bill_fee: charges[index].is_custom_bill_fee  === 'true' ? charges[index].bill_fee :  0,
-                    allowed_amount: charges[index].is_custom_bill_fee  === 'true'  ? charges[index].allowed_amount : 0
-                });
-            }));
-
-            // EXA-22773 | For technical claim responsible must be ordering facility
-            newClaim.push({
-                ...claims,
-                place_of_service_id: claims.technical_place_of_service || null,
-                billing_method: 'direct_billing',
-                payer_type: 'ordering_facility',
-                claim_charges: newCharges,
-                billing_type: 'split_t'
-            });
-
-            return await data.save({
-                claims: newClaim
-                , insurances
-                , claim_icds
-                , auditDetails
-                , is_alberta_billing
-                , is_ohip_billing
-            });
-
-        }
+        let claimsDetails = await api.splitClaim(claims, charges, insurances, isMobileBillingEnabled);
 
         return await data.save({
-            claims: [{
-                ...claims,
-                claim_charges: charges
-            }]
+            claims: claimsDetails
             , insurances
             , claim_icds
             , auditDetails

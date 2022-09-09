@@ -2928,6 +2928,9 @@ var commonjs = {
             case "tertiary_insurance":
                 payer = "Tertiary Insurance";
                 break;
+            case "service_facility_location":
+                payer = "Service Facility Location";
+                break;
             default:
                 payer = "";
                 break;
@@ -4299,7 +4302,7 @@ var commonjs = {
                 if (data && data.length > 0) {
                     result.study_id = data[0].study_id;
                     result.order_id = data[0].order_id;
-                    result.split_claim_id = data[0].split_claim_ids;
+                    result.split_claim_ids = data[0].split_claim_ids;
                     result.patient_id = data[0].patient_id;
                 }
 
@@ -5475,7 +5478,6 @@ var commonjs = {
         }
     }
 };
-
 
 var siteLayouts = {
     facility: 'Facility',

@@ -541,11 +541,17 @@ module.exports = {
         return await data.updateFollowUp(params);
     },
 
-    validateBatchClaims: async (studyDetails) => {
+    validateBatchClaims: async (params) => {
+        let {
+            studyDetails,
+            isMobileBillingEnabled,
+            is_us_billing
+        } = params;
         let validCharges = await data.validateBatchClaimCharge(JSON.stringify(studyDetails));
+        let row = validCharges?.rows?.[0];
         let errorData;
 
-        if (studyDetails.length !== parseInt(validCharges.rows[0].charges_count)) {
+        if (studyDetails.length !== parseInt(row.charges_count)) {
             errorData = {
                 code: '55802'
                 , message: 'No charge in claim'
@@ -560,12 +566,12 @@ module.exports = {
             };
         }
 
-        if (parseInt(validCharges.rows[0].invalid_split_claim_count)) {
+        if (isMobileBillingEnabled && parseInt(row.invalid_split_claim_count)) {
             errorData = {
                 code: '23156'
-                , message: 'No ordering facility in claim'
+                , message: 'Insurance Provider is not valid in claim'
                 , name: 'error'
-                , Error: 'No ordering facility in claim'
+                , Error: 'Insurance Provider is not valid in claim'
                 , severity: 'Error'
             };
 
@@ -621,15 +627,23 @@ module.exports = {
                 });
             }
 
-            let result = await this.validateBatchClaims(studyDetails);
+            let result = await this.validateBatchClaims({ 
+                studyDetails,
+                isMobileBillingEnabled: params.isMobileBillingEnabled === 'true',
+                is_us_billing: params.is_us_billing
+            });
 
             if (result.err) {
                 return result.err;
             }
 
             params.studyDetails = JSON.stringify(studyDetails);
-        } else if (params.isMobileBillingEnabled === 'true') {
-            let result = await this.validateBatchClaims(JSON.parse(params.studyDetails));
+        } else if (params.isMobileBillingEnabled === 'true' || params.is_us_billing) {
+            let result = await this.validateBatchClaims({
+                studyDetails: JSON.parse(params.studyDetails),
+                isMobileBillingEnabled: params.isMobileBillingEnabled === 'true',
+                is_us_billing: params.is_us_billing
+            });
 
             if (result.err) {
                 return result.err;
