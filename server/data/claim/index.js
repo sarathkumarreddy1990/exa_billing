@@ -15,7 +15,7 @@ module.exports = {
     getLineItemsDetails: async function (params) {
 
         const studyIds = params.study_ids.split(',').map(Number);
-        const isAlbertaBilling = params.billingRegionCode === 'can_AB';
+        const isOHIPBilling = params.billingRegionCode === 'can_ON';
 
         const firstStudyId = studyIds.length > 0 ? studyIds[0] : null;
 
@@ -357,9 +357,18 @@ module.exports = {
                                                 )
                                                 LEFT JOIN provider_contacts pc ON pc.id = (
                                                     CASE
-                                                        WHEN ${isAlbertaBilling} AND s.study_status = 'APP'
-                                                        THEN st.approving_provider_id
-                                                        ELSE s.reading_physician_id
+                                                        WHEN NOT ${isOHIPBilling}
+                                                        THEN
+                                                            CASE
+                                                                WHEN NULLIF(facilities.facility_info->'rendering_provider_id','') IS NOT NULL
+                                                                THEN (facilities.facility_info->'rendering_provider_id')::INTEGER
+                                                                WHEN s.study_status = 'APP'
+                                                                THEN st.approving_provider_id
+                                                                ELSE
+                                                                    s.reading_physician_id
+                                                            END
+                                                        ELSE
+                                                            s.reading_physician_id
                                                     END
                                                 )
                                                 LEFT JOIN providers p ON p.id = pc.provider_id
