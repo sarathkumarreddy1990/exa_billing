@@ -448,9 +448,13 @@ define(['jquery',
              * Render all of the eligibility views
              */
             renderEligibilityViews: function () {
-                this.renderEligibilityView("primary")
-                    .renderEligibilityView("secondary")
-                    .renderEligibilityView("tertiary");
+                var order_id = ~~_.get(this, "options.order_id");
+
+                if (order_id > 0) {
+                    this.renderEligibilityView("primary")
+                        .renderEligibilityView("secondary")
+                        .renderEligibilityView("tertiary");
+                }
 
                 return this;
             },
