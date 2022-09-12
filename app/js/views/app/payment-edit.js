@@ -1100,6 +1100,7 @@ define(['jquery',
                         gridObj.refresh();
                     });
                     colElement.on("cancel.daterangepicker", function (ev, drp) {
+                        gridObj.options.customargs.customDt = '';
                         gridObj.refresh();
                     });
                 });
