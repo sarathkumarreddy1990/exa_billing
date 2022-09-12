@@ -10,6 +10,8 @@ define(['backbone'], function (Backbone) {
             "receiver_id": "",
             "receiver_name": "",
             "ediTemplateName": "",
+            "ediFileExtension": "",
+            "eraFileExtension": "",
             "isActive": "",
             "communicationInfo": "",
             "company_id":""
