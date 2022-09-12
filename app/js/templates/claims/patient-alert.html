@@ -15,4 +15,8 @@
             <% }) %>
         </ul>
     <% } %>
+    <% if(notes && notes.length) { %>
+        <h3>Notes</h3>
+        <textarea id='txtPopupAlertsNotes' style='font-size: 12pt; padding: 10px; margin-bottom: 10px; width: 100%; max-width: 100%;' readonly><%= notes %></textarea>
+    <% } %>
 </div>
