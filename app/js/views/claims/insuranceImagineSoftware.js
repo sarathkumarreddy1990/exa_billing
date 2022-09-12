@@ -556,6 +556,13 @@ function (
         sendEstimationLetter: function () {
             var raw_html = this.printLetterTemplate({ data: this.data });
             var translated_html = commonjs.i18nHtmlTranslate(raw_html);
+            var delivery_address = $("#txtPatientEmail").val().trim();
+
+            if (!delivery_address || !commonjs.validateMailID(delivery_address)) {
+                commonjs.showWarning('messages.warning.setup.pleaseEnterValidEmailID');
+                $("#txtPatientEmail").focus();
+                return false;
+            }
 
             $.ajax({
                 url: "/sendEstimationLetter",
@@ -1210,7 +1217,7 @@ function (
             if (view && setter_fn) {
                 view[setter_fn](prop, data);
             }
-            
+
             return this;
         },
         /* #endregion */
