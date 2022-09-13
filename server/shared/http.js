@@ -35,6 +35,10 @@ module.exports = {
         }
 
         try {
+            if (responseData.status && !responseData.rows.length) {
+                return this.sendError(req, res, responseData);
+            }
+
             return res.send(responseData.rows);
         } catch (err) {
             return res.send(err);

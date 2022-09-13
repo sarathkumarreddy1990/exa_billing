@@ -1400,6 +1400,10 @@ var commonjs = {
                 commonjs.showError('messages.errors.selectClaimToCreate');
                 break;
 
+            case 'EXISTS':
+                commonjs.showWarning("messages.warning.shared.alreadyexists");
+                break;
+
             case 'HANDLED_EXCEPTION':
                 commonjs.showError(errorMessage || 'Error :(');
                 break;

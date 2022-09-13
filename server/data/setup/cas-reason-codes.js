@@ -1,4 +1,9 @@
-const { query, SQL, queryWithAudit } = require('../index');
+const {
+    SQL,
+    query,
+    queryWithAudit,
+    queryWithDuplicateCheck,
+ } = require('../index');
 
 module.exports = {
 
@@ -22,13 +27,13 @@ module.exports = {
             whereQuery.push(` description ILIKE '%${description}%'`);
         }
 
-        const sql = SQL`SELECT 
+        const sql = SQL`SELECT
                           id
                         , code
                         , description
                         , inactivated_dt
                         , COUNT(1) OVER (range unbounded preceding) AS total_records
-                    FROM   
+                    FROM
                         billing.cas_reason_codes `;
 
         if (whereQuery.length) {
@@ -49,14 +54,14 @@ module.exports = {
     getDataById: async (params) => {
         const { id } = params;
 
-        const sql = SQL`SELECT 
+        const sql = SQL`SELECT
                           id
                         , code
                         , description
                         , inactivated_dt
-                    FROM   
-                        billing.cas_reason_codes 
-                    WHERE 
+                    FROM
+                        billing.cas_reason_codes
+                    WHERE
                         id = ${id} `;
 
         return await query(sql);
@@ -72,20 +77,26 @@ module.exports = {
 
         let inactivated_date = isActive ? null : ' now() ';
 
-        const sql = SQL`INSERT INTO 
+        const sql = SQL`INSERT INTO
                         billing.cas_reason_codes (
                               company_id
                             , code
                             , description
                             , inactivated_dt)
-                        VALUES(
+                        SELECT
                                ${companyId}
                              , ${code}
                              , ${description}
-                             , ${inactivated_date} )
-                             RETURNING *, '{}'::jsonb old_values`;
+                             , ${inactivated_date}
+                        WHERE NOT EXISTS (
+                            SELECT  1
+                            FROM    billing.cas_reason_codes
+                            WHERE   company_id = ${companyId}
+                                    AND code = ${code}
+                        )
+                        RETURNING *, '{}'::jsonb old_values`;
 
-        return await queryWithAudit(sql, {
+        return await queryWithDuplicateCheck(sql, {
             ...params,
             logDescription: `Add: CAS Reason Code(${code}) created `
         });
@@ -97,28 +108,36 @@ module.exports = {
             code,
             description,
             id,
-            isActive
+            isActive,
+            companyId,
         } = params;
 
         let inactivated_date = isActive ? null : ' now() ';
 
         const sql = SQL`UPDATE
-                             billing.cas_reason_codes 
-                        SET  
+                             billing.cas_reason_codes
+                        SET
                               code = ${code}
                             , description = ${description}
                             , inactivated_dt = ${inactivated_date}
                         WHERE
-                            id = ${id} 
+                            id = ${id}
+                            AND NOT EXISTS (
+                                SELECT  1
+                                FROM    billing.cas_reason_codes
+                                WHERE   id != ${id}
+                                        AND company_id = ${companyId}
+                                        AND code = ${code}
+                            )
                             RETURNING *,
                             (
-                                SELECT row_to_json(old_row) 
-                                FROM   (SELECT * 
-                                        FROM   billing.cas_reason_codes 
-                                        WHERE  id = ${id}) old_row 
+                                SELECT row_to_json(old_row)
+                                FROM   (SELECT *
+                                        FROM   billing.cas_reason_codes
+                                        WHERE  id = ${id}) old_row
                             ) old_values`;
 
-        return await queryWithAudit(sql, {
+        return await queryWithDuplicateCheck(sql, {
             ...params,
             logDescription: `Update: CAS Reason Code(${code}) updated`
         });
@@ -131,8 +150,8 @@ module.exports = {
             description
         } = params;
 
-        const sql = SQL`DELETE FROM 
-                            billing.cas_reason_codes 
+        const sql = SQL`DELETE FROM
+                            billing.cas_reason_codes
                         WHERE id = ${id} RETURNING *, '{}'::jsonb old_values`;
 
         return await queryWithAudit(sql, {

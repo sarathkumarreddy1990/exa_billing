@@ -135,6 +135,17 @@ const pgData = {
         return await pgData.query(sql);
     },
 
+    queryWithDuplicateCheck: async function (query, args) {
+
+        let result = await pgData.queryWithAudit(query, args);
+
+        if (!result.rowCount) {
+            result = { rows: [], status: "EXISTS" };
+        }
+
+        return result;
+    },
+
     queryCteWithAudit: async function (query, args) {
         let {
             userId,
