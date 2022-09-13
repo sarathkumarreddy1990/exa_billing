@@ -774,7 +774,8 @@ module.exports = {
     },
 
     validateBatchClaimCharge: async(study_data) => {
-        const sql = SQL`WITH batch_claim_details AS (
+        const sql = SQL`
+                    WITH batch_claim_details AS (
                         SELECT
                              study_id
                         FROM
@@ -782,30 +783,13 @@ module.exports = {
                             (
                                 study_id bigint
                             )
-                    ), invalid_charges_details AS (
-                        SELECT
-                            COUNT(DISTINCT s.id) AS charges_count
-                        FROM public.studies s
-                        INNER JOIN public.study_cpt cpt ON cpt.study_id = s.id
-                        INNER JOIN public.cpt_codes codes ON codes.id = cpt.cpt_code_id
-                        WHERE s.id = ANY(SELECT study_id FROM batch_claim_details)
-                    ), invalid_split_claim_details AS(
-                        SELECT
-                            COUNT(1) AS invalid_split_claim_count
-                        FROM public.studies s
-                        INNER JOIN order_patient_insurances opi ON opi.order_id = s.order_id
-                        INNER JOIN public.patient_insurances ppi ON ppi.id = opi.patient_insurance_id AND opi.coverage_level = 'primary'
-                        INNER JOIN public.insurance_providers ip ON ip.id= ppi.insurance_provider_id
-                        INNER JOIN billing.insurance_provider_details ipd on ipd.insurance_provider_id = ip.id
-                        WHERE s.id = ANY(SELECT study_id FROM batch_claim_details)
-                        AND (ppi.valid_to_date >= COALESCE(s.study_dt, now())::DATE OR ppi.valid_to_date IS NULL)
-                        AND ipd.is_split_claim_enabled IS TRUE
-                        AND ip.inactivated_dt IS NULL
                     )
                     SELECT
-                        (SELECT invalid_split_claim_count FROM invalid_split_claim_details)
-                        , (SELECT charges_count FROM invalid_charges_details)
-                    `;
+                        COUNT(DISTINCT s.id) AS charges_count
+                    FROM public.studies s
+                    INNER JOIN public.study_cpt cpt ON cpt.study_id = s.id
+                    INNER JOIN public.cpt_codes codes ON codes.id = cpt.cpt_code_id
+                    WHERE s.id = ANY(SELECT study_id FROM batch_claim_details) `;
         return await query(sql.text, sql.values);
     },
 

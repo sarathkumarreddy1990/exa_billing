@@ -566,21 +566,6 @@ module.exports = {
             };
         }
 
-        if (isMobileBillingEnabled && parseInt(row.invalid_split_claim_count)) {
-            errorData = {
-                code: '23156'
-                , message: 'Insurance Provider is not valid in claim'
-                , name: 'error'
-                , Error: 'Insurance Provider is not valid in claim'
-                , severity: 'Error'
-            };
-
-            return {
-                err: errorData,
-                result: false
-            };
-        }
-
         return {
             err: null,
             result: true
