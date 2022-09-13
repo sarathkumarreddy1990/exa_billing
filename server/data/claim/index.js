@@ -59,28 +59,6 @@ module.exports = {
                                 ARRAY_AGG(patient_insurance_id) AS patient_ins_id
                             FROM public.order_patient_insurances oppi
                             WHERE oppi.order_id = (SELECT order_id FROM get_study_date)
-                        ), beneficiary_details AS (
-                            SELECT
-                                pi.id
-                            FROM
-                                public.patient_insurances pi
-                            INNER JOIN public.insurance_providers ip ON ip.id= pi.insurance_provider_id
-                            LEFT JOIN billing.insurance_provider_details ipd on ipd.insurance_provider_id = ip.id
-                            LEFT JOIN LATERAL (
-                                SELECT
-                                    MIN(valid_to_date) as valid_to_date
-                                FROM
-                                    public.patient_insurances
-                                WHERE
-                                    patient_id = ${params.patient_id}
-                                    AND (valid_to_date >= (SELECT study_dt::DATE FROM get_study_date)  OR valid_to_date IS NULL)
-                                    AND (valid_from_date <= (SELECT study_dt::DATE FROM get_study_date) OR valid_from_date IS NULL)
-                                    AND coverage_level = 'primary'
-                            ) as expiry ON TRUE
-                                WHERE
-                                    pi.patient_id = ${params.patient_id}  AND (expiry.valid_to_date = pi.valid_to_date OR expiry.valid_to_date IS NULL) AND pi.coverage_level = 'primary'
-                                ORDER BY id ASC
-                                LIMIT 1
                         ), insurances AS (
                             SELECT
                                 ins.*
@@ -166,9 +144,9 @@ module.exports = {
                                     WHEN (${params.isMobileBillingEnabled} AND (SELECT billing_type from get_ordering_facility_data) = 'facility') AND NOT sc.is_custom_bill_fee 
                                     THEN billing.get_computed_bill_fee(null, cpt_codes.id, sc.modifier1_id, sc.modifier2_id, sc.modifier3_id, sc.modifier4_id, 'billing', 'ordering_facility',
                                         (SELECT ordering_facility_contact_id FROM get_ordering_facility_data), o.facility_id)::NUMERIC
-                                    WHEN (SELECT id FROM beneficiary_details) IS NOT NULL AND NOT sc.is_custom_bill_fee 
+                                    WHEN (SELECT claim_patient_insurance_id FROM insurances where coverage_level = 'primary') IS NOT NULL AND NOT sc.is_custom_bill_fee 
                                     THEN billing.get_computed_bill_fee(null,cpt_codes.id,sc.modifier1_id,sc.modifier2_id,sc.modifier3_id,sc.modifier4_id,'billing','primary_insurance',
-                                        (SELECT id FROM beneficiary_details), o.facility_id)::NUMERIC
+                                        (SELECT claim_patient_insurance_id FROM insurances where coverage_level = 'primary'), o.facility_id)::NUMERIC
                                     WHEN sc.is_custom_bill_fee
                                     THEN sc.bill_fee::NUMERIC
                                     ELSE
@@ -177,9 +155,9 @@ module.exports = {
                                 , (CASE WHEN (${params.isMobileBillingEnabled} AND (SELECT billing_type from get_ordering_facility_data) = 'facility') THEN
                                             billing.get_computed_bill_fee(null, cpt_codes.id, sc.modifier1_id, sc.modifier2_id, sc.modifier3_id, sc.modifier4_id, 'allowed', 'ordering_facility',
                                             (SELECT ordering_facility_contact_id FROM get_ordering_facility_data), o.facility_id)::NUMERIC
-                                        WHEN (select id from beneficiary_details) IS NOT NULL THEN
+                                        WHEN (select claim_patient_insurance_id from insurances where coverage_level = 'primary') IS NOT NULL THEN
                                             billing.get_computed_bill_fee(null,cpt_codes.id,sc.modifier1_id,sc.modifier2_id,sc.modifier3_id,sc.modifier4_id,'allowed','primary_insurance',
-                                            (select id from beneficiary_details), o.facility_id)::NUMERIC
+                                            (select claim_patient_insurance_id from insurances where coverage_level = 'primary'), o.facility_id)::NUMERIC
                                         ELSE
                                             billing.get_computed_bill_fee(null,cpt_codes.id,sc.modifier1_id,sc.modifier2_id,sc.modifier3_id,sc.modifier4_id,'allowed','patient',${params.patient_id},o.facility_id)::NUMERIC
                                         END) as allowed_fee
