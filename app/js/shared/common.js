@@ -1371,7 +1371,6 @@ var commonjs = {
                 break;
 
             case '23505':
-            case 'EXISTS':
                 var errMessage = 'messages.errors.duplicateRecord';
                 if (exaInternalErrors && exaInternalErrors.constraints && exaInternalErrors.constraints[err.constraint]) {
                     errMessage = exaInternalErrors.constraints[err.constraint];
@@ -1399,6 +1398,10 @@ var commonjs = {
 
             case '55802':
                 commonjs.showError('messages.errors.selectClaimToCreate');
+                break;
+
+            case 'EXISTS':
+                commonjs.showWarning("messages.warning.shared.alreadyexists");
                 break;
 
             case 'HANDLED_EXCEPTION':
