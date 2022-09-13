@@ -132,7 +132,12 @@ const pgData = {
                 FROM    audit_cte
             `);
 
-        let result = await pgData.query(sql);
+        return await pgData.query(sql);
+    },
+
+    queryWithDuplicateCheck: async function (query, args) {
+
+        let result = await pgData.queryWithAudit(query, args);
 
         if (!result.rowCount) {
             result = { rows: [], status: "EXISTS" };
