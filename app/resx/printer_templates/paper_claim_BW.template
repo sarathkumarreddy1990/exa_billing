@@ -802,7 +802,7 @@ function formatSingleClaim(claimData, servicelineList) {
     }
 
     if(!claimData.subscriber[0].isPrintBillingProviderAddress) {
-	    BillingProDet = getAddressDetails(claimData.payToProvider, 'zip_code_plus');
+	    BillingProDet = getAddressDetails(claimData.payToProvider, 'zipCodePlus');
 	    BillingPh = claimData.payToProvider ? getTrimmedPhoneNo(getKeyTrimValue(claimData.payToProvider, 'phoneNo', 13)): ' ';
 	} else {
 	    BillingProDet = getAddressDetails(claimData.billingProvider, 'zip_code_plus');
@@ -1593,10 +1593,24 @@ function formatSingleClaim(claimData, servicelineList) {
                         {text: claimData.subscriber && claimData.subscriber[0].state ? getKeyTrimValue(claimData.subscriber[0], 'state', 6)  : '',  margin:[-18, 0, 0, 0]}
                     ],
                     [//Telephone
-                        {text: claimData.subscriber && claimData.subscriber[0].patient ? getKeyTrimValue(claimData.subscriber[0].patient[0], 'zipCode', 13) : ''},
+                        {
+                            text: (claimData && claimData.subscriber && claimData.subscriber[0].patient[0]
+                                ? getKeyTrimValue(claimData.subscriber[0].patient[0], 'zipCode', 13)
+                                : '')
+                                + (claimData && claimData.subscriber && claimData.subscriber[0].patient[0] 
+                                    ? getKeyTrimValue(claimData.subscriber[0].patient[0], 'zipPlus', 13) 
+                                    : '')
+                        },
                         {text: claimData.subscriber && claimData.subscriber[0].patient ? getTrimmedPhoneNo(getKeyTrimValue(claimData.subscriber[0].patient[0], 'homePhone', 13)) : '', colSpan:2, margin:[-10, 0,0,0]},
                         {},{},
-                        {text: claimData.subscriber && claimData.subscriber[0].zipCode ? getKeyTrimValue(claimData.subscriber[0], 'zipCode', 12) : ''},
+                        {
+                            text: (claimData && claimData.subscriber && claimData.subscriber[0].zipCode
+                                ? getKeyTrimValue(claimData.subscriber[0], 'zipCode', 12)
+                                : '')
+                                + (claimData && claimData.subscriber && claimData.subscriber[0].zipCodePlus
+                                    ? getKeyTrimValue(claimData.subscriber[0], 'zipCodePlus', 12)
+                                    : '')
+                        },
                         {text: ( claimData.subscriber && claimData.subscriber[0].phoneNumber ? getTrimmedPhoneNo(getKeyTrimValue(claimData.subscriber[0], 'phoneNumber', 13)) : ''), colSpan:2, margin:[-25, 0,0,0]},
                         {}
                     ],

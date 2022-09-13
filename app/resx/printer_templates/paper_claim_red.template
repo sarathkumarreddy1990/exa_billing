@@ -382,7 +382,7 @@ function formatRedForm(claimData, servicelineList, pageBrk) {
     }
 
     if(!claimData.subscriber[0].isPrintBillingProviderAddress) {
-	    BillingProDet = getAddressDetails(claimData.payToProvider, 'zip_code_plus');
+	    BillingProDet = getAddressDetails(claimData.payToProvider, 'zipCodePlus');
 	    BillingPh = claimData.payToProvider && claimData.payToProvider.phoneNo ? (getph(getSubstring(claimData.payToProvider.phoneNo, 13))) : '';
 	} else {
 	    BillingProDet = getAddressDetails(claimData.billingProvider, 'zip_code_plus');
@@ -512,8 +512,12 @@ function formatRedForm(claimData, servicelineList, pageBrk) {
                     ],
                     [//Ans
                         {
-                            text: claimData.subscriber && claimData.subscriber[0].patient && claimData.subscriber[0].patient[0].zipCode ?
-                                getSubstring(claimData.subscriber[0].patient[0].zipCode, 13) : ''
+                            text: (claimData && claimData.subscriber && claimData.subscriber[0].patient && claimData.subscriber[0].patient[0].zipCode 
+                                ? getSubstring(claimData.subscriber[0].patient[0].zipCode, 13)
+                                : '')
+                                + (claimData && claimData.subscriber && claimData.subscriber[0].patient && claimData.subscriber[0].patient[0].zipPlus
+                                    ? getSubstring(claimData.subscriber[0].patient[0].zipPlus, 13)
+                                    : '')
                         },
                         {
                             text: claimData.subscriber && claimData.subscriber[0].patient && claimData.subscriber[0].patient[0].homePhone ?
@@ -521,7 +525,14 @@ function formatRedForm(claimData, servicelineList, pageBrk) {
                         },
                         {},
                         {},
-                        { text: claimData.subscriber && claimData.subscriber[0].zipCode ? getSubstring(claimData.subscriber[0].zipCode, 12) : '' },
+                        {
+                            text: (claimData && claimData.subscriber && claimData.subscriber[0].zipCode 
+                                ? getSubstring(claimData.subscriber[0].zipCode, 12) 
+                                : '')
+                                + (claimData && claimData.subscriber && claimData.subscriber[0].zipCodePlus
+                                    ? getSubstring(claimData.subscriber[0].zipCodePlus, 12) 
+                                    : '')
+                        },
                         { text:  ( claimData.subscriber && claimData.subscriber[0].phoneNumber ? getSubstring(getph(claimData.subscriber[0].phoneNumber), 13) : '') , margin: [-85, 0, 0, 0] }
                     ],
                     [
