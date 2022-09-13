@@ -132,7 +132,13 @@ const pgData = {
                 FROM    audit_cte
             `);
 
-        return await pgData.query(sql);
+        let result = await pgData.query(sql);
+
+        if (!result.rowCount) {
+            result = { rows: [], status: "EXISTS" };
+        }
+
+        return result;
     },
 
     queryCteWithAudit: async function (query, args) {

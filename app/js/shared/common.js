@@ -1371,6 +1371,7 @@ var commonjs = {
                 break;
 
             case '23505':
+            case 'EXISTS':
                 var errMessage = 'messages.errors.duplicateRecord';
                 if (exaInternalErrors && exaInternalErrors.constraints && exaInternalErrors.constraints[err.constraint]) {
                     errMessage = exaInternalErrors.constraints[err.constraint];
