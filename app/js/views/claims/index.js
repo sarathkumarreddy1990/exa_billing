@@ -6198,7 +6198,14 @@ define(['jquery',
 
                 var alerts = self.patientAlerts && self.patientAlerts.alerts || null;
                 var others = self.patientAlerts && self.patientAlerts.others || null;
-                commonjs.showNestedDialog({ header: 'Patient Alerts', i18nHeader: 'menuTitles.patient.patientAlerts', width: '50%', height: '40%', html: self.patientAlertTemplate({alerts: alerts, others:others}) })
+                var notes = self.patientAlerts && self.patientAlerts.notes || null;
+                commonjs.showNestedDialog({
+                    header: 'Patient Alerts',
+                    i18nHeader: 'menuTitles.patient.patientAlerts',
+                    width: '50%',
+                    height: '40%',
+                    html: self.patientAlertTemplate({ alerts: alerts, others: others, notes: notes })
+                });
             },
 
             getAlertEvent: function() {
