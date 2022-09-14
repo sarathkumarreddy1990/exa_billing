@@ -479,6 +479,7 @@ define(['jquery',
                         coverage_level: coverage_level,
                         show_service_type: this.showServiceType(),
                         show_benefits_on_date: this.showBenefitsOnDate(),
+                        show_eligibility_status: true,
                         container_class: "col-xs-12",
                         disabled: !app.checkPermissionCode("ELIG")
                     });

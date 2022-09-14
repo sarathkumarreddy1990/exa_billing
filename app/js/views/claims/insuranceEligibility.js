@@ -76,6 +76,9 @@ function (
          * @param {object}  args
          * @prop  {number}  args.order_id
          * @prop  {string}  args.coverage_level
+         * @prop  {boolean} args.show_service_type
+         * @prop  {boolean} args.show_benefits_on_date
+         * @prop  {boolean} args.show_eligibility_status
          * @prop  {boolean} args.disabled
          * @prop  {object}  args.parent
          * @prop  {object}  args.parent.view
@@ -94,6 +97,7 @@ function (
                 btnI18n: this.buttonI18n(),
                 show_service_type: !!args.show_service_type,
                 show_benefits_on_date: !!args.show_benefits_on_date,
+                show_eligibility_status: !!args.show_eligibility_status,
                 container_class: args.container_class || "",
                 disabled: args.disabled ? "disabled" : ""
             }
