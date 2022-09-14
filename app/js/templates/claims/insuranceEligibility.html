@@ -39,8 +39,10 @@
         <img src="../images/ajax-loader.gif" style="padding-left: 10px;">
     </div>
 
+    <% if (data.show_eligibility_status) { %>
     <div class="eligibility-date" data-key="<%= data.key %>" style="display: none; line-height: 2em;">
         <i class="fa fa-2x fa-check-circle align-middle verified"></i>
-        <span class="ml-5"></span>
+        <span style="margin-left: 5px;"></span>
     </div>
+    <% } %>
 </div>
