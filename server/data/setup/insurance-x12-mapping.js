@@ -32,7 +32,7 @@ module.exports = {
         }
 
         if (payer_edi_code) {
-            whereQuery.push(` bip.payer_edi_code ILIKE '%${payer_edi_code}%'`);
+            whereQuery.push(` bip.payer_edi_code = '${payer_edi_code}'`);
         }
 
         if (billing_method) {
