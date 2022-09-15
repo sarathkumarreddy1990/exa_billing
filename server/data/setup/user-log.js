@@ -10,7 +10,7 @@ module.exports = {
             username,
             client_ip,
             logged_in_dt,
-            login_source,
+            module_name,
             sortOrder,
             sortField,
             pageNo,
@@ -36,8 +36,8 @@ module.exports = {
             whereQuery.push(` logged_dt::date BETWEEN '${fromDate}'::date AND '${toDate}'::date`);
         }
 
-        if (login_source) {
-            whereQuery.push(` module_name = '${login_source}'`);
+        if (module_name) {
+            whereQuery.push(` module_name ILIKE '%${module_name}%'`);
         }
 
         const sql = SQL`SELECT
