@@ -79,7 +79,6 @@ function (
          * @prop  {boolean} args.show_service_type
          * @prop  {boolean} args.show_benefits_on_date
          * @prop  {boolean} args.show_eligibility_status
-         * @prop  {boolean} args.disabled
          * @prop  {object}  args.parent
          * @prop  {object}  args.parent.view
          * @prop  {string}  args.parent.getter
@@ -98,8 +97,7 @@ function (
                 show_service_type: !!args.show_service_type,
                 show_benefits_on_date: !!args.show_benefits_on_date,
                 show_eligibility_status: !!args.show_eligibility_status,
-                container_class: args.container_class || "",
-                disabled: args.disabled ? "disabled" : ""
+                container_class: args.container_class || ""
             }
 
             return this;
@@ -298,6 +296,7 @@ function (
             callback = commonjs.ensureCallback(callback);
 
             if (!this.order_id) {
+                this.determineStateEnabledAllInputs();
                 return callback({});
             }
 
@@ -757,13 +756,12 @@ function (
         // --------------------------------------------------------------------------------
 
         /**
-         * Enables or disables the service types multi-select
-         *
-         * Disable if user has only read-only permission and no request has been made
+         * Enables or disables all of the inputs
          */
-        determineStateEnabledDate: function () {
-            var disabled = this.readOnlyNoEligibility();
-            $("#txtBenefitOnDate" + this.key).prop("disabled", disabled);
+        determineStateEnabledAllInputs: function () {
+            this.determineStateEnabledServiceTypes()
+                .determineStateEnabledDate()
+                .determineStateEnabledButton();
 
             return this;
         },
@@ -774,7 +772,7 @@ function (
          * Disable if user has only read-only permission and no request has been made
          */
         determineStateEnabledButton: function () {
-            var disabled = this.readOnlyNoEligibility();
+            var disabled = this.disableInputs();
             $("#btnEligibility" + this.key).prop("disabled", disabled);
 
             return this;
@@ -785,8 +783,20 @@ function (
          *
          * Disable if user has only read-only permission and no request has been made
          */
+        determineStateEnabledDate: function () {
+            var disabled = this.disableInputs();
+            $("#txtBenefitOnDate" + this.key).prop("disabled", disabled);
+
+            return this;
+        },
+
+        /**
+         * Enables or disables the service types multi-select
+         *
+         * Disable if user has only read-only permission and no request has been made
+         */
         determineStateEnabledServiceTypes: function () {
-            var state = this.readOnlyNoEligibility()
+            var state = this.disableInputs()
                 ? "disable"
                 : "enable";
             $("#ddlServiceType" + this.key).multiselect(state);
@@ -1032,9 +1042,7 @@ function (
             this.data.manually_verified = this.data.manually_verified === "true" || this.data.manually_verified === true;
             this.data.mode = this.data.mode || "params";
 
-            this.determineStateEnabledServiceTypes()
-                .determineStateEnabledDate()
-                .determineStateEnabledButton()
+            this.determineStateEnabledAllInputs()
                 .eligibilityDateVerified(true, this.data.request_dt || this.data.eligibility_dt);
 
             return this;
@@ -1141,6 +1149,19 @@ function (
          */
         dateOfService: function () {
             return this.formatDate(_.get(this, "data.studies[0].study_dt"));
+        },
+
+        /**
+         * User has read-only eligibility access and no eligibility exists or
+         * there is an order id but no data which happens when there is no insurance assigned to the order
+         *
+         * @returns {boolean}
+         */
+        disableInputs: function () {
+            return (
+                (this.readOnly() && !this.eligibilityExists()) ||
+                (this.order_id > 0 && _.isEmpty(this.original_order_data))
+            );
         },
 
         /**
@@ -1363,15 +1384,6 @@ function (
                 app.checkPermissionCode("ELGR") &&
                 app.country_alpha_3_code === "usa"
             )
-        },
-
-        /**
-         * User has read-only eligibility access and no eligibility exists
-         *
-         * @returns {boolean}
-         */
-        readOnlyNoEligibility: function () {
-            return (this.readOnly() && !this.eligibilityExists()) || _.isEmpty(this.original_order_data);
         },
 
         /**
