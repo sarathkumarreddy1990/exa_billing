@@ -821,6 +821,7 @@ module.exports = {
                     , pof.npi_number AS ordering_facility_npi_no
                     , pof.state AS ordering_facility_state
                     , pof.zip_code AS ordering_facility_zip
+                    , pofc.location
                     , ipp.insurance_info->'Address1' AS p_address1
                     , ipp.insurance_info->'PayerID' AS p_payer_id
                     , ipp.insurance_info->'City' AS p_city

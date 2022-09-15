@@ -590,10 +590,12 @@ module.exports = {
                 , pof.state
                 , pof.zip_code
                 , pof.zip_plus
+                , COALESCE(oft.description, '') AS ordering_facility_type
                 , gofc.total_records
             FROM public.ordering_facility_contacts pofc
             INNER JOIN public.ordering_facilities pof ON pof.id = pofc.ordering_facility_id AND pof.deleted_dt IS NULL
             INNER JOIN get_ordering_facility_contacts_count gofc ON TRUE
+            LEFT JOIN ordering_facility_types oft ON oft.id = pofc.ordering_facility_type_id 
             WHERE pofc.inactivated_dt IS NULL
                 AND pof.inactivated_dt IS NULL
                 AND pof.company_id = ${company_id}`)

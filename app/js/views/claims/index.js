@@ -1179,7 +1179,8 @@ define(['jquery',
                 var renderingProvider = renderingProviderFullName || self.usermessage.selectStudyReadPhysician;
 
                 var orderingFacility = claim_data.pos == "OFP" ? claim_data.ptn_ordering_facility_name : claim_data.ordering_facility_name;
-                orderingFacility = orderingFacility || claim_data.service_facility_name || self.usermessage.selectOrdFacility;
+                orderingFacility = orderingFacility || claim_data.service_facility_name;
+                orderingFacility = orderingFacility ? orderingFacility + '(' + claim_data.location + ')' : self.usermessage.selectOrdFacility;
 
                 var referringProviderNpi;
                 var is_pri_ref_contact;
@@ -3587,7 +3588,7 @@ define(['jquery',
                     }
                     var markup = "<table class='ref-result' style='width: 100%'><tr>";
                     markup += "<td title='" + repo.ordering_facility_code + "(" + repo.ordering_facility_name + ")'><div>" + repo.ordering_facility_name + "</div>"
-                    markup += "<div> Location: " + repo.location + "</div>";
+                    markup += "<div> Location: " + repo.location + (repo.ordering_facility_type ? "(" + repo.ordering_facility_type + ")" : "") + "</div>";
                     markup += "<div> Address: " + repo.address_line_1 + ' ' + repo.address_line_2 + "</div>";
                     if (repo.city) {
                         markup += "<div>" + repo.city + ', '
@@ -3624,7 +3625,7 @@ define(['jquery',
                             $('#ddlClaimResponsible').val("POF").change();
                         }
                     }
-                    return res.ordering_facility_name;
+                    return res.ordering_facility_name + '(' + res.location + ')';
                 }
             },
 
