@@ -1243,7 +1243,7 @@ define(['jquery',
                 $('#select2-ddlRenderingProvider-container').html(renderingProvider);
                 $('#select2-ddlSkillCodes-container').html(skillCode);
                 $('#select2-ddlReferringProvider-container').html(referringProvider);
-                $('#select2-ddlOrdFacility-container').html(self.ordering_facility_name);
+                $('#select2-ddlOrdFacility-container').html(self.ordering_facility_name + '(' + claim_data.location + ')');
                 $('#select2-ddlPhnUli-container').html(patientAltAaccNo);
 
                 // Alberta
@@ -3588,6 +3588,7 @@ define(['jquery',
                     var markup = "<table class='ref-result' style='width: 100%'><tr>";
                     markup += "<td title='" + repo.ordering_facility_code + "(" + repo.ordering_facility_name + ")'><div>" + repo.ordering_facility_name + "</div>"
                     markup += "<div> Location: " + repo.location + "</div>";
+                    markup += "<div> Type: " + repo.ordering_facility_type + "</div>";
                     markup += "<div> Address: " + repo.address_line_1 + ' ' + repo.address_line_2 + "</div>";
                     if (repo.city) {
                         markup += "<div>" + repo.city + ', '
@@ -3624,7 +3625,7 @@ define(['jquery',
                             $('#ddlClaimResponsible').val("POF").change();
                         }
                     }
-                    return res.ordering_facility_name;
+                    return res.ordering_facility_name + '(' + res.location + ')';
                 }
             },
 
