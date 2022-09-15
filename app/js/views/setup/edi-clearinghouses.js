@@ -174,6 +174,8 @@ define(['jquery',
                                     $('#txtReceiverName').val(data.receiver_name ? data.receiver_name : '');
                                     $('#txtReceiverID').val(data.receiver_id ? data.receiver_id : '');
                                     $('#txtEdiTemplateName').val(data.edi_template_name ? data.edi_template_name : '0');
+                                    $('#ediExtension').val(data.edi_file_ext || '');
+                                    $('#eraExtension').val(data.era_file_ext || '');
                                     $('#chkIsActive').prop('checked', data.inactivated_dt ? true : false);
                                     $('#txtAuthInfo').val(info.authorizationInformation ? info.authorizationInformation : '');
                                     $('#txtAuthInfoQualifier').val(info.authorizationInformationQualifier ? info.authorizationInformationQualifier : '');
@@ -217,6 +219,8 @@ define(['jquery',
                                     $('#txtReceiveFolder').val(info.ftp_receive_folder || '');
                                     $('#txtIdentityFilePath').val(info.ftp_identity_file || '');
                                     $('#txtReadyTimeout').val(info.ftp_readyTimeout || '');
+                                    $('#sftpEdiExtension').val(info.sftp_edi_file_ext || '');
+                                    $('#sftpEraExtension').val(info.sftp_era_file_ext || '');
                                 }
 
                                 self.showFTPDetails();
@@ -273,7 +277,9 @@ define(['jquery',
                     appSenderCode: {required: true},
                     responsibleAgencyCode: {required: true},
                     appReceiverCode: {required: true},
-                    providerOfficeNo: {required: true}
+                    providerOfficeNo: {required: true},
+                    ediFileExtension: {required: true},
+                    eraFileExtension: {required: true}
                 }
                 if ($('#ddlXmlTempSyn').val() != 1) {
                     rules.username = { required: true }
@@ -300,7 +306,9 @@ define(['jquery',
                     appReceiverCode: commonjs.getMessage("e", "Application Receiver Code"),
                     providerOfficeNo: commonjs.getMessage("e", "Provider Office No"),
                     username: commonjs.getMessage("e", "Username"),
-                    password: commonjs.getMessage("e", "Password")
+                    password: commonjs.getMessage("e", "Password"),
+                    ediFileExtension: commonjs.getMessage("e", "EDI File Extension"),
+                    eraFileExtension: commonjs.getMessage("e", "ERA File Extension")
                 }
 
                 if ($('#chkEnableFTP').prop('checked')) {
@@ -310,12 +318,16 @@ define(['jquery',
                     rules.port = { required: true };
                     rules.sentFolder = { required: true };
                     rules.receiveFolder = { required: true };
+                    rules.sftpEdiExtension = {required: true};
+                    rules.sftpEraExtension = {required: true};
                     messages.hostname = commonjs.getMessage("e", "FTP Host Name");
                     messages.ftpUsername = commonjs.getMessage("e", "FTP User Name");
                     messages.ftpPassword = commonjs.getMessage("e", "FTP Passord");
                     messages.port = commonjs.getMessage("e", "FTP Port");
                     messages.sentFolder = commonjs.getMessage("e", "FTP Sent Folder");
                     messages.receiveFolder = commonjs.getMessage("e", "FTP Receive Folder");
+                    messages.sftpEdiExtension = commonjs.getMessage("e", "FTP/SFTP EDI File  Extension");
+                    messages.sftpEraExtension = commonjs.getMessage("e", "FTP/SFTP ERA File  Extension");
                 }
 
                 commonjs.validateForm({
@@ -369,7 +381,9 @@ define(['jquery',
                     ftp_sent_folder: isFtpEnabled ? $('#txtSentFolder').val() : "",
                     ftp_receive_folder: isFtpEnabled ? $('#txtReceiveFolder').val() : "",
                     ftp_identity_file: isFtpEnabled ? $('#txtIdentityFilePath').val() : "",
-                    ftp_readyTimeout: isFtpEnabled ? $('#txtReadyTimeout').val() : ""
+                    ftp_readyTimeout: isFtpEnabled && $('#txtReadyTimeout').val() || "",
+                    sftp_edi_file_ext: isFtpEnabled && $('#sftpEdiExtension').val() || "",
+                    sftp_era_file_ext: isFtpEnabled && $('#sftpEraExtension').val() || ""
                 }
                 this.model.set({
                     "name": $('#txtName').val(),
@@ -377,6 +391,8 @@ define(['jquery',
                     "receiverName": $('#txtReceiverName').val(),
                     "receiverId": $('#txtReceiverID').val(),
                     "ediTemplateName": $('#txtEdiTemplateName').val() != '0' ? $('#txtEdiTemplateName').val() : null ,
+                    "ediFileExtension": $('#ediExtension').val(),
+                    "eraFileExtension":  $('#eraExtension').val(),
                     "company_id": app.companyID,
                     "isActive": !$('#chkIsActive').prop('checked'),
                     "communicationInfo": JSON.stringify(communication_info)
