@@ -846,8 +846,8 @@ define([
                     gridelementid: '#tblCIClaimComments',
                     custompager: self.claimInquiryPager,
                     emptyMessage: commonjs.geti18NString("messages.status.noRecordFound"),
-                    colNames: ['','', 'Transaction date','Claim Date', 'code', 'sequence_number', '', 'payment.id', 'comment', 'Diag Ptr', 'charge', 'payment', 'adjustment', '', '', '', '',''],
-                    i18nNames: ['', '', 'billing.claims.transactionDate','billing.claims.claimDate', 'billing.COB.code', 'shared.fields.sequenceNumbers', '', 'billing.payments.paymentID', 'billing.payments.comment', 'billing.COB.diagptr',
+                    colNames: ['','', 'Transaction date','Claim Date', 'code', 'comment', 'sequence_number', '', 'payment.id', 'Diag Ptr', 'charge', 'payment', 'adjustment', '', '', '', '',''],
+                    i18nNames: ['', '', 'billing.claims.transactionDate','billing.claims.claimDate', 'billing.COB.code', 'billing.payments.comment', 'shared.fields.sequenceNumbers', 'shared.fields.type', 'billing.payments.paymentID', 'billing.COB.diagptr',
                         'billing.payments.charge', 'billing.payments.payments', 'billing.fileInsurance.adjustments', '', '', '', '', 'billing.payments.printOnStatements'
                     ],
                     colModel: [
@@ -856,6 +856,14 @@ define([
                         { name: 'commented_dt', width: 40, search: false, sortable: false, formatter: self.commentDateFormatter },
                         { name: 'created_dt', width: 40, search: false, sortable: false, formatter: self.dateFormatter },
                         { name: 'code', hidden: true },
+                        { name: 'comments', width: 50, search: false, sortable: false,
+                            cellattr: function (rowId, tv, rowdata) {
+                                if (rowdata && rowdata.code == 'manual')
+                                    return ' colspan=8 title="' + rowdata.comments + '" style="white-space : nowrap ';
+                                else
+                                    return 'title="' + rowdata.comments + '"';
+                            }
+                        },
                         {
                             name: 'sequence_number', width: 40, search: false, sortable: false, hidden: app.billingRegionCode !== 'can_BC',
                             cellattr: function (rowId, tv, rowdata) {
@@ -886,14 +894,6 @@ define([
                             cellattr: function (rowId, tv, rowdata) {
                                 if(rowdata && rowdata.code == 'manual')
                                     return 'style="display:none;" ';
-                            }
-                        },
-                        { name: 'comments', width: 50, search: false, sortable: false,
-                            cellattr: function (rowId, tv, rowdata) {
-                                if (rowdata && rowdata.code == 'manual')
-                                    return ' colspan=8 title="' + rowdata.comments + '" style="white-space : nowrap ';
-                                else
-                                    return 'title="' + rowdata.comments + '"';
                             }
                         },
                         { name: 'charge_pointer', width: 20, search: false, sortable: false, formatter: self.pointerFormatter,
