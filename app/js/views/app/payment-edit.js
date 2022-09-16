@@ -2637,6 +2637,15 @@ define(['jquery',
                         isClaimBalance = false;
                     }
 
+                    var isResponsibleChanged = (
+                        (paymentPayerType === 'patient'
+                            && isPayerChanged === 'false'
+                            && !isClaimStatusChanged
+                            && isClaimBalance
+                        )
+                        || $('#ddlClaimResponsible').val() === 'PSF'
+                    );
+
                     commonjs.showLoading();
                     targetObj.attr('disabled', true);
 
@@ -2658,10 +2667,10 @@ define(['jquery',
                             paymentStatus: paymentStatus,
                             casDeleted: JSON.stringify(self.casDeleted),
                             claimStatusID: !isClaimStatusChanged && isClaimBalance && paymentPayerType === 'patient' ? self.received_claim_status_id : claimStatusID,
-                            is_payerChanged: isPayerChanged,
+                            is_payerChanged: isPayerChanged && $('#ddlClaimResponsible').val() !== 'PSF',
                             is_claimDenied: isClaimDenied,
                             isFromClaim: self.isFromClaim,
-                            changeResponsibleParty : paymentPayerType === 'patient' && isPayerChanged === 'false' && !isClaimStatusChanged && isClaimBalance
+                            changeResponsibleParty : isResponsibleChanged
                         },
                         success: function (model, response) {
                             var msg = self.isFromClaim ? commonjs.geti18NString('messages.status.tosSuccessfullyCompleted') :
