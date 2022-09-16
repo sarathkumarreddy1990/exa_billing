@@ -498,8 +498,18 @@ module.exports = {
 										bgcp.payments_applied_total::numeric::text AS "claimPaymentTotal",
 										CASE 
 											WHEN ${isMobileBillingEnabled}
-											THEN (SELECT (more_info->'pos_code') FROM pos_map WHERE id = claims.pos_map_id)
-											ELSE (SELECT places_of_service.code FROM  places_of_service WHERE  places_of_service.id=claims.place_of_service_id)
+											THEN (
+												SELECT 
+													(more_info->'pos_code')
+												FROM pos_map 
+												WHERE id = claims.pos_map_id
+											)
+											ELSE (
+												SELECT
+													pos.code
+												FROM places_of_service pos
+												WHERE pos.id = claims.place_of_service_id
+											)
 										END AS "POS",
 										to_char(date(timezone(facilities.time_zone,claim_dt)), 'YYYYMMDD') as "claimDate",							date(timezone(facilities.time_zone,claim_dt))::text as "claimDt",
 										is_employed as  "relatedCauseCode1",
