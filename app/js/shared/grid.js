@@ -505,6 +505,7 @@ define('grid', [
                                             break;
                                         case 'ancRenderingProvider':
                                             payer_type = 'referring_provider';
+                                            break;
                                         case 'ancServiceFacility':
                                             payer_type = 'service_facility_location';
                                             break;
