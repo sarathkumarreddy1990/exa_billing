@@ -470,7 +470,17 @@ define('grid', [
                                 if (billingPayers.referring_provider_contact_id) {
                                     liPayerTypeArray.push($(commonjs.getRightClickMenu('ancRenderingProvider_' + billingPayers.referring_provider_contact_id, '', true, billingPayers.ref_prov_full_name + '( Referring Provider )', false)));
                                 }
-                                if (billingPayers.pos_map_id && app.isMobileBillingEnabled && app.settings.enableMobileRad) {
+
+                                //Checked if selected payer is valid service location
+                                var isValidServiceLocation = (
+                                    billingPayers.pos_map_id
+                                    && app.isMobileBillingEnabled
+                                    && app.settings.enableMobileRad
+                                    && billingPayers.pos_map_code !== 'OF'
+                                    && billingPayers.pos_map_code !== 'OFP'
+                                );
+
+                                if (isValidServiceLocation) {
                                     liPayerTypeArray.push($(commonjs.getRightClickMenu('ancServiceFacility_' + billingPayers.pos_map_id, '', true, billingPayers.service_location + '( Service Facility )', false)));
                                 }
                                 $('#ul_change_payer_type').append(liPayerTypeArray);

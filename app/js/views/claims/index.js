@@ -1046,13 +1046,15 @@ define(['jquery',
                     && app.settings.enableMobileRad
                     && (claim_data.pos_map_id || claim_data.pos_map_code)
                     && posMap !== "OF"
+                    && posMap !== "OFP"
+                    && posMap !== "-1"
                 );
             },
 
             appendPOSOptions: function(posMap) {
                 var $ddlServiceFacilityLocation = $('#ddlServiceFacilityLocation');
                 $ddlServiceFacilityLocation.empty();
-                $ddlServiceFacilityLocation.append($('<option/>', { value: "", text: "Select" }));
+                $ddlServiceFacilityLocation.append($('<option/>', { value: "-1", text: "Select" }));
 
                 var posMapList = _.map(posMap, function (pos) {
                     return (
@@ -1656,7 +1658,9 @@ define(['jquery',
             },
 
             onChangeServiceLocation: function (e) {
-                if ($("#ddlServiceFacilityLocation option:selected").attr('data-posmap') !== "OF") {
+                var posMap = $("#ddlServiceFacilityLocation option:selected").attr('data-posmap');
+
+                if (posMap && posMap !== "OF" && posMap !== "OFP") {
                     this.updateResponsibleList({
                         payer_type: 'PSF',
                         payer_id: $('#ddlServiceFacilityLocation option:selected').val(),
@@ -2833,7 +2837,7 @@ define(['jquery',
                         $(selected_opt).text(payer_details.payer_name)
                     } else {
                         $(responsibleEle).append(getOption(payer_details));
-                        if (paymentPayerEle.length) {
+                        if (paymentPayerEle.length && payer_details.payer_type !== 'PSF') {
                             $(paymentPayerEle).append(getOption(payer_details));
                         }
                     }
@@ -2841,7 +2845,7 @@ define(['jquery',
                     // Append claim responsible as payment payer
                     responsibleEle = $('#ddlPayerName_' + paymentDetails.row_id);
                     $.each(self.responsible_list, function (index, obj) {
-                        if (obj.payer_id) {
+                        if (obj.payer_id && obj.payer_type !== 'PSF') {
                             $(responsibleEle).append(getOption(obj));
                         }
                     });
