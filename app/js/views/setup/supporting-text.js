@@ -171,10 +171,10 @@ define(['jquery',
                     this.model.set({id: id});
                     this.model.fetch({
                         success: function (model, response) {
-                            $('#textTemplateName').val(response && response[0] ? response[0].template_name : '')
-                            $('#textSupportingText').val(response && response[0] ? response[0].supporting_text : '')
-                            self.templateAssociatedCptIds = response && response[0] ? response[0].cpt_ids : [],
-                            self.templateAssociatedModifierIds = response && response[0] ? response[0].modifier_ids : [],
+                            $('#textTemplateName').val(response && response[0] ? response[0].template_name : '');
+                            $('#textSupportingText').val(response && response[0] ? response[0].supporting_text : '');
+                            self.templateAssociatedCptIds = response && response[0] ? response[0].cpt_ids : [];
+                            self.templateAssociatedModifierIds = response && response[0] ? response[0].modifier_ids : [];
                             self.refreshTags();
                         }
                     });
@@ -350,15 +350,15 @@ define(['jquery',
             removeTag: function(type, dataId) {
                 var self = this;
                 if (type === 'cpt') {
-                    var idIndex = self.templateAssociatedCptIds.indexOf(parseInt(dataId))
+                    var idIndex = self.templateAssociatedCptIds.indexOf(dataId);
                     if (idIndex !== -1) {
-                        self.templateAssociatedCptIds.splice(idIndex, 1)
+                        self.templateAssociatedCptIds.splice(idIndex, 1);
                     }
                 }
                 else if (type === 'modifier') {
-                    var idIndex = self.templateAssociatedModifierIds.indexOf(parseInt(dataId))
+                    var idIndex = self.templateAssociatedModifierIds.indexOf(dataId);
                     if (idIndex !== -1) {
-                        self.templateAssociatedModifierIds.splice(idIndex, 1)
+                        self.templateAssociatedModifierIds.splice(idIndex, 1);
                     }
                 }
                 self.refreshTags();
