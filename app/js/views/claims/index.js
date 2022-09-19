@@ -4234,7 +4234,9 @@ define(['jquery',
                         : null,
                     wcb_injury_details: JSON.stringify(injury_details),
                     deleted_injury_level: self.getDeletedInjuryLevels(),
-                    pos_map_id: $('#ddlServiceFacilityLocation option:selected').val() || null
+                    pos_map_id: $('#ddlServiceFacilityLocation option:selected').val() > 0
+                        ? $('#ddlServiceFacilityLocation option:selected').val()
+                        : null
                 };
 
                 // Pay-to Details are only saved when Pay-to Code is Other
