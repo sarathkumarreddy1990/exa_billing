@@ -25,7 +25,7 @@ module.exports = {
         }
 
         if (process_status) {
-            whereQuery.push(` process_status ILIKE '%${process_status}%'`);
+            whereQuery.push(` coalesce(claim_status.description, process_status) ILIKE '%${process_status}%'`);
         }
 
         if (colorCode) {
@@ -63,14 +63,14 @@ module.exports = {
     getDataById: async (params) => {
         const { id } = params;
 
-        const sql = SQL`SELECT 
+        const sql = SQL`SELECT
                           id
-                          , process_type  
+                          , process_type
                           , process_status
                           , color_code
-                    FROM   
-                        billing.status_color_codes 
-                    WHERE 
+                    FROM
+                        billing.status_color_codes
+                    WHERE
                         id = ${id} `;
 
         return await query(sql);
@@ -85,19 +85,19 @@ module.exports = {
         } = params;
 
         const sql = SQL`
-                    INSERT INTO billing.status_color_codes 
-                    ( 
-                          company_id 
+                    INSERT INTO billing.status_color_codes
+                    (
+                          company_id
                         , process_type
                         , process_status
-                        , color_code 
-                    ) 
-                    VALUES 
-                    ( 
-                        ${companyId} , 
-                        ${processType} , 
-                        ${processStatus} , 
-                        ${colorCode} 
+                        , color_code
+                    )
+                    VALUES
+                    (
+                        ${companyId} ,
+                        ${processType} ,
+                        ${processStatus} ,
+                        ${colorCode}
                     )
                     RETURNING *, '{}'::jsonb old_values
         `;
@@ -117,19 +117,19 @@ module.exports = {
         } = params;
 
         const sql = SQL`UPDATE
-                             billing.status_color_codes 
-                        SET  
+                             billing.status_color_codes
+                        SET
                               process_type = ${processType}
                             , process_status = ${processStatus}
                             , color_code = ${colorCode}
                         WHERE
-                            id = ${id} 
+                            id = ${id}
                         RETURNING *,
                             (
-                                SELECT row_to_json(old_row) 
-                                FROM   (SELECT * 
-                                        FROM   billing.status_color_codes 
-                                        WHERE  id = ${id}) old_row 
+                                SELECT row_to_json(old_row)
+                                FROM   (SELECT *
+                                        FROM   billing.status_color_codes
+                                        WHERE  id = ${id}) old_row
                             ) old_values
                     `;
 
@@ -146,8 +146,8 @@ module.exports = {
             processStatus
         } = params;
 
-        const sql = SQL`DELETE FROM 
-                            billing.status_color_codes 
+        const sql = SQL`DELETE FROM
+                            billing.status_color_codes
                         WHERE id = ${id}
                         RETURNING *, '{}'::jsonb old_values
                         `;
