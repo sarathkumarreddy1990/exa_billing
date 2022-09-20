@@ -599,7 +599,9 @@ const api = {
                     Obj.claim[0].carrier_balance = parseFloat(total_balance).toFixed(2) || '0.00';
                 });
 
-                addCommentsByCarrier(lastCarrierName, commentsByCarrier);
+                if (lastCarrierName && commentsByCarrier) {
+                    addCommentsByCarrier(lastCarrierName, commentsByCarrier);
+                }
 
                 // add report specific data sets
                 initialReportData.dataSets.push(finalInquiryDataset);
