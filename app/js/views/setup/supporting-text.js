@@ -171,10 +171,13 @@ define(['jquery',
                     this.model.set({id: id});
                     this.model.fetch({
                         success: function (model, response) {
-                            $('#textTemplateName').val(response && response[0] ? response[0].template_name : '');
-                            $('#textSupportingText').val(response && response[0] ? response[0].supporting_text : '');
-                            self.templateAssociatedCptIds = response && response[0] ? response[0].cpt_ids : [];
-                            self.templateAssociatedModifierIds = response && response[0] ? response[0].modifier_ids : [];
+                            var data = response && response[0] || {};
+
+                            $('#textTemplateName').val(data.template_name || '');
+                            $('#textSupportingText').val(data.supporting_text || '');
+                            self.templateAssociatedCptIds = data.cpt_ids || [];
+                            self.templateAssociatedModifierIds = data.modifier_ids || [];
+
                             self.refreshTags();
                         }
                     });
@@ -207,26 +210,24 @@ define(['jquery',
                 //Adding a new cpt
                 $(document).on('click', '#btnAddNewCpt', function() {
                     if (self.pendingNewCptId) {
-                        self.addTag('cpt', self.pendingNewCptId);
-                        self.pendingNewCptId = '';
+                        self.addTag(self.templateAssociatedCptIds, self.pendingNewCptId);
                     }
                 })
 
                 //Adding a new modifier
                 $(document).on('click', '#btnAddNewModifier', function() {
                     if (self.pendingNewModifierId) {
-                        self.addTag('modifier', self.pendingNewModifierId);
-                        self.pendingNewModifierId = '';
+                        self.addTag(self.templateAssociatedModifierIds, self.pendingNewModifierId);
                     }
                 })
 
                 //Removing a cpt or modifier
                 $(document).on('click', '.remove-tag', function() {
                     if ($(this).attr('data-type') === 'cpt') {
-                        self.removeTag('cpt', $(this).attr('data-id') );
+                        self.removeTag(self.templateAssociatedCptIds, $(this).attr('data-id') );
                     }
                     else if ($(this).attr('data-type') === 'modifier') {
-                        self.removeTag('modifier', $(this).attr('data-id'));
+                        self.removeTag(self.templateAssociatedModifierIds, $(this).attr('data-id'));
                     }
                 })
 
@@ -272,7 +273,7 @@ define(['jquery',
                     },
                     templateSelection: function(res) {
                         if (res && res.id) {
-                            self.pendingNewCptId = parseInt(res.id)
+                            self.pendingNewCptId = res.id;
                             return res.short_description;
                         }
                     }
@@ -316,7 +317,7 @@ define(['jquery',
                     },
                     templateSelection: function(res) {
                         if (res && res.id) {
-                            self.pendingNewModifierId = parseInt(res.id)
+                            self.pendingNewModifierId = res.id;
                             return res.description;
                         }
                     }
@@ -336,32 +337,22 @@ define(['jquery',
                 $(receivingDivId).append($tag);
             },
 
-            addTag: function(type, value) {
-                var self = this;
-                if (type === 'cpt' && self.templateAssociatedCptIds.indexOf(value) === -1) {
-                    self.templateAssociatedCptIds.push(value)
+            addTag: function(ids, value) {
+                ids = ids || [];
+
+                if (!_.includes(ids, value)) {
+                    ids.push(value);
                 }
-                else if (type === 'modifier' && self.templateAssociatedModifierIds.indexOf(value) === -1) {
-                    self.templateAssociatedModifierIds.push(value)
-                }
-                self.refreshTags();
+
+                this.refreshTags();
             },
 
-            removeTag: function(type, dataId) {
-                var self = this;
-                if (type === 'cpt') {
-                    var idIndex = self.templateAssociatedCptIds.indexOf(dataId);
-                    if (idIndex !== -1) {
-                        self.templateAssociatedCptIds.splice(idIndex, 1);
-                    }
-                }
-                else if (type === 'modifier') {
-                    var idIndex = self.templateAssociatedModifierIds.indexOf(dataId);
-                    if (idIndex !== -1) {
-                        self.templateAssociatedModifierIds.splice(idIndex, 1);
-                    }
-                }
-                self.refreshTags();
+            removeTag: function(ids, dataId) {
+                ids = ids || [];
+
+                _.pull(ids, dataId);
+
+                this.refreshTags();
             },
 
             refreshTags: function() {
