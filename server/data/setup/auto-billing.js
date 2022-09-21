@@ -266,6 +266,7 @@ module.exports = {
                 , cabr.study_status_codes
                 , cs.description                        AS claim_status_description
                 , cabr.is_active
+                , COUNT(1) OVER (range unbounded preceding) AS total_records
             FROM
                 cteAutobillingRule cabr
                 LEFT JOIN billing.claim_status cs ON cs.id = cabr.claim_status_id
@@ -510,7 +511,7 @@ module.exports = {
                     , ${exclude_insurance_providers}
                 )
             )
-            SELECT 
+            SELECT
                 id
                 , billing.create_audit (
                       ${companyId}
@@ -526,7 +527,7 @@ module.exports = {
                       )::jsonb
                     , ${userId}
                 ) audit_id
-        FROM abrInsert 
+        FROM abrInsert
         `;
         return await query(sql);
     },
@@ -572,9 +573,9 @@ module.exports = {
                 old_audit AS (
                     SELECT row_to_json(row) AS old_values
                     FROM (
-                        SELECT 
-                            ( 
-                                SELECT 
+                        SELECT
+                            (
+                                SELECT
                                     JSONB_AGG(
                                         JSONB_BUILD_OBJECT(
                                             'study_status_code', study_status_code,
@@ -584,17 +585,17 @@ module.exports = {
                                 WHERE autobilling_rule_id = ${id}
                            ) AS study_status,
                            (
-                                SELECT 
+                                SELECT
                                     JSONB_AGG(
                                         JSONB_BUILD_OBJECT(
                                             'facility_id', facility_id,
                                             'excludes', excludes
                                     ))::TEXT AS facility_list
-                                FROM billing.autobilling_facility_rules 
+                                FROM billing.autobilling_facility_rules
                                 WHERE autobilling_rule_id = ${id}
                            ) AS facility,
                            (
-                                SELECT 
+                                SELECT
                                     JSONB_AGG(
                                         JSONB_BUILD_OBJECT(
                                             'modality_id', modality_id,
@@ -604,17 +605,17 @@ module.exports = {
                                 WHERE autobilling_rule_id = ${id}
                            ) AS modality,
                            (
-                                SELECT 
+                                SELECT
                                     JSONB_AGG(
                                         JSONB_BUILD_OBJECT(
                                             'cpt_code_id', cpt_code_id,
                                             'excludes', excludes
                                     ))::TEXT AS cpt_list
-                                FROM billing.autobilling_cpt_code_rules 
+                                FROM billing.autobilling_cpt_code_rules
                                 WHERE autobilling_rule_id = ${id}
                            ) AS cpt,
                            (
-                                SELECT 
+                                SELECT
                                     JSONB_AGG(
                                         JSONB_BUILD_OBJECT(
                                             'insurance_provider_payer_type_id', insurance_provider_payer_type_id,
@@ -624,17 +625,17 @@ module.exports = {
                                 WHERE autobilling_rule_id = ${id}
                            ) AS insurance,
                            (
-                                SELECT 
+                                SELECT
                                     JSONB_AGG(
                                         JSONB_BUILD_OBJECT(
                                             'insurance_provider_id', insurance_provider_id,
                                             'excludes', excludes
                                     ))::TEXT AS insurance_provider_list
-                                FROM billing.autobilling_insurance_provider_rules 
+                                FROM billing.autobilling_insurance_provider_rules
                                 WHERE autobilling_rule_id = ${id}
                            ) AS insurance_provider,
                            (
-                                SELECT 
+                                SELECT
                                     JSONB_AGG(
                                         JSONB_BUILD_OBJECT(
                                             'ordering_facility_id', ordering_facility_id,
@@ -743,7 +744,7 @@ module.exports = {
                     RETURNING *
                 )
                 , updateExcludesOrderingFacilities AS (
-                    UPDATE billing.autobilling_ordering_facility_rules SET excludes = ${exclude_ordering_facilities} 
+                    UPDATE billing.autobilling_ordering_facility_rules SET excludes = ${exclude_ordering_facilities}
                     WHERE autobilling_rule_id = ${id}
                  )
                 , deleteOrderingFacilityRules AS (
@@ -757,7 +758,7 @@ module.exports = {
                      excludes,
                      ordering_facility_id
                     )
-                    SELECT 
+                    SELECT
                           ${id},
                           ${exclude_ordering_facilities},
                           ofs.of_id
@@ -782,8 +783,8 @@ module.exports = {
                 , new_audit AS (
                     SELECT row_to_json(row) AS new_values
                     FROM (
-                        SELECT 
-                            ( 
+                        SELECT
+                            (
                                 SELECT JSONB_AGG(
                                     JSONB_BUILD_OBJECT(
                                         'study_status_code', study_status_code,
@@ -798,10 +799,10 @@ module.exports = {
                                             'facility_id', facility_id,
                                             'excludes', excludes
                                     ))::TEXT AS facility_list
-                                FROM facilitiesInsert 
+                                FROM facilitiesInsert
                             ) AS facility,
                             (
-                                SELECT 
+                                SELECT
                                     JSONB_AGG(
                                         JSONB_BUILD_OBJECT(
                                             'modality_id', modality_id,
@@ -810,25 +811,25 @@ module.exports = {
                                 FROM modalitiesInsert
                             ) AS modality,
                             (
-                                SELECT 
+                                SELECT
                                     JSONB_AGG(
                                         JSONB_BUILD_OBJECT(
                                             'cpt_code_id', cpt_code_id,
                                             'excludes', excludes
                                     ))::TEXT AS cpt_list
-                                FROM cptCodesInsert 
+                                FROM cptCodesInsert
                             ) AS cpt,
                             (
-                                SELECT 
+                                SELECT
                                     JSONB_AGG(
                                         JSONB_BUILD_OBJECT(
                                             'insurance_provider_payer_type_id', insurance_provider_payer_type_id,
                                             'excludes', excludes
                                     ))::TEXT AS insurance_list
-                                FROM insuranceProviderPayerTypesInsert 
+                                FROM insuranceProviderPayerTypesInsert
                             ) AS insurance,
                             (
-                                SELECT 
+                                SELECT
                                     JSONB_AGG(
                                         JSONB_BUILD_OBJECT(
                                             'insurance_provider_id', insurance_provider_id,
@@ -837,7 +838,7 @@ module.exports = {
                                 FROM insuranceProvidersInsert
                             ) AS insurance_provider,
                             (
-                                SELECT 
+                                SELECT
                                     JSONB_AGG(
                                         JSONB_BUILD_OBJECT(
                                             'ordering_facility_id', ordering_facility_id,
@@ -845,11 +846,11 @@ module.exports = {
                                     ))::TEXT AS ordering_facility_list
                                 FROM insertOrderingFacilityRules
                             ) AS ordering_facility
-                            
+
                     ) row
-                
+
                 )
-                SELECT 
+                SELECT
                     uc.id,
                     billing.create_audit(
                        ${companyId || 1}
@@ -1047,7 +1048,7 @@ module.exports = {
 
             let claimDetails = await claimController.splitClaim(claim, claim.claim_charges, saveClaimParams.insurances, config.get('enableMobileBilling'));
             saveClaimParams.claims = claimDetails;
-            
+
             await claimsData.save(saveClaimParams);
         }
 
