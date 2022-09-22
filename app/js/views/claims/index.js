@@ -1182,7 +1182,9 @@ define(['jquery',
 
                 var orderingFacilityName = claim_data.pos == "OFP" ? claim_data.ptn_ordering_facility_name : claim_data.ordering_facility_name;
                 orderingFacilityName = orderingFacilityName || claim_data.service_facility_name;
-                var orderingFacility = orderingFacilityName ? orderingFacilityName + '(' + claim_data.location + ')' : self.usermessage.selectOrdFacility;
+                var orderingFacility = orderingFacilityName
+                    ? orderingFacilityName + ' (' + claim_data.location + ')'
+                    : self.usermessage.selectOrdFacility;
 
                 var referringProviderNpi;
                 var is_pri_ref_contact;
@@ -1226,8 +1228,6 @@ define(['jquery',
 
                 self.ordering_facility_id = claim_data.pos == "OFP" ? claim_data.ptn_ordering_facility_id : claim_data.ordering_facility_id;
                 self.ordering_facility_id = self.ordering_facility_id || claim_data.service_facility_id || null;
-
-                self.ordering_facility_name = orderingFacilityName;
 
                 self.ordering_facility_contact_id = claim_data.pos == "OFP" ? claim_data.ptn_ordering_facility_contact_id :claim_data.ordering_facility_contact_id;
                 self.ordering_facility_contact_id = self.ordering_facility_contact_id || claim_data.service_facility_contact_id || null;
@@ -1413,7 +1413,7 @@ define(['jquery',
                     self.updateResponsibleList({
                         payer_type: 'POF',
                         payer_id: self.ordering_facility_id,
-                        payer_name: self.ordering_facility_name + self.claimResponsible
+                        payer_name: orderingFacilityName + self.claimResponsible
                     }, null);
                 }
 
@@ -3608,7 +3608,6 @@ define(['jquery',
 
                 }
                 function formatRepoSelection(res) {
-                    self.ordering_facility_name = res.ordering_facility_name;
                     self.ordering_facility_id = res.ordering_facility_id;
                     self.ordering_facility_contact_id = res.id || null;
 
@@ -3629,7 +3628,7 @@ define(['jquery',
                             $('#ddlClaimResponsible').val("POF").change();
                         }
                     }
-                    return res.ordering_facility_name + '(' + res.location + ')';
+                    return res.ordering_facility_name + ' (' + res.location + ')';
                 }
             },
 
@@ -5977,7 +5976,6 @@ define(['jquery',
                 var service_facility_name = patient_details.service_facility_name || self.usermessage.selectOrdFacility;
                 self.ACSelect.readPhy.contact_id = patient_details.rendering_provider_contact_id || patient_details.rendering_provider_contact_id || null;
                 self.ordering_facility_id = patient_details.service_facility_id || null;
-                self.ordering_facility_name = service_facility_name;
                 self.ordering_facility_contact_id = patient_details.service_facility_contact_id || null;
                 self.isClaimWOStudy = true;
 
