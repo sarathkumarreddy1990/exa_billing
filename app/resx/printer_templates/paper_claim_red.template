@@ -382,7 +382,7 @@ function formatRedForm(claimData, servicelineList, pageBrk) {
     }
 
     if(!claimData.subscriber[0].isPrintBillingProviderAddress) {
-	    BillingProDet = getAddressDetails(claimData.payToProvider, 'zipCodePlus');
+	    BillingProDet = getAddressDetails(claimData.payToProvider, 'zip_code_plus');
 	    BillingPh = claimData.payToProvider && claimData.payToProvider.phoneNo ? (getph(getSubstring(claimData.payToProvider.phoneNo, 13))) : '';
 	} else {
 	    BillingProDet = getAddressDetails(claimData.billingProvider, 'zip_code_plus');
@@ -945,8 +945,8 @@ function formatRedForm(claimData, servicelineList, pageBrk) {
                     ],
                     [
                         { text:
-                            (claimData.subscriber && claimData.subscriber[0].claim && claimData.subscriber[0].claim[0].renderingProvider
-                                ? getSubstring(getName(claimData.subscriber[0].claim[0].renderingProvider[0]), 34)
+                            ( renderingProv
+                                ? getSubstring(getName(renderingProv), 34)
                                 : ''
                             ), colSpan: 3, margin: [0, 17, 0, 0]
                         }, {}, {},
