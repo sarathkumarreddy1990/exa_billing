@@ -788,6 +788,7 @@ function formatSingleClaim(claimData, servicelineList) {
     serviceFacNPI = serviceFac && serviceFac.NPINO || "";
     pos = claimDet && claimDet.POS || "";
     billType = claimDet && claimDet.billingType || "";
+    let claimDate = claimDet && claimDet.claimDate;
 
     if (pos === "12") {
         patientDet.fullName = "PRIVATE HOME" ;
@@ -1923,16 +1924,12 @@ function formatSingleClaim(claimData, servicelineList) {
                                 widths: [145],
                                 body: [
                                     [
-                                        {text: claimData.subscriber && claimData.subscriber[0].claim && claimData.subscriber[0].claim[0].renderingProvider
-                                            ? getName(claimData.subscriber[0].claim[0].renderingProvider[0],34)
-                                            : '.'
-                                        }
+                                        {text: renderingProv ? getName(renderingProv, 34) : '.' },
                                     ],
                                     [
                                         {text:
-                                            (claimData.subscriber && claimData.subscriber[0].claim && claimData.subscriber[0].claim[0].claimDate
-                                                ? (((claimData.subscriber[0].claim[0].claimDate).toString().substring(4,6)) + " " + ((claimData.subscriber[0].claim[0].claimDate).toString().substring(6,8))
-                                                    + " " + ((claimData.subscriber[0].claim[0].claimDate).toString().substring(0,4)))
+                                            ( claimDate
+                                                ? claimDate.toString().substring(4,6) + " " + claimDate.toString().substring(6,8) + " " + claimDate.toString().substring(0,4)
                                                 : ''
                                             ), alignment: 'right', margin: [0,-5, 5, 0]
                                         }
