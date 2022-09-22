@@ -1929,7 +1929,7 @@ function formatSingleClaim(claimData, servicelineList) {
                                         }
                                     ],
                                     [
-                                        {text: 
+                                        {text:
                                             (claimData.subscriber && claimData.subscriber[0].claim && claimData.subscriber[0].claim[0].claimDate
                                                 ? (((claimData.subscriber[0].claim[0].claimDate).toString().substring(4,6)) + " " + ((claimData.subscriber[0].claim[0].claimDate).toString().substring(6,8))
                                                     + " " + ((claimData.subscriber[0].claim[0].claimDate).toString().substring(0,4)))
