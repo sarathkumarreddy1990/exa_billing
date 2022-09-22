@@ -944,8 +944,12 @@ function formatRedForm(claimData, servicelineList, pageBrk) {
                         {}, {}
                     ],
                     [
-                        { text: claimData.subscriber && claimData.subscriber[0].claim && claimData.subscriber[0].claim[0].renderingProvider ? getSubstring(getName(claimData.subscriber[0].claim[0].renderingProvider[0]), 17) : '', colSpan: 2, margin: [0, 17, 0, 0] },
-                        {}, {},
+                        { text:
+                            ( renderingProv
+                                ? getSubstring(getName(renderingProv), 34)
+                                : ''
+                            ), colSpan: 3, margin: [0, 17, 0, 0]
+                        }, {}, {},
                         { text: serviceFacDet, colSpan: 4 },
                         {}, {}, {},
                         {
