@@ -788,6 +788,7 @@ function formatSingleClaim(claimData, servicelineList) {
     serviceFacNPI = serviceFac && serviceFac.NPINO || "";
     pos = claimDet && claimDet.POS || "";
     billType = claimDet && claimDet.billingType || "";
+    let claimDate = claimDet && claimDet.claimDate;
 
     if (pos === "12") {
         patientDet.fullName = "PRIVATE HOME" ;
@@ -1371,7 +1372,7 @@ function formatSingleClaim(claimData, servicelineList) {
                                         {text:"DATE"}
                                     ],
                                 ]
-                            }, layout: 'noBorders', border: [true, true, false, true]
+                            }, layout: 'noBorders', border: [true, false, false, true]
                         },
                         {text:"a."},{text:"b.", fillColor: '#808080'},
                         {text:"a."},{text:"b.", fillColor: '#808080', colSpan:2},{}
@@ -1918,13 +1919,20 @@ function formatSingleClaim(claimData, servicelineList) {
                     [
                         {
                             style: 'Ans',
-                            margin: [0,20,0,0],
+                            margin: [-10,20,0,0],
                             table: {
-                                widths:[100, 45],
+                                widths: [145],
                                 body: [
                                     [
-                                        {text: (claimData.subscriber && claimData.subscriber[0].claim && claimData.subscriber[0].claim[0].renderingProvider ? getName(claimData.subscriber[0].claim[0].renderingProvider[0], 17) : '.') },
-                                        {text: (claimData.subscriber && claimData.subscriber[0].claim && claimData.subscriber[0].claim[0].claimDate ? (((claimData.subscriber[0].claim[0].claimDate).toString().substring(4,6)) + " " + ((claimData.subscriber[0].claim[0].claimDate).toString().substring(6,8)) + " " + ((claimData.subscriber[0].claim[0].claimDate).toString().substring(0,4)) ) : '') }
+                                        {text: renderingProv ? getName(renderingProv, 34) : '.' },
+                                    ],
+                                    [
+                                        {text:
+                                            ( claimDate
+                                                ? claimDate.toString().substring(4,6) + " " + claimDate.toString().substring(6,8) + " " + claimDate.toString().substring(0,4)
+                                                : ''
+                                            ), alignment: 'right', margin: [0,-5, 5, 0]
+                                        }
                                     ]
                                 ]
                             },layout: 'noBorders'
