@@ -382,7 +382,7 @@ function formatRedForm(claimData, servicelineList, pageBrk) {
     }
 
     if(!claimData.subscriber[0].isPrintBillingProviderAddress) {
-	    BillingProDet = getAddressDetails(claimData.payToProvider, 'zip_code_plus');
+	    BillingProDet = getAddressDetails(claimData.payToProvider, 'zipCodePlus');
 	    BillingPh = claimData.payToProvider && claimData.payToProvider.phoneNo ? (getph(getSubstring(claimData.payToProvider.phoneNo, 13))) : '';
 	} else {
 	    BillingProDet = getAddressDetails(claimData.billingProvider, 'zip_code_plus');
