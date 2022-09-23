@@ -60,7 +60,7 @@ const api= {
 
             charges.forEach(item => {
                 if (item.charge_type === 'ordering_facility_invoice') {
-                    if (!item.is_billing_rule_cpt_add_fee) {
+                    if (!item.is_billing_rule_cpt_add_fee && !item.is_billing_rule_applied) {
                         item.is_custom_bill_fee = false;
                         item.bill_fee = 0;
                     }
@@ -73,7 +73,9 @@ const api= {
                     if ((isInsuranceAvailable
                         && item.is_billing_rule_applied
                         && item.is_billing_rule_cpt_add_fee) ||
-                        (!item.is_billing_rule_cpt_add_fee)) {
+                        (!item.is_billing_rule_cpt_add_fee
+                        && !(claim.billing_type === 'split' && item.is_billing_rule_applied))
+                    ) {
                         item.is_custom_bill_fee = false;
                         item.bill_fee = 0;
                     }
@@ -110,6 +112,13 @@ const api= {
                 });
 
                 otherCharges = [];
+            } else {
+                otherCharges.forEach(charge => {
+                    if (charge.is_billing_rule_applied) {
+                        charge.is_custom_bill_fee = false;
+                        charge.bill_fee = 0;
+                    }                    
+                });
             }
 
             if (orderingFacilityInvoiceCharges.length) {
