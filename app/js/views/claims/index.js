@@ -1039,46 +1039,44 @@ define(['jquery',
             },
 
             appendPOSOptions: function(posCode) {
-                var self = this;
+                var options = [];
                 var $ddlServiceFacilityLocation = $('#ddlServiceFacilityLocation');
                 $ddlServiceFacilityLocation.empty();
                 $ddlServiceFacilityLocation.append($('<option/>', { value: "", text: "Select" }));
 
-                var options = [];
-
-                if (self.facilityId) {
+                if (this.facilityId) {
                     options.push($('<option/>', {
                         value: 'F',
                         text: $('#ddlFacility option:selected').text()
                     }));
                 }
 
-                if (self.cur_patient_id) {
+                if (this.cur_patient_id) {
                     options.push($('<option/>', {
                         value: 'PR',
-                        text: self.cur_patient_name
+                        text: this.cur_patient_name
                     }));
                 }
 
-                if (self.ACSelect.refPhy.contact_id) {
+                if (this.ACSelect.refPhy.contact_id) {
                     options.push($('<option/>', {
                         value: 'OP',
-                        text: self.ACSelect.refPhy.Desc
+                        text: this.ACSelect.refPhy.Desc
                     }));
                 }
 
-                if (self.ordering_facility_contact_id) {
+                if (this.ordering_facility_contact_id) {
                     options.push($('<option/>', {
                         value: 'OF',
-                        text: self.ordering_facility_name
+                        text: this.ordering_facility_name
                     }));
                 }
 
-                if (self.ptn_ordering_facility_contact_id
-                    && ~~self.ptn_ordering_facility_contact_id !== ~~self.ordering_facility_contact_id) {
+                if (this.ptn_ordering_facility_contact_id
+                    && ~~this.ptn_ordering_facility_contact_id !== ~~this.ordering_facility_contact_id) {
                     options.push($('<option/>', {
                         value: 'OFP',
-                        text: self.ptn_ordering_facility_name
+                        text: this.ptn_ordering_facility_name
                     }));
                 }
 
@@ -1088,8 +1086,8 @@ define(['jquery',
                     $('#ddlServiceFacilityLocation').val(posCode);
                 }
 
-                if (self.isServiceFacilityLocation(posCode)) {
-                    self.updateResponsibleList({
+                if (this.isServiceFacilityLocation(posCode)) {
+                    this.updateResponsibleList({
                         payer_type: 'PSF',
                         payer_id: $('#ddlServiceFacilityLocation option:selected').val(),
                         payer_name: $('#ddlServiceFacilityLocation option:selected').text() + ' (Service Facility)'
