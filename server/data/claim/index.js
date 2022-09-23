@@ -140,11 +140,11 @@ module.exports = {
                                 , sc.modifier3_id AS m3
                                 , sc.modifier4_id AS m4
                                 , string_to_array(regexp_replace(study_cpt_info->'diagCodes_pointer', '[^0-9,]', '', 'g'),',')::int[] AS icd_pointers
-                                , (CASE 
-                                    WHEN (${params.isMobileBillingEnabled} AND (SELECT billing_type from get_ordering_facility_data) = 'facility') AND NOT sc.is_custom_bill_fee 
+                                , (CASE
+                                    WHEN (${params.isMobileBillingEnabled} AND (SELECT billing_type from get_ordering_facility_data) = 'facility') AND NOT sc.is_custom_bill_fee
                                     THEN billing.get_computed_bill_fee(null, cpt_codes.id, sc.modifier1_id, sc.modifier2_id, sc.modifier3_id, sc.modifier4_id, 'billing', 'ordering_facility',
                                         (SELECT ordering_facility_contact_id FROM get_ordering_facility_data), o.facility_id)::NUMERIC
-                                    WHEN (SELECT claim_patient_insurance_id FROM insurances where coverage_level = 'primary') IS NOT NULL AND NOT sc.is_custom_bill_fee 
+                                    WHEN (SELECT claim_patient_insurance_id FROM insurances where coverage_level = 'primary') IS NOT NULL AND NOT sc.is_custom_bill_fee
                                     THEN billing.get_computed_bill_fee(null,cpt_codes.id,sc.modifier1_id,sc.modifier2_id,sc.modifier3_id,sc.modifier4_id,'billing','primary_insurance',
                                         (SELECT claim_patient_insurance_id FROM insurances where coverage_level = 'primary'), o.facility_id)::NUMERIC
                                     WHEN sc.is_custom_bill_fee
@@ -256,7 +256,7 @@ module.exports = {
                                         bfs.default_provider_id AS fac_billing_provider_id,
                                         orders.order_status AS order_status,
                                         order_info -> 'pos_type_code' AS pos_type_code,
-                                        order_info -> 'pos_map_code' AS pos_map_code,
+                                        order_info -> 'pos' AS pos_map_code,
                                         facilities.place_of_service_id AS fac_place_of_service_id,
                                         p.full_name AS patient_name,
                                         p.account_no AS patient_account_no,
@@ -732,7 +732,7 @@ module.exports = {
                     , claim_ins.secondary_patient_insurance_id
                     , claim_ins.tertiary_patient_insurance_id
                     , c.place_of_service_id
-                    , c.pos_map_id
+                    , c.pos_map_code
                     , c.billing_code_id
                     , c.billing_class_id
                     , c.created_by
@@ -822,6 +822,11 @@ module.exports = {
                     , pof.state AS ordering_facility_state
                     , pof.zip_code AS ordering_facility_zip
                     , pofc.location
+                    , ofcp.id AS ptn_ordering_facility_contact_id
+                    , ofcp.location AS ptn_location
+                    , ofp.name AS ptn_ordering_facility_name
+                    , ofp.id AS ptn_ordering_facility_id
+                    , ofcp.place_of_service_id AS ptn_ord_fac_place_of_service
                     , ipp.insurance_info->'Address1' AS p_address1
                     , ipp.insurance_info->'PayerID' AS p_payer_id
                     , ipp.insurance_info->'City' AS p_city
@@ -1134,6 +1139,8 @@ module.exports = {
                         LEFT JOIN public.facilities f ON c.facility_id = f.id
                         LEFT JOIN billing.claim_status cst ON cst.id = c.claim_status_id
                         LEFT JOIN public.skill_codes psc ON psc.id = c.can_ahs_skill_code_id
+                        LEFT JOIN public.ordering_facility_contacts ofcp ON ofcp.id = p.default_ordering_facility_contact_id
+                        LEFT JOIN public.ordering_facilities ofp ON ofp.id = ofcp.ordering_facility_id
                     WHERE
                         c.id = ${id}`);
 

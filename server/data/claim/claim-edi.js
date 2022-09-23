@@ -54,7 +54,7 @@ module.exports = {
 						, claim_icd.icd_id AS "claim_icd_code1"
 						, CASE
                             WHEN bc.payer_type = 'service_facility_location' THEN
-                                public.get_claim_service_facility_address(bc.id, bc.pos_map_id)
+                                public.get_claim_service_facility_address(bc.id, bc.pos_map_code, bc.patient_id)
                             WHEN bc.payer_type = 'primary_insurance' THEN
                                 json_build_object('payer_name', p_ip.insurance_name
                                 , 'payer_address1', p_ip.insurance_info->'Address1'
@@ -496,13 +496,10 @@ module.exports = {
 										bgcp.adjustment_ordering_provider_total::NUMERIC::TEXT AS "claimAdjustmentProvider",
 										bgcp.payment_patient_total::numeric::text AS "claimPaymentPatient",
 										bgcp.payments_applied_total::numeric::text AS "claimPaymentTotal",
-										CASE 
+										CASE
 											WHEN ${isMobileBillingEnabled}
 											THEN (
-												SELECT 
-													(more_info->'pos_code')
-												FROM pos_map 
-												WHERE id = claims.pos_map_id
+												order_details.pos
 											)
 											ELSE (
 												SELECT
@@ -586,7 +583,7 @@ module.exports = {
                             , (SELECT JSONB_AGG(servicefacility) "servicefacility"
                                     FROM
                                         ( SELECT
-                                            public.get_claim_service_facility_address(claims.id,claims.pos_map_id) AS servicefacility
+                                            public.get_claim_service_facility_address(claims.id, claims.pos_map_code, claims.patient_id) AS servicefacility
                                         )  AS servicefacility)
 							,(SELECT Json_agg(Row_to_json(referringProvider)) "referringProvider"
 									FROM
@@ -870,10 +867,12 @@ module.exports = {
                                             LEFT JOIN LATERAL (
 					                            SELECT
                                                     s.order_id
+                                                    , o.order_info->'pos_type_code' AS pos
                                                 FROM
                                                     public.studies s
                                                 INNER JOIN billing.charges_studies AS cs ON cs.study_id = s.id
                                                 INNER JOIN billing.charges AS c on c.id = cs.charge_id
+                                                INNER JOIN public.orders o ON o.id = s.order_id
                                                 WHERE
                                                     c.claim_id = claims.id
                                                 ORDER BY s.order_id
