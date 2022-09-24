@@ -4971,7 +4971,8 @@ define(['jquery',
                 self.showZipPlus($('#txt' + flag + 'ZipPlus'), $('#ddl' + flag + 'Country').val());
 
                 if (self.checkAddressDetails(flag)) {
-                    var msg = commonjs.geti18NString("messages.confirm.billing.changeAddressDetails")
+                    var msg = commonjs.geti18NString("messages.confirm.billing.changeAddressDetails");
+
                     if (confirm(msg)) {
                         $('#txt' + flag + 'SubPriAddr').val('');
                         $('#txt' + flag + 'SubSecAddr').val('');
@@ -4980,6 +4981,11 @@ define(['jquery',
                         $('#ddl' + flag + 'State').val('');
                         $('#txt' + flag + 'ZipCode').val('');
                         $('#txt' + flag + 'ZipPlus').val('');
+
+                        if (relationShip === "self") {
+                            $('#txt' + flag + 'SubPriAddr').val(self.address1);
+                            $('#txt' + flag + 'SubSecAddr').val(self.address2);
+                        }
                     }
                 }
                 else {
