@@ -34,7 +34,7 @@ module.exports = {
                 , pos.description AS pos_name
                 , bpr.name AS billing_provider_name
                 , orders.order_no
-                , public.get_service_facility_name(bc.id, bc.pos_map_id) AS service_location
+                , public.get_service_facility_name(bc.id, bc.pos_map_code, bc.patient_id) AS service_location
             FROM billing.claims bc
             INNER JOIN billing.claim_status st ON st.id = bc.claim_status_id
             INNER JOIN public.facilities f ON f.id = bc.facility_id
@@ -755,7 +755,7 @@ module.exports = {
                             WHEN payer_type = 'referring_provider' THEN ref_provider.full_name
                             WHEN payer_type = 'rendering_provider' THEN render_provider.full_name
                             WHEN payer_type = 'patient' THEN patients.full_name
-                            WHEN payer_type = 'service_facility_location' THEN public.get_service_facility_name(claims.id, claims.pos_map_id)
+                            WHEN payer_type = 'service_facility_location' THEN public.get_service_facility_name(claims.id, claims.pos_map_code, claims.patient_id)
                           END) AS payer_name
                         , claim_dt
                         , claims.facility_id

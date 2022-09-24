@@ -17,7 +17,7 @@ WITH agg_claim AS(
          pippt.description AS provider_type
         , CASE
             WHEN bc.payer_type = 'service_facility_location' THEN
-                public.get_service_facility_name(bc.id, bc.pos_map_id)
+                public.get_service_facility_name(bc.id, bc.pos_map_code, bc.patient_id)
             ELSE pof.name
           END AS facility_name
     	, f.id as facility_id
