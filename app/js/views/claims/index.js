@@ -1489,10 +1489,10 @@ define(['jquery',
 
                     var ddlPOSType = $('#ddlPOSType');
 
-                    if (app.isMobileBillingEnabled && ['facility', 'global'].indexOf(claim_data.billing_type) > -1) {
-                        ddlPOSType.val(claim_data.ord_fac_place_of_service || '');
-                    } else if (["can_MB", "can_ON"].indexOf(app.billingRegionCode) === -1 && claim_data.pos_type_code && claim_data.pos_type_code != '') {
+                    if (claim_data.pos_type_code && app.isMobileBillingEnabled && ["can_MB", "can_ON"].indexOf(app.billingRegionCode) === -1) {
                         ddlPOSType.val($('option[data-code = ' + claim_data.pos_type_code.trim() + ']').val());
+                    } else if (app.isMobileBillingEnabled && ['facility', 'global'].indexOf(claim_data.billing_type) > -1) {
+                        ddlPOSType.val(claim_data.ord_fac_place_of_service || '');
                     } else if (app.country_alpha_3_code !== 'can') {
                         ddlPOSType.val(claim_data.fac_place_of_service_id || '');
                     }
