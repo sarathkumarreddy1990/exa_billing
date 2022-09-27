@@ -78,7 +78,7 @@ aged_ar_summary_details AS(
                 WHEN payer_type = 'referring_provider' THEN  ppr.full_name
                 WHEN payer_type = 'patient' THEN get_full_name(pp.last_name,pp.first_name)
                 WHEN payer_type = 'ordering_facility' THEN pof.name
-                WHEN payer_type = 'service_facility_location' THEN public.get_service_facility_name(bc.id, bc.pos_map_id)
+                WHEN payer_type = 'service_facility_location' THEN public.get_service_facility_name(bc.id, bc.pos_map_code, bc.patient_id)
             END
        END AS "Payer Name",
     <%} else {%>
@@ -89,7 +89,7 @@ aged_ar_summary_details AS(
           WHEN payer_type = 'referring_provider' THEN  ppr.full_name
           WHEN payer_type = 'patient' THEN get_full_name(pp.last_name,pp.first_name)
           WHEN payer_type = 'ordering_facility' THEN pof.name
-          WHEN payer_type = 'service_facility_location' THEN public.get_service_facility_name(bc.id, bc.pos_map_id)
+          WHEN payer_type = 'service_facility_location' THEN public.get_service_facility_name(bc.id, bc.pos_map_code, bc.patient_id)
        END AS "Payer Name",
     <% } %>
     pippt.description AS "Provider Type",
@@ -213,7 +213,7 @@ aged_ar_summary_details AS(
              WHEN payer_type = 'referring_provider' THEN  ppr.full_name
              WHEN payer_type = 'patient' THEN get_full_name(pp.last_name,pp.first_name)
              WHEN payer_type = 'ordering_facility' THEN pof.name
-             WHEN payer_type = 'service_facility_location' THEN public.get_service_facility_name(bc.id, bc.pos_map_id)
+             WHEN payer_type = 'service_facility_location' THEN public.get_service_facility_name(bc.id, bc.pos_map_code, bc.patient_id)
           END AS "Payer Name",
         pippt.description AS "Provider Type",
         CASE

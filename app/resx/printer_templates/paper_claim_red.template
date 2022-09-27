@@ -305,12 +305,12 @@ function getAddressDetails(claimData, zipPlus) {
         claimData.fullName = claimData.fullName || claimData.lastName;
         if (claimData.addressLine2) {
             details.push(
-                (getSubstring(claimData.fullName, 30)) + '\n' +
+                (getSubstring(claimData.fullName, 40)) + '\n' +
                 (
                     ( claimData.addressLine2
                         ? (getSubstring(((claimData.addressLine1
                             ?(claimData.addressLine1+ ', ')
-                            :'')  + claimData.addressLine2),30))
+                            :'')  + claimData.addressLine2),40))
                         : ''
                     ) + '\n' +
                     (claimData.zipCode
@@ -321,10 +321,10 @@ function getAddressDetails(claimData, zipPlus) {
             );
         } else {
             details.push(
-                (getSubstring(claimData.fullName, 30)) + '\n' +
+                (getSubstring(claimData.fullName, 40)) + '\n' +
                 (
                     (claimData.addressLine1
-                        ? getSubstring(claimData.addressLine1, 30)
+                        ? getSubstring(claimData.addressLine1, 40)
                         : '') + '\n'
                         + (claimData.zipCode
                             ? (getCityStatePincode(claimData, "city", "state", "zipCode", zipPlus, 34))
@@ -936,7 +936,7 @@ function formatRedForm(claimData, servicelineList, pageBrk) {
             style: 'myTable',
             margin: [8, 7, 0, 0],
             table: {
-                widths: [103, 8, 22, 102, 30, 45, 0, 40, 10, 0, 35, 45, 55, 10],
+                widths: [103, 8, 22, 102, 30, 45, 0, 60, 10, 0, 35, 45, 55, 10],
                 heights: [22, 0],
                 body: [
                     [
@@ -961,10 +961,10 @@ function formatRedForm(claimData, servicelineList, pageBrk) {
                                 : ''
                             ), colSpan: 3, margin: [0, 17, 0, 0]
                         }, {}, {},
-                        { text: serviceFacDet, colSpan: 4 },
+                        { text: serviceFacDet, colSpan: 4, margin: [-6, 0, 0, 0] },
                         {}, {}, {},
                         {
-                            text: BillingProDet, colSpan: 5
+                            text: BillingProDet, colSpan: 5, margin: [-6, 0, 0, 0]
                         },
                         {}, {}, {}, {},
                         { text: BillingPh, colSpan: 2 , margin:[-65, -10, 0, 0]}, {}

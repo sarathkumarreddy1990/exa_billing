@@ -435,9 +435,8 @@ module.exports = {
                             , ref_pr.full_name AS ref_prov_full_name
                             , p.full_name AS patient_full_name
                             , f.facility_name
-                            , c.pos_map_id
-                            , pm.more_info->'pos_dispatching_address' AS pos_map_code
-                            , public.get_service_facility_name(c.id, c.pos_map_id) AS service_location
+                            , c.pos_map_code
+                            , public.get_service_facility_name(c.id, c.pos_map_code, c.patient_id) AS service_location
                         FROM
                             billing.claims c
                         INNER JOIN public.patients p ON p.id = c.patient_id`
@@ -455,7 +454,6 @@ module.exports = {
                         LEFT JOIN public.ordering_facility_contacts pofc ON pofc.id = c.ordering_facility_contact_id
                         LEFT JOIN public.ordering_facilities pof ON pof.id = pofc.ordering_facility_id
                         LEFT JOIN public.facilities f ON f.id = c.facility_id
-                        LEFT JOIN public.pos_map pm ON pm.id = c.pos_map_id
                         WHERE
                             c.id = ${params.id}`);
 
