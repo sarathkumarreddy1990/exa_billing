@@ -568,8 +568,8 @@ module.exports = {
 						if (companyCode === 'QMI') {
 							sql.append(SQL`
 								, CASE
-								    WHEN ('US' = ANY(bp_charges.mod_array) AND insurance_provider_details.claim_filing_indicator_code = 'MB')
-									    OR ('93306' = ANY(bp_charges.cpt_array) OR '93308' = ANY(bp_charges.cpt_array))
+								    WHEN (('US' = ANY(bp_charges.mod_array) AND insurance_provider_details.claim_filing_indicator_code = 'MB')
+									    OR ('93306' = ANY(bp_charges.cpt_array) OR '93308' = ANY(bp_charges.cpt_array))) AND bp_npi.npi_no IS NOT NULL
 								    THEN bp_npi.npi_no
 										ELSE( SELECT
 											    npi_no
