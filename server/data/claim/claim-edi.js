@@ -216,10 +216,18 @@ module.exports = {
     },
 
     getClaimData: async (params) => {
+		let {
+			claimIds,
+			payerId,
+			payerType,
+			companyCode,
+			from = ''
+		} = params || {};
 
-        let claimIds = params.claimIds.split(',');
-        params.payerId = params.payerId || null;
-        params.payerType = params.payerType || null;
+		claimIds = claimIds.split(',');
+		payerId = payerId || null;
+		payerType = payerType || null;
+		companyCode = companyCode?.toUpperCase() || '';
 
         let sql = SQL`
             SELECT
@@ -387,6 +395,7 @@ module.exports = {
 										insurance_provider_details.is_name_required as "isNameRequired",
 										insurance_provider_details.is_signature_required as "isSignatureRequired",
 										insurance_provider_details.is_print_billing_provider_address as "isPrintBillingProviderAddress",
+										insurance_provider_details.is_split_claim_enabled AS "isSplitClaimEnabled",
 										subscriber_firstname as "firstName",
 										subscriber_lastname as "lastName",
 										subscriber_middlename as "middleName",
@@ -449,6 +458,7 @@ module.exports = {
 															concat( patient_info->'employerCity',' ', patient_info->'employerState',' ', patient_info->'employerZip' ) AS "employerAddressDet",
 															get_issuer_details(patients.id, 'uli_phn') AS phn_details,
 															birth_date::text as dob,
+															date_part('year', age(date(timezone(facilities.time_zone,claim_dt)), birth_date)::interval) AS age,
 															to_char(birth_date, 'YYYYMMDD')  as "dobFormat",
 											(  CASE gender
 																WHEN 'Male' THEN 'M'
@@ -553,32 +563,61 @@ module.exports = {
 										,(SELECT Json_agg(Row_to_json(icd)) "icd" FROM
 										(SELECT icd_id,  code,description,(CASE code_type
 											WHEN 'icd9' THEN '0'
-											WHEN 'icd10' THEN '1' END ) as code_type   FROM billing.claim_icds ci INNER JOIN icd_codes ON icd_codes.id=ci.icd_id  WHERE ci.claim_id = claims.id order by  ci.id ) as icd)
+											WHEN 'icd10' THEN '1' END ) as code_type   FROM billing.claim_icds ci INNER JOIN icd_codes ON icd_codes.id=ci.icd_id  WHERE ci.claim_id = claims.id order by  ci.id ) as icd)`
 
+						if (companyCode === 'QMI') {
+							sql.append(SQL`
+								, CASE
+								    WHEN ('US' = ANY(bp_charges.mod_array) AND insurance_provider_details.claim_filing_indicator_code = 'MB')
+									    OR ('93306' = ANY(bp_charges.cpt_array) OR '93308' = ANY(bp_charges.cpt_array))
+								    THEN bp_npi.npi_no
+										ELSE( SELECT
+											    npi_no
+											FROM billing.providers bpr
+											WHERE bpr.id = bfs.default_provider_id)
+								END AS "billingProviderNPI" `)
+						}
+						sql.append(SQL`
 							,(SELECT Json_agg(Row_to_json(renderingProvider)) "renderingProvider"
 									FROM
 										(SELECT
-											last_name as "lastName",
-											first_name as "firstName",
-											middle_initial as "middileName",
-											suffix as "suffix",
-											'' as "prefix",
-											provider_info->'TXC' as "taxonomyCode",
-											provider_info->'NPI' as "NPINO",
-											provider_info->'LicenseNo' as "licenseNo",
-											insurance_provider_details.claim_filing_indicator_code as "claimFilingCode",
-											insurance_name as "payerName",
-											rendering_pro_contact.contact_info->'NAME' as "contactName",
-											rendering_pro_contact.contact_info->'ADDR1' as "addressLine1",
-											rendering_pro_contact.contact_info->'ADDR2' as "addressLine2",
-											rendering_pro_contact.contact_info->'CITY' as "city",
-											rendering_pro_contact.contact_info->'STATE' as "state",
-											rendering_pro_contact.contact_info->'ZIP' as "zip",
-											rendering_pro_contact.contact_info->'ZIPPLUS' as "zipPlus"
-											FROM provider_contacts   rendering_pro_contact
-											LEFT JOIN providers as render_provider ON render_provider.id=rendering_pro_contact.provider_id
-											WHERE  rendering_pro_contact.id=claims.rendering_provider_contact_id)
-											as renderingProvider)
+										last_name AS "lastName",
+										first_name AS "firstName",
+										middle_initial AS "middileName",
+										suffix AS "suffix",
+										'' AS "prefix",
+										provider_info->'TXC' AS "taxonomyCode",
+										provider_info->'NPI' AS "NPINO",
+										provider_info->'LicenseNo' AS "licenseNo",
+										insurance_provider_details.claim_filing_indicator_code AS "claimFilingCode",
+										insurance_name AS "payerName",
+										rpc.contact_info->'NAME' AS "contactName",
+										rpc.contact_info->'ADDR1' AS "addressLine1",
+										rpc.contact_info->'ADDR2' AS "addressLine2",
+										rpc.contact_info->'CITY' AS "city",
+										rpc.contact_info->'STATE' AS "state",
+										rpc.contact_info->'ZIP' AS "zip",
+										rpc.contact_info->'ZIPPLUS' AS "zipPlus"
+										FROM provider_contacts rpc
+										LEFT JOIN providers AS render_provider ON render_provider.id = rpc.provider_id
+										LEFT JOIN LATERAL (
+											SELECT
+												st.approving_provider_id AS id
+											FROM
+												study_transcriptions st
+											WHERE
+												'QMI' = ${companyCode}
+												AND 'electronic_claim' != ${from}
+												AND st.study_id = order_details.study_id
+												AND st.approving_provider_id IS NOT NULL
+											ORDER BY
+												st.approved_dt DESC
+											LIMIT 1
+										) approving_provider ON order_details.study_status = 'APP'
+										WHERE
+											rpc.id = COALESCE(approving_provider.id, claims.rendering_provider_contact_id)
+									)
+							AS renderingProvider)
 
                             , (SELECT JSONB_AGG(servicefacility) "servicefacility"
                                     FROM
@@ -665,7 +704,7 @@ module.exports = {
 					FROM   patient_insurances
 					LEFT JOIN billing.insurance_provider_details  other_ins_details ON other_ins_details.insurance_provider_id = patient_insurances.insurance_provider_id
 									WHERE  patient_insurances.id =
-						(  CASE COALESCE(${params.payerType}, payer_type)
+						( CASE COALESCE(${payerType}, payer_type)
 						WHEN 'primary_insurance' THEN claim_ins.secondary_patient_insurance_id
 						WHEN 'secondary_insurance' THEN claim_ins.primary_patient_insurance_id
 						WHEN 'tertiary_insurance' THEN claim_ins.primary_patient_insurance_id
@@ -685,12 +724,14 @@ module.exports = {
 					insurance_info->'PhoneNo' as "phoneNo",
 					insurance_info->'ZipPlus' as "zipPlus",
 					pippt.code	as "providerTypeCode",
-					pippt.description	as "providerTypeDescription"
+					pippt.description	as "providerTypeDescription",
+					ipd.claim_filing_indicator_code
 					FROM   patient_insurances
 										inner join insurance_providers on insurance_providers.id=insurance_provider_id
 										LEFT JOIN public.insurance_provider_payer_types pippt ON pippt.id = insurance_providers.provider_payer_type_id
+										INNER JOIN billing.insurance_provider_details ipd ON ipd.insurance_provider_id = insurance_providers.id
 									WHERE  patient_insurances.id =
-						(  CASE COALESCE(${params.payerType}, payer_type)
+						( CASE COALESCE(${payerType}, payer_type)
 						WHEN 'primary_insurance' THEN claim_ins.secondary_patient_insurance_id
 						WHEN 'secondary_insurance' THEN claim_ins.primary_patient_insurance_id
 						WHEN 'tertiary_insurance' THEN claim_ins.primary_patient_insurance_id
@@ -826,18 +867,54 @@ module.exports = {
 					INNER JOIN facilities ON facilities.id=claims.facility_id
                     INNER JOIN patients ON patients.id=claims.patient_id
                     LEFT JOIN billing.delay_reasons bdr ON bdr.id = claims.delay_reason_id `
-            .append(getClaimPatientInsurances('claims'))
+				)
+
+		if (companyCode === 'QMI') {
+			sql.append(SQL`
+				LEFT JOIN billing.facility_settings bfs ON facilities.id = bfs.facility_id
+				LEFT JOIN ( 
+					SELECT
+					    npi_no
+					FROM billing.claims
+					INNER JOIN ( SELECT
+							bpr.id AS bpr_id
+						    , npi_no
+						    , string_to_array(code, ' ') AS code_array
+						FROM billing.providers bpr
+					)bpr ON  bpr.bpr_id = claims.billing_provider_id
+					INNER JOIN facilities ON facilities.id = claims.facility_id
+					WHERE 'US' = code_array[3] AND facilities.facility_info -> 'facility_state' = code_array[2]
+					LIMIT 1
+				)bp_npi ON TRUE
+				INNER JOIN (
+					SELECT
+					    ARRAY_AGG(cc.display_code)AS cpt_array
+					    , bch.claim_id
+					    , ARRAY_AGG(studies.modality_code ) AS mod_array
+					FROM billing.charges bch
+					INNER JOIN billing.charges_studies bcs ON bcs.charge_id = bch.id
+					INNER JOIN public.cpt_codes cc ON cc.id = bch.cpt_id
+					INNER JOIN (
+						SELECT
+						    id
+						    , (SELECT modality_code FROM modalities WHERE modalities.id = s.modality_id)
+						FROM public.studies s
+					) studies ON studies.id = bcs.study_id
+					GROUP BY claim_id
+				)bp_charges ON bp_charges.claim_id = claims.id `)
+		}
+		sql.append(getClaimPatientInsurances('claims'))
             .append(SQL`
                     LEFT JOIN LATERAL (
                         SELECT
-                        (CASE COALESCE(${params.payerType}, payer_type)
+                        (CASE COALESCE(${payerType}, payer_type)
                         WHEN 'primary_insurance' THEN 'primary'
                         WHEN 'secondary_insurance' THEN 'secondary'
                         WHEN 'tertiary_insurance' THEN 'tertiary'
                         END) AS coverage_level
                     ) AS ins_coverage_level ON TRUE
                     LEFT JOIN patient_insurances pi ON pi.id = (
-												CASE COALESCE(${params.payerType}, payer_type)
+												CASE COALESCE(${payerType}, payer_type)
 													WHEN 'primary_insurance' THEN claim_ins.primary_patient_insurance_id
 													WHEN 'secondary_insurance' THEN claim_ins.secondary_patient_insurance_id
 													WHEN 'tertiary_insurance' THEN claim_ins.tertiary_patient_insurance_id
@@ -867,6 +944,8 @@ module.exports = {
                                             LEFT JOIN LATERAL (
 					                            SELECT
                                                     s.order_id
+                                                    , s.id AS study_id
+                                                    , s.study_status AS study_status
                                                     , o.order_info->'pos_type_code' AS pos
                                                 FROM
                                                     public.studies s
