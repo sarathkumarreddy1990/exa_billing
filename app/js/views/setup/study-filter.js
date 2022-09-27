@@ -1837,11 +1837,14 @@ define([
                                     $('#btnClaimsCompleteRefresh').click();
                                 commonjs.hideLoading();
                                 self.showGrid();
-                                if (!$("#ddlStudyDefaultTab option[value='" + response[0].id + "']").length)
+
+                                var currentFilterOption = $("#ddlStudyDefaultTab option[value='" + response[0].id + "']");
+
+                                if (!currentFilterOption.length)
                                     $('#ddlStudyDefaultTab').append("<option value=" + response[0].id + ">" + filterName + "</option>");
 
-                                if ($("#ddlStudyDefaultTab option[value='" + response[0].id + "']").length && !isActive) {
-                                    $("#ddlStudyDefaultTab option[value='" + response[0].id + "']")[0].remove();
+                                if (!isActive && currentFilterOption.length) {
+                                    currentFilterOption[0].remove();
                                 }
 
                                 if (window.appLayout && window.appLayout.refreshAppSettings)
