@@ -1839,6 +1839,11 @@ define([
                                 self.showGrid();
                                 if (!$("#ddlStudyDefaultTab option[value='" + response[0].id + "']").length)
                                     $('#ddlStudyDefaultTab').append("<option value=" + response[0].id + ">" + filterName + "</option>");
+
+                                if ($("#ddlStudyDefaultTab option[value='" + response[0].id + "']").length && !isActive) {
+                                    $("#ddlStudyDefaultTab option[value='" + response[0].id + "']")[0].remove();
+                                }
+
                                 if (window.appLayout && window.appLayout.refreshAppSettings)
                                     window.appLayout.refreshAppSettings();
                             }
