@@ -473,7 +473,7 @@ define('grid', [
 
                                 //Checked if selected payer is valid service location
                                 var isValidServiceLocation = (
-                                    billingPayers.pos_map_id
+                                    billingPayers.pos_map_code
                                     && app.isMobileBillingEnabled
                                     && app.settings.enableMobileRad
                                     && billingPayers.pos_map_code !== 'OF'
@@ -481,7 +481,7 @@ define('grid', [
                                 );
 
                                 if (isValidServiceLocation) {
-                                    liPayerTypeArray.push($(commonjs.getRightClickMenu('ancServiceFacility_' + billingPayers.pos_map_id, '', true, billingPayers.service_location + '( Service Facility )', false)));
+                                    liPayerTypeArray.push($(commonjs.getRightClickMenu('ancServiceFacility_' + billingPayers.pos_map_code, '', true, billingPayers.service_location + '( Service Facility )', false)));
                                 }
                                 $('#ul_change_payer_type').append(liPayerTypeArray);
                                 $('#ul_change_payer_type li').click(function (e) {

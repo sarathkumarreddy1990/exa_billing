@@ -604,7 +604,7 @@ const api = {
                     WHEN 'referring_provider' THEN ref_provider.full_name
                     WHEN 'rendering_provider' THEN render_provider.full_name
                     WHEN 'patient' THEN patients.full_name
-                    WHEN 'service_facility_location' THEN public.get_service_facility_name(claims.id, claims.pos_map_id)
+                    WHEN 'service_facility_location' THEN public.get_service_facility_name(claims.id, claims.pos_map_code, claims.patient_id)
                 END
               ) AS payer_name`,
             'bgct.claim_balance_total as claim_balance',
