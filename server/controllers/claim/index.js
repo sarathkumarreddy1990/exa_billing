@@ -74,7 +74,9 @@ const api= {
                         && item.is_billing_rule_applied
                         && item.is_billing_rule_cpt_add_fee) ||
                         (!item.is_billing_rule_cpt_add_fee
-                        && !(claim.billing_type === 'split' && item.is_billing_rule_applied))
+                        && !(claim.billing_type === 'split'
+                        && item.is_billing_rule_applied
+                        && !isInsuranceAvailable))
                     ) {
                         item.is_custom_bill_fee = false;
                         item.bill_fee = 0;
