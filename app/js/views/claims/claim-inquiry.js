@@ -846,13 +846,59 @@ define([
                     gridelementid: '#tblCIClaimComments',
                     custompager: self.claimInquiryPager,
                     emptyMessage: commonjs.geti18NString("messages.status.noRecordFound"),
-                    colNames: ['','', 'Transaction date','Claim Date', 'code', 'comment', 'sequence_number', '', 'payment.id', 'Diag Ptr', 'charge', 'payment', 'adjustment', '', '', '', '',''],
-                    i18nNames: ['', '', 'billing.claims.transactionDate','billing.claims.claimDate', 'billing.COB.code', 'billing.payments.comment', 'shared.fields.sequenceNumbers', 'shared.fields.type', 'billing.payments.paymentID', 'billing.COB.diagptr',
-                        'billing.payments.charge', 'billing.payments.payments', 'billing.fileInsurance.adjustments', '', '', '', '', 'billing.payments.printOnStatements'
+                    colNames: ['','', '', '', '', 'Transaction date','Claim Date', 'code', 'comment', 'sequence_number', 'type', 'charge', 'payment', 'adjustment', 'Diag Ptr', 'payment.id', ''],
+                    i18nNames: ['', '', '', '', 'billing.payments.printOnStatements', 'billing.claims.transactionDate','billing.claims.claimDate', 'billing.COB.code', 'billing.payments.comment', 'shared.fields.sequenceNumbers', 'shared.fields.type',
+                        'billing.payments.charge', 'billing.payments.payments', 'billing.fileInsurance.adjustments', 'billing.COB.diagptr', 'billing.payments.paymentID', ''
                     ],
                     colModel: [
                         { name: 'id', hidden: true},
                         { name: 'row_id', hidden: true },
+                        {
+                            name: 'edit', width: 20, sortable: false, search: false,
+                            className: 'icon-ic-edit',
+                            customAction: function (rowID) {
+                                var gridData = $('#tblCIClaimComments').jqGrid('getRowData', rowID);
+                                self.getClaimComment(gridData.row_id);
+                            },
+                            formatter: function (cellvalue, options, rowObject) {
+                                if (rowObject.code && rowObject.code != null && commentType.indexOf(rowObject.code) == -1 && !self.editOff)
+                                    return "<i class='icon-ic-edit' i18nt='shared.buttons.edit'></i>"
+                                else
+                                    return "";
+                            }
+                        },
+                        {
+                            name: 'del', width: 20, search: false, sortable: false,
+                            className: 'icon-ic-delete',
+                            customAction: function (rowID) {
+                                if (confirm(commonjs.geti18NString("messages.status.areYouSureWantToDelete"))) {
+                                    var gridData = $('#tblCIClaimComments').jqGrid('getRowData', rowID);
+                                    self.deleteClaimComment(gridData.row_id);
+                                }
+                            },
+                            formatter: function (cellvalue, options, rowObject) {
+                                if (rowObject.code && commentType.indexOf(rowObject.code) == -1 && !self.editOff)
+                                    return "<i class='icon-ic-delete' i18nt='shared.buttons.delete'></i>"
+                                else
+                                    return "";
+                            }
+                        },
+                        {
+                            name: 'is_internal', width: 40, sortable: false, search: false, hidden: false,
+                            formatter: function (cellvalue, options, rowObject) {
+                                if (rowObject.code && rowObject.code != null && commentType.indexOf(rowObject.code) == -1) {
+                                    if (rowObject.is_internal == true)
+                                        return '<input type="checkbox" checked   class="chkPaymentReport" name="paymentReportChk"  id="' + rowObject.row_id + '" />'
+                                    else
+                                        return '<input type="checkbox"   class="chkPaymentReport" name="paymentReportChk"  id="' + rowObject.row_id + '" />'
+
+                                }
+                                else
+                                    return '';
+                            },
+                            customAction: function (rowID, e) {
+                            }
+                        },
                         { name: 'commented_dt', width: 40, search: false, sortable: false, formatter: self.commentDateFormatter },
                         { name: 'created_dt', width: 40, search: false, sortable: false, formatter: self.dateFormatter },
                         { name: 'code', hidden: true },
@@ -877,31 +923,6 @@ define([
                                 if(rowdata && rowdata.code == 'manual')
                                     return ' style="display:none;"';
                             }
-                        },
-                        {
-                            name: 'payment_id', width: 30, search: false, sortable: false,
-                            customAction: function (rowID) {
-                                var gridData = $('#tblCIClaimComments').jqGrid('getRowData', rowID);
-                                $("#tBodyCIPayment").empty();
-                                self.getPaymentofCharge(gridData.row_id);
-                            },
-                            formatter: function (cellvalue, options, rowObject) {
-                                if (rowObject.type && rowObject.code == 'charge')
-                                return "<i class='icon-ic-raw-transctipt' i18nt='shared.screens.setup.viewPayDetailsOfThisCharge'></i>"
-                                else
-                                    return rowObject.payment_id;
-                            },
-                            cellattr: function (rowId, tv, rowdata) {
-                                if(rowdata && rowdata.code == 'manual')
-                                    return 'style="display:none;" ';
-                            }
-                        },
-                        { name: 'charge_pointer', width: 20, search: false, sortable: false, formatter: self.pointerFormatter,
-                            cellattr: function (rowId, tv, rowdata) {
-                                if (rowdata && rowdata.code == 'manual')
-                                    return 'style="display:none;" ';
-                            },
-                            hidden: (app.country_alpha_3_code === "can" && app.province_alpha_2_code !== 'ON' ) ? true : false
                         },
                         { name: 'charge_amount', width: 20, search: false, sortable: false,
                             cellattr: function (rowId, tv, rowdata) {
@@ -933,6 +954,31 @@ define([
                                     return 'style="display:none;" ';
                             }
                         },
+                        { name: 'charge_pointer', width: 20, search: false, sortable: false, formatter: self.pointerFormatter,
+                            cellattr: function (rowId, tv, rowdata) {
+                                if (rowdata && rowdata.code == 'manual')
+                                    return 'style="display:none;" ';
+                            },
+                            hidden: (app.country_alpha_3_code === "can" && app.province_alpha_2_code !== 'ON' ) ? true : false
+                        },
+                        {
+                            name: 'payment_id', width: 30, search: false, sortable: false,
+                            customAction: function (rowID) {
+                                var gridData = $('#tblCIClaimComments').jqGrid('getRowData', rowID);
+                                $("#tBodyCIPayment").empty();
+                                self.getPaymentofCharge(gridData.row_id);
+                            },
+                            formatter: function (cellvalue, options, rowObject) {
+                                if (rowObject.type && rowObject.code == 'charge')
+                                return "<i class='icon-ic-raw-transctipt' i18nt='shared.screens.setup.viewPayDetailsOfThisCharge'></i>"
+                                else
+                                    return rowObject.payment_id;
+                            },
+                            cellattr: function (rowId, tv, rowdata) {
+                                if(rowdata && rowdata.code == 'manual')
+                                    return 'style="display:none;" ';
+                            }
+                        },
                         {
                             name: 'view_payment', width: 20, sortable: false, search: false,
                             customAction: function (rowID) {
@@ -950,53 +996,6 @@ define([
                                 if(rowdata && rowdata.code == 'manual')
                                     return 'style="display:none;" ';
                             }
-                        },
-                        {name: 'comment_space', width: 10, search: false, sortable: false },
-                        {
-                            name: 'del', width: 20, search: false, sortable: false,
-                            className: 'icon-ic-delete',
-                            customAction: function (rowID) {
-                                if (confirm(commonjs.geti18NString("messages.status.areYouSureWantToDelete"))) {
-                                    var gridData = $('#tblCIClaimComments').jqGrid('getRowData', rowID);
-                                    self.deleteClaimComment(gridData.row_id);
-                                }
-                            },
-                            formatter: function (cellvalue, options, rowObject) {
-                                if (rowObject.code && commentType.indexOf(rowObject.code) == -1 && !self.editOff)
-                                    return "<i class='icon-ic-delete' i18nt='shared.buttons.delete'></i>"
-                                else
-                                    return "";
-                            }
-                        },
-                        {
-                            name: 'edit', width: 20, sortable: false, search: false,
-                            className: 'icon-ic-edit',
-                            customAction: function (rowID) {
-                                var gridData = $('#tblCIClaimComments').jqGrid('getRowData', rowID);
-                                self.getClaimComment(gridData.row_id);
-                            },
-                            formatter: function (cellvalue, options, rowObject) {
-                                if (rowObject.code && rowObject.code != null && commentType.indexOf(rowObject.code) == -1 && !self.editOff)
-                                    return "<i class='icon-ic-edit' i18nt='shared.buttons.edit'></i>"
-                                else
-                                    return "";
-                            }
-                        },
-                        {
-                            name: 'is_internal', width: 40, sortable: false, search: false, hidden: false,
-                            formatter: function (cellvalue, options, rowObject) {
-                                if (rowObject.code && rowObject.code != null && commentType.indexOf(rowObject.code) == -1) {
-                                    if (rowObject.is_internal == true)
-                                        return '<input type="checkbox" checked   class="chkPaymentReport" name="paymentReportChk"  id="' + rowObject.row_id + '" />'
-                                    else
-                                        return '<input type="checkbox"   class="chkPaymentReport" name="paymentReportChk"  id="' + rowObject.row_id + '" />'
-
-                                }
-                                else
-                                    return '';
-                            },
-                            customAction: function (rowID, e) {
-                            }
                         }
                     ],
                     sortname: 'id',
@@ -1012,6 +1011,8 @@ define([
                     disableadd: true,
                     disablereload: true,
                     shrinkToFit: true,
+                    customizeSort: true,
+                    sortable: false,
                     customargs: {
                         claim_id: self.claim_id
                     }
