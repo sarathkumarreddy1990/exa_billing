@@ -1837,8 +1837,16 @@ define([
                                     $('#btnClaimsCompleteRefresh').click();
                                 commonjs.hideLoading();
                                 self.showGrid();
-                                if (!$("#ddlStudyDefaultTab option[value='" + response[0].id + "']").length)
+
+                                var currentFilterOption = $("#ddlStudyDefaultTab option[value='" + response[0].id + "']");
+
+                                if (!currentFilterOption.length)
                                     $('#ddlStudyDefaultTab').append("<option value=" + response[0].id + ">" + filterName + "</option>");
+
+                                if (!isActive && currentFilterOption.length) {
+                                    currentFilterOption[0].remove();
+                                }
+
                                 if (window.appLayout && window.appLayout.refreshAppSettings)
                                     window.appLayout.refreshAppSettings();
                             }

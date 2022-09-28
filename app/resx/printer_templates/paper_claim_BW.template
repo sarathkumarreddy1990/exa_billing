@@ -704,10 +704,15 @@ function getAddressDetails(claimData, zipPlus) {
         if (claimData.addressLine2) {
             details.push(
                 [
-                    {text: (claimData ? getKeyTrimValue(claimData, 'fullName', 30)  : ' ')}
+                    {text: (claimData ? getKeyTrimValue(claimData, 'fullName', 40)  : ' '), margin: [-6, 0, -5, 0]}
                 ],
                 [
-                    {text: ( claimData.addressLine2 ? (((claimData.addressLine1?(claimData.addressLine1+ ', '):'')  + claimData.addressLine2).toString().toUpperCase().substring(0, 30))  : ''), margin: [0,-5, 0, 0]}
+                    {text:
+                        (claimData.addressLine2
+                            ? (((claimData.addressLine1 ? (claimData.addressLine1+ ', ') : '') + claimData.addressLine2).toString().toUpperCase().substring(0, 40))
+                            : ''
+                        ), margin: [-6, -5, -5, 0]
+                    }
                 ],
                 [
                     {text: claimData &&
@@ -715,20 +720,30 @@ function getAddressDetails(claimData, zipPlus) {
                             claimData.zipCode
                                 ? (getCityStatePincode(claimData, "city", "state", "zipCode", zipPlus, 34))
                                 : (getCityStatePincode(claimData, "city", "state", "zip", zipPlus, 34))
-                        ), margin: [0,-5, 0, 0]
+                        ), margin: [-6, -5, 0, 0]
                     }
                 ],
                 [
-                    {text: ' ', margin: [0,-5, 0, 0]}
+                    {text: ' ', margin: [-6, -5, 0, 0]}
                 ]
             );
         } else {
             details.push(
                 [
-                    {text: (claimData ? getKeyTrimValue(claimData, 'fullName', 30)  : ' ')}
+                    {text:
+                        (claimData
+                            ? getKeyTrimValue(claimData, 'fullName', 40)
+                            : ' '
+                        ), margin: [-6, 0, -5, 0]
+                    }
                 ],
                 [
-                    {text: (claimData ? getKeyTrimValue(claimData, 'addressLine1', 30) : ' '), margin: [0,-5, 0, 0]}
+                    {text:
+                        (claimData
+                            ? getKeyTrimValue(claimData, 'addressLine1', 40)
+                            : ' '
+                        ), margin: [-6,-5, -5, 0]
+                    }
                 ],
                 [
                     {text: claimData &&
@@ -736,11 +751,11 @@ function getAddressDetails(claimData, zipPlus) {
                             claimData.zipCode
                                 ? (getCityStatePincode(claimData, "city", "state", "zipCode", zipPlus, 34))
                                 : (getCityStatePincode(claimData, "city", "state", "zip", zipPlus, 34))
-                        ), margin: [0,-5, 0, 0]
+                        ), margin: [-6,-5, 0, 0]
                     }
                 ],
                 [
-                    {text: ' ', margin: [0,-5, 0, 0]}
+                    {text: ' ', margin: [-6, -5, 0, 0]}
                 ]
             );
         }
@@ -1958,7 +1973,7 @@ function formatSingleClaim(claimData, servicelineList) {
                             style: 'Ans',
                             margin: [0,0,0,0],
                             table: {
-                                widths:[ 135],
+                                widths:[178],
                                 body: [
                                     ServiceFacDet[0],
                                     ServiceFacDet[1],
@@ -1972,7 +1987,7 @@ function formatSingleClaim(claimData, servicelineList) {
                             style: 'Ans',
                             margin: [15,0,0,0],
                             table: {
-                                widths:[ 145],
+                                widths:[178],
                                 body: [
                                     BillingProDet[0],
                                     BillingProDet[1],
