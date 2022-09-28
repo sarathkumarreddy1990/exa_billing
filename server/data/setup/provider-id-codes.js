@@ -4,10 +4,19 @@ module.exports = {
 
     getData: async function (params) {
 
+
+        params.sortOrder = params.sortOrder || ' DESC';
+        params.sortField = params.sortField || 'id';
+
         let {
             provider_id,
             pageNo,
             pageSize,
+            sortField,
+            sortOrder,
+            insurance_name,
+            payer_assigned_provider_id,
+            qualifier_desc
         } = params;
 
         const sql = SQL`
@@ -23,12 +32,26 @@ module.exports = {
             FROM billing.provider_id_codes as pc
             INNER JOIN billing.provider_id_code_qualifiers pcq ON pc.qualifier_id = pcq.id
             INNER JOIN insurance_providers ip ON pc.insurance_provider_id = ip.id
-            WHERE
-                 billing_provider_id = ${provider_id}
-            ORDER BY pc.id DESC
-            LIMIT ${pageSize}
-            OFFSET ${((pageNo * pageSize) - pageSize)}
-        `;
+            WHERE billing_provider_id = ${provider_id}`;
+
+        if (insurance_name) {
+            sql.append(SQL` AND ip.insurance_name ~* ${insurance_name}`);
+        }
+
+        if (payer_assigned_provider_id) {
+            sql.append(SQL` AND pc.payer_assigned_provider_id ~* ${payer_assigned_provider_id}`);
+        }
+
+        if (qualifier_desc) {
+            sql.append(SQL` AND pcq.description ~* ${qualifier_desc}`);
+        }
+
+        sql.append(SQL` ORDER BY `)
+            .append(sortField)
+            .append(' ')
+            .append(sortOrder)
+            .append(SQL` LIMIT ${pageSize}`)
+            .append(SQL` OFFSET ${((pageNo * pageSize) - pageSize)}`);
 
         return await query(sql);
     },
