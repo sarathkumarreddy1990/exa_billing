@@ -605,7 +605,7 @@ module.exports = {
                             , (SELECT JSONB_AGG(servicefacility) "servicefacility"
                                     FROM
                                         ( SELECT
-                                            public.get_claim_service_facility_address(claims.id, claims.pos_map_code, claims.patient_id) AS servicefacility
+											public.get_claim_service_facility_address(claims.id, claims.pos_map_code, claims.patient_id) AS servicefacility
                                         )  AS servicefacility)
 							,(SELECT JSONB_AGG(Row_to_json(approvingProvider)) "approvingProvider"
 								FROM
