@@ -905,7 +905,7 @@ module.exports = {
 					WHERE 'US' = code_array[3] AND facilities.facility_info -> 'facility_state' = code_array[2]
 					LIMIT 1
 				)bp_npi ON TRUE
-				INNER JOIN (
+				LEFT JOIN (
 					SELECT
 					    ARRAY_AGG(cc.display_code)AS cpt_array
 					    , bch.claim_id
