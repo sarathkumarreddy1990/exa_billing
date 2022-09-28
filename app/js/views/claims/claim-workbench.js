@@ -727,8 +727,7 @@ define(['jquery',
                         claimIds: claimIds.toString(),
                         isWCBBilling: isWCBBilling,
                         userId: app.userID,
-                        companyCode: app.company.company_code || "",
-                        from: 'electronic_claim'
+                        companyCode: app.company.company_code || ""
                     }
                     if (billingMethodFormat === "special_form") {
                         if (insuranceProviders.length === gridElement.length) {

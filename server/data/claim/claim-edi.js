@@ -216,18 +216,17 @@ module.exports = {
     },
 
     getClaimData: async (params) => {
-		let {
-			claimIds,
-			payerId,
-			payerType,
-			companyCode,
-			from = ''
-		} = params || {};
+        let {
+            claimIds,
+            payerId,
+            payerType,
+            companyCode
+        } = params || {};
 
-		claimIds = claimIds.split(',');
-		payerId = payerId || null;
-		payerType = payerType || null;
-		companyCode = companyCode?.toUpperCase() || '';
+        claimIds = claimIds.split(',');
+        payerId = payerId || null;
+        payerType = payerType || null;
+        companyCode = companyCode?.toUpperCase() || '';
 
         let sql = SQL`
             SELECT
@@ -581,49 +580,69 @@ module.exports = {
 							,(SELECT Json_agg(Row_to_json(renderingProvider)) "renderingProvider"
 									FROM
 										(SELECT
-										last_name AS "lastName",
-										first_name AS "firstName",
-										middle_initial AS "middileName",
-										suffix AS "suffix",
-										'' AS "prefix",
-										provider_info->'TXC' AS "taxonomyCode",
-										provider_info->'NPI' AS "NPINO",
-										provider_info->'LicenseNo' AS "licenseNo",
-										insurance_provider_details.claim_filing_indicator_code AS "claimFilingCode",
-										insurance_name AS "payerName",
-										rpc.contact_info->'NAME' AS "contactName",
-										rpc.contact_info->'ADDR1' AS "addressLine1",
-										rpc.contact_info->'ADDR2' AS "addressLine2",
-										rpc.contact_info->'CITY' AS "city",
-										rpc.contact_info->'STATE' AS "state",
-										rpc.contact_info->'ZIP' AS "zip",
-										rpc.contact_info->'ZIPPLUS' AS "zipPlus"
-										FROM provider_contacts rpc
-										LEFT JOIN providers AS render_provider ON render_provider.id = rpc.provider_id
-										LEFT JOIN LATERAL (
-											SELECT
-												st.approving_provider_id AS id
-											FROM
-												study_transcriptions st
-											WHERE
-												'QMI' = ${companyCode}
-												AND 'electronic_claim' != ${from}
-												AND st.study_id = order_details.study_id
-												AND st.approving_provider_id IS NOT NULL
-											ORDER BY
-												st.approved_dt DESC
-											LIMIT 1
-										) approving_provider ON order_details.study_status = 'APP'
-										WHERE
-											rpc.id = COALESCE(approving_provider.id, claims.rendering_provider_contact_id)
-									)
-							AS renderingProvider)
+											last_name as "lastName",
+											first_name as "firstName",
+											middle_initial as "middileName",
+											suffix as "suffix",
+											'' as "prefix",
+											provider_info->'TXC' as "taxonomyCode",
+											provider_info->'NPI' as "NPINO",
+											provider_info->'LicenseNo' as "licenseNo",
+											insurance_provider_details.claim_filing_indicator_code as "claimFilingCode",
+											insurance_name as "payerName",
+											rendering_pro_contact.contact_info->'NAME' as "contactName",
+											rendering_pro_contact.contact_info->'ADDR1' as "addressLine1",
+											rendering_pro_contact.contact_info->'ADDR2' as "addressLine2",
+											rendering_pro_contact.contact_info->'CITY' as "city",
+											rendering_pro_contact.contact_info->'STATE' as "state",
+											rendering_pro_contact.contact_info->'ZIP' as "zip",
+											rendering_pro_contact.contact_info->'ZIPPLUS' as "zipPlus"
+											FROM provider_contacts   rendering_pro_contact
+											LEFT JOIN providers as render_provider ON render_provider.id=rendering_pro_contact.provider_id
+											WHERE  rendering_pro_contact.id=claims.rendering_provider_contact_id)
+											as renderingProvider)
 
                             , (SELECT JSONB_AGG(servicefacility) "servicefacility"
                                     FROM
                                         ( SELECT
-                                            public.get_claim_service_facility_address(claims.id, claims.pos_map_code, claims.patient_id) AS servicefacility
+											public.get_claim_service_facility_address(claims.id, claims.pos_map_code, claims.patient_id) AS servicefacility
                                         )  AS servicefacility)
+							,(SELECT JSONB_AGG(Row_to_json(approvingProvider)) "approvingProvider"
+								FROM
+								(SELECT
+									last_name AS "lastName",
+									first_name AS "firstName",
+									middle_initial AS "middileName",
+									suffix AS "suffix",
+									'' AS "prefix",
+									provider_info->'TXC' AS "taxonomyCode",
+									provider_info->'NPI' AS "NPINO",
+									provider_info->'LicenseNo' AS "licenseNo",
+									rpc.contact_info->'NAME' AS "contactName",
+									rpc.contact_info->'ADDR1' AS "addressLine1",
+									rpc.contact_info->'ADDR2' AS "addressLine2",
+									rpc.contact_info->'CITY' AS "city",
+									rpc.contact_info->'STATE' AS "state",
+									rpc.contact_info->'ZIP' AS "zip",
+									rpc.contact_info->'ZIPPLUS' AS "zipPlus"
+									FROM provider_contacts rpc
+									LEFT JOIN providers AS app_provider ON app_provider.id = rpc.provider_id
+									LEFT JOIN LATERAL (
+										SELECT
+											st.approving_provider_id AS id
+										FROM
+											study_transcriptions st
+										WHERE
+											st.study_id = order_details.study_id
+											AND st.approving_provider_id IS NOT NULL
+										ORDER BY
+											st.approved_dt DESC
+										LIMIT 1
+									) approving_provider ON order_details.study_status = 'APP'
+									WHERE
+										rpc.id = approving_provider.id
+								)
+							AS approvingProvider)
 							,(SELECT Json_agg(Row_to_json(referringProvider)) "referringProvider"
 									FROM
 										(SELECT
