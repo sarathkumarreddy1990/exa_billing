@@ -19,22 +19,6 @@ module.exports = {
             qualifier_desc
         } = params;
 
-        let whereQuery = [];
-
-        whereQuery.push(` billing_provider_id = ${provider_id} `);
-
-        if (insurance_name) {
-            whereQuery.push(` ip.insurance_name ILIKE '%${insurance_name}%'`);
-        }
-
-        if (payer_assigned_provider_id) {
-            whereQuery.push(` pc.payer_assigned_provider_id ILIKE '%${payer_assigned_provider_id}%'`);
-        }
-
-        if (qualifier_desc) {
-            whereQuery.push(` pcq.description ILIKE '%${qualifier_desc}%'`);
-        }
-
         const sql = SQL`
             SELECT
                 pc.id
@@ -47,11 +31,19 @@ module.exports = {
               , COUNT(1) OVER (range unbounded preceding) as total_records
             FROM billing.provider_id_codes as pc
             INNER JOIN billing.provider_id_code_qualifiers pcq ON pc.qualifier_id = pcq.id
-            INNER JOIN insurance_providers ip ON pc.insurance_provider_id = ip.id`;
+            INNER JOIN insurance_providers ip ON pc.insurance_provider_id = ip.id
+            WHERE billing_provider_id = ${provider_id}`;
 
-        if (whereQuery.length) {
-            sql.append(SQL` WHERE `)
-                .append(whereQuery.join(' AND '));
+        if (insurance_name) {
+            sql.append(SQL` AND ip.insurance_name ~* ${insurance_name}`);
+        }
+
+        if (payer_assigned_provider_id) {
+            sql.append(SQL` AND pc.payer_assigned_provider_id ~* ${payer_assigned_provider_id}`);
+        }
+
+        if (qualifier_desc) {
+            sql.append(SQL` AND pcq.description ~* ${qualifier_desc}`);
         }
 
         sql.append(SQL` ORDER BY `)
