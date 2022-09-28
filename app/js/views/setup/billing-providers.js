@@ -498,7 +498,7 @@ define(['jquery',
                     "payToPhoneNumber": $('#txtPayBillProPhoneNo').val(),
                     "payToFaxNumber": $('#txtPayFaxNo').val(),
                     "communicationInfo": communication_info,
-                    "canIsAlternatePaymentProgram" : $('#chkAltPay').prop('checked'), 
+                    "canIsAlternatePaymentProgram" : $('#chkAltPay').prop('checked'),
                     "payeeNumber": $('#txtPayeeNumber').val(),
                     "dataCentreNumber": $('#txtDataCentreNumber').val(),
                     mspExternalUrl: $('#txtExternalUrl').val(),
@@ -570,7 +570,7 @@ define(['jquery',
 
             bindProviderIDCodes: function () {
                 var self = this;
-                var confirmDelete = commonjs.geti18NString("message.status.areYouSureWantToDelete");
+                var confirmDelete = commonjs.geti18NString("messages.status.areYouSureWantToDelete");
                 var width = $('#divBillingProvidersForm').width() - 50;
                 $('#divIDCodesGrid').show();
                 self.providerIdCodesTable = new customGrid();
@@ -780,7 +780,7 @@ define(['jquery',
 
             saveMspCredentials: function () {
 
-                // MSP portal Credential 
+                // MSP portal Credential
                 var externalMspUrl = $('#txtExternalUrl').val();
                 var mspUserName = $('#txtUserName').val();
                 var mspPassword = $('#txtPassword').val();
