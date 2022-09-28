@@ -1208,7 +1208,7 @@ define(['jquery',
 
                 self.ordering_facility_name = claim_data.ordering_facility_name || claim_data.service_facility_name;
                 var orderingFacilityName  = self.ordering_facility_name
-                    ? self.ordering_facility_name + ' (' + claim_data.location + ')'
+                    ? self.ordering_facility_name + ' (' + claim_data.location + ')' + (claim_data.ordering_facility_type ? ' (' + claim_data.ordering_facility_type + ')' : '')
                     : self.usermessage.selectOrdFacility;
 
                 var referringProviderNpi;
@@ -3637,7 +3637,7 @@ define(['jquery',
                             self.appendPOSOptions($('#ddlServiceFacilityLocation').val());
                         }
                     }
-                    return res.ordering_facility_name + ' (' + res.location + ')';
+                    return res.ordering_facility_name + ' (' + res.location + ')' + (res.ordering_facility_type ? " (" + res.ordering_facility_type + ")" : "");
                 }
             },
 
