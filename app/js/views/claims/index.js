@@ -1206,9 +1206,9 @@ define(['jquery',
                 var skillCode = claim_data.skill_code || self.usermessage.selectSkillCodes;
                 var renderingProvider = renderingProviderFullName || self.usermessage.selectStudyReadPhysician;
 
-                var orderingFacilityName = claim_data.ordering_facility_name || claim_data.service_facility_name;
-                self.ordering_facility_name = orderingFacilityName
-                    ? orderingFacilityName + ' (' + claim_data.location + ')'
+                self.ordering_facility_name = claim_data.ordering_facility_name || claim_data.service_facility_name;
+                var orderingFacilityName  = self.ordering_facility_name
+                    ? self.ordering_facility_name + ' (' + claim_data.location + ')'
                     : self.usermessage.selectOrdFacility;
 
                 var referringProviderNpi;
@@ -1271,7 +1271,7 @@ define(['jquery',
                 $('#select2-ddlRenderingProvider-container').html(renderingProvider);
                 $('#select2-ddlSkillCodes-container').html(skillCode);
                 $('#select2-ddlReferringProvider-container').html(referringProvider);
-                $('#select2-ddlOrdFacility-container').html(self.ordering_facility_name);
+                $('#select2-ddlOrdFacility-container').html(orderingFacilityName);
                 $('#select2-ddlPhnUli-container').html(patientAltAaccNo);
 
                 // Alberta

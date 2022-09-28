@@ -477,7 +477,6 @@ define('grid', [
                                     && app.isMobileBillingEnabled
                                     && app.settings.enableMobileRad
                                     && billingPayers.pos_map_code !== 'OF'
-                                    && billingPayers.pos_map_code !== 'OFP'
                                 );
 
                                 if (isValidServiceLocation) {
