@@ -42,6 +42,7 @@ module.exports = {
                                 , of.name AS ordering_facility_name
                                 , of.id
                                 , ofc.place_of_service_id
+                                , oft.description AS ordering_facility_type
                             FROM studies s
                             INNER JOIN facilities f ON f.id = s.facility_id
                             LEFT JOIN ordering_facility_contacts ofcp ON (
@@ -50,6 +51,7 @@ module.exports = {
                             )
                             INNER JOIN ordering_facility_contacts ofc ON ofc.id = COALESCE(s.ordering_facility_contact_id, ofcp.id)
                             INNER JOIN ordering_facilities of ON of.id = ofc.ordering_facility_id
+                            LEFT JOIN ordering_facility_types oft ON oft.id = ofc.ordering_facility_type_id
                             WHERE s.id = ${firstStudyId}
                         ),
                         professional_modifier AS (
@@ -246,6 +248,7 @@ module.exports = {
                                         ofd.ordering_facility_name,
                                         ofd.location,
                                         ofd.place_of_service_id AS ord_fac_place_of_service,
+                                        ofd.ordering_facility_type,
                                         ordering_facility_ptn.ordering_facility_contact_id AS ptn_ordering_facility_contact_id,
                                         ordering_facility_ptn.id AS ptn_ordering_facility_id,
                                         ordering_facility_ptn.ordering_facility_name AS ptn_ordering_facility_name,
@@ -822,6 +825,7 @@ module.exports = {
                     , pof.state AS ordering_facility_state
                     , pof.zip_code AS ordering_facility_zip
                     , pofc.location
+                    , poft.description AS ordering_facility_type
                     , ofcp.id AS ptn_ordering_facility_contact_id
                     , ofcp.location AS ptn_location
                     , ofp.name AS ptn_ordering_facility_name
@@ -1136,6 +1140,7 @@ module.exports = {
                         LEFT JOIN public.providers rend_pr ON rend_pc.provider_id = rend_pr.id
                         LEFT JOIN public.ordering_facility_contacts pofc ON pofc.id = c.ordering_facility_contact_id
                         LEFT JOIN public.ordering_facilities pof ON pof.id = pofc.ordering_facility_id
+                        LEFT JOIN public.ordering_facility_types poft ON poft.id = pofc.ordering_facility_type_id
                         LEFT JOIN public.facilities f ON c.facility_id = f.id
                         LEFT JOIN billing.claim_status cst ON cst.id = c.claim_status_id
                         LEFT JOIN public.skill_codes psc ON psc.id = c.can_ahs_skill_code_id
