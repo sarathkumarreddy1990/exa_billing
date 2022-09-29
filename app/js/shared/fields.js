@@ -218,9 +218,14 @@ define([ 'backbone', 'immutable', 'moment', 'shared/utils' ], function ( Backbon
         var deletedValue = ":All;true:Only;false:None";
         var verifiedValue = ":All;true:Yes;false:No";
         var billingMethodValue =  ":All;electronic_billing:Electronic Billing;paper_claim:Paper Claim;direct_billing:Direct Billing;patient_payment:Patient Payment";
-        var payerTypeValue =  ':All;primary_insurance:Primary Insurance;secondary_insurance:Secondary Insurance;tertiary_insurance:Tertiary Insurance;ordering_facility:Ordering facility;referring_provider:Referring Provider;patient:Patient; service_facility_location:Service Facility Location';
+        var payerTypeValue =  ':All;primary_insurance:Primary Insurance;secondary_insurance:Secondary Insurance;tertiary_insurance:Tertiary Insurance;ordering_facility:Ordering facility;referring_provider:Referring Provider;patient:Patient';
         var billingMethodValueCan = ":All;electronic_billing:Electronic Billing;direct_billing:Direct Billing;patient_payment:Patient Payment";
         var payerTypeValueCan = ':All;primary_insurance:Primary Insurance;ordering_facility:Ordering facility;referring_provider:Referring Provider;patient:Patient';
+
+        if (app.isMobileBillingEnabled && app.settings.enableMobileRad) {
+            payerTypeValue = payerTypeValue + ';service_facility_location:Service Facility Location';
+        }
+
         $.each(app.stat_level, function ( index, stat ) {
             if ( !stat.deleted ) {
                 if ( parseInt(stat.level) === 0 ) {
