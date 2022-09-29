@@ -356,17 +356,10 @@ function getAddress2Details(claimData) {
 }
 
 function professionalClaim(chargesData, billingType, isInsuranceSplit) {
-    let isProfessionalModifier = false;
-    for (let i = 0; i < chargesData.length; i++) {
-        isProfessionalModifier = [chargesData[i].mod1, chargesData[i].mod2, chargesData[i].mod3, chargesData[i].mod4].indexOf('26') > -1;
-        if (isProfessionalModifier) {
-            break;
-        }
-    }
+    const isProfessionalModifier = chargesData.some(charge => [charge.mod1, charge.mod2, charge.mod3, charge.mod4].includes('26'));
+    const isSplitClaim = ['split', 'split_p'].includes(billingType) || (billingType === 'global' && isInsuranceSplit);
 
-    return (isProfessionalModifier
-        && (['split', 'split_p'].indexOf(billingType) > -1 || (billingType === 'global' && isInsuranceSplit))
-    );
+    return isProfessionalModifier && isSplitClaim;
 }
 
 function formatRedForm(claimData, servicelineList, pageBrk) {
