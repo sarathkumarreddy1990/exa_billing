@@ -9,6 +9,7 @@ define(['jquery',
     'collections/setup/billing-providers',
     'collections/setup/provider-id-codes',
     'models/setup/billing-providers',
+    'models/setup/provider-code-payer',
     'models/pager',
     'shared/address'
 ],
@@ -23,6 +24,7 @@ define(['jquery',
         BillingProvidersCollections,
         ProviderIdCodesCollection,
         BillingProvidersModel,
+        ProviderIDCodeModel,
         Pager,
         Address
     ) {
@@ -31,6 +33,7 @@ define(['jquery',
             billingProvidersFormTemplate: _.template(BillingProvidersForm),
             billingProvidersList: [],
             model: null,
+            idCodeModel:null,
             billingProvidersTable: null,
             editedInsuraceIDCode : null,
             editedBillingProvider: null,
@@ -46,6 +49,7 @@ define(['jquery',
                 var self = this;
                 this.options = options;
                 this.model = new BillingProvidersModel();
+                this.idCodeModel = new ProviderIDCodeModel();
                 this.billingProvidersList = new BillingProvidersCollections();
                 this.providerIdCodesList = new ProviderIdCodesCollection();
                 this.pager = new Pager();
@@ -498,7 +502,7 @@ define(['jquery',
                     "payToPhoneNumber": $('#txtPayBillProPhoneNo').val(),
                     "payToFaxNumber": $('#txtPayFaxNo').val(),
                     "communicationInfo": communication_info,
-                    "canIsAlternatePaymentProgram" : $('#chkAltPay').prop('checked'), 
+                    "canIsAlternatePaymentProgram" : $('#chkAltPay').prop('checked'),
                     "payeeNumber": $('#txtPayeeNumber').val(),
                     "dataCentreNumber": $('#txtDataCentreNumber').val(),
                     mspExternalUrl: $('#txtExternalUrl').val(),
@@ -570,7 +574,7 @@ define(['jquery',
 
             bindProviderIDCodes: function () {
                 var self = this;
-                var confirmDelete = commonjs.geti18NString("message.status.areYouSureWantToDelete");
+                var confirmDelete = commonjs.geti18NString("messages.status.areYouSureWantToDelete");
                 var width = $('#divBillingProvidersForm').width() - 50;
                 $('#divIDCodesGrid').show();
                 self.providerIdCodesTable = new customGrid();
@@ -584,7 +588,7 @@ define(['jquery',
                     colNames: ['', '', '', '', '', 'Insurance Name', 'Payer Assigned Provider ID', 'Legacy ID Qualifier', 'in_active'],
                     i18nNames:['', '', '', '', '',  'setup.insuranceX12Mapping.insuranceName', 'setup.billingprovider.payerassignedproviderid' ,'setup.billingprovider.legacyidqualifier','shared.fields.inactive'],
                     colModel: [
-                        { name: 'id', key: true, hidden: true },
+                        { name: 'id', index: 'id', key: true, hidden: true, search: false },
                         { name: 'insurance_provider_id', hidden: true },
                         { name: 'qualifier_id', hidden: true },
                         {
@@ -599,9 +603,9 @@ define(['jquery',
                                 return "<span class='icon-ic-delete' title='Delete this id code'></span>"
                             }
                         },
-                        { name: 'insurance_name', width: 300 },
-                        { name: 'payer_assigned_provider_id', width: 200 },
-                        { name: 'qualifier_desc', width: 300 },
+                        { name: 'insurance_name', width: 300 ,  searchFlag: '%'},
+                        { name: 'payer_assigned_provider_id', width: 200 , searchFlag: '%' },
+                        { name: 'qualifier_desc', width: 300 , searchFlag: '%'},
                         {
                             name: 'isActive',
                             hidden: true
@@ -630,11 +634,14 @@ define(['jquery',
                     },
                     datastore: self.providerIdCodesList,
                     container: self.el,
-
+                    customizeSort: true,
+                    sortname: "id",
+                    sortorder: "desc",
                     sortable: {
-                        exclude: '#jqgh_tblBillingProvidersGrid,#jqgh_tblBillingProvidersGrid_edit,#jqgh_tblBillingProvidersGrid_del'
+                        exclude: '#jqgh_tblProviderIDCodesGrid,#jqgh_tblProviderIDCodesGrid_edit,#jqgh_tblProviderIDCodesGrid_del'
                     },
-
+                    disablesearch: false,
+                    disablesort: false,
                     disablepaging: false,
                     disableadd: true,
                     disablereload: true,
@@ -780,7 +787,7 @@ define(['jquery',
 
             saveMspCredentials: function () {
 
-                // MSP portal Credential 
+                // MSP portal Credential
                 var externalMspUrl = $('#txtExternalUrl').val();
                 var mspUserName = $('#txtUserName').val();
                 var mspPassword = $('#txtPassword').val();

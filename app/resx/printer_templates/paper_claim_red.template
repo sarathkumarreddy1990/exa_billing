@@ -305,12 +305,12 @@ function getAddressDetails(claimData, zipPlus) {
         claimData.fullName = claimData.fullName || claimData.lastName;
         if (claimData.addressLine2) {
             details.push(
-                (getSubstring(claimData.fullName, 30)) + '\n' +
+                (getSubstring(claimData.fullName, 40)) + '\n' +
                 (
                     ( claimData.addressLine2
                         ? (getSubstring(((claimData.addressLine1
                             ?(claimData.addressLine1+ ', ')
-                            :'')  + claimData.addressLine2),30))
+                            :'')  + claimData.addressLine2),40))
                         : ''
                     ) + '\n' +
                     (claimData.zipCode
@@ -321,10 +321,10 @@ function getAddressDetails(claimData, zipPlus) {
             );
         } else {
             details.push(
-                (getSubstring(claimData.fullName, 30)) + '\n' +
+                (getSubstring(claimData.fullName, 40)) + '\n' +
                 (
                     (claimData.addressLine1
-                        ? getSubstring(claimData.addressLine1, 30)
+                        ? getSubstring(claimData.addressLine1, 40)
                         : '') + '\n'
                         + (claimData.zipCode
                             ? (getCityStatePincode(claimData, "city", "state", "zipCode", zipPlus, 34))
@@ -355,6 +355,12 @@ function getAddress2Details(claimData) {
     return details;
 }
 
+function professionalClaim(chargesData, billingType, isInsuranceSplit) {
+    const isProfessionalModifier = chargesData.some(charge => [charge.mod1, charge.mod2, charge.mod3, charge.mod4].includes('26'));
+    const isSplitClaim = ['split', 'split_p'].includes(billingType) || (billingType === 'global' && isInsuranceSplit);
+
+    return isProfessionalModifier && isSplitClaim;
+}
 
 function formatRedForm(claimData, servicelineList, pageBrk) {
     cpt = getTableContents(claimData, servicelineList);
@@ -369,11 +375,13 @@ function formatRedForm(claimData, servicelineList, pageBrk) {
     pos = claimDet && claimDet.POS || "";
     billType = claimDet && claimDet.billingType || "";
     let claimNotes = getSubstring(claimDet.claimNotes, 65).split('\n').join(' ');
+    let isInsuranceSplitEnabled = subscriberDet && subscriberDet.isSplitClaimEnabled || false;
+    let isProfessionalClaim = professionalClaim(servicelineList, billType, isInsuranceSplitEnabled);
 
     if (pos === "12") {
         patientDet.fullName = "PRIVATE HOME" ;
         serviceFacDet = getAddressDetails(patientDet, 'zipPlus');
-    } else if (billType.toString().toUpperCase() === "SPLIT_P") {
+    } else if (isProfessionalClaim) {
         renderingProv.fullName = renderingProv.lastName+', '+renderingProv.firstName;
         serviceFacDet = getAddressDetails(renderingProv, 'zipPlus');
         serviceFacNPI = renderingProv && renderingProv.NPINO || "";
@@ -805,12 +813,17 @@ function formatRedForm(claimData, servicelineList, pageBrk) {
                         },
                         {}, {}, {}, {}, {}, {}, {}, {},
                         {
-                            text: (claimDet.outSideLab || (billType.toString().toUpperCase() === "SPLIT_P")) ? '√' : ' ', alignment: 'center', margin:[-3,0,0,0]
+                            text: (claimDet.outSideLab || isProfessionalClaim) ? '√' : ' ', alignment: 'center', margin:[-3,0,0,0]
                         }, {},
                         {
-                            text: ((claimDet.outSideLab != null) && !claimDet.outSideLab && (billType.toString().toUpperCase() !== "SPLIT_P")) ? '√' : ' ', alignment: 'center', margin:[-12,0,0,0] },
-                        { text: (billType.toString().toUpperCase() === "SPLIT_P") ? getDecimalNumericValue(claimDet.claimTotalCharge) : '' , colSpan: 3, alignment: 'right' }, {}, {},
-                        { text: (billType.toString().toUpperCase() === "SPLIT_P") ? getDecimalPointsValue(claimDet.claimTotalCharge) : '' , alignment: 'center', colSpan: 2 }, {}
+                            text: 
+                                (claimDet.outSideLab != null && !claimDet.outSideLab && !isProfessionalClaim
+                                    ? '√'
+                                    : ' '
+                                ), alignment: 'center', margin:[-12,0,0,0]
+                        },
+                        { text: isProfessionalClaim ? getDecimalNumericValue(claimDet.claimTotalCharge) : '' , colSpan: 3, alignment: 'right' }, {}, {},
+                        { text: isProfessionalClaim ? getDecimalPointsValue(claimDet.claimTotalCharge) : '' , alignment: 'center', colSpan: 2 }, {}
                     ],
                 ],
 
@@ -936,7 +949,7 @@ function formatRedForm(claimData, servicelineList, pageBrk) {
             style: 'myTable',
             margin: [8, 7, 0, 0],
             table: {
-                widths: [103, 8, 22, 102, 30, 45, 0, 40, 10, 0, 35, 45, 55, 10],
+                widths: [103, 8, 22, 102, 30, 45, 0, 60, 10, 0, 35, 45, 55, 10],
                 heights: [22, 0],
                 body: [
                     [
@@ -961,10 +974,10 @@ function formatRedForm(claimData, servicelineList, pageBrk) {
                                 : ''
                             ), colSpan: 3, margin: [0, 17, 0, 0]
                         }, {}, {},
-                        { text: serviceFacDet, colSpan: 4 },
+                        { text: serviceFacDet, colSpan: 4, margin: [-6, 0, 0, 0] },
                         {}, {}, {},
                         {
-                            text: BillingProDet, colSpan: 5
+                            text: BillingProDet, colSpan: 5, margin: [-6, 0, 0, 0]
                         },
                         {}, {}, {}, {},
                         { text: BillingPh, colSpan: 2 , margin:[-65, -10, 0, 0]}, {}

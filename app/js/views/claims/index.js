@@ -948,18 +948,6 @@ define(['jquery',
                                 .fail(function(err) {
                                     commonjs.handleXhrError(err);
                                 });
-                            } else if (app.isMobileBillingEnabled && app.settings.enableMobileRad) {
-                                self.fetchPlaceOfService({
-                                    siteId: app.siteID,
-                                    from: 'LOAD'
-                                })
-                                .done(function (response) {
-                                    self.appendPOSOptions(response.result);
-                                    self.bindDefaultClaimDetails(claimDetails);
-                                })
-                                .fail(function(err) {
-                                    commonjs.handleXhrError(err);
-                                });
                             } else {
                                 self.bindDefaultClaimDetails(claimDetails);
                             }
@@ -1039,34 +1027,72 @@ define(['jquery',
                  });
             },
 
-            isServiceFacilityLocation: function(claim_data) {
-                var posMap = $("#ddlServiceFacilityLocation option:selected").attr('data-posmap');
+            isServiceFacilityLocation: function(posCode) {
+                var posMap = $("#ddlServiceFacilityLocation option:selected").val();
                 return (
                     app.isMobileBillingEnabled
                     && app.settings.enableMobileRad
-                    && (claim_data.pos_map_id || claim_data.pos_map_code)
+                    && posCode
+                    && posMap
                     && posMap !== "OF"
-                    && posMap !== "OFP"
-                    && posMap !== "-1"
                 );
             },
 
-            appendPOSOptions: function(posMap) {
+            appendPOSOptions: function(posCode) {
+                var options = [];
                 var $ddlServiceFacilityLocation = $('#ddlServiceFacilityLocation');
                 $ddlServiceFacilityLocation.empty();
-                $ddlServiceFacilityLocation.append($('<option/>', { value: "-1", text: "Select" }));
+                $ddlServiceFacilityLocation.append($('<option/>', { value: "", text: "Select" }));
 
-                var posMapList = _.map(posMap, function (pos) {
-                    return (
-                        $('<option/>', {
-                            value: pos.id,
-                            text: pos.name
-                        }).attr('data-posmap', pos.pos_map)
-                          .attr('data-code', pos.code)
-                    );
-                });
+                if (this.facilityId) {
+                    options.push($('<option/>', {
+                        value: 'F',
+                        text: $('#ddlFacility option:selected').text()
+                    }));
+                }
 
-                $ddlServiceFacilityLocation.append(posMapList);
+                if (this.cur_patient_id) {
+                    options.push($('<option/>', {
+                        value: 'PR',
+                        text: this.cur_patient_name
+                    }));
+                }
+
+                if (this.ACSelect.refPhy.contact_id) {
+                    options.push($('<option/>', {
+                        value: 'OP',
+                        text: this.ACSelect.refPhy.Desc
+                    }));
+                }
+
+                if (this.ordering_facility_contact_id) {
+                    options.push($('<option/>', {
+                        value: 'OF',
+                        text: this.ordering_facility_name
+                    }));
+                }
+
+                if (this.ptn_ordering_facility_contact_id
+                    && ~~this.ptn_ordering_facility_contact_id !== ~~this.ordering_facility_contact_id) {
+                    options.push($('<option/>', {
+                        value: 'OFP',
+                        text: this.ptn_ordering_facility_name
+                    }));
+                }
+
+                $ddlServiceFacilityLocation.append(options);
+
+                if (posCode) {
+                    $('#ddlServiceFacilityLocation').val(posCode);
+                }
+
+                if (this.isServiceFacilityLocation(posCode)) {
+                    this.updateResponsibleList({
+                        payer_type: 'PSF',
+                        payer_id: $('#ddlServiceFacilityLocation option:selected').val(),
+                        payer_name: $('#ddlServiceFacilityLocation option:selected').text() + ' (Service Facility)'
+                    }, null);
+                }
             },
 
             createCptCodesUI: function(rowIndex) {
@@ -1180,10 +1206,9 @@ define(['jquery',
                 var skillCode = claim_data.skill_code || self.usermessage.selectSkillCodes;
                 var renderingProvider = renderingProviderFullName || self.usermessage.selectStudyReadPhysician;
 
-                var orderingFacilityName = claim_data.pos == "OFP" ? claim_data.ptn_ordering_facility_name : claim_data.ordering_facility_name;
-                orderingFacilityName = orderingFacilityName || claim_data.service_facility_name;
-                var orderingFacility = orderingFacilityName
-                    ? orderingFacilityName + ' (' + claim_data.location + ')'
+                self.ordering_facility_name = claim_data.ordering_facility_name || claim_data.service_facility_name;
+                var orderingFacilityName  = self.ordering_facility_name
+                    ? self.ordering_facility_name + ' (' + claim_data.location + ')' + (claim_data.ordering_facility_type ? ' (' + claim_data.ordering_facility_type + ')' : '')
                     : self.usermessage.selectOrdFacility;
 
                 var referringProviderNpi;
@@ -1226,11 +1251,11 @@ define(['jquery',
                     self.toggleSkillCodeSection();
                 }
 
-                self.ordering_facility_id = claim_data.pos == "OFP" ? claim_data.ptn_ordering_facility_id : claim_data.ordering_facility_id;
-                self.ordering_facility_id = self.ordering_facility_id || claim_data.service_facility_id || null;
+                self.ordering_facility_id = claim_data.ordering_facility_id || claim_data.service_facility_id || null;
+                self.ordering_facility_contact_id = claim_data.ordering_facility_contact_id || claim_data.service_facility_contact_id || null;
 
-                self.ordering_facility_contact_id = claim_data.pos == "OFP" ? claim_data.ptn_ordering_facility_contact_id :claim_data.ordering_facility_contact_id;
-                self.ordering_facility_contact_id = self.ordering_facility_contact_id || claim_data.service_facility_contact_id || null;
+                self.ptn_ordering_facility_contact_id = claim_data.ptn_ordering_facility_contact_id || null;
+                self.ptn_ordering_facility_name = claim_data.ptn_ordering_facility_name;
 
                 self.billing_type = claim_data.billing_type || 'global';
                 var patientAltAaccNo;
@@ -1246,7 +1271,7 @@ define(['jquery',
                 $('#select2-ddlRenderingProvider-container').html(renderingProvider);
                 $('#select2-ddlSkillCodes-container').html(skillCode);
                 $('#select2-ddlReferringProvider-container').html(referringProvider);
-                $('#select2-ddlOrdFacility-container').html(orderingFacility);
+                $('#select2-ddlOrdFacility-container').html(orderingFacilityName);
                 $('#select2-ddlPhnUli-container').html(patientAltAaccNo);
 
                 // Alberta
@@ -1413,7 +1438,7 @@ define(['jquery',
                     self.updateResponsibleList({
                         payer_type: 'POF',
                         payer_id: self.ordering_facility_id,
-                        payer_name: orderingFacilityName + self.claimResponsible
+                        payer_name: self.ordering_facility_name + self.claimResponsible
                     }, null);
                 }
 
@@ -1425,19 +1450,8 @@ define(['jquery',
                     }, null);
                 }
 
-                if (claim_data.pos_map_code) {
-                    $('#ddlServiceFacilityLocation').val($('option[data-code = ' + claim_data.pos_map_code + ']').val());
-                } else if (claim_data.pos_map_id) {
-                    $('#ddlServiceFacilityLocation').val(claim_data.pos_map_id);
-                }
-
-
-                if (self.isServiceFacilityLocation(claim_data)) {
-                    self.updateResponsibleList({
-                        payer_type: 'PSF',
-                        payer_id: $('#ddlServiceFacilityLocation option:selected').val(),
-                        payer_name: $('#ddlServiceFacilityLocation option:selected').text() + '(Service Facility)'
-                    }, null);
+                if (app.isMobileBillingEnabled && app.settings.enableMobileRad) {
+                    self.appendPOSOptions(claim_data.pos_map_code);
                 }
 
                 /* ResponsibleList End*/
@@ -1475,10 +1489,10 @@ define(['jquery',
 
                     var ddlPOSType = $('#ddlPOSType');
 
-                    if (app.isMobileBillingEnabled && ['facility', 'global'].indexOf(claim_data.billing_type) > -1) {
-                        ddlPOSType.val(claim_data.ord_fac_place_of_service || '');
-                    } else if (["can_MB", "can_ON"].indexOf(app.billingRegionCode) === -1 && claim_data.pos_type_code && claim_data.pos_type_code != '') {
+                    if (claim_data.pos_type_code && app.isMobileBillingEnabled && ["can_MB", "can_ON"].indexOf(app.billingRegionCode) === -1) {
                         ddlPOSType.val($('option[data-code = ' + claim_data.pos_type_code.trim() + ']').val());
+                    } else if (app.isMobileBillingEnabled && ['facility', 'global'].indexOf(claim_data.billing_type) > -1) {
+                        ddlPOSType.val(claim_data.ord_fac_place_of_service || '');
                     } else if (app.country_alpha_3_code !== 'can') {
                         ddlPOSType.val(claim_data.fac_place_of_service_id || '');
                     }
@@ -1658,9 +1672,9 @@ define(['jquery',
             },
 
             onChangeServiceLocation: function (e) {
-                var posMap = $("#ddlServiceFacilityLocation option:selected").attr('data-posmap');
+                var posMap = $("#ddlServiceFacilityLocation option:selected").val();
 
-                if (posMap && posMap !== "OF" && posMap !== "OFP") {
+                if (posMap && posMap !== "OF") {
                     this.updateResponsibleList({
                         payer_type: 'PSF',
                         payer_id: $('#ddlServiceFacilityLocation option:selected').val(),
@@ -2215,22 +2229,7 @@ define(['jquery',
                                 }
 
                                 setTimeout(function () {
-                                    if (app.isMobileBillingEnabled && app.settings.enableMobileRad) {
-                                        self.fetchPlaceOfService({
-                                            siteId: app.siteID,
-                                            from: 'LOAD'
-                                        })
-                                        .done(function (response) {
-                                            self.appendPOSOptions(response.result);
-                                            self.bindDefaultClaimDetails(_defaultDetails);
-                                        })
-                                        .fail(function(err) {
-                                            commonjs.handleXhrError(err);
-                                        });
-                                    } else {
-                                        self.bindDefaultClaimDetails(_defaultDetails);
-                                    }
-
+                                    self.bindDefaultClaimDetails(_defaultDetails);
                                 }, 200);
 
 
@@ -3082,6 +3081,11 @@ define(['jquery',
                                 payer_id: res.id,
                                 payer_name: res.full_name + '(Referring Provider)'
                             }, null);
+
+                            if (app.isMobileBillingEnabled && app.settings.enableMobileRad) {
+                                self.appendPOSOptions($('#ddlServiceFacilityLocation').val());
+                            }
+
                         }
                     }
                     return res.full_name + ' ' + res.npi_no;
@@ -3608,6 +3612,7 @@ define(['jquery',
 
                 }
                 function formatRepoSelection(res) {
+                    self.ordering_facility_name = res.ordering_facility_name;
                     self.ordering_facility_id = res.ordering_facility_id;
                     self.ordering_facility_contact_id = res.id || null;
 
@@ -3627,8 +3632,12 @@ define(['jquery',
                         if(app.isMobileBillingEnabled && res.billing_type === 'facility'){
                             $('#ddlClaimResponsible').val("POF").change();
                         }
+
+                        if(app.isMobileBillingEnabled && app.settings.enableMobileRad) {
+                            self.appendPOSOptions($('#ddlServiceFacilityLocation').val());
+                        }
                     }
-                    return res.ordering_facility_name + ' (' + res.location + ')';
+                    return res.ordering_facility_name + ' (' + res.location + ')' + (res.ordering_facility_type ? " (" + res.ordering_facility_type + ")" : "");
                 }
             },
 
@@ -4233,9 +4242,7 @@ define(['jquery',
                         : null,
                     wcb_injury_details: JSON.stringify(injury_details),
                     deleted_injury_level: self.getDeletedInjuryLevels(),
-                    pos_map_id: $('#ddlServiceFacilityLocation option:selected').val() > 0
-                        ? $('#ddlServiceFacilityLocation option:selected').val()
-                        : null
+                    pos_map_code: $('#ddlServiceFacilityLocation option:selected').val() || null
                 };
 
                 // Pay-to Details are only saved when Pay-to Code is Other
@@ -4308,7 +4315,7 @@ define(['jquery',
                         charge_dt: commonjs.shiftToFacilityTimeZone(facility_id, $('#txtScheduleDate_' + id).val()).format('YYYY-MM-DD LT z') || null,
                         study_id: rowData.study_id || null,
                         is_deleted: false,
-                        is_custom_bill_fee: rowData.is_custom_bill_fee || $('#txtBillFee_' + id).attr('data-edit'),
+                        is_custom_bill_fee: rowData.is_custom_bill_fee || $('#txtBillFee_' + id).attr('data-edit') !== 'false',
                         is_billing_rule_applied: rowData.is_billing_rule_applied || false,
                         is_billing_rule_cpt_add_fee: rowData.is_billing_rule_cpt_add_fee || false,
                         billing_rule_fee: rowData.billing_rule_fee,
@@ -4971,7 +4978,8 @@ define(['jquery',
                 self.showZipPlus($('#txt' + flag + 'ZipPlus'), $('#ddl' + flag + 'Country').val());
 
                 if (self.checkAddressDetails(flag)) {
-                    var msg = commonjs.geti18NString("messages.confirm.billing.changeAddressDetails")
+                    var msg = commonjs.geti18NString("messages.confirm.billing.changeAddressDetails");
+
                     if (confirm(msg)) {
                         $('#txt' + flag + 'SubPriAddr').val('');
                         $('#txt' + flag + 'SubSecAddr').val('');
@@ -4980,6 +4988,11 @@ define(['jquery',
                         $('#ddl' + flag + 'State').val('');
                         $('#txt' + flag + 'ZipCode').val('');
                         $('#txt' + flag + 'ZipPlus').val('');
+
+                        if (relationShip === "self") {
+                            $('#txt' + flag + 'SubPriAddr').val(self.address1);
+                            $('#txt' + flag + 'SubSecAddr').val(self.address2);
+                        }
                     }
                 }
                 else {
@@ -5811,21 +5824,7 @@ define(['jquery',
                                     }
                                     else {
                                         commonjs.patientRecentSearchResult(~~patientId, 'addSearchResult', null, patientDetailsFormatted);
-                                        if (app.isMobileBillingEnabled && app.settings.enableMobileRad) {
-                                            self.fetchPlaceOfService({
-                                                siteId: app.siteID,
-                                                from: 'LOAD'
-                                            })
-                                            .done(function (response) {
-                                                self.appendPOSOptions(response.result);
-                                                self.claimWOStudy(patient_details);
-                                            })
-                                            .fail(function(err) {
-                                                commonjs.handleXhrError(err);
-                                            });
-                                        } else {
-                                            self.claimWOStudy(patient_details);
-                                        }
+                                        self.claimWOStudy(patient_details);
                                     }
 
                                 });
@@ -5977,6 +5976,7 @@ define(['jquery',
                 self.ACSelect.readPhy.contact_id = patient_details.rendering_provider_contact_id || patient_details.rendering_provider_contact_id || null;
                 self.ordering_facility_id = patient_details.service_facility_id || null;
                 self.ordering_facility_contact_id = patient_details.service_facility_contact_id || null;
+                self.ordering_facility_name = service_facility_name;
                 self.isClaimWOStudy = true;
 
                 if (patient_details.rendering_provider_id) {
@@ -5993,6 +5993,13 @@ define(['jquery',
                 var claimDate = commonjs.getConvertedFacilityTime(app.currentdate, '', 'L', app.facilityID);
                 $("#txtClaimCreatedDt").val(claimDate);
                 $("#txtClaimCreatedDt").prop('disabled', true);
+
+                self.facilityId = patient_details.facility_id;
+                self.cur_patient_name = patient_details.patient_name;
+
+                if (app.isMobileBillingEnabled && app.settings.enableMobileRad) {
+                    self.appendPOSOptions();
+                }
 
                 if (patient_details.patient_alt_acc_nos && app.country_alpha_3_code === 'can') {
                     var patientAltAccNo = self.getDefaultPatientAltAccNo(patient_details.patient_alt_acc_nos);
