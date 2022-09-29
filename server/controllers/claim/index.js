@@ -70,13 +70,17 @@ const api= {
                 }
 
                 if (item.charge_type === 'no_split') {
-                    if ((isInsuranceAvailable
-                        && item.is_billing_rule_applied
-                        && item.is_billing_rule_cpt_add_fee) ||
-                        (!item.is_billing_rule_cpt_add_fee
-                        && !(claim.billing_type === 'split'
-                        && item.is_billing_rule_applied
-                        && !isInsuranceAvailable))
+                    if ((item.is_billing_rule_cpt_add_fee
+                        && (isInsuranceAvailable
+                            && item.is_billing_rule_applied
+                            || claim.billing_type === 'global')
+                        ) 
+                        || (
+                            !item.is_billing_rule_cpt_add_fee
+                            && !(claim.billing_type === 'split'
+                                && item.is_billing_rule_applied
+                                && !isInsuranceAvailable)
+                        )
                     ) {
                         item.is_custom_bill_fee = false;
                         item.bill_fee = 0;
@@ -94,7 +98,10 @@ const api= {
                     let modifier_id = api.findModifier(charge);
                     let professionalCharge = {
                         ...charge,
-                        is_custom_bill_fee: charge.is_custom_bill_fee && !charge.is_billing_rule_applied,
+                        is_custom_bill_fee: charge.is_custom_bill_fee
+                                            && (charge.is_billing_rule_cpt_add_fee
+                                                || !charge.is_billing_rule_cpt_add_fee
+                                                && !charge.is_billing_rule_applied),
                         bill_fee: 0,
                         allowed_amount: 0
                     };
@@ -104,8 +111,13 @@ const api= {
 
                     let technicalCharge = {
                         ...charge,
-                        is_custom_bill_fee: charge.is_custom_bill_fee && !charge.is_billing_rule_applied,
-                        bill_fee: (claim.billing_type === 'split' && charge.is_billing_rule_applied) ? charge.bill_fee : 0,
+                        is_custom_bill_fee: charge.is_custom_bill_fee
+                                            && (charge.is_billing_rule_cpt_add_fee
+                                                || !charge.is_billing_rule_cpt_add_fee
+                                                && !charge.is_billing_rule_applied),
+                        bill_fee: (claim.billing_type === 'split'
+                                    && charge.is_billing_rule_applied
+                                    && !charge.is_billing_rule_cpt_add_fee) ? charge.bill_fee : 0,
                         allowed_amount: 0
                     };
 
@@ -116,7 +128,7 @@ const api= {
                 otherCharges = [];
             } else {
                 otherCharges.forEach(charge => {
-                    if (charge.is_billing_rule_applied) {
+                    if (!charge.is_billing_rule_cpt_add_fee && charge.is_billing_rule_applied) {
                         charge.is_custom_bill_fee = false;
                         charge.bill_fee = 0;
                     }                    
