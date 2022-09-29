@@ -424,7 +424,7 @@ var commonjs = {
     healthNumberValidation: [
         { province_code : 'QC' , format:'' , limit:'' , province: "Quebec" }, // No need any validation
         { province_code : 'YT' , format:'N' , regexp:'^[0-9]{0,9}$' , province: "Yukon" },
-        { province_code : 'AB' , format:'N' , regexp:'^[0-9]{0,9}$' , province: "Alberta" },
+        { province_code : 'AB' , format:'N' , regexp:'' , province: "Alberta" }, // EXA-36099 - Policy # validation not needed
         { province_code : 'NU' , format:'N' , regexp:'^[0-9]{0,9}$' , province: "Nunavut" },
         { province_code : 'ON' , format:'N' , regexp:'^[0-9]{0,10}$' , province: "Ontario" },
         { province_code : 'MB' , format:'N' , regexp:'^[0-9]{0,9}$' , province: "Manitoba" },
