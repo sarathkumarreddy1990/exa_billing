@@ -726,7 +726,8 @@ define(['jquery',
                     data = {
                         claimIds: claimIds.toString(),
                         isWCBBilling: isWCBBilling,
-                        userId: app.userID
+                        userId: app.userID,
+                        companyCode: app.company.company_code || ""
                     }
                     if (billingMethodFormat === "special_form") {
                         if (insuranceProviders.length === gridElement.length) {

@@ -240,7 +240,8 @@ define([
                         payerType: options.payerType || '',
                         payerId: options.payerId || '',
                         sortBy: options.sortBy || '',
-                        invoiceNo: options.invoiceNo
+                        invoiceNo: options.invoiceNo,
+                        companyCode: app.company.company_code || ''
                     }, success: function (data, response) {
                         callback(null, data);
                     }, error: function (err, response) {
