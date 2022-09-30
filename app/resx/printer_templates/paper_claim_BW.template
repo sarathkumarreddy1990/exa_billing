@@ -810,6 +810,7 @@ function formatSingleClaim(claimData, servicelineList) {
     pos = claimDet && claimDet.POS || "";
     billType = claimDet && claimDet.billingType || "";
     let claimNotes = getKeyTrimValue(claimDet, 'claimNotes', 65).split('\n').join(' ');
+    let claimDate = claimDet && claimDet.claimDate;
     let isInsuranceSplitEnabled = subscriberDet && subscriberDet.isSplitClaimEnabled || false;
     let isProfessionalClaim = professionalClaim(servicelineList, billType, isInsuranceSplitEnabled);
 
@@ -1957,21 +1958,17 @@ function formatSingleClaim(claimData, servicelineList) {
                             style: 'Ans',
                             margin: [-10,20,0,0],
                             table: {
-                                widths: [145],
+                                widths: [160],
                                 body: [
                                     [
-                                        {text: claimData.subscriber && claimData.subscriber[0].claim && claimData.subscriber[0].claim[0].renderingProvider
-                                            ? getName(claimData.subscriber[0].claim[0].renderingProvider[0],34)
-                                            : '.'
-                                        }
+                                        {text: renderingProv ? getName(renderingProv, 34) : '.' },
                                     ],
                                     [
-                                        {text: 
-                                            (claimData.subscriber && claimData.subscriber[0].claim && claimData.subscriber[0].claim[0].claimDate
-                                                ? (((claimData.subscriber[0].claim[0].claimDate).toString().substring(4,6)) + " " + ((claimData.subscriber[0].claim[0].claimDate).toString().substring(6,8))
-                                                    + " " + ((claimData.subscriber[0].claim[0].claimDate).toString().substring(0,4)))
+                                        {text:
+                                            ( claimDate
+                                                ? claimDate.toString().substring(4,6) + " " + claimDate.toString().substring(6,8) + " " + claimDate.toString().substring(0,4)
                                                 : ''
-                                            ), alignment: 'right', margin: [0,-5, 5, 0]
+                                            ), alignment: 'right', margin: [0,-5, 18, 0]
                                         }
                                     ]
                                 ]
