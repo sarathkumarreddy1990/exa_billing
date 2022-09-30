@@ -520,7 +520,7 @@ function formatRedForm(claimData, servicelineList, pageBrk) {
                     ],
                     [//Ans
                         {
-                            text: (claimData && claimData.subscriber && claimData.subscriber[0].patient && claimData.subscriber[0].patient[0].zipCode 
+                            text: (claimData && claimData.subscriber && claimData.subscriber[0].patient && claimData.subscriber[0].patient[0].zipCode
                                 ? getSubstring(claimData.subscriber[0].patient[0].zipCode, 13)
                                 : '')
                                 + (claimData && claimData.subscriber && claimData.subscriber[0].patient && claimData.subscriber[0].patient[0].zipPlus
@@ -534,11 +534,11 @@ function formatRedForm(claimData, servicelineList, pageBrk) {
                         {},
                         {},
                         {
-                            text: (claimData && claimData.subscriber && claimData.subscriber[0].zipCode 
-                                ? getSubstring(claimData.subscriber[0].zipCode, 12) 
+                            text: (claimData && claimData.subscriber && claimData.subscriber[0].zipCode
+                                ? getSubstring(claimData.subscriber[0].zipCode, 12)
                                 : '')
                                 + (claimData && claimData.subscriber && claimData.subscriber[0].zipCodePlus
-                                    ? getSubstring(claimData.subscriber[0].zipCodePlus, 12) 
+                                    ? getSubstring(claimData.subscriber[0].zipCodePlus, 12)
                                     : '')
                         },
                         { text:  ( claimData.subscriber && claimData.subscriber[0].phoneNumber ? getSubstring(getph(claimData.subscriber[0].phoneNumber), 13) : '') , margin: [-85, 0, 0, 0] }
@@ -816,7 +816,7 @@ function formatRedForm(claimData, servicelineList, pageBrk) {
                             text: (claimDet.outSideLab || isProfessionalClaim) ? '√' : ' ', alignment: 'center', margin:[-3,0,0,0]
                         }, {},
                         {
-                            text: 
+                            text:
                                 (claimDet.outSideLab != null && !claimDet.outSideLab && !isProfessionalClaim
                                     ? '√'
                                     : ' '
