@@ -506,6 +506,8 @@ module.exports = {
 										bgcp.payment_patient_total::numeric::text AS "claimPaymentPatient",
 										bgcp.payments_applied_total::numeric::text AS "claimPaymentTotal",
 										CASE
+											WHEN ${isMobileBillingEnabled} AND pofc.billing_type = 'census' AND claims.billing_type = 'global'
+											THEN '32'
 											WHEN ${isMobileBillingEnabled}
 											THEN (
 												order_details.pos
