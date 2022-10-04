@@ -809,6 +809,7 @@ function formatSingleClaim(claimData, servicelineList) {
     serviceFacNPI = serviceFac && serviceFac.NPINO || "";
     pos = claimDet && claimDet.POS || "";
     billType = claimDet && claimDet.billingType || "";
+
     let claimNotes = getKeyTrimValue(claimDet, 'claimNotes', 65).split('\n').join(' ');
     let claimDate = claimDet && claimDet.claimDate;
     let isInsuranceSplitEnabled = subscriberDet && subscriberDet.isSplitClaimEnabled || false;
@@ -1621,8 +1622,8 @@ function formatSingleClaim(claimData, servicelineList) {
                             text: (claimData && claimData.subscriber && claimData.subscriber[0].patient[0]
                                 ? getKeyTrimValue(claimData.subscriber[0].patient[0], 'zipCode', 13)
                                 : '')
-                                + (claimData && claimData.subscriber && claimData.subscriber[0].patient[0] 
-                                    ? getKeyTrimValue(claimData.subscriber[0].patient[0], 'zipPlus', 13) 
+                                + (claimData && claimData.subscriber && claimData.subscriber[0].patient[0]
+                                    ? getKeyTrimValue(claimData.subscriber[0].patient[0], 'zipPlus', 13)
                                     : '')
                         },
                         {text: claimData.subscriber && claimData.subscriber[0].patient ? getTrimmedPhoneNo(getKeyTrimValue(claimData.subscriber[0].patient[0], 'homePhone', 13)) : '', colSpan:2, margin:[-10, 0,0,0]},
