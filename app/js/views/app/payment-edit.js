@@ -2667,7 +2667,7 @@ define(['jquery',
                             paymentStatus: paymentStatus,
                             casDeleted: JSON.stringify(self.casDeleted),
                             claimStatusID: !isClaimStatusChanged && isClaimBalance && paymentPayerType === 'patient' ? self.received_claim_status_id : claimStatusID,
-                            is_payerChanged: isPayerChanged && $('#ddlClaimResponsible').val() !== 'PSF',
+                            is_payerChanged: isPayerChanged === 'true' && $('#ddlClaimResponsible').val() !== 'PSF',
                             is_claimDenied: isClaimDenied,
                             isFromClaim: self.isFromClaim,
                             changeResponsibleParty : isResponsibleChanged
