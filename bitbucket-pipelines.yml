@@ -31,11 +31,9 @@ definitions:
         artifacts: # defining the artifacts to be passed to each future step.
           - test-reports/**
         script:
-          - npm ci
-          # lint JSON files
-          - npx eslint --plugin "json" --ext ".json" --format "junit" --output-file "./test-reports/eslint-json.junit.xml" "."
-          # lint using included settings
-          - npx eslint --format "junit" --output-file "./test-reports/eslint.junit.xml" "."
+          - npm ci --progress false --audit false
+          # lint using project settings (also uses JSON plugin)
+          - npx eslint --ext ".json,.js" --format "junit" --output-file "./test-reports/eslint.junit.xml" "."
 pipelines:
   #branches:
   #  development:

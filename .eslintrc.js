@@ -5,7 +5,13 @@ module.exports = {
         "es6": true,
         "node": true
     },
-    "extends": "eslint:recommended",
+    "plugins": [
+        "json"
+    ],
+    "extends": [
+        "eslint:recommended",
+        "plugin:json/recommended"
+    ],
     "parserOptions": {
         "sourceType": "module",
         "ecmaVersion": 8,
@@ -82,6 +88,6 @@ module.exports = {
         "no-case-declarations": "error",
         "no-else-return": "error",
         "rest-spread-spacing": ["error", "never"]
-,
+        ,
     }
 };
