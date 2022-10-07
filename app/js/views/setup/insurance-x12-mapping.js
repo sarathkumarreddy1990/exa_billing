@@ -59,13 +59,15 @@ define(['jquery',
                     { 'value': 'AM', 'text': '<option i18n="setup.insurance.autoMobile"></option>' },
                     { 'value': 'MR', 'text': '<option i18n="setup.insurance.hmoMedicalRisk"></option>' }
                 ];
+
+                $(this.el).html(this.insuranceX12MappingGridTemplate());
             },
 
             render: function() {
                 var self = this;
                 $('#divInsuranceX12MappingGrid').show();
                 $('#divInsuranceX12MappingForm').hide();
-                $(this.el).html(this.insuranceX12MappingGridTemplate());
+
                 if (this.ediClearingHouses && !this.ediClearingHouses.length)
                     this.getEDIClearingHousesList();
 
