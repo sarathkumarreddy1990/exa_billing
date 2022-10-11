@@ -1,4 +1,4 @@
-const { query, SQL, queryWithAudit } = require('../index');
+const { query, SQL, queryWithAudit, queryWithDuplicateCheck } = require('../index');
 
 module.exports = {
 
@@ -80,15 +80,20 @@ module.exports = {
                                                   , qualifier_code
                                                   , description
                                                   , inactivated_dt)
-                                                values
-                                                (
+                                                SELECT
                                                     ${companyId}
                                                   , ${code}
                                                   , ${description}
-                                                  , ${inactivated_dt})
+                                                  , ${inactivated_dt}
+                                                WHERE NOT EXISTS (
+                                                    SELECT  1
+                                                    FROM billing.provider_id_code_qualifiers
+                                                    WHERE company_id = ${companyId}
+                                                    AND qualifier_code = ${code}
+                                                )
                                                   RETURNING *, '{}'::jsonb old_values`;
 
-        return await queryWithAudit(sql, {
+        return await queryWithDuplicateCheck(sql, {
             ...params,
             logDescription: `Add: New Provider Id Code Qualifier(${code}) created`
         });
@@ -99,7 +104,8 @@ module.exports = {
         let { id,
             code,
             description,
-            isActive } = params;
+            isActive,
+            companyId } = params;
         let inactivated_dt = isActive ? null : 'now()';
 
         const sql = SQL` UPDATE
@@ -109,16 +115,23 @@ module.exports = {
                             , description = ${description}
                             , inactivated_dt = ${inactivated_dt}
                          WHERE
-                              id = ${id} 
-                              RETURNING *,
-                                  (
-                                      SELECT row_to_json(old_row) 
-                                      FROM   (SELECT * 
-                                              FROM   billing.provider_id_code_qualifiers 
-                                              WHERE  id = ${id}) old_row 
-                                  ) old_values`;
+                            id = ${id} 
+                            AND NOT EXISTS (
+                                SELECT  1
+                                    FROM billing.provider_id_code_qualifiers
+                                    WHERE id != ${id}
+                                    AND company_id = ${companyId}
+                                    AND qualifier_code = ${code}
+                            )
+                            RETURNING *,
+                            (
+                                SELECT row_to_json(old_row)
+                                FROM (SELECT *
+                                        FROM billing.provider_id_code_qualifiers 
+                                        WHERE id = ${id}) old_row
+                            ) old_values`;
 
-        return await queryWithAudit(sql, {
+        return await queryWithDuplicateCheck(sql, {
             ...params,
             logDescription: `Update: Provider Id Code Qualifier(${code}) updated`
         });
