@@ -209,7 +209,7 @@ define([
                 this.model.save({
                 }, {
                     success: function (model, response) {
-                        if (response && response.status == 'EXISTS') {
+                        if (response && response.status === 'EXISTS') {
                             commonjs.showWarning('messages.warning.shared.alreadyexists');
                         } else {
                             commonjs.showStatus('messages.status.savedSuccessfully');
