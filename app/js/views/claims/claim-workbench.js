@@ -979,8 +979,8 @@ define(['jquery',
                         result = _.groupBy(validations, "dataID");
                     }
 
-                    data.ediTextWithValidations = data.ediTextWithValidations.map(function(val){
-                        return typeof val === 'string'? val.replace("undefined", ""): val;
+                    data.ediTextWithValidations = data.ediTextWithValidations.map(function (val) {
+                        return typeof val === 'string' ? val.replace("undefined", "") : val;
                     })
 
                     self.ediTemplateRender(isFromReclaim, result, data.ediTextWithValidations, commonErrorValidation);
@@ -3298,7 +3298,7 @@ define(['jquery',
 
                 switch(billingRegionCode) {
                     case 'can_AB':
-                        return !isWCBBilling 
+                        return !isWCBBilling
                             ? '/exa_modules/billing/ahs/submitClaims'
                             : '/exa_modules/billing/ahs/submitWcbClaim';
                     case 'can_MB':
