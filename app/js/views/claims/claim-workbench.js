@@ -979,6 +979,10 @@ define(['jquery',
                         result = _.groupBy(validations, "dataID");
                     }
 
+                    data.ediTextWithValidations = data.ediTextWithValidations.map(function(val){
+                        return typeof val === 'string'? val.replace("undefined", ""): val;
+                    })
+
                     self.ediTemplateRender(isFromReclaim, result, data.ediTextWithValidations, commonErrorValidation);
                     $(".popoverWarning").popover();
 
