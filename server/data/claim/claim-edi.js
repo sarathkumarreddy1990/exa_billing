@@ -505,20 +505,11 @@ module.exports = {
 										bgcp.adjustment_ordering_provider_total::NUMERIC::TEXT AS "claimAdjustmentProvider",
 										bgcp.payment_patient_total::numeric::text AS "claimPaymentPatient",
 										bgcp.payments_applied_total::numeric::text AS "claimPaymentTotal",
-										CASE
-											WHEN ${isMobileBillingEnabled} AND pofc.billing_type = 'census' AND claims.billing_type = 'global'
-											THEN '32'
-											WHEN ${isMobileBillingEnabled}
-											THEN (
-												order_details.pos
-											)
-											ELSE (
-												SELECT
-													pos.code
-												FROM places_of_service pos
-												WHERE pos.id = claims.place_of_service_id
-											)
-										END AS "POS",
+										(SELECT
+											pos.code
+											FROM places_of_service pos
+											WHERE pos.id = claims.place_of_service_id
+										) AS "POS",
 										to_char(date(timezone(facilities.time_zone,claim_dt)), 'YYYYMMDD') as "claimDate",							date(timezone(facilities.time_zone,claim_dt))::text as "claimDt",
 										is_employed as  "relatedCauseCode1",
 										is_other_accident as  "relatedCauseCode2",
