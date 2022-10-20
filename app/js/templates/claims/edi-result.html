@@ -122,7 +122,7 @@
                                     <% if (index == 0) { %>
                                         <%=val.replace(/ /g, '&nbsp;')%>
                                     <% } else{ %>
-                                        <%=(val)%>
+                                        <%=(val.replace('undefined', ''))%>
                                     <%}%>
                                 </td>
                             </tr>
