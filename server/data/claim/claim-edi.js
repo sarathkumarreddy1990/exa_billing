@@ -507,8 +507,8 @@ module.exports = {
 										bgcp.payments_applied_total::numeric::text AS "claimPaymentTotal",
 										(SELECT
 											pos.code
-											FROM places_of_service pos
-											WHERE pos.id = claims.place_of_service_id
+										 FROM places_of_service pos
+										 WHERE pos.id = claims.place_of_service_id
 										) AS "POS",
 										to_char(date(timezone(facilities.time_zone,claim_dt)), 'YYYYMMDD') as "claimDate",							date(timezone(facilities.time_zone,claim_dt))::text as "claimDt",
 										is_employed as  "relatedCauseCode1",
