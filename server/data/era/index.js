@@ -830,7 +830,8 @@ module.exports = {
                             'ftp_password', communication_info->>'ftp_password',
                             'ftp_user_name', communication_info->>'ftp_user_name',
                             'ftp_receive_folder', communication_info->>'ftp_receive_folder',
-                            'era_file_extension', communication_info->>'sftp_era_file_ext'
+                            'era_file_extension', communication_info->>'sftp_era_file_ext',
+                            'ftp_ready_timeout', communication_info->>'ftp_readyTimeout'
                         ) AS config
                     FROM billing.edi_clearinghouses
                     WHERE inactivated_dt IS NULL
