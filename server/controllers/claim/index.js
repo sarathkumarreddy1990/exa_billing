@@ -56,7 +56,6 @@ const api= {
             let orderingFacilityInvoiceCharges = [];
             let noSplitCharges = [];
             let otherCharges = [];
-            let isInsuranceAvailable = insurances.some(item => item.coverage_level === 'primary');
 
             charges.forEach(item => {
                 if (item.charge_type === 'ordering_facility_invoice') {
@@ -70,20 +69,11 @@ const api= {
                 }
 
                 if (item.charge_type === 'no_split') {
-                    if ((item.is_billing_rule_cpt_add_fee
-                        && (isInsuranceAvailable
-                            && item.is_billing_rule_applied
-                            || claim.billing_type === 'global')
-                        ) 
-                        || (
-                            !item.is_billing_rule_cpt_add_fee
-                            && !(claim.billing_type === 'split'
-                                && item.is_billing_rule_applied
-                                && !isInsuranceAvailable)
-                        )
-                    ) {
+                    if (!(claim.billing_type === 'split' && item.is_billing_rule_applied)) {
                         item.is_custom_bill_fee = false;
                         item.bill_fee = 0;
+                    } else {
+                        item.bill_fee = item.billing_rule_fee
                     }
 
                     noSplitCharges.push(item);
@@ -131,7 +121,7 @@ const api= {
                     if (!charge.is_billing_rule_cpt_add_fee && charge.is_billing_rule_applied) {
                         charge.is_custom_bill_fee = false;
                         charge.bill_fee = 0;
-                    }                    
+                    }
                 });
             }
 
@@ -144,18 +134,10 @@ const api= {
             }
 
             if (noSplitCharges.length) {
-                if (isInsuranceAvailable) {
-                    if (otherCharges.length) {
-                        otherCharges.push(...noSplitCharges);
-                    } else {
-                        professionalClaimCharges.push(...noSplitCharges);
-                    }
+                if (otherCharges.length) {
+                    otherCharges.push(...noSplitCharges);
                 } else {
-                    if (claim.billing_type === 'split') {
-                        technicalClaimCharges.push(...noSplitCharges);
-                    } else {
-                        otherCharges.push(...noSplitCharges);
-                    }
+                    technicalClaimCharges.push(...noSplitCharges);
                 }
             }
 
@@ -194,11 +176,11 @@ const api= {
             }
         } else {
             charges.forEach(item => {
-                if (item.charge_type === 'no_split'&& item.is_billing_rule_applied && item.is_billing_rule_cpt_add_fee) {
+                if (item.charge_type === 'no_split' && item.is_billing_rule_applied && item.is_billing_rule_cpt_add_fee) {
                     item.bill_fee = item.billing_rule_fee;
                 }
             });
-        
+
             claimsDetails.push({
                 ...claim,
                 claim_charges: charges
