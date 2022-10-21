@@ -178,6 +178,7 @@ const sftpService = {
                 user: config.ftp_user_name,
                 password: config.ftp_password,
                 port: config.ftp_port,
+                readyTimeout: ~~config.ftp_ready_timeout || 20000,
 
                 algorithms: {
                     cipher: ['aes128-cbc']
@@ -193,6 +194,7 @@ const sftpService = {
             }
 
             let fileList = await sftp.list(downloadDirPath);
+            fileList = fileList.filter(file => file.type !== 'd'); // filter files without folders
 
             if (!fileList.length) {
                 return {
