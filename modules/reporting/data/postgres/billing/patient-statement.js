@@ -813,6 +813,7 @@ const api = {
         return new Promise((resolve, reject) => {
             rawReportData.report.bottomAddressPx = "10px"; // Put this in here as this can changed, this is to avoid updating the template
             rawReportData.dataSets[0].columns = [{name: 'BillingProviderName'}, {name: 'Address1'}, {name: 'Address2'}, {name: 'City'}, {name: 'State'}, {name: 'ZipCode'}, {name: 'ZipPlus'}, {name: 'Phone'}, {name: 'StatementDate'}];
+            rawReportData.dataSets[0].columnCount = rawReportData.dataSets[0].columns.length
             return resolve(rawReportData);
         });
     },
