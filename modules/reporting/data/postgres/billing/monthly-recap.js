@@ -14,34 +14,46 @@ const {
 const claimActivityDataSetQueryTemplate = _.template(`
 WITH agg_claim AS(
     SELECT
-         pippt.description AS provider_type
-        , CASE
-            WHEN bc.payer_type = 'service_facility_location' THEN
-                public.get_service_facility_name(bc.id, bc.pos_map_code, bc.patient_id)
-            ELSE pof.name
-          END AS facility_name
-    	, f.id as facility_id
-        , bc.id AS claim_id
-        , payer_type
-        , (SELECT claim_balance_total FROM billing.get_claim_totals(bc.id)) as claim_balance
-        , claim_ins.primary_patient_insurance_id
-        , claim_ins.secondary_patient_insurance_id
-        , claim_ins.tertiary_patient_insurance_id
-    FROM
-    	billing.claims bc
-    INNER JOIN public.facilities f ON f.id = bc.facility_id
-    ${getClaimPatientInsurances('bc')}
-    LEFT JOIN public.patient_insurances ppi ON ppi.id = claim_ins.primary_patient_insurance_id
-    LEFT JOIN public.insurance_providers pip ON pip.id = ppi.insurance_provider_id
-    LEFT JOIN public.insurance_provider_payer_types pippt ON pippt.id = pip.provider_payer_type_id
-    LEFT JOIN public.ordering_facility_contacts pofc ON pofc.id = bc.ordering_facility_contact_id
-    LEFT JOIN public.ordering_facilities pof ON pof.id = pofc.ordering_facility_id
-    <% if (billingProID) { %> INNER JOIN billing.providers bp ON bp.id = bc.billing_provider_id <% } %>
-     WHERE 1 = 1
-     AND <%= companyId %>
-     AND <%= claimDate %>
-     <% if (facilityIds) { %>AND <% print(facilityIds); } %>
-     <% if(billingProID) { %> AND <% print(billingProID); } %>
+        DENSE_RANK() OVER (
+            ORDER BY
+            <% if (groupByField == 'InsuranceClass') { %>
+                provider_type
+            <% } else { %>
+                facility_name
+            <% } %>
+        ) AS sort_order
+        , claim_details.*
+    FROM (
+        SELECT
+            pippt.description AS provider_type
+            , CASE
+                WHEN bc.payer_type = 'service_facility_location' THEN
+                    public.get_service_facility_name(bc.id, bc.pos_map_code, bc.patient_id)
+                ELSE pof.name
+            END AS facility_name
+    	    , f.id as facility_id
+            , bc.id AS claim_id
+            , payer_type
+            , (SELECT claim_balance_total FROM billing.get_claim_totals(bc.id)) as claim_balance
+            , claim_ins.primary_patient_insurance_id
+            , claim_ins.secondary_patient_insurance_id
+            , claim_ins.tertiary_patient_insurance_id
+        FROM
+    	    billing.claims bc
+        INNER JOIN public.facilities f ON f.id = bc.facility_id
+        ${getClaimPatientInsurances('bc')}
+        LEFT JOIN public.patient_insurances ppi ON ppi.id = claim_ins.primary_patient_insurance_id
+        LEFT JOIN public.insurance_providers pip ON pip.id = ppi.insurance_provider_id
+        LEFT JOIN public.insurance_provider_payer_types pippt ON pippt.id = pip.provider_payer_type_id
+        LEFT JOIN public.ordering_facility_contacts pofc ON pofc.id = bc.ordering_facility_contact_id
+        LEFT JOIN public.ordering_facilities pof ON pof.id = pofc.ordering_facility_id
+        <% if (billingProID) { %> INNER JOIN billing.providers bp ON bp.id = bc.billing_provider_id <% } %>
+        WHERE 1 = 1
+        AND <%= companyId %>
+        AND <%= claimDate %>
+        <% if (facilityIds) { %>AND <% print(facilityIds); } %>
+        <% if(billingProID) { %> AND <% print(billingProID); } %>
+    ) AS claim_details
   )
 , ins_paid as (
     SELECT DISTINCT bc.claim_id,
@@ -186,7 +198,7 @@ patient_payment AS(
     WHERE bp.payer_type = 'patient'
     GROUP BY agg_claim.claim_id
 )
-SELECT
+( SELECT
     provider_type  AS "Ins Class"
     , CASE WHEN agg_claim.claim_id > 0 OR agg_claim.facility_id > 0 THEN agg_claim.facility_name
            ELSE ' ─ Total ─ '
@@ -212,11 +224,14 @@ LEFT JOIN charge_details ON agg_claim.claim_id = charge_details.claim_id
 LEFT JOIN patient_payment ON agg_claim.claim_id = patient_payment.claim_id
 GROUP BY GROUPING SETS(
     <% if (groupByField == 'InsuranceClass') { %>
-        ("Ins Class"), ("Ins Class", agg_claim.facility_name, agg_claim.claim_id, agg_claim.facility_id)
+        ("Ins Class", agg_claim.sort_order), ("Ins Class", agg_claim.facility_name, agg_claim.claim_id, agg_claim.facility_id, agg_claim.sort_order)
     <% } else { %>
-        (agg_claim.facility_name), (agg_claim.facility_name, "Ins Class", agg_claim.claim_id, agg_claim.facility_id)
+        (agg_claim.facility_name, agg_claim.sort_order), (agg_claim.facility_name, "Ins Class", agg_claim.claim_id, agg_claim.facility_id, agg_claim.sort_order)
     <% } %>
     )
+ORDER BY
+    agg_claim.sort_order
+    , agg_claim.claim_id )
     UNION ALL
         SELECT
             null::TEXT  AS "Ins Class"
