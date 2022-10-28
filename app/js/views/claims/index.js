@@ -5746,7 +5746,8 @@ define(['jquery',
                                     study.accession_no = study.accession_no ? study.accession_no : '--';
                                     study.billing_type = app.isMobileBillingEnabled && study.billing_type ? study.billing_type : 'global';
                                     var study_date = commonjs.getConvertedFacilityTime(study.study_dt, app.currentdate, 'L', app.facility_id);
-                                    $list.append('<li><input class="processStudy" id="studyChk_' + study.id + '" type="checkbox" name="chkStudy" data-study_dt="' + study.study_dt + '" data-accession_no="' + study.accession_no + '" data-billing_type="' + study.billing_type + '" />'+
+                                    $list.append('<li><input class="processStudy" id="studyChk_' + study.id + '" type="checkbox" name="chkStudy" data-study_dt="' + study.study_dt + '" data-accession_no="' + study.accession_no
+                                    + '" data-billing_type="' + study.billing_type + '" data-facility_id="' + study.facility_id + '" />' +
                                     '<label style="font-weight: bold;overflow-wrap: break-word;"  for="studyChk_' + study.id + '" >' + study.study_description
                                     + ' ( Accession# : ' + study.accession_no + ' , Study.Date: ' + study_date + ')</label></li>');
                                 });
@@ -5774,10 +5775,15 @@ define(['jquery',
                                         } else {
 
                                             for (var r = 0; r < selectedCount; r++) {
-                                                var studyId = $checkedInputs[r] && $checkedInputs[r].id ? $checkedInputs[r].id.split('_')[1] : 0;
-                                                var study_dt = $checkedInputs[r] && $checkedInputs[r].dataset ? $checkedInputs[r].dataset.study_dt : null;
-                                                var accession_no = $checkedInputs[r] && $checkedInputs[r].dataset ? $checkedInputs[r].dataset.accession_no : null;
-                                                var billing_type = $checkedInputs[r] && $checkedInputs[r].dataset ? $checkedInputs[r].dataset.billing_type : null;
+                                                var selectedStudy = $checkedInputs[r];
+                                                var studyId = selectedStudy && selectedStudy.id
+                                                    ? selectedStudy.id.split('_')[1]
+                                                    : 0;
+                                                var dataset = selectedStudy && selectedStudy.dataset;
+                                                var study_dt = dataset && dataset.study_dt || null;
+                                                var accession_no = dataset && dataset.accession_no || null;
+                                                var billing_type = dataset && dataset.billing_type || null;
+                                                var facilityId = dataset && dataset.facility_id || facility_id;
 
                                                 if (app.isMobileBillingEnabled && billing_type === 'census') {
                                                     return commonjs.showWarning("messages.warning.validBillingType");
@@ -5786,7 +5792,7 @@ define(['jquery',
                                                 var study = {
                                                     study_id: studyId,
                                                     patient_id: patientId,
-                                                    facility_id: facility_id,
+                                                    facility_id: facilityId,
                                                     study_date: commonjs.convertToFacilityTimeZone(facility_id, study_dt).format('MM/DD/YYYY'),
                                                     patient_name: patient_details.patient_name || '',
                                                     account_no: patient_details.patient_account_no || '',
@@ -5799,9 +5805,15 @@ define(['jquery',
                                             }
                                             var studyDtGroup = _.groupBy(selectedStudies, 'study_date');
                                             var isStudyDateMatch = Object.keys(studyDtGroup).length;
+                                            var facilityGroup = _.groupBy(selectedStudies, 'facility_id');
+                                            var isFacilityMatch = Object.keys(facilityGroup).length;
 
                                             if (isStudyDateMatch > 1) {
                                                 return commonjs.showWarning('messages.warning.claims.sameStudyDtValidate');
+                                            }
+
+                                            if (isFacilityMatch > 1) {
+                                                return commonjs.showWarning('messages.warning.claims.sameFacilityValidate');
                                             }
 
                                             var studyIds = selectedStudies.map(function(value) { return value.study_id; });
