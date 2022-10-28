@@ -584,10 +584,10 @@ const ahsData = {
                             ELSE NULL
                         END                                          AS referring_provider_details,
 
-                        CASE
+                        CASE 
                             WHEN (
-                                ( nums.service_recipient_phn IS NULL OR LOWER(nums.service_recipient_phn_province) != 'ab' )
-                                AND nums.service_recipient_registration_number_province NOT IN ( 'ab', 'qc' )
+                                oci.service_recipient_registration_number IS NOT NULL
+                                AND LOWER(nums.service_recipient_registration_number_province) NOT IN ('ab', 'qc')
                             )
                             THEN nums.service_recipient_registration_number_province
                             ELSE ''
