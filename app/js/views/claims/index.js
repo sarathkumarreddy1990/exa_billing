@@ -5806,13 +5806,13 @@ define(['jquery',
                                             var studyDtGroup = _.groupBy(selectedStudies, 'study_date');
                                             var isStudyDateMatch = Object.keys(studyDtGroup).length;
                                             var facilityGroup = _.groupBy(selectedStudies, 'facility_id');
-                                            var isFacilityMatch = Object.keys(facilityGroup).length;
+                                            var isFacilityMatch = Object.keys(facilityGroup).length > 1;
 
                                             if (isStudyDateMatch > 1) {
                                                 return commonjs.showWarning('messages.warning.claims.sameStudyDtValidate');
                                             }
 
-                                            if (isFacilityMatch > 1) {
+                                            if (isFacilityMatch) {
                                                 return commonjs.showWarning('messages.warning.claims.sameFacilityValidate');
                                             }
 
