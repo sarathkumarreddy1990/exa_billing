@@ -73,7 +73,8 @@ const api= {
                         item.is_custom_bill_fee = false;
                         item.bill_fee = 0;
                     } else {
-                        item.bill_fee = item.billing_rule_fee
+                        item.bill_fee = item.billing_rule_fee || item.bill_fee;
+                        item.is_custom_bill_fee = true;
                     }
 
                     noSplitCharges.push(item);
