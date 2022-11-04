@@ -216,18 +216,17 @@ const sftpService = {
             const created_dt = now.format();
             const fileDir = `ERA/${now.format('YYYY/MM/DD')}`;
             let filePath = `${root_directory}/${fileDir}`;
+            let savedPaths = [];
 
             await mkdirpAsync(filePath);
 
-            const promises = _.map(fileList, async (file) => {
-                const downloadPath = `${downloadDirPath}/${file.name}`;
-                const savePath = `${filePath}/${file.name}`;
+            for (let i = 0; i < fileList.length; i++ ) {
+                const downloadPath = `${downloadDirPath}/${fileList[i].name}`;
+                const savePath = `${filePath}/${fileList[i].name}`;
                 await sftp.fastGet(downloadPath, savePath);
                 await sftp.delete(downloadPath);
-                return file.name;
-            });
-
-            const savedPaths = await Promise.all(promises);
+                savedPaths.push(fileList[i].name);
+            }
 
             /**
              * Register downloaded files into DB
