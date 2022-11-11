@@ -248,6 +248,18 @@ const colModel = [
         name: 'billing_type',
         searchColumns: ['claims.billing_type'],
         searchFlag: '%'
+    },
+    {
+        name: 'ordering_facility_type',
+        searchColumns: [`(
+            SELECT
+                description
+            FROM
+                ordering_facility_types
+            WHERE
+                ordering_facility_types.id = ordering_facility_contacts.ordering_facility_type_id
+        )`],
+        searchFlag: '%'
     }
 ];
 
@@ -348,6 +360,15 @@ const api = {
             case 'phn_alt_account': return 'patient_alt_accounts.phn_alt_account';
             case 'can_bc_claim_sequence_numbers': return 'billing.can_bc_get_claim_sequence_numbers(claims.id)';
             case 'billing_type': return 'claims.billing_type';
+            case 'ordering_facility_type':
+                return `(
+                    SELECT
+                        description
+                    FROM
+                        ordering_facility_types
+                    WHERE
+                        ordering_facility_types.id = ordering_facility_contacts.ordering_facility_type_id
+                )`;
         }
 
         return args;
@@ -647,7 +668,15 @@ const api = {
             `patient_alt_accounts.phn_alt_account`,
             `billing.can_bc_get_claim_sequence_numbers(claims.id) AS can_bc_claim_sequence_numbers`,
             `AGE(CURRENT_DATE, submitted_dt) >= '3 days'::INTERVAL AND claim_status.code = 'PA' AS claim_resubmission_flag`,
-            'claims.billing_type'
+            'claims.billing_type',
+            `(
+                SELECT
+                    description
+                FROM
+                    ordering_facility_types
+                WHERE
+                    ordering_facility_types.id = ordering_facility_contacts.ordering_facility_type_id
+            ) AS ordering_facility_type`
         ];
 
         if(args.customArgs.filter_id=='Follow_up_queue'){

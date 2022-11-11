@@ -339,6 +339,18 @@ const colModel = [
         name: 'billing_type',
         searchColumns: [`ordering_facility_contacts.billing_type`],
         searchFlag: '%'
+    },
+    {
+        name: 'ordering_facility_type',
+        searchColumns: [`(
+            SELECT
+                description
+            FROM
+                ordering_facility_types
+            WHERE
+                ordering_facility_types.id = ordering_facility_contacts.ordering_facility_type_id
+        )`],
+        searchFlag: '%'
     }
 ];
 
@@ -523,6 +535,15 @@ const api = {
             case 'phn_alt_account': return 'patient_alt_accounts.phn_alt_account';
             case 'can_bc_claim_sequence_numbers': return `claim_sequence_numbers.can_bc_claim_sequence_numbers`;
             case 'billing_type': return 'ordering_facility_contacts.billing_type';
+            case 'ordering_facility_type':
+                return `(
+                    SELECT
+                        description
+                    FROM
+                        ordering_facility_types
+                    WHERE
+                        ordering_facility_types.id = ordering_facility_contacts.ordering_facility_type_id
+                )`;
         }
 
         return args;
@@ -969,7 +990,15 @@ const api = {
             `patient_alt_accounts.phn_alt_account`,
             `claim_sequence_numbers.can_bc_claim_sequence_numbers`,
             'ordering_facility_contacts.billing_type',
-            'primary_insurance.is_split_claim_enabled'
+            'primary_insurance.is_split_claim_enabled',
+            `(
+                SELECT
+                    description
+                FROM
+                    ordering_facility_types
+                WHERE
+                    ordering_facility_types.id = ordering_facility_contacts.ordering_facility_type_id
+            ) AS ordering_facility_type`
         ];
 
         return stdcolumns.concat(

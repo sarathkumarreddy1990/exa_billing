@@ -113,6 +113,7 @@ define([ 'backbone', 'immutable', 'moment', 'shared/utils' ], function ( Backbon
         var vehicles = commonjs.makeValue(app.vehicles, ":All;", "id", "vehicle_name");
         var gender = commonjs.makeValue(commonjs.bindArray(app.gender, false), ":All;");
         var isNoneExist = false;
+        var orderingFacilityTypes = commonjs.makeValue(app.ordering_facility_types, ":All;", "description", "description");
         var claimAction = ':All;corrected_claim:Corrected claim;new_claim:New claim';
         var renderingProvider = commonjs.makeValue(app.rendering_provider, ":All;", "full_name", "full_name");
         var billingType = (filterType == "claims")
@@ -982,8 +983,23 @@ define([ 'backbone', 'immutable', 'moment', 'shared/utils' ], function ( Backbon
                             },
                     },
                     "field_code": "billing_type"
-            }
-
+                },
+                "Ordering Facility Type": {
+                    "id": 78,
+                    "field_code": "ordering_facility_type",
+                    "field_name": "Ordering Facility Type",
+                    "i18n_name": "shared.fields.ordFacilityType",
+                    "field_info": {
+                        "custom_name": "Ordering Facility Type",
+                        "name": "ordering_facility_type",
+                        "width": 150,
+                        "stype": "select",
+                        "searchoptions": {
+                            "value": orderingFacilityTypes,
+                            "tempvalue": orderingFacilityTypes
+                        }
+                    }
+                }
             });
         }else{
         return Immutable.Map({
@@ -2247,8 +2263,23 @@ define([ 'backbone', 'immutable', 'moment', 'shared/utils' ], function ( Backbon
                     },
                 },
                 "field_code": "billing_type"
-        }
-
+            },
+            "Ordering Facility Type": {
+                "id": 76,
+                "field_code": "ordering_facility_type",
+                "field_name": "Ordering Facility Type",
+                "i18n_name": "shared.fields.ordFacilityType",
+                "field_info": {
+                    "custom_name": "Ordering Facility Type",
+                    "name": "ordering_facility_type",
+                    "width": 150,
+                    "stype": "select",
+                    "searchoptions": {
+                        "value": orderingFacilityTypes,
+                        "tempvalue": orderingFacilityTypes
+                    }
+                }
+            }
         });
     }
     };

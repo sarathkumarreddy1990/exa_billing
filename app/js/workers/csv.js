@@ -46,7 +46,8 @@ const claimColumns = {
     "Sequence Numbers": "can_bc_claim_sequence_numbers",
     "Alt Account No": "pid_alt_account",
     "Modality": "modalities",
-    "Billing type": 'billing_type'
+    "Billing type": 'billing_type',
+    "Ordering Facility Type": 'ordering_facility_type'
 };
 
 const paymentsColumns = {
