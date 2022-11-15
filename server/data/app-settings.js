@@ -510,6 +510,18 @@ module.exports = {
                             AND bdr.company_id = ${companyID}
                         ORDER BY bdr.id asc
                     )  AS delay_reasons
+                ),
+                cte_ordering_facility_types AS (
+                    SELECT COALESCE(JSONB_AGG(ROW_TO_JSON(ordering_facility_types)), '[]') "ordering_facility_types"
+                    FROM (
+                        SELECT
+                            id,
+                            description,
+                            is_system_type
+                        FROM public.ordering_facility_types oft
+                        WHERE
+                            oft.company_id = ${companyID}
+                    ) AS ordering_facility_types
                 )
 
                SELECT *
@@ -554,7 +566,8 @@ module.exports = {
                       cte_wcb_injury_nature,
                       cte_wcb_injury_area,
                       cte_mobile_rad_details,
-                      cte_rendering_provider
+                      cte_rendering_provider,
+                      cte_ordering_facility_types
                `;
 
         return await query(sql);
