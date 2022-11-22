@@ -78,7 +78,8 @@ define(['jquery',
                                 pageSize: 10,
                                 sortField: "name",
                                 sortOrder: "ASC",
-                                company_id: app.companyID
+                                company_id: app.companyID,
+                                isCensus: true
                             };
                         },
                         processResults: function (data, params) {
