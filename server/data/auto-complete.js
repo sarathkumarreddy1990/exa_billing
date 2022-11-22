@@ -502,22 +502,38 @@ module.exports = {
             sortOrder,
             pageSize,
             page,
-            q
+            q,
+            isCensus
         } = args;
         let whereQuery = '';
+        let contactJoinQuery = '';
 
         if (q) {
             whereQuery += ` AND (code ILIKE '%${q}%' OR name ILIKE '%${q}%' ) `;
+        }
+
+        if (isCensus) {
+            contactJoinQuery = ` LEFT JOIN LATERAL (
+                SELECT count(1) AS contact_count
+                FROM ordering_facility_contacts
+                WHERE ordering_facility_id = ordering_facilities.id
+                AND billing_type = 'census'
+            ) facility_count ON TRUE`;
+
+            whereQuery += ` AND contact_count > 0`;
         }
 
         const sql = SQL`
             WITH get_ordering_facility_count AS (
                 SELECT
                     COUNT(1) AS total_records
-                FROM ordering_facilities
+                FROM ordering_facilities`
+                .append(contactJoinQuery)
+                .append(`
                 WHERE deleted_dt IS NULL
                 AND inactivated_dt IS NULL
                 AND company_id = ${company_id}`
+                )
             .append(whereQuery)
             .append(`
             )
@@ -529,7 +545,9 @@ module.exports = {
                 , company_id
                 , gofc.total_records
             FROM ordering_facilities
-            INNER JOIN get_ordering_facility_count gofc ON TRUE
+            INNER JOIN get_ordering_facility_count gofc ON TRUE`)
+            .append(contactJoinQuery)
+            .append(`
             WHERE deleted_dt IS NULL
             AND inactivated_dt IS NULL
             AND company_id = ${company_id}
