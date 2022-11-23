@@ -79,6 +79,7 @@ define([
                 if (reportArgs && reportArgs.flag == 'RISPrintReceipt') {
                     var urlParams = {
                         studyIds: reportArgs.studyIds,
+                        studyCptIds: reportArgs.studyCptIds,
                         patient_id: reportArgs.patient_id,
                         payment_id: reportArgs.payment_id,
                         countryCode: countryFlag

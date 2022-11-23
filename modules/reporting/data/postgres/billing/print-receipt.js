@@ -34,14 +34,23 @@ WITH company_details AS (
 )
 ,charge_details AS (
 	SELECT
-	    TRIM(s.study_description)      AS cpt_description          
+	    TRIM(s.study_description) AS study_description
       , row_number() OVER (ORDER BY s.id ASC) charge_index   
-      , to_char(timezone(f.time_zone, s.study_dt), 'MM/DD/YYYY') AS study_dt         
+      , to_char(timezone(f.time_zone, s.study_dt), 'MM/DD/YYYY') AS study_dt
+      , s.accession_no
+      , sc.cpt_code AS study_cpt
+      , cc.short_description AS cpt_description
 	FROM  public.studies s
     INNER JOIN public.facilities AS f  ON f.id = s.facility_id
+    INNER JOIN public.study_cpt sc ON sc.study_id = s.id
+    INNER JOIN public.cpt_codes cc ON cc.id = sc.cpt_code_id
     WHERE
-        s.deleted_dt is null
-        <% if(study_id) { %>AND <% print(study_id);} %>
+        s.deleted_dt IS NULL
+        AND sc.deleted_dt IS NULL
+        AND (
+            <%= study_id %>
+            <% if(studyCptIds) { %> OR <% print(studyCptIds);} %>
+        )
 )
 ,payments AS (
  SELECT
@@ -120,7 +129,8 @@ const api = {
             patient_id: null,
             patient_id_det: null,
             payment_id: null,
-            study_id: null
+            study_id: null,
+            studyCptIds: null
         };
         if (reportParams.patient_id) {
             params.push(reportParams.patient_id);
@@ -131,9 +141,13 @@ const api = {
             params.push(reportParams.payment_id);
             filters.payment_id = queryBuilder.where('p.id', '=', [params.length]);
         }
-        if (reportParams.studyIds) {
-            params.push(reportParams.studyIds);
-            filters.study_id = queryBuilder.whereIn('s.id', [params.length]);
+
+        params.push(reportParams.studyIds || null);
+        filters.study_id = queryBuilder.whereIn('s.id', [params.length]);
+
+        if (reportParams.studyCptIds) {
+            params.push(reportParams.studyCptIds.map(Number));
+            filters.studyCptIds = queryBuilder.whereIn('sc.id', [params.length]);
         }
         return {
             queryParams: params,
