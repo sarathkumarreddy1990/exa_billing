@@ -1165,61 +1165,78 @@ module.exports = {
             study_dt,
             accession_no,
             study_description,
-            customDt
+            customDt,
+            from
         } = params;
 
         params.sortOrder = params.sortOrder || ' ASC';
 
         let dateArgs = { options: { isCompanyBase: false} };
-        let sql = SQL` SELECT
-                               studies.id
-                             , studies.accession_no
-                             , studies.study_description
-                             , studies.study_dt
-                             , studies.facility_id
-                             , cc.cpt_code
-                        FROM studies
-                        INNER JOIN orders o ON studies.order_id = o.id
-                        JOIN lateral(
-                                        SELECT
-                                             study_id
-                                            , array_agg(scp.cpt_code) AS cpt_code
-                                        FROM study_cpt scp
-                                        WHERE scp.deleted_dt IS NULL 
-                                        GROUP BY study_id
-                                      ) cc ON cc.study_id = studies.id
-                        WHERE o.patient_id = ${payerId}
-                           AND o.deleted_dt is null
-                           AND o.order_status NOT IN ('CAN','NOS')
-                           AND studies.study_status NOT IN ('CAN','NOS')
-                        `;
+        let sql = ``;
 
-        if(study_dt){
-            sql.append(` AND `)
-                .append(studyDtGenerator('studies.study_dt', study_dt, dateArgs));
+        if (from === 'subGridStudyCPT') {
+            sql = SQL` SELECT
+                sc.id
+                , s.id AS study_id
+                , s.accession_no
+                , s.study_description
+                , s.study_dt
+                , s.facility_id
+                , sc.cpt_code
+                , cc.short_description AS cpt_description
+                FROM studies s
+                INNER JOIN study_cpt sc ON sc.study_id = s.id
+                INNER JOIN cpt_codes cc ON cc.id = sc.cpt_code_id
+                WHERE
+                    s.accession_no = ${accession_no}
+                    AND sc.deleted_dt IS NULL`;
+							
+        } else {
+            sql = SQL` SELECT
+                    studies.id
+                    , studies.accession_no
+                    , studies.study_description
+                    , studies.study_dt
+                    , studies.facility_id
+                    , cc.cpt_code
+                FROM studies
+                INNER JOIN orders o ON studies.order_id = o.id
+                JOIN LATERAL(
+                    SELECT
+                        study_id
+                        , ARRAY_AGG(scp.cpt_code) AS cpt_code
+                    FROM study_cpt scp
+                    WHERE scp.deleted_dt IS NULL
+                    GROUP BY study_id
+                ) cc ON cc.study_id = studies.id
+                WHERE o.patient_id = ${payerId}
+                    AND o.deleted_dt is null
+                    AND o.order_status NOT IN ('CAN','NOS')
+                    AND studies.study_status NOT IN ('CAN','NOS') `;
+
+            if (study_dt) {
+                sql.append(` AND ${studyDtGenerator('studies.study_dt', study_dt, dateArgs)}`);
+            } else if (customDt) {
+                sql.append(` AND ${studyDtGenerator('studies.study_dt', customDt, dateArgs)}`);
+            }
+    
+            if (accession_no) {
+                sql.append(SQL` AND accession_no ~* ${accession_no}`);
+            }
+    
+            if (study_description) {
+                sql.append(SQL` AND study_description ~* ${study_description}`);
+            }
+    
+            if (cpt_code) {
+                sql.append(SQL` AND array_to_string(cc.cpt_code, ', ') ~* ${cpt_code}`);
+            }
+    
+            sql.append(SQL` ORDER BY  `)
+                .append(sortField)
+                .append(' ')
+                .append(sortOrder);
         }
-        else if(customDt){
-            sql.append(` AND `)
-                .append(studyDtGenerator('studies.study_dt', customDt, dateArgs));
-        }
-
-        if (accession_no){
-            sql.append(` AND  accession_no ILIKE '%${accession_no}%' `);
-        }
-
-        if(study_description){
-            sql.append(` AND study_description ILIKE '%${study_description}%'`);
-        }
-
-
-        if (cpt_code){
-            sql.append(` AND array_to_string(cc.cpt_code, ', ') LIKE '%${cpt_code}%' `);
-        }
-
-        sql.append(SQL` ORDER BY  `)
-            .append(sortField)
-            .append(' ')
-            .append(sortOrder);
 
         return await query(sql);
     },
