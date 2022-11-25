@@ -427,6 +427,22 @@ const util = {
                     }
                 }
 
+                if (filterObj.ClaimInformation.ordering_facility_type) {
+                    const obj = filterObj.ClaimInformation.ordering_facility_type;
+                    let ordFacilityTypeQuery = '';
+
+                    if (obj && obj.list && obj.list.length) {
+                        const facilityTypeArray = _.map(obj.list, (x) => x.id);
+                        ordFacilityTypeQuery = util.getConditionalOperator(obj.condition, `ANY(ARRAY[` + facilityTypeArray + `])`, true, 'array', ` ordering_facility_contacts.ordering_facility_type_id `);
+
+                        if (obj.condition == 'IsNot') {
+                            ordFacilityTypeQuery += ' OR ordering_facility_contacts.ordering_facility_type_id IS NULL';
+                        }
+
+                        query += util.getRelationOperator(query) + '(' + ordFacilityTypeQuery + ')';
+                    }
+                }
+
                 if (filterObj.ClaimInformation.referring_provider) {
                     let obj = filterObj.ClaimInformation.referring_provider;
                     let referringProviderQuery = '';
@@ -781,6 +797,22 @@ const util = {
                         }
 
                         query += util.getRelationOperator(query) + '(' + facilityQuery + ')';
+                    }
+                }
+
+                if (filterObj.studyInformation.ordering_facility_type) {
+                    const obj = filterObj.studyInformation.ordering_facility_type;
+                    let ordFacilityTypeQuery = '';
+
+                    if (obj && obj.list && obj.list.length) {
+                        const facilityTypeArray = _.map(obj.list, (x) => x.id);
+                        ordFacilityTypeQuery = util.getConditionalOperator(obj.condition, `ANY(ARRAY[` + facilityTypeArray + `])`, true, 'array', ` ordering_facility_contacts.ordering_facility_type_id `);
+
+                        if (obj.condition == 'IsNot') {
+                            ordFacilityTypeQuery += ' OR ordering_facility_contacts.ordering_facility_type_id IS NULL';
+                        }
+
+                        query += util.getRelationOperator(query) + '(' + ordFacilityTypeQuery + ')';
                     }
                 }
 
