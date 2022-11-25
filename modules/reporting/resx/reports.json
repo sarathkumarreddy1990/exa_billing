@@ -1797,5 +1797,19 @@
                 }
             }
         }
+    },
+    {
+        "id": "goodFaithEstimateLetter",
+        "category": "patients",
+        "title": "Good Faith Estimate",
+        "description": "",
+        "flags" : {
+            "hideDetailTableCaption": true
+        },
+        "jsreport": {
+            "pdf": {
+                "template": { "name": "good-faith-estimate-letter-pdf" }
+            }
+        }
     }
 ]
