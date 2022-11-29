@@ -1023,6 +1023,17 @@ define([
                                         }
                                     }
 
+                                    if (studyInfoJson.ordering_facility_type && studyInfoJson.ordering_facility_type.condition) {
+                                        $("input:radio[name=studyOrdFacilityType][value=" + studyInfoJson.ordering_facility_type.condition + "]").prop('checked', true);
+                                        for (var j = 0; j < studyInfoJson.ordering_facility_type.list.length; j++) {
+                                            $('#listOrdFacilityType option').each(function (i, selected) {
+                                                if (studyInfoJson.ordering_facility_type.list[j].id == $(selected).val()) {
+                                                    document.getElementById('listOrdFacilityType').options[i].selected = true;
+                                                }
+                                            });
+                                        }
+                                    }
+
                                     $('#ulListOrdFacility').empty();
                                     self.ordering_facility = studyInfoJson.ordering_facility;
                                     if (studyInfoJson.ordering_facility && studyInfoJson.ordering_facility.condition) {
@@ -1153,6 +1164,18 @@ define([
                                             $('#listClaimFacility option').each(function (i, selected) {
                                                 if (claimFacilityJson.list[j].id == $(selected).val()) {
                                                     document.getElementById('listClaimFacility').options[i].selected = true;
+                                                }
+                                            });
+                                        }
+                                    }
+
+                                    var claimOrdFacilityTypeJson = response.filter_info.ClaimInformation.ordering_facility_type || [];
+                                    if (claimOrdFacilityTypeJson && claimOrdFacilityTypeJson.condition) {
+                                        $("input:radio[name=claimOrdFacilityType][value=" + claimOrdFacilityTypeJson.condition + "]").prop('checked', true);
+                                        for (var j = 0; j < claimOrdFacilityTypeJson.list.length; j++) {
+                                            $('#listClaimOrdFacilityType option').each(function (i, selected) {
+                                                if (claimOrdFacilityTypeJson.list[j].id == $(selected).val()) {
+                                                    document.getElementById('listClaimOrdFacilityType').options[i].selected = true;
                                                 }
                                             });
                                         }
@@ -1468,6 +1491,28 @@ define([
                     return;
                 }
 
+                var arrOrdFacilityType = [];
+                $('#listOrdFacilityType option:selected').each(function (i, selected) {
+                    var jsonOrdFacilityType = {};
+                    jsonOrdFacilityType.id = $(selected).val();
+                    jsonOrdFacilityType.text = $(selected).text();
+                    arrOrdFacilityType.push(jsonOrdFacilityType);
+                });
+                if (arrOrdFacilityType.length > 0 && !self.validateRadioButton('studyOrdFacilityType', 'Facility')) {
+                    return;
+                }
+
+                var arrClaimOrdFacilityType = [];
+                $('#listClaimOrdFacilityType option:selected').each(function (i, selected) {
+                    var jsonOrdFacilityType = {};
+                    jsonOrdFacilityType.id = $(selected).val();
+                    jsonOrdFacilityType.text = $(selected).text();
+                    arrClaimOrdFacilityType.push(jsonOrdFacilityType);
+                });
+                if (arrClaimOrdFacilityType.length > 0 && !self.validateRadioButton('claimOrdFacilityType', 'Facility')) {
+                    return;
+                }
+
                 var arrFacility = [];
                 $('#listFacility option:selected').each(function (i, selected) {
                     var jsonFacility = {};
@@ -1689,6 +1734,10 @@ define([
                                 condition: $('input[name=studyFacility]:checked').val(),
                                 list: arrFacility
                             },
+                            ordering_facility_type: {
+                                condition: $('input[name=studyOrdFacilityType]:checked').val(),
+                                list: arrOrdFacilityType
+                            },
                             status: {
                                 condition: $('input[name=Status]:checked').val(),
                                 last_changed_by_me: $('input[name=LastChangedByMe]').prop('checked') || false,
@@ -1790,6 +1839,10 @@ define([
                             facility: {
                                 condition: $('input[name=claimFacility]:checked').val(),
                                 list: arrClaimFacility
+                            },
+                            ordering_facility_type: {
+                                condition: $('input[name=claimOrdFacilityType]:checked').val(),
+                                list: arrClaimOrdFacilityType
                             },
                             ordering_facility: {
                                 condition: $('input[name=claimOrdFacility]:checked').val(),
@@ -2156,6 +2209,7 @@ define([
                     setupList('listStatus', statusCodes, 'status_desc', 'status_code');
                     setupList('listVehicle', app.vehicles, 'vehicle_name');
                     setupList('listFacility', facilities, 'facility_name');
+                    setupList('listOrdFacilityType', app.ordering_facility_types, 'description');
                 }
                 else {
                     setupList('listClaimInfo', app.claim_status, 'description', 'id');
@@ -2166,6 +2220,7 @@ define([
                     setupList('listClaimFacility', facilities, 'facility_name');
                     setupList('listBillingCode', app.billing_codes, 'description', 'id');
                     setupList('listBillingClass', app.billing_classes, 'description', 'id');
+                    setupList('listClaimOrdFacilityType', app.ordering_facility_types, 'description');
                 }
                 this.setOrderingFacilityAutoComplete();
                 this.setProviderAutoComplete("RF");
@@ -2335,6 +2390,8 @@ define([
 
                 $('#listClaimFacility option').remove();
                 $('#listFacility option').remove();
+                $('#listClaimOrdFacilityType option').remove();
+                $('#listOrdFacilityType option').remove();
                 $('#listInstitution option').remove();
                 $('#listModality option').remove();
                 $('#listStatus option').remove();
