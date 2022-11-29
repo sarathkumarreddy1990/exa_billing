@@ -988,10 +988,12 @@ define(['jquery',
                             search: false,
                             isIconCol: true,
                             formatter: function (cellvalue, option, rowObject) {
-                                return '<input type="checkbox" name="chkStudyCpt" id="chktblStudyCpt' + '_' + rowObject.id + '" />'
-
+                                return '<input type="checkbox" name="chkStudyCpt" id="chktblStudyCpt' + '_' + rowObject.id + '" data-study_id="' + rowObject.id + '"/>';
                             },
                             customAction: function (rowID, e, that) {
+                                var $selectedStudyId = $("#tblStudyCpt_" + rowID + "_t  input[name=chkSubGridStudyCpt]");
+                                var isCheckedStudy = $("#" + e.target.id + ":checked").length > 0;
+                                $selectedStudyId.prop("checked", isCheckedStudy);
                             }
                         },
                         { name: 'id', index: 'id', key: true, searchFlag: 'int', hidden: true },
@@ -1021,8 +1023,80 @@ define(['jquery',
                         payerId: payerId,
                         customDt: study_dt
                     },
+                    subGrid: true,
+                    subGridInstance: function(subgrid_id, row_id) {
+                        var studycptListData = new studycptCollection();
+                        var subgridTableid = subgrid_id + "_t";
+                        $("#" + subgrid_id).html("<table id='" + subgridTableid + "' class='scroll'></table>");
+                        var tableId = "#" + subgridTableid;
+                        var subGridCptTable = new customGrid(studycptListData, tableId);
+
+                        subGridCptTable.render({
+                            gridelementid: tableId,
+                            custompager: new ModelPaymentsPager(),
+                            colNames: ['', '', '', '', '', '', ''],
+                            i18nNames: ['', '', '', 'billing.COB.studyDate', 'billing.payments.accessionNo', 'shared.fields.cptDescription', 'shared.fields.cptCode'],
+                            colModel: [
+                                {
+                                    name: 'sub_chkStudyCpt',
+                                    width: 25,
+                                    sortable: false,
+                                    resizable: false,
+                                    search: false,
+                                    isIconCol: true,
+                                    formatter: function (cellvalue, option, rowObject) {
+                                        return '<input type="checkbox" name="chkSubGridStudyCpt" id="studyCpt' + '_' + rowObject.id + '" data-study_id="' + rowObject.study_id + '"/>';        
+                                    },
+                                    customAction: function (rowID, e, that) {
+                                        var unCheckedCptsCount = $("#" + e.currentTarget.id + " input[name=chkSubGridStudyCpt]").not(":checked").length;
+                                        var accessionNo = _.get(that, "options.customargs.accession_no");
+                                        $("#chktblStudyCpt_" + accessionNo).prop("checked", !unCheckedCptsCount);
+                                    }
+                                },
+                                { name: 'id', index: 'id', key: true, hidden: true },
+                                { name: 'facility_id', hidden: true },
+                                { name: 'study_dt', width: 70, formatter: self.studyDateFormatter},
+                                { name: 'accession_no', width: 70},
+                                { name: 'cpt_description', width: 100},
+                                { name: 'cpt_code', width: 70 }
+                            ],
+                            sortname: "study_dt",
+                            sortorder: "ASC",
+                            disablesearch: true,
+                            disablesort: true,
+                            disablepaging: true,
+                            showcaption: false,
+                            disableadd: true,
+                            disablereload: true,
+                            defaultwherefilter: '',
+                            customargs: {
+                                accession_no: row_id,
+                                from: 'subGridStudyCPT'
+                            },
+                            isSubGrid: true,
+                            onaftergridbind: function (model, gridObj) {
+                                var accessionNo = model && model[0].attributes.accession_no;
+                                var selectedStudyCount = $("#chktblStudyCpt_" + accessionNo + ":checked").length;
+
+                                if (selectedStudyCount) {
+                                    $("#tblStudyCpt_" +  accessionNo  + "_t  input[name=chkSubGridStudyCpt]").prop("checked", true);
+                                }
+                            },
+                        });
+
+                        $(tableId).jqGrid($(".modal-body").height() - 140);
+                        $(tableId).jqGrid('setGridWidth', $(window).width() - 20);                       
+                    },
                     onaftergridbind: function (model, gridObj) {
                         self.bindDateRangeOnSearchBox(gridObj, 'tblStudyCpt',study_dt);
+
+                        //Remove + icon if cpt count is less than 2
+                        _.each(model, function(cptData) {
+                            if(_.get(cptData, "attributes.cpt_code", []).length < 2) {
+                                $("tbody tr#" + cptData.id + " td").removeClass("ui-sgcollapsed sgcollapsed");
+                                $("tbody tr#" + cptData.id + " span").removeClass("ui-icon ui-icon-plus");
+                            }
+                        })
                     },
                 });
 
@@ -3382,12 +3456,23 @@ define(['jquery',
 
                 if (self.from === 'ris') {
                     var studyIds = [];
-                    for (var i = 0; i < $("#tblStudyCpt").find('input[name=chkStudyCpt]:checked').length; i++) {
-                        var rowId = $("#tblStudyCpt").find('input[name=chkStudyCpt]:checked')[i].parentNode.parentNode.id;
-                        studyIds.push(rowId);
-                    }
+                    var studyCptIds = [];
 
-                    if (studyIds && studyIds.length == 0) {
+                    // Push study ids if no subgrid cpts are selected
+                    $("#tblStudyCpt").find('input[name=chkStudyCpt]:checked').each(function () {
+                        var studyId = $(this).attr("data-study_id");
+                        var selectedCptCount = $("#tblStudyCpt_" + studyId + "_t  input[name=chkSubGridStudyCpt]").length;
+                        if (!selectedCptCount) {
+                            studyIds.push(~~this.parentNode.parentNode.id);
+                        }
+                    })
+
+                    // Push selected subgrid study cpt ids
+                    $("#tblStudyCpt").find('input[name=chkSubGridStudyCpt]:checked').each(function () {
+                        studyCptIds.push(~~this.parentNode.parentNode.id);
+                    })
+
+                    if (studyIds && !studyIds.length && studyCptIds && !studyCptIds.length) {
                         commonjs.showWarning("messages.warning.claims.pleaseSelectStudyCPT");
                         return false;
                     }
@@ -3395,6 +3480,7 @@ define(['jquery',
                         self.paymentEditPDF = new paymentEditPDF({ el: $('#modal_div_container') });
                         var paymentPDFArgs = {
                             studyIds: studyIds,
+                            studyCptIds: studyCptIds,
                             flag: 'RISPrintReceipt',
                             patient_id: self.patient_id,
                             payment_id: self.payment_id

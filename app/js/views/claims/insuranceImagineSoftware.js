@@ -9,7 +9,8 @@ define([
     "text!templates/claims/insuranceImagineSoftwarePrint.html",
     "text!templates/claims/insuranceImagineSoftwareEligibilityItem.html",
     "text!templates/claims/insuranceImagineSoftwareLetterPrint.html",
-    "text!templates/claims/insuranceImagineSoftwareLetter.html"
+    "text!templates/claims/insuranceImagineSoftwareLetter.html",
+    'shared/report-utils',
 ],
 function (
     $,
@@ -22,7 +23,8 @@ function (
     ImagineSoftwarePrintTemplate,
     EligibilityItemTemplate,
     imagineSoftwareLetterPrintTemplate,
-    imagineSoftwareLetterTemplate
+    imagineSoftwareLetterTemplate,
+    goodFaithEstimateLetterUI
 
 ) {
     var insuranceImagineSoftware = Backbone.View.extend({
@@ -54,6 +56,7 @@ function (
             "click #btnUpdateSelected": "handleClickUpdateSelected",
             "click .clickImagineEligibility": "handleClickTabEligibility",
             "click .clickImagineEstimation": "handleClickTabEstimation",
+            "click #btnGoodFaithLetter": "handleClickGoodFaithLetter",
         },
 
         /**
@@ -97,6 +100,10 @@ function (
 
         handleClickUpdateSelected: function (e) {
             this.updateSelected();
+        },
+
+        handleClickGoodFaithLetter: function (e) {
+            this.createGoodFaithEstimateLetter();
         },
         /* #endregion */
 
@@ -494,6 +501,24 @@ function (
         },
 
         /**
+         * Create good faith estimation letter in pdf format
+         *
+         * @returns
+         */
+         createGoodFaithEstimateLetter: function () {
+            goodFaithEstimateLetterUI.showReport({
+                id: "goodFaithEstimateLetter",
+                category: "patients",
+                format: "pdf",
+                params: this.letterParamsData(),
+                openInNewTab: true,
+                generateUrl: true
+            });
+
+            return this;
+        },
+
+        /**
          * Open Estimation Letter Dialog with custom modal
          */
         openLetter: function () {
@@ -668,6 +693,7 @@ function (
                 $("#btnReestimate").hide();
                 $("#btnReestimateWarning").hide();
                 $("#btnEstimationLetter").hide();
+                $("#btnGoodFaithLetter").hide();
                 $("#divImagineEstimation").hide();
                 $("#divImagineEstimationError").hide();
 
@@ -705,6 +731,7 @@ function (
                     $("#divImagineEstimation").show();
                     $("#btnEstimationLetter").show();
                     $("#btnPrintEligibility").show();
+                    $("#btnGoodFaithLetter").show();
                 }
 
                 $("#btnReestimate").hide();
@@ -1418,6 +1445,50 @@ function (
             }) || {};
 
             return relation.description || "";
+        },
+
+        /**
+         * Gathers the good faith estimate letter params data
+         *
+         * @returns {object}
+         */
+         letterParamsData: function () {
+            return {
+                patient_id: this.data.patient.id,
+                facility_id: this.data.visit.facilityId,
+                study_ids: this.getStudyIds(),
+                appointment_type_ids: this.getAppointmentIds(),
+                async: false,
+                save: false
+            }
+        },
+
+        /**
+         * Gets the appointment type Ids
+         *
+         * @returns {number[]}
+         */
+        getAppointmentIds: function () {
+           return this.data.studies.reduce(function (appointmentIds, study) {
+                if (study.appointment) {
+                    appointmentIds.push(study.appointment);
+                }
+                return appointmentIds;
+            }, []);
+        },
+
+        /**
+         * Gets the study Ids
+         *
+         * @returns {number[]}
+         */
+        getStudyIds: function () {
+            return this.data.studies.reduce(function (studyIds, study) {
+                if (study.id) {
+                    studyIds.push(study.id);
+                }
+                return studyIds;
+            }, []);
         },
 
         /**

@@ -147,7 +147,11 @@ define([
                     return null;
                 }
 
-                var reportUrl = '../exa_modules/billing/reports/render/' + category + '/' + id + '.' + format;
+                var reportUrl = (id === 'goodFaithEstimateLetter')
+                    ? '../reports/render/'
+                    : '../exa_modules/billing/reports/render/';
+
+                reportUrl += category + '/' + id + '.' + format;
 
                 if (params) {
                     reportUrl += '?' + $.param(params);
