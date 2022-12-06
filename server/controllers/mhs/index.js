@@ -119,7 +119,6 @@ const mhsController = {
             let [{
                 applied_payments = []
             }] = processDetails && processDetails.rows || [{}];
-            status = applied_payments && applied_payments.length ? 'success' : 'failure';
 
             //Again we call to create payment application for unapplied charges from ERA claims
             await mhsData.unappliedChargePayments(params);
