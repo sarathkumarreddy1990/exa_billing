@@ -108,6 +108,9 @@ const utils = {
             case 'province':
                 return province[fieldStr.trim()];
 
+            case 'serviceCode':
+                return recordStr.substr(field.startPos - 2, 1) + fieldStr;
+
             default:
                 return fieldStr.trim();
         }

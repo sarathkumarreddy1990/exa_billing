@@ -138,7 +138,8 @@
         },
         "tariff": {
             "startPos": 27,
-            "fieldLength": 4
+            "fieldLength": 4,
+            "format": "serviceCode"
         },
         "services": {
             "startPos": 31,
@@ -271,7 +272,8 @@
         },
         "tariff": {
             "startPos": 27,
-            "fieldLength": 4
+            "fieldLength": 4,
+            "format": "serviceCode"
         },
         "services": {
             "startPos": 31,
