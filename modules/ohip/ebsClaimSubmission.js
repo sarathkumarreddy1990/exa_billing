@@ -263,7 +263,7 @@ const submitClaims = async (callback) => {
 
     try {
         const storedFiles = await reduce(allFiles, async (storedResult, file) => {
-            logger.debug('file details before storeFile calling... ', file);
+            logger.debug(`file details before storeFile calling... ${JSON.stringify(file)}`);
             const storedFile = {
                 ...await ohipData.storeFile({
                     createdDate: new Date(),

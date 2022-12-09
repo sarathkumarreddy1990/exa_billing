@@ -6,7 +6,7 @@ const {
 
 const constants = require('./../../constants').encoder;
 const util = require('./../util');
-const data = require('../../../../server/data/ohip');
+const ohipData = require('../../../../server/data/ohip');
 const logger = require('../../../../logger');
 
 const BatchHeaderEncoder = require('./batchHeaderEncoder');
@@ -133,34 +133,14 @@ module.exports = function (options) {
                 }),
             });
 
-            context.batchSequenceNumber++;
-
             return result;
         }, []);
 
         return {
             data,
             batches,
+            ...context
         };
-    };
-
-    const getSequenceNumber = async (reference, providerNumber, groupNumber, specialityCode) => {
-        let sequenceNumber = '';
-        let findNumber = [providerNumber, groupNumber, specialityCode].join('~')
-
-        if (reference[findNumber]) {
-            sequenceNumber = reference[findNumber]++;
-        }
-        else {
-            try {
-                const { sequence_number } = await data.getSequenceNumber(providerNumber, groupNumber, specialityCode)
-                reference[findNumber] = sequence_number;
-                return sequence_number;
-            }
-            catch (e) {
-                logger.logError(`Error occurred while fetching sequence number ${e}`);
-            }
-        }
     };
 
     return {
@@ -170,8 +150,6 @@ module.exports = function (options) {
             let encodedData = [];
 
             try {
-
-                const sequenceNumberRef = {};
 
                 return await reduce(groupBy(claimData, 'claim_type'), async (groupResult, groupClaims, claim_type) => {
 
@@ -227,7 +205,15 @@ module.exports = function (options) {
                                 }
                             }
 
-                            const sequence_number = await getSequenceNumber(sequenceNumberRef, providerNumber, derivedGroupNumber, providerSpeciality)
+                            let sequence_number = 0;
+
+                            try {
+                                // fetch sequence number for each batch grouped using the above filter criteria
+                                sequence_number = await ohipData.getSequenceNumber();
+                            }
+                            catch (e) {
+                                logger.logError(`Error occurred while fetching sequence number ${e}`);
+                            }
 
                             let claimIds = facilityClaims.map((claim) => {
                                 return claim.claim_id
