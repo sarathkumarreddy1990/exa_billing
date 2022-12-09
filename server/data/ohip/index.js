@@ -274,7 +274,7 @@ const storeFile = async (args) => {
                             DO NOTHING
                             RETURNING id
                         ), insert_batch_files_cte AS (
-                            INSERT INTO billing.edi_file_batches  (
+                            INSERT INTO billing.edi_file_batches (
                                 edi_file_id,
                                 provider_number,
                                 group_number,
@@ -532,6 +532,7 @@ const applyClaimSubmission = async (args) => {
     const {
         edi_file_id,
         edi_file_batch_id,
+        batchSequenceNumber,
         file_data,    // an array of objects: {claimIds:[Number], batchSequenceNumber:Number}
     } = args;
 
@@ -539,7 +540,6 @@ const applyClaimSubmission = async (args) => {
 
     batches.forEach(async (batch) => {
         const {
-            batchSequenceNumber,
             claimIds,
         } = batch;
 
@@ -553,7 +553,7 @@ const applyClaimSubmission = async (args) => {
             SELECT
                 ${edi_file_id},
                 UNNEST(${claimIds}::int[]),
-                ${sprintf(`%'04s`, batchSequenceNumber)},
+                ${batchSequenceNumber},
                 ${edi_file_batch_id}
             RETURNING id
         `;
@@ -1050,27 +1050,13 @@ const OHIPDataAPI = {
         return;
     },
 
-    getSequenceNumber: async (providerNumber, groupNumber, specialityCode) => {
+    getSequenceNumber: async () => {
         const sql = SQL`
-            (
-                SELECT
-                    COALESCE((NULLIF(befb.sequence_number, '')::BIGINT + 1), '0') AS sequence_number
-                FROM billing.edi_files bef
-                LEFT JOIN billing.edi_file_batches befb ON befb.edi_file_id = bef.id
-                WHERE befb.provider_number = ${providerNumber}
-                AND befb.group_number = ${groupNumber}
-                AND befb.speciality_code = ${specialityCode}
-                AND bef.created_dt::DATE = CURRENT_DATE
-                ORDER BY befb.id DESC
-            )
-            UNION ALL
-            SELECT '0'::BIGINT AS sequence_number
-            LIMIT 1
+            SELECT nextVal('edi_file_batches_sequence_number_seq') AS sequence_number;
         `;
 
-        let rows = (await query(sql.text, sql.values)).rows || [];
-        return rows.length && rows[0] || {'sequence_number': 0};
-
+        let rows = (await query(sql.text, sql.values))?.rows || [];
+        return rows?.length && rows[0]?.sequence_number || 0;
     },
 
     getClaimsData: async (args) => {
