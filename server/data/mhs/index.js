@@ -141,7 +141,7 @@ const mhsData = {
                         LEFT JOIN charges ch ON ch.id = c.id
                         LEFT JOIN public.ordering_facility_contacts pofc ON pofc.id = c.ordering_facility_contact_id
                         LEFT JOIN public.ordering_facilities pof ON pof.id = pofc.ordering_facility_id
-                        LEFT JOIN public.places_of_service pos ON pos.id = COALESCE(f.place_of_service_id, pof.place_of_service_id)
+                        LEFT JOIN public.places_of_service pos ON pos.id = COALESCE(f.place_of_service_id, pofc.place_of_service_id)
                         WHERE c.id = ANY(${claimIds});`;
 
         return await queryRows(sql);
