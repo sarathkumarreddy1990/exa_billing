@@ -21,6 +21,7 @@ const processResults = (row, service) => {
     } = row;
 
     let bill_fee = shared.roundFee(service.bill_fee);
+    let serviceCode = service.code || "";
     
     return {
         'record_type': 6,
@@ -30,8 +31,8 @@ const processResults = (row, service) => {
         'facility_number': facility_number,
         'hospital_code': '000',
         'service_date': service.service_start_dt,
-        'prefix': 5,
-        'tariff': service.code,
+        'prefix': serviceCode && serviceCode[0],
+        'tariff': serviceCode && serviceCode.slice(1),
         'services': service.units,
         'anesthesia_units': '00',
         'fee_submitted':  bill_fee && bill_fee.replace(/[, .]/g, ''), // By default last 2 digit is piase or cent hence removing decimal 
