@@ -148,13 +148,9 @@ const wcbModule = {
             claimIds,
             source,
             isAllClaims,
-        } = args;
+        } = args || {};
 
         let EDI_TEMPLATE = null;
-
-        if (isAllClaims) {
-            claimIds = await claimWorkBenchController.getClaimsForEDI(args);
-        }
 
         claimIds = claimIds?.length && claimIds.split(',') || [];
 

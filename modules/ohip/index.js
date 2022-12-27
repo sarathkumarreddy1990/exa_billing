@@ -575,7 +575,13 @@ module.exports = {
         } = req.body;
 
         if (isAllClaims) {
-            claimIds = await claimWorkBenchController.getClaimsForEDI(req.body);
+            const ediResponse = await claimWorkBenchController.getClaimsForEDI(req.body);
+
+            if (ediResponse.isInvalidBillingMethod) {
+                return callback(null, ediResponse);
+            }
+
+            claimIds = ediResponse.claimIds;
         }
 
         let arrayClaimIds = claimIds.split(',');
@@ -647,7 +653,13 @@ module.exports = {
         let params = req.body;
 
         if (params.isAllClaims) {
-            params.claimIds = await claimWorkBenchController.getClaimsForEDI(params);
+            const ediResponse = await claimWorkBenchController.getClaimsForEDI(params);
+
+            if (ediResponse.isInvalidBillingMethod) {
+                return callback(null, ediResponse);
+            }
+
+            params.claimIds = ediResponse.claimIds;
         }
 
         /** Nerf engine throws constraint error when billing service restarted ,
