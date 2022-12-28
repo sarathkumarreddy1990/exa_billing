@@ -1972,9 +1972,10 @@ define(['jquery',
                     $('#btnPayfullAppliedPendingPayments').hide();
                     $('#formBillingProviders .form-group').not('.divAdjustmentCodes').hide();
                     $('#siteModalNested .close, #siteModalNested .btn-secondary').off().click(function (e) {
+                        var isPaymentsModel = $('#siteModalNested #divPendingPayment').is(':visible');
                         $('#modal_div_container_nested').empty();
-                        // Send response to claim screen
-                        if (typeof callback === 'function') {
+                        // Send response to claim screen when nested model closed from payments
+                        if (typeof callback === 'function' && isPaymentsModel) {
                             callback(null, {
                                 status: 'closed',
                                 payment_id: self.payment_id || paymentID
