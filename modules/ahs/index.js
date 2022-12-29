@@ -21,7 +21,13 @@ const ahsmodule = {
     submitClaims: async (args) => {
 
         if (args.isAllClaims) {
-            args.claimIds = await claimWorkBenchController.getClaimsForEDI(args);
+            const ediResponse = await claimWorkBenchController.getClaimsForEDI(args);
+
+            if (ediResponse.isInvalidBillingMethod) {
+                return ediResponse;
+            }
+
+            args.claimIds = ediResponse.claimIds;
         }
 
         args.claimIds = args.claimIds && args.claimIds.split(',');
