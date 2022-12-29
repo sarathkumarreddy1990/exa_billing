@@ -37,6 +37,10 @@ const bcModules = {
             if (args.isAllClaims) {
                 let ediResponse = await bcController.getClaimsForEDI(args);
 
+                if (ediResponse.isInvalidBillingMethod) {
+                    return { responseCode: 'isInvalidBillingMethod' };
+                }
+
                 if (ediResponse.isNotpendingSubmission) {
                     return { responseCode: 'isNotpendingSubmission' };
                 }

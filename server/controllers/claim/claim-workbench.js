@@ -36,12 +36,43 @@ const getClaimsForEDI = async (params) => {
     params.isCount = false;
     const claims = await data.getData(params);
     let claimIds = [];
+    let insuranceProviders = [];
+    let insuranceProviderCodes = [];
+    let isWCBBilling = false;
 
-    _.each(claims.rows, (claim) => {
-        claimIds.push(claim.id);
-    });
+    for (let i = 0; i < claims.rows.length; i++) {
+        
+        if (claims.rows[i].billing_method !== 'electronic_billing') {
+            return {
+                isInvalidBillingMethod: true
+            };
+        }
 
-    return claimIds.toString();
+        claimIds.push(claims.rows[i].id);
+
+        if (params.billingRegionCode === 'can_AB') {
+            // Restrict to submit same type of insurance providers
+            if (claims.rows[i]?.insurance_providers) {
+                insuranceProviders.push(claims.rows[i].insurance_providers);
+                insuranceProviderCodes.push(claims.rows[i].insurance_code);
+            }
+
+            let uniqInsProviders = _.uniq(insuranceProviderCodes) || [];
+
+            if (uniqInsProviders.length > 1) {
+                return {
+                    isMultipleInsurances: true
+                };
+            } else {
+                isWCBBilling = uniqInsProviders.length === 1 && uniqInsProviders[0] === 'WCB';
+            }
+        }
+    }
+
+    return {
+        claimIds: claimIds.toString(),
+        isWCBBilling
+    };
 }
 
 module.exports = {
@@ -82,7 +113,13 @@ module.exports = {
         let params = req.body;
 
         if (params.isAllClaims) {
-            params.claimIds = await getClaimsForEDI(params);
+            const ediResponse = await getClaimsForEDI(params);
+
+            if (ediResponse.isInvalidBillingMethod) {
+                return ediResponse;
+            }
+
+            params.claimIds = ediResponse.claimIds;
         }
 
         let claimIds = params.claimIds.split(',');

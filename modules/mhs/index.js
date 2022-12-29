@@ -26,8 +26,8 @@ const mhsmodules = {
             if (args.isAllClaims) {
                 let ediResponse = await mhsController.getClaimsForEDI(args);
 
-                if (ediResponse.isNotpendingSubmission) {
-                    return { isNotpendingSubmission: true };
+                if (ediResponse.isInvalidBillingMethod || ediResponse.isNotpendingSubmission) {
+                    return ediResponse;
                 }
 
                 args.claimIds = ediResponse.claimIds;
