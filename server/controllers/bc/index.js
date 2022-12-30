@@ -14,6 +14,12 @@ const bcController = {
             for (let i = 0; i < claims.rows.length; i++) {
                 claimIds.push(claims.rows[i].id);
 
+                if (claims.rows[i].billing_method !== 'electronic_billing') {
+                    return {
+                        isInvalidBillingMethod: true
+                    };
+                }
+
                 if (['PS', 'SF'].indexOf(claims.rows[i].claim_status_code) === -1) {
                     return { isNotpendingSubmission: true };
                 }

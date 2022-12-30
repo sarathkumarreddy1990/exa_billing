@@ -21,6 +21,12 @@ const mhsController = {
         for (let i = 0; i < claims.rows.length; i++) {
             claimIds.push(claims.rows[i].id);
 
+            if (claims.rows[i].billing_method !== 'electronic_billing') {
+                return {
+                    isInvalidBillingMethod: true
+                };
+            }
+
             if (claims.rows[i].claim_status !== 'Pending Submission') {
                 return { isNotpendingSubmission: true };
             }

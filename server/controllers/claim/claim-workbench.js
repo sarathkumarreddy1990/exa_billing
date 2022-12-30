@@ -36,11 +36,20 @@ const getClaimsForEDI = async (params) => {
     const claims = await data.getData(params);
     let claimIds = [];
 
-    _.each(claims.rows, (claim) => {
-        claimIds.push(claim.id);
-    });
+    for (let i = 0; i < claims.rows.length; i++) {
+        
+        if (claims.rows[i].billing_method !== 'electronic_billing') {
+            return {
+                isInvalidBillingMethod: true
+            };
+        }
 
-    return claimIds.toString();
+        claimIds.push(claims.rows[i].id);
+    }
+
+    return {
+        claimIds: claimIds.toString()
+    };
 }
 
 module.exports = {
@@ -81,7 +90,13 @@ module.exports = {
         let params = req.body;
 
         if (params.isAllClaims) {
-            params.claimIds = await getClaimsForEDI(params);
+            const ediResponse = await getClaimsForEDI(params);
+
+            if (ediResponse.isInvalidBillingMethod) {
+                return ediResponse;
+            }
+
+            params.claimIds = ediResponse.claimIds;
         }
 
         let claimIds = params.claimIds.split(',');
