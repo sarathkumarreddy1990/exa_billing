@@ -11,6 +11,7 @@ const crypto = require('crypto');
 const _ = require('lodash');
 const ahs = require('../../server/data/ahs/index');
 const claimWorkBenchController = require('../../server/controllers/claim/claim-workbench');
+const wcbWorkBenchController = require('./wcb/index').submitClaims;
 const validateClaimsData = require('../../server/data/claim/claim-workbench');
 const sftp = require('./sftp');
 const claimEncoder = require('./encoder/claims');
@@ -21,7 +22,21 @@ const ahsmodule = {
     submitClaims: async (args) => {
 
         if (args.isAllClaims) {
-            args.claimIds = await claimWorkBenchController.getClaimsForEDI(args);
+            let ediResponse = await claimWorkBenchController.getClaimsForEDI(args);
+
+            if (ediResponse.isInvalidBillingMethod || ediResponse.isMultipleInsurances) {
+                return ediResponse;
+            }
+
+            if (ediResponse.isWCBBilling) {
+                ediResponse.companyId = args.companyId;
+                ediResponse.source = args.source;
+                let wcbResponse =  await wcbWorkBenchController(ediResponse) || {};
+                wcbResponse.isWCBBilling = true;
+                return wcbResponse;
+            }
+
+            args.claimIds = ediResponse.claimIds;
         }
 
         args.claimIds = args.claimIds && args.claimIds.split(',');

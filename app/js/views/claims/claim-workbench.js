@@ -577,13 +577,11 @@ define(['jquery',
                 var gridElement = $(filter.options.gridelementid, parent.document).find('input[name=chkStudy]:checked');
                 var isWCBBilling = false;
 
-                billingMethod = self.getGridCellData(filter, rowId, 'hidden_billing_method');
-
                 if (!gridElement.length) {
                     return commonjs.showWarning('messages.status.pleaseSelectClaimsWithSameTypeOfBillingMethod');
                 }
 
-                if (isCheckedAll && billingMethodFormat === 'electronic_billing' && billingMethod === 'electronic_billing') {
+                if (isCheckedAll && billingMethodFormat === 'electronic_billing') {
                     var filterData = JSON.stringify(filter.pager.get('FilterData'));
                     var filterCol = JSON.stringify(filter.pager.get('FilterCol'));
 
@@ -799,6 +797,7 @@ define(['jquery',
                     data: data,
                     success: function (data, textStatus, jqXHR) {
                         commonjs.hideLoading();
+                        isWCBBilling = isWCBBilling || (data && data.isWCBBilling);
 
                         switch (app.billingRegionCode) {
                             case 'can_AB':
@@ -885,7 +884,10 @@ define(['jquery',
                 if (data.results && data.results.length && !data.error && !data.faults) {
                     return commonjs.showStatus('Claims submitted successfully');
                 }
-                if (data.validationMessages && data.validationMessages.length) {
+
+                if (data && data.isInvalidBillingMethod) {
+                    return commonjs.showWarning('messages.status.pleaseSelectValidClaimsMethod');
+                } else if (data.validationMessages && data.validationMessages.length) {
                     errData = data.validationMessages;
                 } else if (data.error && data.error.length) {
                     errData = {
@@ -912,7 +914,11 @@ define(['jquery',
 
                 data.err = data && (data.err || data[0]);
 
-                if (data.validationMessages && data.validationMessages.length) {
+                if (data && data.isInvalidBillingMethod) {
+                    commonjs.showWarning('messages.status.pleaseSelectValidClaimsMethod');
+                } else if (data && data.isMultipleInsurances) {
+                    commonjs.showWarning('messages.warning.claims.multipleInsurancesForSubmission');
+                } else if (data.validationMessages && data.validationMessages.length) {
                     var responseTemplate = _.template(validationTemplate);
 
                     // To show array of validation messages
@@ -943,7 +949,9 @@ define(['jquery',
                 commonjs.hideLoading();
                 data.err = data.err || data.message;
 
-                if (data && data.err) {
+                if (data && data.isInvalidBillingMethod) {
+                   return commonjs.showWarning('messages.status.pleaseSelectValidClaimsMethod');
+                } else if (data && data.err) {
                     commonjs.showWarning(data.err);
                 }
 
@@ -3315,7 +3323,9 @@ define(['jquery',
              */
             mhsResponse: function(data) {
 
-                if (data.isNotpendingSubmission) {
+                if (data && data.isInvalidBillingMethod) {
+                    commonjs.showWarning('messages.status.pleaseSelectValidClaimsMethod');
+                } else if (data.isNotpendingSubmission) {
                     commonjs.showWarning('messages.status.pleaseSelectValidClaimsStatus');
                 } else if (data.isFileStoreError) {
                     commonjs.showWarning('messages.warning.era.fileStoreNotconfigured');
@@ -3345,6 +3355,9 @@ define(['jquery',
 
                 if (data.responseCode) {
                     switch (data.responseCode) {
+                        case 'isInvalidBillingMethod':
+                            commonjs.showWarning('messages.status.pleaseSelectValidClaimsMethod');
+                            break;
                         case 'isNotpendingSubmission':
                             commonjs.showWarning('messages.status.pleaseSelectValidClaimsStatus');
                             break;
