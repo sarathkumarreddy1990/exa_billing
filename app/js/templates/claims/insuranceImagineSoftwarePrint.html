@@ -292,6 +292,23 @@
                 %>
             </item>
         </item>
+
+        <!-- Additional Insurance Information -->
+        <item>
+            <div i18n="patient.patientInsurance.eligibility.additionalInsuranceInformation" class="bold"></div>
+            <item>
+                <%
+                (data.eligibility.additionalInsuranceInformation || []).forEach(function (item) {
+                    %>
+                    <blurb>
+                        <div><%= item.insurance %></div>
+                        <description><%= item.description %></description>
+                    </blurb>
+                    <%
+                });
+                %>
+            </item>
+        </item>
     </section>
 
     <% if (!_.isEmpty(data.estimation)) { %>

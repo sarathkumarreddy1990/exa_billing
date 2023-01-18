@@ -1073,6 +1073,53 @@ function (
         // --------------------------------------------------------------------------------
 
         /**
+         * Parses an eligibility item to be written to the DOM
+         *
+         * @param {string} text
+         * @returns {string[]}
+         */
+        formatAdditionalInsuranceInformation: function (text) {
+            var arrItems = (text || "").split("~~");
+
+            return arrItems.map(function (item) {
+                var tokens = item.split("|");
+                var formatted_tokens = tokens.map(function (token) {
+                    var data = "";
+
+                    if (_.includes(token, "-")) {
+                        var first_hyphen = token.indexOf("-");
+                        var label = _.trim(token.substring(0, first_hyphen));
+                        var value = _.trim(token.substring(first_hyphen + 1));
+
+                        data = label === label.toUpperCase()
+                            ? label + " - " + value  // Label is all caps - this is a key/value pair
+                            : token;
+                    }
+                    else {
+                        data = token;
+                    }
+
+                    return commonjs.capitalizeEveryWord(data, ["and", "at", "but", "in", "of", "on", "or", "to", "with"]);
+                });
+
+                var last_token = _.last(formatted_tokens);
+                var hasPlanBegin = _.startsWith(last_token, "Plan Begin");
+                var insurance = hasPlanBegin
+                    ? formatted_tokens.slice(0, -1)
+                    : formatted_tokens;
+                var description = hasPlanBegin
+                    ? last_token
+                    : "";
+
+                return {
+                    insurance: insurance.join(" | "),
+                    description: description,
+                    value: ""
+                }
+            });
+        },
+
+        /**
          * Formats a date while avoiding empty and bad date formats which would return Invalid Date
          *
          * @param {string} date
@@ -1156,6 +1203,7 @@ function (
             this.data.eligibility.coPay = this.formatEligibilityItem(this.data.eligibility.discoveredPlanCopayIndividual);
             this.data.eligibility.deductible = this.formatEligibilityItem(this.data.eligibility.discoveredPlanDeductibleIndividual);
             this.data.eligibility.outOfPocket = this.formatEligibilityItem(this.data.eligibility.discoveredPlanOutofPocketIndividual);
+            this.data.eligibility.additionalInsuranceInformation = this.formatAdditionalInsuranceInformation(this.data.eligibility.additionalInsuranceInformation);
             this.data.eligibility.dateCreatedDisplay = this.formatDate(_.get(this.data, "eligibility.dateCreated"));
 
             // Eligibility Status
@@ -1302,7 +1350,8 @@ function (
                 { el: "#divEligibilityCoInsurance", value: data.coInsurance },
                 { el: "#divEligibilityCoPay", value: data.coPay },
                 { el: "#divEligibilityDeductible", value: data.deductible },
-                { el: "#divEligibilityOutOfPocket", value: data.outOfPocket }
+                { el: "#divEligibilityOutOfPocket", value: data.outOfPocket },
+                { el: "#divEligibilityAdditionalInsurance", value: data.additionalInsuranceInformation }
             ];
         },
 
