@@ -5551,6 +5551,24 @@ var commonjs = {
     },
 
     /**
+     * Returns back the string sent with every word capitalized
+     *   Ex. OTHER COVERAGE -> Other Coverage
+     *
+     * @param {string} text
+     * @param {string[]} exceptions  Don't capitalize these words
+     * @returns {string}
+     */
+    capitalizeEveryWord: function (text, exceptions) {
+        exceptions = exceptions || [];
+
+        return _.trim(text).split(" ").map(function (item) {
+            return exceptions.some(function (ex) { return ex.toLowerCase() === item.toLowerCase(); })
+                ? item.toLowerCase()
+                : _.capitalize(item);
+        }).join(" ");
+    },
+
+    /**
      * Ensures that variable passed returns as an array
      *   1. If already array, return it.
      *   2. If it is a comma-delimited string, split it into an array.
