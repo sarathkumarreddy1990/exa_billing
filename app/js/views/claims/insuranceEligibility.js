@@ -85,7 +85,6 @@ function (
          * @prop  {string}  args.parent.setter
          */
         initGlobalVariables: function (args) {
-            this.rendered = true;
             this.order_id = ~~args.order_id;
             this.coverage_level = args.coverage_level || "";
             this.key = _.capitalize(this.coverage_level);
@@ -104,6 +103,35 @@ function (
         },
 
         /**
+         * Changes Service Types HTML select box into a multi-select box
+         */
+        initializeServiceTypesDropdown: function () {
+            var $ddlServiceType = $("#ddlServiceType" + this.key);
+
+            $ddlServiceType.multiselect({
+                enableFiltering: true,
+                enableCaseInsensitiveFiltering: true,
+                maxHeight: 200,
+                nonSelectedText: i18n.get("shared.buttons.noneSelected"),
+                numberDisplayed: 1,
+                onInitialized: function ($select, $container) {
+                    $('.dropdown-toggle', $container).dropdown();
+                    $(document).mousedown(function (e) {
+                        var ul = $('ul', $container);
+                        if (!ul.is(e.target) && !ul.has(e.target).length && $container.hasClass('open')) {
+                            $container.removeClass('open');
+                        }
+                    });
+                }
+            });
+
+            $ddlServiceType.multiselect("deselectAll", false);
+            $ddlServiceType.multiselect("refresh");
+
+            return this;
+        },
+
+        /**
          * Entry point for this view
          *
          * @param {object} args
@@ -116,25 +144,46 @@ function (
 
             var self = this;
 
-            if (!this.rendered) {
-                this.initGlobalVariables(args);
-
-                $(this.el).html(this.template({
-                    data: this.template_options
-                }));
-
-                if (args.show_service_type) {
-                    this.fetchServiceTypes(function (data) {
-                        self.buildServiceTypesDropdown(data);
-                    });
+            this.initGlobalVariables(args);
+            this.fetchOrderData(function () {
+                if (!self.rendered) {
+                    if (args.show_service_type) {
+                        self.fetchServiceTypes(function (service_types) {
+                            self.renderTemplate(service_types);
+                        });
+                    }
+                    else {
+                        self.renderTemplate();
+                    }
                 }
+            });
 
-                if (args.show_benefits_on_date) {
-                    this.initializeBenefitsOnDate();
-                }
+            return this;
+        },
+
+        /**
+         * Renders the main eligibility template. This may consist of ...
+         *   1. Service Types dropdown
+         *   2. Benefits On Date
+         *   3. Eligibility button
+         *
+         * @param {object[]} service_types
+         */
+        renderTemplate: function (service_types) {
+            $(this.el).html(this.template({
+                data: this.template_options,
+                service_types: service_types || []
+            }));
+
+            this.rendered = true;
+
+            if (!_.isEmpty(service_types)) {
+                this.initializeServiceTypesDropdown();
             }
 
-            this.fetchOrderData();
+            this.initializeBenefitsOnDate();
+            this.determineStateEnabledAllInputs();
+
             commonjs.updateCulture();
 
             return this;
@@ -296,7 +345,6 @@ function (
             callback = commonjs.ensureCallback(callback);
 
             if (!this.order_id) {
-                this.determineStateEnabledAllInputs();
                 return callback({});
             }
 
@@ -417,50 +465,6 @@ function (
         // --------------------------------------------------------------------------------
         //                                  FUNCTIONALITY
         // --------------------------------------------------------------------------------
-
-        /**
-         * Constructs the Service Types select box options and turns it
-         * into a multi-select box.
-         *
-         * @param {object} data  EligibilityServiceTypes data
-         */
-        buildServiceTypesDropdown: function (data) {
-            data = commonjs.ensureArray(data || []);
-
-            // Build dropdown
-            var $ddlServiceType = $("#ddlServiceType" + this.key)
-            var $options = data.map(function (item) {
-                return $("<option/>")
-                    .val(item.code)
-                    .text(item.description + " (" + item.code + ")")
-                    .attr("title", item.description);
-            });
-
-            $ddlServiceType.html($options);
-
-            // Make multi-select
-            $ddlServiceType.multiselect({
-                enableFiltering: true,
-                enableCaseInsensitiveFiltering: true,
-                maxHeight: 200,
-                nonSelectedText: i18n.get("shared.buttons.noneSelected"),
-                numberDisplayed: 1,
-                onInitialized: function ($select, $container) {
-                    $('.dropdown-toggle', $container).dropdown();
-                    $(document).mousedown(function (e) {
-                        var ul = $('ul', $container);
-                        if (!ul.is(e.target) && !ul.has(e.target).length && $container.hasClass('open')) {
-                            $container.removeClass('open');
-                        }
-                    });
-                }
-            });
-
-            $ddlServiceType.multiselect("deselectAll", false);
-            $ddlServiceType.multiselect("refresh");
-
-            return this;
-        },
 
         /**
          * Figures out which insurance eligibility fetch method to call
@@ -1042,8 +1046,7 @@ function (
             this.data.manually_verified = this.data.manually_verified === "true" || this.data.manually_verified === true;
             this.data.mode = this.data.mode || "params";
 
-            this.determineStateEnabledAllInputs()
-                .eligibilityDateVerified(true, this.data.request_dt || this.data.eligibility_dt);
+            this.eligibilityDateVerified(true, this.data.request_dt || this.data.eligibility_dt);
 
             return this;
         },

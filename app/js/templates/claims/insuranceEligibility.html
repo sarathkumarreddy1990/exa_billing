@@ -7,7 +7,17 @@
         </div>
 
         <div class="col-form-content">
-            <select id="ddlServiceType<%= data.key %>" multiple="multiple" disabled />
+            <select id="ddlServiceType<%= data.key %>" multiple="multiple" disabled>
+                <%
+                service_types.forEach(function (item) {
+                    %>
+                    <option value="<%= item.code %>" title="<%= item.description %>">
+                        <%= item.description %> (<%= item.code %>)
+                    </option>
+                    <%
+                });
+                %>
+            </select>
         </div>
     </div>
 </div>
