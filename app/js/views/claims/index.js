@@ -620,6 +620,9 @@ define(['jquery',
                 if (!this.rendered) {
                     this.render('claim');
                 }
+
+                $('#btnSaveClaim').prop('disabled', !isFrom || isFrom === 'reload');
+
                 self.bindclaimFormEvents(isFrom);
             },
 
@@ -753,7 +756,6 @@ define(['jquery',
                             self.patient_alt_acc_nos = claimDetails.patient_alt_acc_nos;
                             self.canAhsEncounterNo = claimDetails.can_ahs_encounter_no || 1;
                             $('.claimProcess').prop('disabled', false);
-                            $('#btnSaveClaim').prop('disabled', false);
                             /* Bind claim charge Details - start */
                             $('#tBodyCharge').empty();
                             $('.claim-summary').remove();
@@ -933,7 +935,6 @@ define(['jquery',
                             self.bindExistingInsurance(existingTriInsurance, 'ddlExistTerIns')
                             /* Edit claim bind Existing Insurance List - End */
 
-                            $('#btnSaveClaim').attr('disabled', false);
                             $("#txtClaimDate").attr("disabled", "disabled");
                             $("#txtClaimCreatedDt").prop('disabled', true);
 
@@ -1521,6 +1522,9 @@ define(['jquery',
                 $(".allowedFee, .billFee").blur();
                 $(".diagCodes").blur();
 
+                if (claim_data.facility_id) {
+                    $('#btnSaveClaim').prop('disabled', false);
+                }
             },
 
             // enable/disable elements Based on billing province.
@@ -5283,6 +5287,7 @@ define(['jquery',
                     if (nextRowData.attr('id') && nextRowData.length > 0) {
                         var rowId = nextRowData.attr('id');
                         $(e.target).prop('disabled', true);
+                        $('#btnSaveClaim').prop('disabled', true);
                         var data = parentGrid.getRowData(rowId);
                         if (data.hidden_claim_id == self.claim_Id) {
                             nextRowData = $(e.target).attr('id') == 'btnPrevClaim' ? nextRowData.prev() : nextRowData.next();
