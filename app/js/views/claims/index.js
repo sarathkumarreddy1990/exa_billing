@@ -5989,12 +5989,15 @@ define(['jquery',
 
                 // Bind Patient Default details
                 var renderingProvider = patient_details.rendering_provider_full_name || self.usermessage.selectStudyReadPhysician;
-                var service_facility_name = patient_details.service_facility_name || self.usermessage.selectOrdFacility;
                 self.ACSelect.readPhy.contact_id = patient_details.rendering_provider_contact_id || patient_details.rendering_provider_contact_id || null;
                 self.ordering_facility_id = patient_details.service_facility_id || null;
                 self.ordering_facility_contact_id = patient_details.service_facility_contact_id || null;
-                self.ordering_facility_name = service_facility_name;
+                self.ordering_facility_name = patient_details.service_facility_name;
                 self.isClaimWOStudy = true;
+
+                var orderingFacilityName  = self.ordering_facility_name
+                    ? self.ordering_facility_name + ' (' + patient_details.service_facility_contact_name + ')' + (patient_details.ordering_facility_type ? ' (' + patient_details.ordering_facility_type + ')' : '')
+                    : self.usermessage.selectOrdFacility;
 
                 if (patient_details.rendering_provider_id) {
                     self.toggleSkillCodeSection();
@@ -6004,7 +6007,7 @@ define(['jquery',
                 $('#ddlBillingProvider').val(patient_details.billing_provider_id || '');
                 $('#ddlFacility').val(patient_details.facility_id || '');
                 $('#select2-ddlRenderingProvider-container').html(renderingProvider);
-                $('#select2-ddlOrdFacility-container').html(service_facility_name);
+                $('#select2-ddlOrdFacility-container').html(orderingFacilityName);
                 $('#select2-ddlReferringProvider-container').html(self.usermessage.selectStudyRefProvider);
 
                 var claimDate = commonjs.getConvertedFacilityTime(app.currentdate, '', 'L', app.facilityID);
