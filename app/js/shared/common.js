@@ -4345,6 +4345,7 @@ var commonjs = {
                     result.order_id = data[0].order_id;
                     result.split_claim_ids = data[0].split_claim_ids;
                     result.patient_id = data[0].patient_id;
+                    result.linked_parent_study_id = data[0].linked_parent_study_id;
                 }
 
                 callback(result);

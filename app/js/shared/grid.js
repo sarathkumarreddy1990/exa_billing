@@ -217,6 +217,7 @@ define('grid', [
 
             var study_id = 0;
             var order_id = 0;
+            var linked_parent_study_id = 0;
             var isbilled_status = false;
             var isUnbilled_status = false;
             var insurance_code = gridData.insurance_code || '';
@@ -287,6 +288,8 @@ define('grid', [
                     if (result) {
                         study_id = result.study_id;
                         order_id = result.order_id;
+                        linked_parent_study_id = result.linked_parent_study_id;
+
                         if (rightclickMenuRights.indexOf('anc_view_documents') == -1) {
                             $('#anc_view_documents').removeClass('disabled')
                             $('#anc_view_reports').removeClass('disabled')
@@ -763,9 +766,11 @@ define('grid', [
                         if ($('#anc_view_reports').hasClass('disabled')) {
                             return false;
                         }
+
                         var session = app.sessionID ? btoa(app.sessionID) : "demo_session";
+                        var trans_study_id = linked_parent_study_id || study_id;
                         var queryStrVal = [
-                            'study_id=' + study_id,
+                            'study_id=' + trans_study_id,
                             'host_name=' + location.origin,
                             'user_id=' + app.userID,
                             'company_id=' + app.companyID,

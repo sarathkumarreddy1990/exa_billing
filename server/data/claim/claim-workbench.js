@@ -395,7 +395,8 @@ module.exports = {
                             WHEN studies.study_status = 'APP' THEN 1
                             ELSE 2
                         END  AS status_index,
-                        split_claims.split_claim_ids
+                        split_claims.split_claim_ids,
+                        linked_studies.linked_parent_study_id
                     FROM
                         billing.charges_studies
                     INNER JOIN billing.charges ON billing.charges.id = billing.charges_studies.charge_id
@@ -407,6 +408,15 @@ module.exports = {
                         INNER JOIN billing.charges bch ON bch.id = bcs.charge_id
                         WHERE bcs.study_id = public.studies.id AND bch.claim_id != ${claim_id}
                     ) split_claims ON TRUE
+                    LEFT JOIN LATERAL (
+                        SELECT
+                            ls.linked_study_id AS linked_parent_study_id
+                        FROM
+                            linked_studies ls
+                        WHERE
+                            billing.charges_studies.study_id = ls.study_id
+                        LIMIT 1
+                    ) AS linked_studies ON TRUE
                     WHERE   billing.charges.claim_id = ${claim_id}
                     ORDER BY status_index ,study_id
                     LIMIT 1`;
