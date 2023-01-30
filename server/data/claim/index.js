@@ -1256,10 +1256,12 @@ module.exports = {
                             ,get_patient_alerts_to_jsonb(p.id, TRUE) AS alerts
                             ,f.id AS facility_id
                             ,fs.default_provider_id AS billing_provider_id
-                            ,COALESCE(NULLIF(f.facility_info->'service_facility_id',''),'0')::numeric AS service_facility_id
                             ,pofc.id AS service_facility_contact_id
+                            ,pofc.location AS service_facility_contact_name
+                            ,pof.id AS service_facility_id
+                            ,pof.name AS service_facility_name
+                            ,oft.description AS ordering_facility_type
                             ,COALESCE(NULLIF(f.facility_info->'rendering_provider_id',''),'0')::numeric AS rendering_provider_id
-                            ,facility_info->'service_facility_name' as service_facility_name
                             ,fac_prov_cont.id AS rendering_provider_contact_id
                             ,fac_prov.full_name AS rendering_provider_full_name
                             ,f.place_of_service_id AS fac_place_of_service_id
@@ -1285,8 +1287,9 @@ module.exports = {
                             patients p
                         INNER JOIN patient_facilities pfc ON pfc.patient_id = p.id
                         INNER JOIN facilities f ON f.id = pfc.facility_id AND pfc.is_default
-                        LEFT JOIN public.ordering_facilities pof ON pof.id = NULLIF(f.facility_info->'service_facility_id', '')::BIGINT
+                        LEFT JOIN public.ordering_facilities pof ON pof.id = f.ordering_facility_id
                         LEFT JOIN public.ordering_facility_contacts pofc ON pofc.ordering_facility_id = pof.id AND pofc.is_primary IS TRUE
+                        LEFT JOIN public.ordering_facility_types oft ON oft.id = pofc.ordering_facility_type_id
                         LEFT JOIN provider_contacts fac_prov_cont ON f.facility_info->'rendering_provider_id'::text = fac_prov_cont.id::text
                         LEFT JOIN providers fac_prov ON fac_prov.id = fac_prov_cont.provider_id
                         LEFT JOIN billing.facility_settings fs ON fs.facility_id = pfc.facility_id AND pfc.is_default
