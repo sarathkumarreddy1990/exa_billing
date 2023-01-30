@@ -414,7 +414,7 @@ module.exports = {
                         FROM
                             linked_studies ls
                         WHERE
-                            billing.charges_studies.study_id IN (ls.study_id, ls.linked_study_id)
+                            billing.charges_studies.study_id = ls.study_id
                         LIMIT 1
                     ) AS linked_studies ON TRUE
                     WHERE   billing.charges.claim_id = ${claim_id}
