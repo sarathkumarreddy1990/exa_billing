@@ -346,7 +346,13 @@ define(['jquery',
                 commonjs.showStatus("messages.status.reloadedSuccessfully");
             },
 
+            getNpiNoValidationText: function () {
+                return app.billingRegionCode === 'can_ON' ? 'Group No' : 'Npi No';
+            },
+
             saveBillingProviders : function() {
+                var self = this;
+
                 this.trimFieldsForSave();
 
                 var rules = {
@@ -411,7 +417,7 @@ define(['jquery',
                     providerCode: commonjs.getMessage("e", "Billing Provider Code"),
                     shortDescription: commonjs.getMessage("e", "Billing Provider Short Desc"),
                     federalTaxID: commonjs.getMessage("e", "Federal Tax ID"),
-                    npiNo: commonjs.getMessage("e", "Npi No"),
+                    npiNo: commonjs.getMessage("e", self.getNpiNoValidationText()),
                     taxonomy: commonjs.getMessage("e", "Taxonomy Code"),
                     contactPersonName: commonjs.getMessage("e", "Contact Person Name"),
                     addressLine1: commonjs.getMessage("e", "AddressLine1"),
