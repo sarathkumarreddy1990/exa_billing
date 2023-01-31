@@ -3302,7 +3302,7 @@ define(['jquery',
 
                 switch(billingRegionCode) {
                     case 'can_AB':
-                        return !isWCBBilling 
+                        return !isWCBBilling
                             ? '/exa_modules/billing/ahs/submitClaims'
                             : '/exa_modules/billing/ahs/submitWcbClaim';
                     case 'can_MB':
