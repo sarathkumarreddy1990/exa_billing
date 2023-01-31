@@ -184,7 +184,7 @@ function (
             this.initializeBenefitsOnDate();
             this.determineStateEnabledAllInputs();
 
-            commonjs.updateCulture();
+            commonjs.updateCulture(app.currentCulture, commonjs.beautifyMe);
 
             return this;
         },
