@@ -41,7 +41,7 @@ const getClaimsForEDI = async (params) => {
     let isWCBBilling = false;
 
     for (let i = 0; i < claims.rows.length; i++) {
-        
+
         if (claims.rows[i].billing_method !== 'electronic_billing') {
             return {
                 isInvalidBillingMethod: true
@@ -649,7 +649,7 @@ module.exports = {
                 });
             }
 
-            let result = await this.validateBatchClaims({ 
+            let result = await this.validateBatchClaims({
                 studyDetails,
                 isMobileBillingEnabled: params.isMobileBillingEnabled === 'true',
                 is_us_billing: params.is_us_billing
