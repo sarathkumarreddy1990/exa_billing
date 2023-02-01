@@ -1046,10 +1046,14 @@ module.exports = {
 
             let claim = saveClaimParams?.claims?.[0];
 
-            let claimDetails = await claimController.splitClaim(claim, claim.claim_charges, saveClaimParams.insurances, config.get('enableMobileBilling'));
-            saveClaimParams.claims = claimDetails;
+            if (claim.billing_type === 'census') {
+                logger.logInfo('Auto Billing: Claims will not be created for studies having ordering facility location with billing type as Census.');
+            }
+            else {
+                saveClaimParams.claims = await claimController.splitClaim(claim, claim.claim_charges, saveClaimParams.insurances, config.get('enableMobileBilling'));
 
-            await claimsData.save(saveClaimParams);
+                await claimsData.save(saveClaimParams);
+            }            
         }
 
         return rows;
