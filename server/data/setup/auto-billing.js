@@ -1053,7 +1053,7 @@ module.exports = {
                 saveClaimParams.claims = await claimController.splitClaim(claim, claim.claim_charges, saveClaimParams.insurances, config.get('enableMobileBilling'));
 
                 await claimsData.save(saveClaimParams);
-            }            
+            }
         }
 
         return rows;
