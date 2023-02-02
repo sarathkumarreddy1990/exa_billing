@@ -714,7 +714,7 @@ define(['jquery',
                             existingClearingHouse = clearingHouse;
                         }
 
-                        var payerName = self.getGridCellData(filter, rowId, 'payer_name');
+                        var payerName = self.getGridCellData(filter, rowId, 'hidden_payer_name');
                         selectedPayerName.push(payerName)
 
                         var invoice_no = self.getGridCellData(filter, rowId, 'hidden_invoice_no');
@@ -755,7 +755,7 @@ define(['jquery',
                             sortBy = 'service_date';
                         }
                     }
-                    var uniquePayerName = $.unique(selectedPayerName);
+                    var uniquePayerName = _.uniq(selectedPayerName);
 
                     if (existingBillingMethod === 'direct_billing') {
                         if (uniquePayerName && uniquePayerName.length && uniquePayerName.length > 1) {
