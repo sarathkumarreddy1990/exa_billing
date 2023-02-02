@@ -4532,7 +4532,7 @@ define(['jquery',
                     return false;
                 }
 
-                if ( !self.ACSelect.readPhy.contact_id && app.billingRegionCode === 'can_AB') {
+                if (!self.ACSelect.readPhy.contact_id && app.country_alpha_3_code === 'can') {
                     commonjs.showWarning("messages.warning.shared.selectRenderingProvider");
                     $('#ddlRenderingProvider').focus();
                     return false;
