@@ -3833,8 +3833,6 @@ var commonjs = {
 
                 $("#showColor").show();
                 var div = $('#showColor');
-                $(document.body).append(div);
-
                 var posX = $((e.target || e.srcElement)).offset().left;
                 var posY = $((e.target || e.srcElement)).offset().top + 20;
                 $(div).css({ top: posY, left: posX, position: 'absolute' });
