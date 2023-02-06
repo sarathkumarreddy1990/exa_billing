@@ -299,37 +299,68 @@ module.exports = {
 
 					WITH cte_billing_providers AS (
 					SELECT (Row_to_json(billingProvider1)) "billingProvider"
-												FROM   (
-														SELECT id as "billingProviderID",
-															taxonomy_code as "taxonomyCode",
-															billing_providers.name as "lastName",
-															npi_no as "npiNo",
-															billing_providers.short_description as "description",
-															address_line1 as "addressLine1",
-															address_line2 as "addressLine2",
-															city as "city",
-															state as "state",
-															zip_code as "zipCode",
-															federal_tax_id as "federalTaxID",
-															phone_number as "phoneNo",
-															email  as "email",
-															fax_number as "faxNumber",
-															zip_code_plus as "zip_code_plus",
-															contact_person_name as "contactName",
-															bp_id_codes.qualifier_code AS "legacyID",
-															bp_id_codes.payer_assigned_provider_id AS "payerAssignedProviderID"
-                                                            FROM   billing.providers as billing_providers
-                                                            LEFT JOIN LATERAL (
-                                                                SELECT
-                                                                qualifier_code,
-                                                                payer_assigned_provider_id
-                                                                FROM billing.provider_id_code_qualifiers
-                                                                LEFT JOIN billing.provider_id_codes  ON provider_id_code_qualifiers.id=provider_id_codes.qualifier_id
-                                                                WHERE provider_id_codes.billing_provider_id = billing_providers.id
-                                                                AND provider_id_codes.insurance_provider_id = insurance_providers.id
-                                                                ) AS bp_id_codes ON TRUE
-                                                        WHERE  billing_providers.id=billing_provider_id
-                                                        )AS billingProvider1
+					    FROM (
+						SELECT bp.id AS "billingProviderID",
+						    bp.taxonomy_code AS "taxonomyCode",
+						    bp.name AS "lastName",
+						    bp.npi_no AS "npiNo",
+						    bp.short_description AS "description",
+						    bp.address_line1 AS "addressLine1",
+						    bp.address_line2 AS "addressLine2",
+						    bp.city AS "city",
+						    bp.state AS "state",
+						    bp.zip_code AS "zipCode",
+						    bp.federal_tax_id AS "federalTaxID",
+						    bp.phone_number AS "phoneNo",
+						    bp.email AS "email",
+						    bp.fax_number AS "faxNumber",
+						    bp.zip_code_plus AS "zip_code_plus",
+						    bp.contact_person_name AS "contactName",
+						    bp_id_codes.qualifier_code AS "legacyID",
+						    bp_id_codes.payer_assigned_provider_id AS "payerAssignedProviderID"
+						FROM billing.providers bp
+						LEFT JOIN billing.providers bpr_code ON bpr_code.id = claims.billing_provider_id
+						LEFT JOIN LATERAL (
+						    SELECT qualifier_code,
+							payer_assigned_provider_id
+						    FROM billing.provider_id_code_qualifiers
+						    LEFT JOIN billing.provider_id_codes ON provider_id_code_qualifiers.id=provider_id_codes.qualifier_id
+						    WHERE provider_id_codes.billing_provider_id = bp.id
+							AND provider_id_codes.insurance_provider_id = insurance_providers.id
+						) AS bp_id_codes ON TRUE
+						LEFT JOIN LATERAL (
+						    SELECT
+							MAX(ip.insurance_code) FILTER (WHERE coverage_level = 'primary' AND ipd.claim_filing_indicator_code = 'MB') AS pri_ins_code,
+							MAX(ip.insurance_code) FILTER (WHERE coverage_level = 'secondary' AND ipd.claim_filing_indicator_code = 'MC') AS sec_ins_code
+						    FROM patient_insurances pi
+						    LEFT JOIN insurance_providers ip ON ip.id = pi.insurance_provider_id
+						    LEFT JOIN billing.insurance_provider_details ipd ON ipd.insurance_provider_id = ip.id
+						    WHERE pi.id IN (claim_ins.primary_patient_insurance_id, claim_ins.secondary_patient_insurance_id)
+						) ins_details ON TRUE
+					    WHERE
+						-- Billing provider logic for QMI
+						CASE WHEN 'QMI' = ${companyCode} AND ins_coverage_level.coverage_level = 'secondary'
+						    THEN
+							CASE WHEN facilities.facility_code = 'QAZU' AND bpr_code.code = 'QMI AZ US'
+							    AND '370' = ins_details.pri_ins_code AND '368' = ins_details.sec_ins_code
+							THEN bp.id = (SELECT id FROM billing.providers WHERE code = 'QMI AZ')
+							WHEN facilities.facility_code = 'QIDU' AND bpr_code.code = 'QMI ID US'
+							    AND '1435' = ins_details.pri_ins_code AND '1850' = ins_details.sec_ins_code
+							THEN bp.id = (SELECT id FROM billing.providers WHERE code = 'QMI ID')
+							WHEN facilities.facility_code = 'QNVU' AND bpr_code.code = 'QMI NV US'
+							    AND '348' = ins_details.pri_ins_code AND '351' = ins_details.sec_ins_code
+							THEN bp.id = (SELECT id FROM billing.providers WHERE code = 'QMI NV')
+							WHEN facilities.facility_code = 'QUTU' AND bpr_code.code = 'QMI UT US'
+							    AND '347' = ins_details.pri_ins_code AND '350' = ins_details.sec_ins_code
+							THEN bp.id = (SELECT id FROM billing.providers WHERE code = 'QMI UT')
+							WHEN facilities.facility_code = 'QWAU' AND bpr_code.code = 'QMI WA US'
+							    AND '812' = ins_details.pri_ins_code AND '18392' = ins_details.sec_ins_code
+							THEN bp.id = (SELECT id FROM billing.providers WHERE code = 'QMI WA')
+							ELSE bp.id = claims.billing_provider_id
+							END
+						    ELSE bp.id = claims.billing_provider_id
+						END
+					) AS billingProvider1
 
 					)
 
