@@ -322,16 +322,16 @@ module.exports = {
 						LEFT JOIN billing.providers bpr_code ON bpr_code.id = claims.billing_provider_id
 						LEFT JOIN LATERAL (
 						    SELECT qualifier_code,
-							payer_assigned_provider_id
+							    payer_assigned_provider_id
 						    FROM billing.provider_id_code_qualifiers
 						    LEFT JOIN billing.provider_id_codes ON provider_id_code_qualifiers.id=provider_id_codes.qualifier_id
 						    WHERE provider_id_codes.billing_provider_id = bp.id
-							AND provider_id_codes.insurance_provider_id = insurance_providers.id
+							    AND provider_id_codes.insurance_provider_id = insurance_providers.id
 						) AS bp_id_codes ON TRUE
 						LEFT JOIN LATERAL (
 						    SELECT
-							MAX(ip.insurance_code) FILTER (WHERE coverage_level = 'primary' AND ipd.claim_filing_indicator_code = 'MB') AS pri_ins_code,
-							MAX(ip.insurance_code) FILTER (WHERE coverage_level = 'secondary' AND ipd.claim_filing_indicator_code = 'MC') AS sec_ins_code
+							    MAX(ip.insurance_code) FILTER (WHERE coverage_level = 'primary' AND ipd.claim_filing_indicator_code = 'MB') AS pri_ins_code,
+							    MAX(ip.insurance_code) FILTER (WHERE coverage_level = 'secondary' AND ipd.claim_filing_indicator_code = 'MC') AS sec_ins_code
 						    FROM patient_insurances pi
 						    LEFT JOIN insurance_providers ip ON ip.id = pi.insurance_provider_id
 						    LEFT JOIN billing.insurance_provider_details ipd ON ipd.insurance_provider_id = ip.id
