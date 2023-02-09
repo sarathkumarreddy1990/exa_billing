@@ -1048,7 +1048,7 @@ const api = {
         let sortField = (args.sortField || '').trim();
         let sortOrder = (args.sortOrder || '').trim();
 
-        if (sortField == 'tat_level') {
+        if (['tat_level', 'department', 'station', 'institution'].includes(sortField)) {
 
             if (sortOrder && sortOrder.toUpperCase() == 'DESC') {
                 sortOrder += ' NULLS LAST';
