@@ -1069,13 +1069,15 @@ define([
                     commentId = 0;
                 }
 
-                $nestedModel.find('#btnCICommentSave').off().click(function () {
+                $nestedModel.find('#btnCICommentSave').off().click(_.debounce(function () {
                     var comment = $addComment.val();
-                    if (comment != '')
+
+                    if (comment) {
                         self.saveClaimComment(commentId, comment);
-                    else
+                    } else {
                         commonjs.showWarning("messages.warning.claims.missingCommentValidation");
-                });
+                    }
+                }, 150));
 
             },
 
@@ -1122,57 +1124,46 @@ define([
                 var $nestedModel = $('#siteModalNested');
                 var $saveComments = $nestedModel.find('#btnCICommentSave');
                 var selectedScreens = [];
+                var reqType;
+                var commentsData;
 
                 $nestedModel.find('#chkalertScreens input:checked').each(function() {
                     selectedScreens.push($(this).val());
                 });
 
                 $saveComments.prop('disabled', true);
-                if (commentId != 0) {
 
-                    $.ajax({
-                        url: '/exa_modules/billing/claims/claim_inquiry/claim_comment',
-                        type: 'PUT',
-                        data: {
-                            'commentId': commentId,
-                            'note': comment,
-                            'from': 'tmt',
-                            'alertScreens': JSON.stringify(selectedScreens)
-                        },
-                        success: function (data, response) {
-                            commonjs.showStatus("messages.status.recordSaved");
-                            $saveComments.prop('disabled', false);
-                            self.closeSaveComment();
-                            self.showClaimCommentsGrid();
-
-                        },
-                        error: function (err) {
-                            commonjs.handleXhrError(err);
-                        }
-                    });
-
-                } else if (commentId == 0) {
-
-                    $.ajax({
-                        url: '/exa_modules/billing/claims/claim_inquiry/claim_comment',
-                        type: 'POST',
-                        data: {
-                            'note': comment,
-                            'type': type || 'manual',
-                            'claim_id': self.claim_id,
-                            'alertScreens': JSON.stringify(selectedScreens)
-                        },
-                        success: function (data, response) {
-                            commonjs.showStatus("messages.status.recordSaved");
-                            $saveComments.prop('disabled', false);
-                            self.closeSaveComment();
-                            self.showClaimCommentsGrid();
-                        },
-                        error: function (err) {
-                            commonjs.handleXhrError(err);
-                        }
-                    });
+                if (commentId) {
+                    reqType = 'PUT';
+                    commentsData = {
+                        'commentId': commentId,
+                        'note': comment,
+                        'from': 'tmt',
+                        'alertScreens': JSON.stringify(selectedScreens)
+                    };
+                } else {
+                    reqType = 'POST';
+                    commentsData = {
+                        'note': comment,
+                        'type': type || 'manual',
+                        'claim_id': self.claim_id,
+                        'alertScreens': JSON.stringify(selectedScreens)
+                    };
                 }
+
+                $.ajax({
+                    url: '/exa_modules/billing/claims/claim_inquiry/claim_comment',
+                    type: reqType,
+                    data: commentsData,
+                    success: function (data, response) {
+                        commonjs.showStatus("messages.status.recordSaved");
+                        commonjs.hideNestedDialog();
+                        self.showClaimCommentsGrid();
+                    },
+                    error: function (err) {
+                        commonjs.handleXhrError(err);
+                    }
+                });
             },
 
             saveIsInternalComment: function () {
@@ -1513,10 +1504,6 @@ define([
                 var self = this;
                 self.paymentInvoice = new paymentInvoice({ el: $('#modal_div_container') });
                 self.paymentInvoice.onReportViewClick(e);
-            },
-
-            closeSaveComment: function () {
-                commonjs.hideNestedDialog();
             },
 
             billingCommentsReadonly: function () {
