@@ -170,6 +170,7 @@ define(['jquery',
             patientClaimsPager: null,
             claimResponsible: '',
             isSplitClaimEnabled: false,
+            enableConfirmAlert: false,
             insuranceEligibilityView: {
                 primary: null,
                 secondary: null,
@@ -2036,7 +2037,7 @@ define(['jquery',
                 });
 
                 $(".claimProcess").off().click(function (e) {
-                    if (app.billingRegionCode === "can_AB" && commonjs.hasWCBUnsavedChanges) {
+                    if (app.billingRegionCode === "can_AB" && commonjs.hasWCBUnsavedChanges && !self.enableConfirmAlert) {
                         self.openUnSavedChangesModal('prevNext', e);
                     } else {
                         self.processClaim(e);
@@ -2044,7 +2045,7 @@ define(['jquery',
                 });
 
                 $("#siteModal .modal-header button, #siteModal .modal-footer button").off().click(function (e) {
-                    if (app.billingRegionCode === "can_AB" && commonjs.hasWCBUnsavedChanges) {
+                    if (app.billingRegionCode === "can_AB" && commonjs.hasWCBUnsavedChanges && !self.enableConfirmAlert) {
                         $(this).removeAttr('data-dismiss');
                         self.openUnSavedChangesModal('close', $(this));
                     }
@@ -2123,6 +2124,7 @@ define(['jquery',
                         if (res.value) {
                             $("#siteModal").hide();
                             $("#siteModal").modal("hide");
+                            self.enableConfirmAlert = true;
                             return true;
                         }
                     } else {
