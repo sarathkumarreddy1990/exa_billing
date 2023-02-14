@@ -29,7 +29,6 @@ define([
                 dateTo: null,
                 cmtFromDate: null,
                 cmtToDate: null,
-                facilityIds: null,
                 facilities: null,
                 serviceDateFrom: null,
                 serviceDateTo: null,
@@ -292,19 +291,19 @@ define([
 
             // Binding Report Params
             getReportParams: function () {
+                var isWorkedByAll = $('#workedByAll').prop('checked') || false;
+
                 return urlParams = {
                     'dateFormat': this.viewModel.dateFormat,
                     'country_alpha_3_code': this.viewModel.country_alpha_3_code,
                     'allFacilities': this.viewModel.allFacilities,
-                    'facilityIds': this.viewModel.facilityIds,
 
                     'workedBy': $('#workedBy').prop('checked'),
-                    'workedByAll': $('#workedByAll').prop('checked'),
-
-                    'facilityIds': this.selectedFacilityList ? this.selectedFacilityList : '',
+                    'workedByAll': isWorkedByAll,
+                    'facilityIds': !isWorkedByAll && this.selectedFacilityList || [],
                     'allFacilities': this.viewModel.allFacilities ? this.viewModel.allFacilities : '',
 
-                    'billingProvider': this.selectedBillingProList ? this.selectedBillingProList : [],
+                    'billingProvider': !isWorkedByAll && this.selectedBillingProList || [],
                     'allBillingProvider': this.viewModel.allBillingProvider ? this.viewModel.allBillingProvider : '',
                     billingProFlag: this.viewModel.allBillingProvider == 'true' ? true : false,
 
@@ -442,6 +441,7 @@ define([
                 $('#billingProDropdown').attr('checked', false);
                 $('#facilityDiv').show();
                 $('#billingProviderDiv').show();
+                $('#workedByAll').prop('checked', false);
             },
             // Worked By dropdown Value Ranges
             onWorkedByAllChange: function () {
