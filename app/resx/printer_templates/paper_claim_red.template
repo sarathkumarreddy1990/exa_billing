@@ -614,10 +614,7 @@ function formatRedForm(claimData, servicelineList, pageBrk) {
                     ],
                     [//ANS
                         { text: "", colSpan: 2 }, {},
-                        {
-                            text: (claimData.subscriber && claimData.subscriber[0].claim && claimData.subscriber[0].claim[0].relatedCauseCode3.toString() &&
-                                claimData.subscriber[0].claim[0].relatedCauseCode3.toString().toUpperCase() === 'TRUE') ? '√' : '', alignment: 'center', margin: [-22, 0, 0, 0]
-                        },
+                        { text: isAutoAccident ? '√' : '', alignment: 'center', margin: [-22, 0, 0, 0] },
                         {
                             style: 'Ans',
                             margin: [-26,-2,0,0],
@@ -625,7 +622,7 @@ function formatRedForm(claimData, servicelineList, pageBrk) {
                                 widths:[25, 12],
                                 body: [
                                     [
-                                       { text: isAutoAccident ? '√' : '' },
+                                       { text: !isAutoAccident ? '√' : '' },
                                        { text: isAutoAccident && claimData.subscriber[0].claim[0]?.autoAccidentState || '', margin: [-3, -3, 0, 0] }
                                     ]
                                 ]
