@@ -369,6 +369,7 @@ function formatRedForm(claimData, servicelineList, pageBrk) {
     pos = claimDet && claimDet.POS || "";
     billType = claimDet && claimDet.billingType || "";
     let claimNotes = getSubstring(claimDet.claimNotes, 65).split('\n').join(' ');
+    let isAutoAccident = claimData.subscriber[0].claim[0]?.relatedCauseCode3;
 
     if (pos === "12") {
         patientDet.fullName = "PRIVATE HOME" ;
@@ -605,8 +606,8 @@ function formatRedForm(claimData, servicelineList, pageBrk) {
                                 widths:[25, 12],
                                 body: [
                                     [
-                                        {text: (claimData.subscriber && claimData.subscriber[0].claim && claimData.subscriber[0].claim[0].relatedCauseCode3.toString() && claimData.subscriber[0].claim[0].relatedCauseCode3.toString().toUpperCase() === 'FALSE') ? '√' : ' '},
-                                        {text: claimData.subscriber && claimData.subscriber[0].claim && claimData.subscriber[0].claim[0] && claimData.subscriber[0].claim[0].autoAccidentState||' ', margin:[-3,-3,0,0]}
+                                       { text: isAutoAccident ? '√' : ' ' },
+                                       { text: isAutoAccident && claimData.subscriber[0].claim[0]?.autoAccidentState || '', margin: [-3, -3, 0, 0] }
                                     ]
                                 ]
                             },layout: 'noBorders'
