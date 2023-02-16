@@ -814,6 +814,7 @@ function formatSingleClaim(claimData, servicelineList) {
     let claimDate = claimDet && claimDet.claimDate;
     let isInsuranceSplitEnabled = subscriberDet && subscriberDet.isSplitClaimEnabled || false;
     let isProfessionalClaim = professionalClaim(servicelineList, billType, isInsuranceSplitEnabled);
+    let isAutoAccident = claimData.subscriber[0].claim[0]?.relatedCauseCode3;
 
     if (pos === "12") {
         patientDet.fullName = "PRIVATE HOME" ;
@@ -1689,9 +1690,9 @@ function formatSingleClaim(claimData, servicelineList) {
                                 widths:[38, 25, 12],
                                 body: [
                                     [
-                                        {image: getImage(claimData.subscriber && claimData.subscriber[0].claim && claimData.subscriber[0].claim[0].relatedCauseCode3.toString() && claimData.subscriber[0].claim[0].relatedCauseCode3.toString().toUpperCase() === 'TRUE'), fit: [8, 8]},
-                                        {image: getImage(claimData.subscriber && claimData.subscriber[0].claim && claimData.subscriber[0].claim[0].relatedCauseCode3.toString() && claimData.subscriber[0].claim[0].relatedCauseCode3.toString().toUpperCase() === 'FALSE'), fit: [8, 8]},
-                                        {text: claimData.subscriber && claimData.subscriber[0].claim && claimData.subscriber[0].claim[0] && claimData.subscriber[0].claim[0].autoAccidentState||' ', margin:[-3,-5,0,0]}
+                                        { image: getImage(isAutoAccident), fit: [8, 8] },
+                                        { image: getImage(!isAutoAccident), fit: [8, 8] },
+                                        { text: isAutoAccident && claimData.subscriber[0].claim[0]?.autoAccidentState || '', margin: [-3, -5, 0, 0] }
                                     ]
                                 ]
                             },layout: 'noBorders'
