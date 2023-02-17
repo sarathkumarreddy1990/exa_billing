@@ -1076,7 +1076,7 @@ module.exports = {
                             ON bpa.payment_id = bp.id
                     INNER JOIN billing.audit_log audit
                             ON ( ( audit.entity_key = bc.id
-                                    AND audit.entity_name = 'claims' )
+                                    AND audit.entity_name IN ('claims', 'create_claim'))
                                     OR ( audit.entity_key = bch.id
                                         AND audit.entity_name = 'charges' )
                                     OR ( audit.entity_key = bc.id
