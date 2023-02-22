@@ -1117,7 +1117,9 @@ module.exports = {
                                         LEFT JOIN providers ON providers.id= pro_cont.provider_id
                                         LEFT JOIN ordering_facilities ON ordering_facilities.id = p1.ordering_facility_id
                                 ) AS payer_details ON payer_details.id = p.id
-                            ORDER BY p.id ASC
+                            ORDER BY 
+                                p.id ASC
+                                , pa.payment_application_id ASC
                         ) payment_details
                     ) AS payment_details
                     , c.area_of_injury_code_id
@@ -1595,7 +1597,9 @@ module.exports = {
                                     billing.claims c
                                 WHERE c.id = ${id}
                             ) AS claim_details ON TRUE
-                        ORDER BY p.id ASC
+                        ORDER BY 
+                            p.id ASC
+                            , pa.payment_application_id ASC
                     ),
                     claim_fee_details AS (
                         SELECT
