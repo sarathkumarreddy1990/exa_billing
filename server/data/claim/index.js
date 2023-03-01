@@ -145,23 +145,23 @@ module.exports = {
                                 , (CASE
                                     WHEN (${params.isMobileBillingEnabled} AND (SELECT billing_type from get_ordering_facility_data) = 'facility') AND NOT sc.is_custom_bill_fee
                                     THEN billing.get_computed_bill_fee(null, cpt_codes.id, sc.modifier1_id, sc.modifier2_id, sc.modifier3_id, sc.modifier4_id, 'billing', 'ordering_facility',
-                                        (SELECT ordering_facility_contact_id FROM get_ordering_facility_data), o.facility_id)::NUMERIC
+                                        (SELECT ordering_facility_contact_id FROM get_ordering_facility_data), o.facility_id, s.id)::NUMERIC
                                     WHEN (SELECT claim_patient_insurance_id FROM insurances where coverage_level = 'primary') IS NOT NULL AND NOT sc.is_custom_bill_fee
                                     THEN billing.get_computed_bill_fee(null,cpt_codes.id,sc.modifier1_id,sc.modifier2_id,sc.modifier3_id,sc.modifier4_id,'billing','primary_insurance',
-                                        (SELECT claim_patient_insurance_id FROM insurances where coverage_level = 'primary'), o.facility_id)::NUMERIC
+                                        (SELECT claim_patient_insurance_id FROM insurances where coverage_level = 'primary'), o.facility_id, s.id)::NUMERIC
                                     WHEN sc.is_custom_bill_fee
                                     THEN sc.bill_fee::NUMERIC
                                     ELSE
-                                        billing.get_computed_bill_fee(null,cpt_codes.id,sc.modifier1_id,sc.modifier2_id,sc.modifier3_id,sc.modifier4_id,'billing','patient',${params.patient_id},o.facility_id)::NUMERIC
+                                        billing.get_computed_bill_fee(null,cpt_codes.id,sc.modifier1_id,sc.modifier2_id,sc.modifier3_id,sc.modifier4_id,'billing','patient',${params.patient_id},o.facility_id, s.id)::NUMERIC
                                     END) as bill_fee
                                 , (CASE WHEN (${params.isMobileBillingEnabled} AND (SELECT billing_type from get_ordering_facility_data) = 'facility') THEN
                                             billing.get_computed_bill_fee(null, cpt_codes.id, sc.modifier1_id, sc.modifier2_id, sc.modifier3_id, sc.modifier4_id, 'allowed', 'ordering_facility',
-                                            (SELECT ordering_facility_contact_id FROM get_ordering_facility_data), o.facility_id)::NUMERIC
+                                            (SELECT ordering_facility_contact_id FROM get_ordering_facility_data), o.facility_id, s.id)::NUMERIC
                                         WHEN (select claim_patient_insurance_id from insurances where coverage_level = 'primary') IS NOT NULL THEN
                                             billing.get_computed_bill_fee(null,cpt_codes.id,sc.modifier1_id,sc.modifier2_id,sc.modifier3_id,sc.modifier4_id,'allowed','primary_insurance',
-                                            (select claim_patient_insurance_id from insurances where coverage_level = 'primary'), o.facility_id)::NUMERIC
+                                            (select claim_patient_insurance_id from insurances where coverage_level = 'primary'), o.facility_id, s.id)::NUMERIC
                                         ELSE
-                                            billing.get_computed_bill_fee(null,cpt_codes.id,sc.modifier1_id,sc.modifier2_id,sc.modifier3_id,sc.modifier4_id,'allowed','patient',${params.patient_id},o.facility_id)::NUMERIC
+                                            billing.get_computed_bill_fee(null,cpt_codes.id,sc.modifier1_id,sc.modifier2_id,sc.modifier3_id,sc.modifier4_id,'allowed','patient',${params.patient_id},o.facility_id, s.id)::NUMERIC
                                         END) as allowed_fee
                                 , COALESCE(sc.units,'1')::NUMERIC AS units
                                 , sca.authorization_no AS authorization_no
@@ -1690,25 +1690,5 @@ module.exports = {
                         , (SELECT id FROM modifiers WHERE code = 'TC') AS technical_modifier_id`;
 
         return await queryRows(sql);
-    },
-
-    getTechnicalBillFeeAmounts: async (args) => {
-        let {
-            cpt_id,
-            order_id,
-            modifier1,
-            modifier2,
-            modifier3,
-            modifier4,
-            facility_id
-        } = args;
-
-        let sql = SQL`
-                    SELECT
-                        (billing.get_computed_bill_fee(null,${cpt_id},${modifier1},${modifier2},${modifier3},${modifier4},'billing','ordering_facility',${order_id},${facility_id})::NUMERIC) as bill_fee
-                        , (billing.get_computed_bill_fee(null,${cpt_id},${modifier1},${modifier2},${modifier3},${modifier4},'allowed','ordering_facility',${order_id},${facility_id})::NUMERIC) as allowed_amount`;
-
-        return (await queryRows(sql)).pop();
     }
-
 };
