@@ -55,12 +55,67 @@ module.exports = {
                     bc.facility_id as facility_id,
                     pp.birth_date,
                     gid->'alt_account_no' AS phn_number,
-                    CASE WHEN payer_type = 'primary_insurance' THEN json_build_object('name',pip.insurance_name,'address',pip.insurance_info->'Address1','address2',pip.insurance_info->'Address2','city',pip.insurance_info->'City','state',pip.insurance_info->'State','zip_code',pip.insurance_info->'ZipCode','phone_no',pip.insurance_info->'PhoneNo')
-                    WHEN payer_type = 'secondary_insurance' THEN json_build_object('name',pip.insurance_name,'address',pip.insurance_info->'Address1', 'address2',pip.insurance_info->'Address2','city',pip.insurance_info->'City','state',pip.insurance_info->'State','zip_code',pip.insurance_info->'ZipCode','phone_no',pip.insurance_info->'PhoneNo')
-                    WHEN payer_type = 'tertiary_insurance' THEN json_build_object('name',pip.insurance_name,'address',pip.insurance_info->'Address1','address2',pip.insurance_info->'Address2','city',pip.insurance_info->'City','state',pip.insurance_info->'State','zip_code',pip.insurance_info->'ZipCode','phone_no',pip.insurance_info->'PhoneNo')
-                    WHEN payer_type = 'referring_provider' THEN json_build_object('name',ppr.full_name,'address',ppc.contact_info->'ADDR1','address2',ppc.contact_info->'ADDR2', 'city',ppc.contact_info->'CITY','state',ppc.contact_info->'c1State','zip_code',ppc.contact_info->'c1Zip','phone_no',ppc.contact_info->'PHNO')
-                    WHEN payer_type = 'patient' THEN json_build_object('name',get_full_name(pp.last_name,pp.first_name),'address',pp.patient_info->'c1AddressLine1','address2',pp.patient_info->'c1AddressLine2','city',pp.patient_info->'c1City','state',pp.patient_info->'STATE','zip_code',pp.patient_info->'ZIP','phone_no',pp.patient_info->'c1HomePhone')
-                    WHEN payer_type = 'ordering_facility' THEN json_build_object('name',pof.name,'address',pof.address_line_1,'address2',pof.address_line_2,'city',pof.city,'state',pof.state,'zip_code',pof.zip_code,'phone_no',pof.phone_number)
+                    CASE payer_type
+                        WHEN 'primary_insurance'
+                            THEN JSON_BUILD_OBJECT (
+                                'name', pip.insurance_name,
+                                'address', pip.insurance_info->'Address1',
+                                'address2', pip.insurance_info->'Address2',
+                                'city', pip.insurance_info->'City',
+                                'state', pip.insurance_info->'State',
+                                'zip_code', pip.insurance_info->'ZipCode',
+                                'phone_no', pip.insurance_info->'PhoneNo'
+                            )
+                        WHEN 'secondary_insurance'
+                            THEN JSON_BUILD_OBJECT (
+                                'name', pip.insurance_name,
+                                'address', pip.insurance_info->'Address1',
+                                'address2', pip.insurance_info->'Address2',
+                                'city', pip.insurance_info->'City',
+                                'state', pip.insurance_info->'State',
+                                'zip_code', pip.insurance_info->'ZipCode',
+                                'phone_no', pip.insurance_info->'PhoneNo'
+                            )
+                        WHEN 'tertiary_insurance'
+                            THEN JSON_BUILD_OBJECT (
+                                'name', pip.insurance_name,
+                                'address', pip.insurance_info->'Address1',
+                                'address2', pip.insurance_info->'Address2',
+                                'city', pip.insurance_info->'City',
+                                'state', pip.insurance_info->'State',
+                                'zip_code', pip.insurance_info->'ZipCode',
+                                'phone_no', pip.insurance_info->'PhoneNo'
+                            )
+                        WHEN 'referring_provider'
+                            THEN JSON_BUILD_OBJECT (
+                                'name', ppr.full_name,
+                                'address', ppc.contact_info->'ADDR1',
+                                'address2', ppc.contact_info->'ADDR2',
+                                'city', ppc.contact_info->'CITY',
+                                'state', ppc.contact_info->'c1State',
+                                'zip_code', ppc.contact_info->'c1Zip',
+                                'phone_no', ppc.contact_info->'PHNO'
+                            )
+                        WHEN 'patient'
+                            THEN JSON_BUILD_OBJECT (
+                                'name', get_full_name(pp.last_name,pp.first_name),
+                                'address', pp.patient_info->'c1AddressLine1',
+                                'address2', pp.patient_info->'c1AddressLine2',
+                                'city', pp.patient_info->'c1City',
+                                'state', pp.patient_info->'STATE',
+                                'zip_code', pp.patient_info->'ZIP',
+                                'phone_no', pp.patient_info->'c1HomePhone'
+                            )
+                        WHEN 'ordering_facility'
+                            THEN JSON_BUILD_OBJECT (
+                                'name', pof.name,
+                                'address', pof.address_line_1,
+                                'address2', pof.address_line_2,
+                                'city', pof.city,
+                                'state', pof.state,
+                                'zip_code', pof.zip_code,
+                                'phone_no', pofc.phone_number
+                            )
                     END AS responsinble_party_address,
                     json_build_object('name',bp.name,'address',bp.address_line1,'address2',bp.address_line2,'city',bp.city,'state',bp.state,'zip_code',bp.zip_code,'phone_no',bp.phone_number) AS billing_provider_details
                 FROM billing.claims bc

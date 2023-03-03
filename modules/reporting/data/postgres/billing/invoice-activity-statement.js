@@ -74,7 +74,7 @@ claim_details AS(
                     'city',pof.city,
                     'state',pof.state,
                     'zip_code',pof.zip_code,
-                    'phone_no',pof.phone_number)
+                    'phone_no',ofc.phone_number)
         END AS responsible_party_address,
         json_build_object(
             'name', bp.name,
