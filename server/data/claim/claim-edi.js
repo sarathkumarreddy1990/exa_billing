@@ -623,7 +623,11 @@ module.exports = {
 											rendering_pro_contact.contact_info->'ZIPPLUS' as "zipPlus"
 											FROM provider_contacts   rendering_pro_contact
 											LEFT JOIN providers as render_provider ON render_provider.id=rendering_pro_contact.provider_id
-											WHERE  rendering_pro_contact.id=claims.rendering_provider_contact_id)
+											WHERE
+											    CASE WHEN ${companyCode} = 'QMI'
+												THEN rendering_pro_contact.id = NULLIF(facilities.facility_info->'rendering_provider_id', '')::INT
+												ELSE rendering_pro_contact.id = claims.rendering_provider_contact_id
+											    END)
 											as renderingProvider)
 
                             , (SELECT JSONB_AGG(servicefacility) "servicefacility"
