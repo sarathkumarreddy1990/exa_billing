@@ -633,7 +633,15 @@ module.exports = {
                             , (SELECT JSONB_AGG(servicefacility) "servicefacility"
                                     FROM
                                         ( SELECT
-											public.get_claim_service_facility_address(claims.id, claims.pos_map_code, claims.patient_id) AS servicefacility
+											public.get_claim_service_facility_address(
+												claims.id
+												, CASE
+												    WHEN ${companyCode} = 'QMI'
+												    THEN pmap.more_info -> 'pos_dispatching_address'
+												    ELSE claims.pos_map_code
+												END
+												, claims.patient_id
+											) AS servicefacility
                                         )  AS servicefacility)
 							,(SELECT JSONB_AGG(Row_to_json(approvingProvider)) "approvingProvider"
 								FROM
@@ -973,6 +981,7 @@ module.exports = {
                                             LEFT JOIN public.insurance_provider_payer_types  ON insurance_provider_payer_types.id = insurance_providers.provider_payer_type_id
                                             LEFT JOIN public.ordering_facility_contacts pofc ON pofc.id = claims.ordering_facility_contact_id
                                             LEFT JOIN public.ordering_facilities pof ON pof.id = pofc.ordering_facility_id
+                                            LEFT JOIN public.pos_map pmap ON pmap.id = pof.pos_map_id
                                             LEFT JOIN LATERAL (
                                                 SELECT
                                                     bch.authorization_no AS service_line_auth_no
