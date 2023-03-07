@@ -1065,25 +1065,37 @@ define(['jquery',
                     }));
                 }
 
-                if (this.ordering_facility_contact_id) {
+                if (['OFP', 'OF'].includes(posCode) && this.hasMatchingOrderingFacility()) {
                     options.push($('<option/>', {
-                        value: 'OF',
+                        value: posCode,
                         text: this.ordering_facility_name
                     }));
                 }
+                else {
+                    if (this.ordering_facility_contact_id) {
+                        options.push($('<option/>', {
+                            value: 'OF',
+                            text: this.ordering_facility_name
+                        }));
+                    }
 
-                if (this.ptn_ordering_facility_contact_id
-                    && ~~this.ptn_ordering_facility_contact_id !== ~~this.ordering_facility_contact_id) {
-                    options.push($('<option/>', {
-                        value: 'OFP',
-                        text: this.ptn_ordering_facility_name
-                    }));
+                    if (this.ptn_ordering_facility_contact_id && !this.hasMatchingOrderingFacility()) {
+                        options.push($('<option/>', {
+                            value: 'OFP',
+                            text: this.ptn_ordering_facility_name
+                        }));
+                    }
                 }
 
                 $ddlServiceFacilityLocation.append(options);
 
                 if (posCode) {
                     $('#ddlServiceFacilityLocation').val(posCode);
+                }
+
+                if (posCode === 'OFP' && this.hasMatchingOrderingFacility()) {
+                    $("#ddlClaimResponsible option[value='PSF']").remove();
+                    return;
                 }
 
                 if (this.isServiceFacilityLocation(posCode)) {
@@ -1093,6 +1105,15 @@ define(['jquery',
                         payer_name: $('#ddlServiceFacilityLocation option:selected').text() + ' (Service Facility)'
                     }, null);
                 }
+            },
+
+            /**
+             * Indicates study and patient level ordering facilities are same or not
+             *
+             * @returns {boolean}
+             */
+            hasMatchingOrderingFacility: function() {
+                return ~~this.ptn_ordering_facility_contact_id === ~~this.ordering_facility_contact_id;
             },
 
             createCptCodesUI: function(rowIndex) {
@@ -1673,6 +1694,11 @@ define(['jquery',
 
             onChangeServiceLocation: function (e) {
                 var posMap = $("#ddlServiceFacilityLocation option:selected").val();
+
+                if (posMap === 'OFP' && this.hasMatchingOrderingFacility()) {
+                    $("#ddlClaimResponsible  option[value='PSF']").remove();
+                    return;
+                }
 
                 if (posMap && posMap !== "OF") {
                     this.updateResponsibleList({
