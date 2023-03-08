@@ -2197,9 +2197,7 @@ define([
             },
 
             setupLists: function () {
-                var facilities = app.userInfo.user_type === 'SU' ?
-                        app.facilities :
-                        app.userFacilities;
+                var facilities = commonjs.getActiveFacilities();
                 if (this.opener == "studies") {
                     var statusCodes = defaultStatusArray.concat(app.customOrderStatus).concat(app.customStudyStatus);
                     setupList('listModality', app.modalities, 'modality_code');
