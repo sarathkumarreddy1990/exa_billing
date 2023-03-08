@@ -559,7 +559,7 @@ define(['jquery',
                 });
 
                 $('#ddlAutoBillingFacility').select2({
-                    data: _.map(app.facilities, function(facility) {
+                    data: _.map(commonjs.getActiveFacilities(), function(facility) {
                         return {
                             id: facility.id,
                             text: formatOptionText(facility.facility_name, facility.facility_code)
