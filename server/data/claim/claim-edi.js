@@ -930,7 +930,7 @@ module.exports = {
 				LEFT JOIN ( 
 					SELECT
 					    npi_no
-						, claims.id AS claim_id
+					    , claims.id AS claim_id
 					FROM billing.claims
 					INNER JOIN ( SELECT
 							bpr.id AS bpr_id
