@@ -591,8 +591,8 @@ module.exports = {
 						if (companyCode === 'QMI') {
 							sql.append(SQL`
 								, CASE
-								    WHEN (('US' = ANY(bp_charges.mod_array) AND insurance_provider_details.claim_filing_indicator_code = 'MB')
-									    OR ('93306' = ANY(bp_charges.cpt_array) OR '93308' = ANY(bp_charges.cpt_array))) AND bp_npi.npi_no IS NOT NULL
+								    WHEN bp_npi.npi_no IS NOT NULL AND insurance_provider_details.claim_filing_indicator_code = 'MB'
+									    AND ('93306' = ANY(bp_charges.cpt_array) OR '93308' = ANY(bp_charges.cpt_array))
 								    THEN bp_npi.npi_no
 										ELSE( SELECT
 											    npi_no
@@ -930,6 +930,7 @@ module.exports = {
 				LEFT JOIN ( 
 					SELECT
 					    npi_no
+						, claims.id AS claim_id
 					FROM billing.claims
 					INNER JOIN ( SELECT
 							bpr.id AS bpr_id
@@ -939,8 +940,7 @@ module.exports = {
 					)bpr ON  bpr.bpr_id = claims.billing_provider_id
 					INNER JOIN facilities ON facilities.id = claims.facility_id
 					WHERE 'US' = code_array[3] AND facilities.facility_info -> 'facility_state' = code_array[2]
-					LIMIT 1
-				)bp_npi ON TRUE
+				)bp_npi ON bp_npi.claim_id = claims.id
 				LEFT JOIN (
 					SELECT
 					    ARRAY_AGG(cc.display_code)AS cpt_array
