@@ -192,8 +192,8 @@ module.exports = {
                             ) AS split ON TRUE
                             WHERE
                                 study_id = ANY(${studyIds}) AND sc.deleted_dt IS NULL
-                            ORDER BY sc.cpt_code ASC
-
+                            ORDER BY
+                                sc.id ASC
                         )
                         , order_ids AS (
                             SELECT order_id FROM public.studies s WHERE s.id = ${firstStudyId}
