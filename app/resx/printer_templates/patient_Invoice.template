@@ -219,7 +219,7 @@ function bindInvoice(data, columns) {
     }
     var body = [];
     if (data && data.length) {
-        data.forEach(function(row) {
+        data.forEach(function (row, index) {
             var dataRow = [];
             if (columns && columns.length) {
                 columns.forEach(function(column) {
@@ -421,7 +421,8 @@ function bindInvoice(data, columns) {
                                         }],
                                     ]
                                 },
-                                layout: 'noBorders'
+                                layout: 'noBorders',
+                                pageBreak: index === data.length - 1 ? 'none' : 'after'
                             }
 
                         );
