@@ -286,7 +286,7 @@ module.exports = {
                                         billing.claims bc
                                     SET claim_status_id = (SELECT id FROM getStatus),
                                         invoice_no = CASE
-                                                        WHEN bc.billing_method = 'direct_billing' AND ${templateType} != 'special_form'
+                                                        WHEN (bc.billing_method = 'direct_billing' OR ${templateType} = 'special_form')
                                                         THEN (SELECT NEXTVAL('billing.invoice_no_seq'))::TEXT
                                                         ELSE bc.invoice_no
                                                      END,
