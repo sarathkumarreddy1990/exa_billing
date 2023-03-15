@@ -599,6 +599,7 @@ module.exports = {
                 , pofc.id
                 , pofc.phone_number
                 , pofc.fax_number
+                , pofc.email
                 , pofc.billing_type
                 , pof.code AS ordering_facility_code
                 , pof.name AS ordering_facility_name
