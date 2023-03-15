@@ -98,7 +98,7 @@ define(['jquery',
                         return repo.text;
                     }
                     var markup = "<table class='ref-result' style='width: 100%'><tr>";
-                    markup += "<td data-id='" + repo.id + "' title='" + repo.ordering_facility_name + "class='movie-info'><div class='movie-title'><b>" + repo.ordering_facility_name + "</b></div>";
+                    markup += "<td data-id='" + repo.id + "' title='" + repo.ordering_facility_name + "'><div><b>" + repo.ordering_facility_name + "</b></div>";
                     markup += "</td></tr></table>";
                     return markup;
                 }
