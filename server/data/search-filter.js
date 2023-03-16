@@ -991,6 +991,7 @@ const api = {
             `claim_sequence_numbers.can_bc_claim_sequence_numbers`,
             'ordering_facility_contacts.billing_type',
             'primary_insurance.is_split_claim_enabled',
+            'claims.can_ahs_claim_number AS can_ahs_claim_no',
             `(
                 SELECT
                     description
