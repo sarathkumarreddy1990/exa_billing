@@ -267,6 +267,7 @@ define(['jquery',
                     },
                     onaftergridbind: function (model, gridObj) {
                         self.bindDateRangeOnSearchBox(gridObj);
+                        $('#btnCreateClaim').prop('disabled', false);
                         $('#chkAllCensus').prop('checked', false);
                         self.pagerData = gridObj.pager;
                     }
@@ -365,6 +366,7 @@ define(['jquery',
                 var selectStudies = [];
                 var isInvalidCensusType = false;
                 var checkedStudies = $("input:checkbox[name=chkCensus]:checked");
+                var $btnCreateClaim = $('#btnCreateClaim');                
 
                 if(!checkedStudies || !checkedStudies.length){
                     return commonjs.showWarning('messages.warning.oneStudyRequired');
@@ -391,6 +393,7 @@ define(['jquery',
                     return commonjs.showWarning('messages.warning.validCensusType');
                 }
                 commonjs.showLoading();
+                $btnCreateClaim.prop('disabled', true);
 
                 $.ajax({
                     url: '/exa_modules/billing/claim_workbench/claims/batch',
@@ -412,6 +415,7 @@ define(['jquery',
                         }
                     },
                     error: function (err, response) {
+                        $btnCreateClaim.prop('disabled', false);
                         commonjs.handleXhrError(err, response);
                     }
                 });

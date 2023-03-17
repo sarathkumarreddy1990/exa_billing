@@ -925,9 +925,13 @@ define('grid', [
 
             if (batchClaimArray.length) {
 
-                var selectedIds = JSON.stringify(batchClaimArray)
-                commonjs.showLoading();
+                var selectedIds = JSON.stringify(batchClaimArray);
                 var param ;
+                var $btnBatchClaim = $('#btnbatchClaim');
+
+                commonjs.showLoading();
+                $btnBatchClaim.prop('disabled', true);
+
                 if ($('#chkStudyHeader_' + filterID).is(':checked')) {
 
                     param = {
@@ -1007,10 +1011,13 @@ define('grid', [
                                     }
                                 }
                             }
+
+                            $btnBatchClaim.prop('disabled', false);
                         },
                         error: function (err, response) {
                             commonjs.handleXhrError(err, response);
                             commonjs.hideLoading();
+                            $btnBatchClaim.prop('disabled', false);
                         }
                     });
             } else {
