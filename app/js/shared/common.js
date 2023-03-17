@@ -81,6 +81,24 @@ var commonjs = {
     localCacheMaxErrorLimit: 0,
     filterData: {},
     hasWCBUnsavedChanges: false,
+    paymentStatusList: [
+        {
+            code: 'unapplied',
+            description: 'Unapplied'
+        }, 
+        {
+            code: 'partially_applied',
+            description: 'Partial Applied'
+        }, 
+        {
+            code: 'fully_applied',
+            description: 'Applied'
+        }, 
+        {
+            code: 'over_applied',
+            description: 'Over Applied'
+        }
+    ],
 
     /**
      * Setting up zip autocomplete:
@@ -3816,17 +3834,25 @@ var commonjs = {
         }
         else {
             var statusCodes = app.status_color_codes && app.status_color_codes.length && (app.status_color_codes || parent.app.status_color_codes);
+
             if (statusCodes && statusCodes.length) {
                 var paymentStatus = $.grep(statusCodes, function (currentObj) {
-                    return ((currentObj.process_type == 'payment'));
+                    return currentObj.process_type === 'payment';
                 });
 
                 $('#showColor').empty();
                 $.each(paymentStatus, function (index, status) {
+
+                    var statusData = commonjs.paymentStatusList.find(function (obj) {
+                        return obj.code === status.process_status;
+                    });
+
+                    statusDesc = statusData && statusData.description || status.process_status;
+
                     $('#showColor').append(
                         $('<div/>').append(
                             $('<span/>').css({ 'width': '30px', 'height': '15px', 'display': 'inline-block', 'border': '1px solid ' + status.color_code, 'background-color': status.color_code }),
-                            $('<span/>').css({ 'margin-left': '20px', 'font-weight': 'bold' }).text(status.process_status)
+                            $('<span/>').css({ 'margin-left': '20px', 'font-weight': 'bold' }).text(statusDesc)
                         )
                     )
                 });

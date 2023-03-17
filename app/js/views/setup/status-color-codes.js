@@ -31,24 +31,12 @@ define(['jquery',
             claimStatus : [],
             studyStatus: [
                 {
-                    description: 'billed'
+                    code: 'billed',
+                    description: 'Billed'
                 }, 
                 {
-                    description: 'unbilled'
-                }
-            ],
-            paymentStatus: [
-                {
-                    description: 'unapplied'
-                }, 
-                {
-                    description: 'partially_applied'
-                }, 
-                {
-                    description: 'fully_applied'
-                }, 
-                {
-                    description: 'over_applied'
+                    code: 'unbilled',
+                    description: 'UnBilled'
                 }
             ],
             pager: null,
@@ -130,6 +118,11 @@ define(['jquery',
                         },
                         {
                             name: 'process_status',
+                            formatter: function (cellvalue, options, data) {
+                                return commonjs.checkNotEmpty(cellvalue)
+                                    ? self.getProcessStatus(data.process_type, cellvalue)
+                                    : '';
+                            }
                         },
                         {
                             name: 'color_code',
@@ -199,6 +192,28 @@ define(['jquery',
                 return processTypeValue;
             },
 
+            getProcessStatus: function (processType, processStatus) {
+                var self = this;
+                var statusList = [];
+                switch (processType) {
+                    case 'claim':
+                        statusList = self.claimStatus;
+                        break;
+                    case 'payment':
+                        statusList = commonjs.paymentStatusList;
+                        break;
+                    case 'study':
+                        statusList = self.studyStatus;
+                        break;
+                }
+
+                var value = statusList.find(function(obj) {
+                    return obj.code === processStatus;
+                });
+
+                return value && value.description || '';
+            },
+
             renderForm: function(id) {
                 var self = this;
                 $('#divStatusColorCodesForm').html(this.statusColorCodesFormTemplate());
@@ -211,7 +226,7 @@ define(['jquery',
                                 if (data) {
                                     $('#ddlProcessType').val(data.process_type ? data.process_type : '');
                                     if(data.process_type == 'payment') {
-                                        self.loadProcessStatus(self.paymentStatus);
+                                        self.loadProcessStatus(commonjs.paymentStatusList);
                                     } else if(data.process_type == 'study') {
                                         self.loadProcessStatus(self.studyStatus);
                                     } else {
@@ -252,11 +267,11 @@ define(['jquery',
 
             changeProcessType : function(e) {
                 var processType = $('#ddlProcessType').val();
-                if (processType == 'claim') {
+                if (processType === 'claim') {
                     this.loadProcessStatus(this.claimStatus);
-                } else if (processType == 'payment') {
-                    this.loadProcessStatus(this.paymentStatus);
-                } else if (processType == 'study') {
+                } else if (processType === 'payment') {
+                    this.loadProcessStatus(commonjs.paymentStatusList);
+                } else if (processType === 'study') {
                     this.loadProcessStatus(this.studyStatus);
                 } else {
                     $('#ddlProcessStatus').empty();
