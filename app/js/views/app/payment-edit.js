@@ -581,20 +581,25 @@ define(['jquery',
 
             saveOFGrid: function (e) {
                 var $txtautoPayerPOF = $('#select2-txtautoPayerPOF-container');
-                var orderingFacility = (orderingFacilityArray && orderingFacilityArray.length > 0 && orderingFacilityArray[0]) || {};
-                var orderingFacilityName = orderingFacility.name;
-                var orderingFacilityId = orderingFacility.id;
+                var data = orderingFacilityArray || {};
+                var orderingFacilityId = ~~data.id;
+                var orderingFacilityName = data.ordering_facility_name || "";
+                var orderingFacilityCode = data.ordering_facility_code  || "";
+
                 if (orderingFacilityName) {
-                    this.payer_id = parseInt(orderingFacilityId) || 0;
+                    this.payer_id = orderingFacilityId;
                     this.ordering_facility_id = this.payer_id;
-                    this.payerCode = orderingFacility.code  || '';
+                    this.payerCode = orderingFacilityCode;
                     this.payerName = orderingFacilityName;
                     this.payerType = 'ordering_facility';
                     coverage_level = 'Ordering Facility';
                     $("#hdnPayerID").val(orderingFacilityId);
                     $txtautoPayerPOF.html(orderingFacilityName);
-                } else
+                }
+                else {
                     $txtautoPayerPOF.html(this.usermessage.selectOrderingFacility);
+                }
+
                 $('#siteModal').modal('hide');
             },
 
@@ -3209,7 +3214,7 @@ define(['jquery',
                     width: '75%',
                     height: '80%',
                     needShrink: true,
-                    url: '/vieworder#setup/orderingFacility/all/familyHistory',
+                    url: '/vieworder#setup/orderingFacility/all/familyHistory?isContactSearch=true',
                     onLoad: 'commonjs.removeIframeHeader()'
                 });
             },
