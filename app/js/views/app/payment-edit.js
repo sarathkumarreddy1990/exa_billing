@@ -582,7 +582,7 @@ define(['jquery',
             saveOFGrid: function (e) {
                 var $txtautoPayerPOF = $('#select2-txtautoPayerPOF-container');
                 var data = orderingFacilityArray || {};
-                var orderingFacilityId = ~~data.id;
+                var orderingFacilityId = ~~data.ordering_facility_id;
                 var orderingFacilityName = data.ordering_facility_name || "";
                 var orderingFacilityCode = data.ordering_facility_code  || "";
 
