@@ -112,14 +112,14 @@ function getTableContents(claimData, servicelineList) {
                     + ( servicelineList[i].studyDescription || '' )
                 ) : ' '
             );
+            let claimFilingCode = claimData.subscriber[0].claimFilingCode || '';
+            let licenseNo = claimData.subscriber[0].claim[0].renderingProvider?.[0].licenseNo || '';
+            let wcCodeQualifier = licenseNo && claimFilingCode.toString().toUpperCase() === 'WC';
 
             cptRows.push([
                     { text:ndc, colSpan:15, alignment:'left' }, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {},
-                    { text: claimData.subscriber[0].claimFilingCode ? (claimData.subscriber[0].claimFilingCode.toString().toUpperCase() === 'WC' ? 'OB' : '') : '' },
-                    {
-                        text: claimData.subscriber[0].claimFilingCode && (claimData.subscriber[0].claimFilingCode.toString().toUpperCase() === 'WC') &&
-                            claimData.subscriber[0].claim[0].renderingProvider && claimData.subscriber[0].claim[0].renderingProvider[0].licenseNo ? getSubstring(claimData.subscriber[0].claim[0].renderingProvider[0].licenseNo, 12) : '  '
-                    }
+                    { text: wcCodeQualifier ? 'OB' : ''},
+                    { text: wcCodeQualifier ? getSubstring(licenseNo, 12) : ''}
                 ],
                 [
                     {
