@@ -25,7 +25,7 @@ module.exports = {
         }
 
         if (process_status) {
-            whereQuery.push(` coalesce(claim_status.description, process_status) ILIKE '%${process_status}%'`);
+            whereQuery.push(` COALESCE(claim_status.description, process_status) ILIKE '%${process_status}%'`);
         }
 
         if (colorCode) {
@@ -35,15 +35,13 @@ module.exports = {
         const sql = SQL`SELECT
                             status_color_codes.id
                             , process_type
-                            , coalesce(claim_status.description, process_status) process_status
+                            , process_status
                             , color_code
                             , COUNT(1) OVER (range unbounded preceding) AS total_records
                         FROM
                             billing.status_color_codes
                         LEFT JOIN
-                            billing.claim_status
-                        ON
-                            claim_status.code = status_color_codes.process_status`;
+                            billing.claim_status ON claim_status.code = status_color_codes.process_status`;
 
         if (whereQuery.length) {
             sql.append(SQL` WHERE `)
