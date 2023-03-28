@@ -224,7 +224,6 @@ const sftpService = {
                 const downloadPath = `${downloadDirPath}/${fileList[i].name}`;
                 const savePath = `${filePath}/${fileList[i].name}`;
                 await sftp.fastGet(downloadPath, savePath);
-                await sftp.delete(downloadPath);
                 savedPaths.push(fileList[i].name);
             }
 
@@ -242,7 +241,7 @@ const sftpService = {
                     .update(content, `utf8`)
                     .digest(`hex`);
 
-                logger.info('ERA sftp download | writing file in DB');
+                logger.info(`ERA sftp download | writing file ${fileName} in DB`);
 
                 /**
                  * Default values assigned for status, type
@@ -265,6 +264,13 @@ const sftpService = {
 
             if (response && response instanceof Error) {
                 logger.error('ERA sftp download | Error on writing file in DB');
+            } else {
+                // Delete files one by one from SFTP after inserted into DB
+                for (let i = 0; i < fileList.length; i++) {
+                    const downloadPath = `${downloadDirPath}/${fileList[i].name}`;
+                    const deletedResponse = await sftp.delete(downloadPath);
+                    logger.info(`ERA sftp delete | ${deletedResponse} ${fileList[i].name}`);
+                }
             }
 
             return {
