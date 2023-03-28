@@ -131,9 +131,12 @@ module.exports = {
 
                         _.map(serviceAdjustment, function (obj) {
                             for (let j = 1; j <= 7; j++) {
-                                if (obj['reasonCode' + j] && _.filter(cas_details.cas_reason_codes, { code: obj['reasonCode' + j] }).length && _.filter(cas_details.cas_group_codes, { code: obj.groupCode }).length) {
+
+                                if (obj['reasonCode' + j]
+                                    && cas_details.cas_reason_codes.some(val => val.code === obj['reasonCode' + j])
+                                    && cas_details.cas_group_codes.some(val => val.code === obj['groupCode' + j])) {
                                     const casObj = {};
-                                    casObj['groupCode'] = obj.groupCode;
+                                    casObj['groupCode'] = obj['groupCode' + j];
                                     casObj['reasonCode' + j] = obj['reasonCode' + j];
                                     casObj['monetaryAmount' + j] = obj['monetaryAmount' + j];
                                     validCAS.push(casObj);
@@ -144,7 +147,7 @@ module.exports = {
                         // reject CAS groupCode['PR'] for calculating adjustment
                         const amountArray = [];
 
-                        _.map(_.reject(validCAS, { groupCode: 'PR' }), function (obj) {
+                        _.map(validCAS, function (obj) {
 
                             // In ERA file CAS have more than 7, but we have limit(7) to process the CAS values.
                             for (let i = 1; i <= 7; i++) {
