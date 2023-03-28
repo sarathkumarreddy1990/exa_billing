@@ -292,7 +292,9 @@ const wcbModule = {
 
             if (!_.isEmpty(err)) {
                 logger.error(err);
-                return err;
+                return {
+                    err
+                };
             }
 
             if (validationMessages?.length) {
