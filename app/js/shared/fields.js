@@ -1863,10 +1863,14 @@ define([ 'backbone', 'immutable', 'moment', 'shared/utils' ], function ( Backbon
                     "searchoptions": {
                         value: {
                             "": "All",
-                            "noAuthorization": "No Authorization Needed",
-                            "needAuthorization": "Need Authorization",
+                            "noauthorization": "No Authorization Needed",
+                            "needauthorization": "Need Authorization",
                             "authorized": "Authorized",
-                            "reAuthorization": "Reauthorization Needed"
+                            "pending": "Pending Authorization",
+                            "partial": "Partial Authorization",
+                            "denied": "Denied Authorization",
+                            "reauthorization": "Reauthorization Needed",
+                            "none": "None"
                         }
                     },
                     formatter: function(cellvalue) {
@@ -1877,26 +1881,28 @@ define([ 'backbone', 'immutable', 'moment', 'shared/utils' ], function ( Backbon
                                 cellvalue : '';
 
                         if ( authorizations && authorizations.length ) {
-                            var needsAuth = false;
-                            var authorized = false;
-                            var i = 0;
-                            for ( ; i < authorizations.length; i++ ) {
-                                if ( authorizations[ i ].status === "needAuthorization" ) {
-                                    needsAuth = true;
-                                }
-                                if ( authorizations[ i ].status === "authorized" ) {
-                                    authorized = true;
-                                }
+                            /**
+                             * This is just a stopgap. EXA-32377 and whatever other changes made in Exa Web need to be ported
+                             * over here to Billing so that the behavior matches.  I don't have full understanding about how
+                             * this is supposed to work and it's out of scope for this ticket [EXA-35917] but it'll get QA Failed
+                             * if I don't patch this up a little.
+                             */
+                            var priority = [
+                                "noauthorization",
+                                "needauthorization",
+                                "authorized",
+                                "pending",
+                                "partial",
+                                "denied",
+                                "reauthorization",
+                                "none"
+                            ];
+                            var statuses = authorizations.map(function (item) {
+                                return item.status;
+                            });
+                            var auth_status = _.intersection(priority, statuses);  // priority array needs to be the first parameter for this to work
 
-                            }
-
-                            if ( needsAuth ) {
-                                return "Need Authorization";
-                            }
-                            else if ( authorized ) {
-                                return "Authorized";
-                            }
-                            return "No Authorization Needed";
+                            return _.capitalize(auth_status[0]) || "None";
                         }
                         return "";
                     }
