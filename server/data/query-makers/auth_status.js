@@ -2,9 +2,13 @@
 
 const authStatuses = {
     "authorized": `authorized`,
-    "needauthorization": `needAuthorization`,
-    "reauthorization": `reAuthorization`,
-    "noauthorization": `noAuthorization`,
+    "needauthorization": `needauthorization`,
+    "reauthorization": `reauthorization`,
+    "noauthorization": `noauthorization`,
+    "pending": `pending`,
+    "partial": `partial`,
+    "denied": `denied`,
+    "none": `none`
 };
 
 module.exports = ( fieldID, fieldValue ) => {
