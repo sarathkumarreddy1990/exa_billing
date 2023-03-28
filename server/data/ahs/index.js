@@ -738,7 +738,7 @@ const ahsData = {
                         CASE
                             WHEN ${source} = 'reassessment' OR ${source} = 'change' OR ${source} = 'delete'
                                 THEN rsc.sequence_number
-                            ELSE nextVal('edi_file_claims_sequence_number_seq') % 10000000
+                            ELSE nextVal('billing.edi_file_claims_sequence_number_seq') % 10000000
                         END,
                         CASE
                             WHEN ${source} = 'reassessment'
@@ -757,7 +757,7 @@ const ahsData = {
                         END
                     FROM billing.claims c
                     INNER JOIN (
-                        SELECT nextVal('edi_file_claims_batch_number_seq') % 1000000 AS batch_number
+                        SELECT nextVal('billing.edi_file_claims_batch_number_seq') % 1000000 AS batch_number
                     ) n ON TRUE
                     LEFT JOIN resubmission_claims rsc ON rsc.claim_id = c.id
                     WHERE c.id = ANY(${claimIds})
@@ -1023,7 +1023,7 @@ const ahsData = {
                             ELSE NULL
                         END                                          AS referring_provider_details,
 
-                        CASE 
+                        CASE
                             WHEN (
                                 oci.service_recipient_registration_number IS NOT NULL
                                 AND LOWER(nums.service_recipient_registration_number_province) NOT IN ('ab', 'qc')

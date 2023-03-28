@@ -1052,7 +1052,7 @@ const OHIPDataAPI = {
 
     getSequenceNumber: async () => {
         const sql = SQL`
-            SELECT nextVal('edi_file_batches_sequence_number_seq') AS sequence_number;
+            SELECT nextVal('billing.edi_file_batches_sequence_number_seq') AS sequence_number;
         `;
 
         let rows = (await query(sql.text, sql.values))?.rows || [];
