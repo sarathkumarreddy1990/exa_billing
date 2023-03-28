@@ -2294,6 +2294,7 @@ define('grid', [
                 });
             } else if (data.isClaimDeleted) {
                 commonjs.showStatus(data.message);
+                $("#btnClaimsRefresh").click();
             } else if (data.err) {
                 commonjs.showWarning(data.err);
             } else {
