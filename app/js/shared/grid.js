@@ -84,10 +84,13 @@ define('grid', [
                 });
             }
         };
+        
+        var showValidationWarning = function (msg) {
+            commonjs.showWarning(msg);
+            $("#studyRightMenu").empty().css('display','none');
+        };
 
         var validateClaimSelection = function (row_id, enabled, _element, store) {
-
-            var isPatientMatch, isStudyDateMatch, isStudyIdMatch;
             var $checkedInputs = $tblGrid.find('input').filter('[name=chkStudy]:checked');
             var selectedCount = $checkedInputs.length;
             selectedStudyArray = [];
@@ -99,45 +102,54 @@ define('grid', [
                     study_id: rowId,
                     patient_id: _storeEle.patient_id,
                     facility_id: _storeEle.facility_id,
-                    study_date: commonjs.convertToFacilityTimeZone(_storeEle.facility_id, _storeEle.study_dt).format('MM/DD/YYYY')
+                    study_date: commonjs.convertToFacilityTimeZone(_storeEle.facility_id, _storeEle.study_dt).format('MM/DD/YYYY'),
+                    billing_type: _storeEle.billing_type
                 };
+
                 selectedStudyArray.push(study);
             }
 
             if (enabled) {
                 if (selectedStudyArray.length) {
-
                     var patientGroup = _.groupBy(selectedStudyArray, 'patient_id');
-                    isPatientMatch = Object.keys(patientGroup).length;
-                    var facilityGroup = _.groupBy(selectedStudyArray, 'facility_id');
-                    isFacilityMatch = Object.keys(facilityGroup).length;
-                    var studyDtGroup = _.groupBy(selectedStudyArray, 'study_date');
-                    isStudyDateMatch = Object.keys(studyDtGroup).length;
-                    var $divObj = $("#studyRightMenu");
+                    var isPatientNotMatched = Object.keys(patientGroup).length > 1;
 
-                    if (isPatientMatch > 1) {
-                        commonjs.showWarning('messages.warning.claims.samePatientValidate');
-                        $divObj.empty();
-                        $divObj.css('display','none')
+                    var facilityGroup = _.groupBy(selectedStudyArray, 'facility_id');
+                    var isFacilityNotMatched = Object.keys(facilityGroup).length > 1;
+
+                    var studyDtGroup = _.groupBy(selectedStudyArray, 'study_date');
+                    var isStudyDateNotMatched = Object.keys(studyDtGroup).length > 1;
+
+                    var billingTypeGroup = _.groupBy(selectedStudyArray, 'billing_type');
+                    var isBillingTypeNotMatched = Object.keys(billingTypeGroup).length > 1;
+
+                    if (isPatientNotMatched) {
+                        showValidationWarning('messages.warning.claims.samePatientValidate');                        
                         return false;
                     }
-                    if (isStudyDateMatch > 1) {
-                        commonjs.showWarning('messages.warning.claims.sameStudyDtValidate');
-                        $divObj.empty();
-                        $divObj.css('display','none')
+                    
+                    if (isStudyDateNotMatched) {
+                        showValidationWarning('messages.warning.claims.sameStudyDtValidate');                        
                         return false;
                     }
-                    if (isFacilityMatch > 1) {
-                        commonjs.showWarning('messages.warning.claims.sameFacilityValidate');
-                        $divObj.empty();
-                        $divObj.css('display','none')
+
+                    if (isFacilityNotMatched) {
+                        commonjs.showWarning('messages.warning.claims.sameFacilityValidate');                        
+                        return false;
+                    }
+
+                    if (isBillingTypeNotMatched) {
+                        commonjs.showWarning('messages.warning.claims.sameBillingTypeValidation');                        
                         return false;
                     }
 
                     return true;
-                } selectedStudyArray.push(study);
+                }
+                
+                selectedStudyArray.push(study);
             }
         };
+
         var payerTypeSubmenu = function (data, payerType) {
             switch (payerType) {
                 case 'primary':
