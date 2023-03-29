@@ -5806,7 +5806,6 @@ define(['jquery',
                                         if (selectedCount == 0) {
                                             commonjs.showWarning("messages.warning.claims.selectStudyValidation");
                                         } else {
-
                                             for (var r = 0; r < selectedCount; r++) {
                                                 var selectedStudy = $checkedInputs[r];
                                                 var studyId = selectedStudy && selectedStudy.id
@@ -5832,21 +5831,31 @@ define(['jquery',
                                                     patient_dob: patient_details.patient_dob || '',
                                                     patient_gender: patient_details.patient_gender || '',
                                                     accession_no: accession_no,
+                                                    billing_type: billing_type
                                                 };
+
                                                 selectedStudies.push(study);
-
                                             }
-                                            var studyDtGroup = _.groupBy(selectedStudies, 'study_date');
-                                            var isStudyDateMatch = Object.keys(studyDtGroup).length;
-                                            var facilityGroup = _.groupBy(selectedStudies, 'facility_id');
-                                            var isFacilityMatch = Object.keys(facilityGroup).length > 1;
 
-                                            if (isStudyDateMatch > 1) {
+                                            var studyDtGroup = _.groupBy(selectedStudies, 'study_date');
+                                            var isStudyDateNotMatched = Object.keys(studyDtGroup).length > 1;
+
+                                            var facilityGroup = _.groupBy(selectedStudies, 'facility_id');
+                                            var isFacilityNotMatched = Object.keys(facilityGroup).length > 1;
+
+                                            var billingTypeGroup = _.groupBy(selectedStudies, 'billing_type');
+                                            var isBillingTypeNotMatched = Object.keys(billingTypeGroup).length > 1;
+
+                                            if (isStudyDateNotMatched) {
                                                 return commonjs.showWarning('messages.warning.claims.sameStudyDtValidate');
                                             }
 
-                                            if (isFacilityMatch) {
+                                            if (isFacilityNotMatched) {
                                                 return commonjs.showWarning('messages.warning.claims.sameFacilityValidate');
+                                            }
+
+                                            if (isBillingTypeNotMatched) {
+                                                return commonjs.showWarning('messages.warning.claims.sameBillingTypeValidation');
                                             }
 
                                             var studyIds = selectedStudies.map(function(value) { return value.study_id; });
