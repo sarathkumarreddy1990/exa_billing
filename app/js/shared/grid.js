@@ -134,12 +134,12 @@ define('grid', [
                     }
 
                     if (isFacilityNotMatched) {
-                        commonjs.showWarning('messages.warning.claims.sameFacilityValidate');
+                        showValidationWarning('messages.warning.claims.sameFacilityValidate');
                         return false;
                     }
 
                     if (isBillingTypeNotMatched) {
-                        commonjs.showWarning('messages.warning.claims.sameBillingTypeValidation');
+                        showValidationWarning('messages.warning.claims.sameBillingTypeValidation');
                         return false;
                     }
 
