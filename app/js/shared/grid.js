@@ -124,28 +124,28 @@ define('grid', [
                     var isBillingTypeNotMatched = Object.keys(billingTypeGroup).length > 1;
 
                     if (isPatientNotMatched) {
-                        showValidationWarning('messages.warning.claims.samePatientValidate');                        
+                        showValidationWarning('messages.warning.claims.samePatientValidate');
                         return false;
                     }
-                    
+
                     if (isStudyDateNotMatched) {
-                        showValidationWarning('messages.warning.claims.sameStudyDtValidate');                        
+                        showValidationWarning('messages.warning.claims.sameStudyDtValidate');
                         return false;
                     }
 
                     if (isFacilityNotMatched) {
-                        commonjs.showWarning('messages.warning.claims.sameFacilityValidate');                        
+                        commonjs.showWarning('messages.warning.claims.sameFacilityValidate');
                         return false;
                     }
 
                     if (isBillingTypeNotMatched) {
-                        commonjs.showWarning('messages.warning.claims.sameBillingTypeValidation');                        
+                        commonjs.showWarning('messages.warning.claims.sameBillingTypeValidation');
                         return false;
                     }
 
                     return true;
                 }
-                
+
                 selectedStudyArray.push(study);
             }
         };
