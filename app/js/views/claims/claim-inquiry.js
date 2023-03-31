@@ -135,7 +135,13 @@ define([
                 }
 
                 this.bindEvents();
-                this.followDate =  commonjs.bindDateTimePicker("divFollowUpDate", { format: 'L', minDate: moment().startOf('day') });
+                this.followDate =  commonjs.bindDateTimePicker("divFollowUpDate", {
+                    format: 'L',
+                    widgetPositioning: {
+                        vertical: "bottom"
+                    },
+                    minDate: moment().startOf('day')
+                });
                 this.followDate.date();
                 this.claimInquiryDetails(claimId, false, isFromClaimScreen);
                 $('#modal_div_container').removeAttr('style');
