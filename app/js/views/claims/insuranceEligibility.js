@@ -588,13 +588,13 @@ function (
          * @param {object} errors
          */
         openPokitdokError: function (errors) {
-            var html = this.eligibilityErrorTemplateForm({ "error_obj": errors });
-
-            commonjs.showDialog({
+            commonjs.showNestedDialog({
                 header: this.subscriberNameHeader(),
                 width: "75%",
                 height: "70%",
-                html: html
+                html: this.eligibilityErrorTemplateForm({
+                    "error_obj": errors
+                })
             });
 
             return this;
@@ -680,7 +680,7 @@ function (
          * View general / generic report (Non-region specific)
          */
         openReportGeneral: function () {
-            commonjs.showDialog({
+            commonjs.showNestedDialog({
                 header: this.subscriberNameHeader(),
                 width: "75%",
                 height: "70%",
@@ -696,7 +696,7 @@ function (
          * @param {object} data  Report data
          */
         openReportOhip: function (data) {
-            commonjs.showDialog({
+            commonjs.showNestedDialog({
                 header: "Healthcard Eligibility Result",
                 i18nHeader: "menuTitles.patient.patientInsuranceEligibility",
                 width: "75%",
@@ -717,7 +717,7 @@ function (
         openReportUsa: function (data) {
             var self = this;
 
-            commonjs.showDialog({
+            commonjs.showNestedDialog({
                 header: "Insurance Benefits",
                 i18nHeader: "patient.patientInsurance.insuranceBenefits",
                 width: "75%",
