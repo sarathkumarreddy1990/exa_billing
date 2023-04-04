@@ -302,7 +302,7 @@ module.exports = {
 					    FROM (
 						SELECT bp.id AS "billingProviderID",
 						    bp.taxonomy_code AS "taxonomyCode",
-						    bp.name AS "lastName",
+						    UPPER(bp.name) AS "lastName",
 						    bp.npi_no AS "npiNo",
 						    bp.short_description AS "description",
 						    bp.address_line1 AS "addressLine1",
@@ -315,7 +315,7 @@ module.exports = {
 						    bp.email AS "email",
 						    bp.fax_number AS "faxNumber",
 						    bp.zip_code_plus AS "zip_code_plus",
-						    bp.contact_person_name AS "contactName",
+						    UPPER(bp.contact_person_name) AS "contactName",
 						    bp_id_codes.qualifier_code AS "legacyID",
 						    bp_id_codes.payer_assigned_provider_id AS "payerAssignedProviderID"
 						FROM billing.providers bp
@@ -369,8 +369,8 @@ module.exports = {
 					SELECT (Row_to_json(billingProvider)) "payToProvider"
 												FROM   (
 														SELECT id as "payToProviderID",
-															billing_providers.name as "lastName",
-															billing_providers.name as "firstName",
+															UPPER(billing_providers.name) AS "lastName",
+															UPPER(billing_providers.name) AS "firstName",
 															npi_no as "npiNo",
 															billing_providers.short_description as "description",
 															pay_to_address_line1 as "addressLine1",
@@ -381,7 +381,7 @@ module.exports = {
 															pay_to_zip_code_plus AS "zipCodePlus",
 															federal_tax_id as "federalTaxID",
 															pay_to_phone_number as "phoneNo",
-															contact_person_name as "contactName"
+															UPPER(contact_person_name) AS "contactName"
 														FROM   billing.providers as billing_providers
 														WHERE  billing_providers.id=billing_provider_id)AS billingProvider
 					)
@@ -426,10 +426,10 @@ module.exports = {
 										insurance_provider_details.is_signature_required as "isSignatureRequired",
 										insurance_provider_details.is_print_billing_provider_address as "isPrintBillingProviderAddress",
 										insurance_provider_details.is_split_claim_enabled AS "isSplitClaimEnabled",
-										subscriber_firstname as "firstName",
-										subscriber_lastname as "lastName",
-										subscriber_middlename as "middleName",
-										subscriber_name_suffix as "suffix",
+										UPPER(subscriber_firstname) AS "firstName",
+										UPPER(subscriber_lastname) AS "lastName",
+										UPPER(subscriber_middlename) AS "middleName",
+										UPPER(subscriber_name_suffix) AS "suffix",
 										'' as "prefix",
 										subscriber_address_line1 as "addressLine1",
 										subscriber_address_line2 as "addressLine2",
@@ -451,7 +451,7 @@ module.exports = {
 
 							, (SELECT (Row_to_json(payer)) payer
 														FROM  (
-										SELECT insurance_name as "payerName",
+										SELECT UPPER(insurance_name) AS "payerName",
 										insurance_info->'PayerID' as "payerID"
 										,insurance_info->'Address1' as "insuranceprovideraddressline1"
 										,insurance_info->'Address2' as "insuranceprovideraddressline2"
@@ -467,10 +467,10 @@ module.exports = {
 											SELECT Json_agg(Row_to_json(patient)) "patient"
 												FROM   (
 													SELECT patients.id as patient_id,
-															last_name as "lastName",
-															first_name as "firstName",
-															middle_name as "middleName",
-															suffix_name as "suffix",
+															UPPER(last_name) AS "lastName",
+															UPPER(first_name) AS "firstName",
+															UPPER(middle_name) AS "middleName",
+															UPPER(suffix_name) AS "suffix",
 															account_no as "accountNumber",
 															patient_info->'c1AddressLine1' as "addressLine1",
 															patient_info->'c1AddressLine2' as "addressLine2",
@@ -525,7 +525,7 @@ module.exports = {
                                 bdr.code AS "delayReasonCode",
 								order_details.order_id as "orderId",
 										frequency as "claimFrequencyCode",
-										facilities.facility_name,
+										UPPER(facilities.facility_name) AS facility_name,
 										facilities.can_mb_wcb_number,
 										facilities.facility_info,
 										bgcp.charges_bill_fee_total::numeric::text AS "claimTotalCharge",
@@ -604,16 +604,16 @@ module.exports = {
 							,(SELECT Json_agg(Row_to_json(renderingProvider)) "renderingProvider"
 									FROM
 										(SELECT
-											last_name as "lastName",
-											first_name as "firstName",
-											middle_initial as "middileName",
-											suffix as "suffix",
+											UPPER(last_name) AS "lastName",
+											UPPER(first_name) AS "firstName",
+											UPPER(middle_initial) AS "middileName",
+											UPPER(suffix) AS "suffix",
 											'' as "prefix",
 											provider_info->'TXC' as "taxonomyCode",
 											provider_info->'NPI' as "NPINO",
 											provider_info->'LicenseNo' as "licenseNo",
 											insurance_provider_details.claim_filing_indicator_code as "claimFilingCode",
-											insurance_name as "payerName",
+											UPPER(insurance_name) AS "payerName",
 											rendering_pro_contact.contact_info->'NAME' as "contactName",
 											rendering_pro_contact.contact_info->'ADDR1' as "addressLine1",
 											rendering_pro_contact.contact_info->'ADDR2' as "addressLine2",
@@ -646,10 +646,10 @@ module.exports = {
 							,(SELECT JSONB_AGG(Row_to_json(approvingProvider)) "approvingProvider"
 								FROM
 								(SELECT
-									last_name AS "lastName",
-									first_name AS "firstName",
-									middle_initial AS "middileName",
-									suffix AS "suffix",
+									UPPER(last_name) AS "lastName",
+									UPPER(first_name) AS "firstName",
+									UPPER(middle_initial) AS "middileName",
+									UPPER(suffix) AS "suffix",
 									'' AS "prefix",
 									provider_info->'TXC' AS "taxonomyCode",
 									provider_info->'NPI' AS "NPINO",
@@ -682,10 +682,10 @@ module.exports = {
 							,(SELECT Json_agg(Row_to_json(referringProvider)) "referringProvider"
 									FROM
 										(SELECT
-											last_name as "lastName",
-											first_name as "firstName",
-											middle_initial as "middileName",
-											suffix as "suffix",
+											UPPER(last_name) AS "lastName",
+											UPPER(first_name) AS "firstName",
+											UPPER(middle_initial) AS "middileName",
+											UPPER(suffix) AS "suffix",
 											'' as "prefix",
 											provider_info->'TXC' as "taxonomyCode",
 											provider_info->'NPI' as "NPINO",
@@ -698,8 +698,8 @@ module.exports = {
 								,(SELECT Json_agg(Row_to_json(otherSubscriber)) "otherSubscriber"
 									FROM
 										(SELECT
-											subscriber_firstname as "lastName",
-											subscriber_firstname as "firstName",
+											UPPER(subscriber_firstname) AS "lastName",
+											UPPER(subscriber_firstname) AS "firstName",
 											(CASE ins_coverage_level.coverage_level
 												WHEN 'primary' THEN 'S'
 												WHEN 'secondary' THEN 'P'
@@ -731,10 +731,10 @@ module.exports = {
 											group_number as "groupNumber",
 											other_ins_details.claim_filing_indicator_code as "claimFilingCode",
 					medicare_insurance_type_code as "insuranceTypeCode",
-					subscriber_firstname as "firstName",
-					subscriber_lastname as "lastName",
-					subscriber_middlename as "middleName",
-					subscriber_name_suffix as "suffix",
+					UPPER(subscriber_firstname) AS "firstName",
+					UPPER(subscriber_lastname) AS "lastName",
+					UPPER(subscriber_middlename) AS "middleName",
+					UPPER(subscriber_name_suffix) AS "suffix",
 					'' as "prefix",
 					subscriber_address_line1 as "addressLine1",
 					subscriber_address_line2 as "addressLine2",
@@ -768,7 +768,7 @@ module.exports = {
 					(SELECT Json_agg(Row_to_json(OtherPayer)) "OtherPayer"
 									FROM
 					(SELECT
-					insurance_name as "name",
+					UPPER(insurance_name) AS "name",
 					insurance_info->'PayerID' as "payerID",
 					insurance_info->'Address1' as "addressLine1",
 					insurance_info->'Address2' as "addressLine2",
