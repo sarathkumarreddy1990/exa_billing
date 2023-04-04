@@ -710,12 +710,12 @@ module.exports = {
 
         if (!is_alberta_billing && !is_ohip_billing) {
             sql.append(SQL`
-                WHERE (
+                WHERE NOT EXISTS (
                     SELECT  1
                     FROM    billing.charges_studies
                     WHERE   study_id = ${claims[0].study_id}
                     LIMIT   1
-                ) IS NULL;
+                );
             `);
         }
 

@@ -225,7 +225,7 @@ const api= {
             return {
                 rows: [],
                 status: "EXISTS",
-                message: "Claim Already Exist",
+                message: "Claim Already Exists",
             };
         }
 
