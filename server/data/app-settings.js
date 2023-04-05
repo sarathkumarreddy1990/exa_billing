@@ -187,10 +187,11 @@ module.exports = {
                 , cte_multi_panel_trans_editor AS (
                     SELECT
                         data AS multipanel_transcription_editor
-                    FROM( SELECT
+                    FROM  (
+                        SELECT
                             jsonb_array_elements(web_config) AS data
                         FROM sites
-                        WHERE  id=${siteID}
+                        WHERE  id = ${siteID}
                     ) AS row WHERE data->>'id' = 'multipanel_transcription_editor'
                 )                
                 , cte_hidden_reports AS (
