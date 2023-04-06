@@ -70,7 +70,7 @@ module.exports = {
 
         app_settings.modules = {};
         app_settings.modules.chat = config.get('chatGlobalAvailability');
-        app_settings.modules.multipanel = config.get('multipanel_transcription_editor');
+        app_settings.modules.multipanel = app_settings.multipanel_transcription_editor && app_settings.multipanel_transcription_editor.value;  
         app_settings.isMobileBillingEnabled = config.get('enableMobileBilling');
 
         app_settings.hotkeys = hotkeys;

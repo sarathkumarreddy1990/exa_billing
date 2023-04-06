@@ -182,7 +182,18 @@ module.exports = {
                                     FROM sites
                                     WHERE  id=${siteID}
                                 ) AS row WHERE data->>'id' = 'enableMobileRad'
-                )        
+                )
+                
+                , cte_multi_panel_trans_editor AS (
+                    SELECT
+                        data AS multipanel_transcription_editor
+                    FROM  (
+                        SELECT
+                            jsonb_array_elements(web_config) AS data
+                        FROM sites
+                        WHERE  id = ${siteID}
+                    ) AS row WHERE data->>'id' = 'multipanel_transcription_editor'
+                )                
                 , cte_hidden_reports AS (
                                 SELECT Json_agg(Row_to_json(hidden_reports)) hidden_reports
                                 FROM  (
@@ -567,7 +578,8 @@ module.exports = {
                       cte_wcb_injury_area,
                       cte_mobile_rad_details,
                       cte_rendering_provider,
-                      cte_ordering_facility_types
+                      cte_ordering_facility_types,
+                      cte_multi_panel_trans_editor
                `;
 
         return await query(sql);
