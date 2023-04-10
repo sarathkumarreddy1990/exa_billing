@@ -966,14 +966,21 @@ module.exports = {
                                 , ch.is_custom_bill_fee
                             FROM billing.charges ch
                                 INNER JOIN public.cpt_codes cpt ON ch.cpt_id = cpt.id
-                                LEFT JOIN public.plan_benefits pb ON pb.cpt_id = cpt.id
+                                LEFT JOIN LATERAL (
+                                    SELECT
+                                        pb.cpt_id AS cpt_code_id
+                                        , pb.referral_code
+                                        , pb.support_documentation
+                                    FROM plan_benefits pb
+                                    WHERE
+                                        pb.cpt_id = cpt.id
+                                        AND ch.charge_dt::DATE BETWEEN pb.effective_date AND pb.end_date
+                                    ORDER BY (pb.end_date, pb.effective_date) DESC
+                                    LIMIT 1
+                                ) pb ON TRUE
                                 LEFT JOIN billing.charges_studies chs ON chs.charge_id = ch.id
                             WHERE
                                 claim_id = c.id
-                                AND (
-                                    pb.id IS NULL
-                                    OR CURRENT_DATE BETWEEN pb.effective_date AND pb.end_date
-                                )
                             ORDER BY ch.id, ch.line_num ASC
                       ) pointer) AS claim_charges
                     , (
