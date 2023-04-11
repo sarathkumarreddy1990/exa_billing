@@ -1057,7 +1057,7 @@ const util = {
                             SELECT
                                   s.id AS study_id
                                 , ARRAY_AGG(saf.flag_id) AS flag_id
-                            FROM 
+                            FROM
                                 studies s
                             LEFT JOIN study_assigned_flags saf ON saf.study_id = s.id
                             WHERE s.id = studies.id
@@ -1105,25 +1105,44 @@ const util = {
          */
     getinsuranceFilterQuery: (insFilterData, insuranceFilterColumn, insFilterType, query) => {
         if (insFilterData && insFilterData.length) {
-            let insFilterArray = [];
             let insFilterQuery = ``;
-            let conditionIsNot = insFilterData[0].condition == "IsNot";
+            let condition = insFilterData[ 0 ].condition;
+            let conditionIsNot = condition == "IsNot";
+            // De-dupe values
+            let search_vals = [ ...new Set(_.map(insFilterData, 'value')) ];
 
-            insFilterArray = _.map(insFilterData, 'value');
+            if ( condition === 'Contains' && search_vals.length > 0 ) {
+                let search = search_vals
+                    .map(val => `\n col ILIKE '%${val}%'`)
+                    .join(` OR `);
 
-            insFilterQuery +=
-                `${util.getArrayBindOperator(JSON.stringify(insFilterArray).replace(/]|[[]/g, '').replace(/"/g, "'"), insuranceFilterColumn.replace(/null/g, "''"), insFilterType)} `;
-
-            if (conditionIsNot && insFilterType === "insProvGroup") {
-                query += ` ${util.getRelationOperator(query)} ${conditionIsNot ? "(NOT" : ""} (${insFilterQuery}) OR (provider_types IS NULL))`;
-            } else {
-                query += ` ${util.getRelationOperator(query)} ${conditionIsNot ? "NOT" : ""} (${insFilterQuery}) `;
+                insFilterQuery = `
+                    SELECT COALESCE((
+                        SELECT
+                            TRUE
+                        FROM
+                            UNNEST(ARRAY[${insuranceFilterColumn}] :: TEXT[]) col
+                        WHERE ${search}
+                        LIMIT 1
+                    ), FALSE)
+                `;
             }
-        }
+            else {
+                // Convert array to comma delimited quoted strings
+                let search = `'${search_vals.join("','")}'`.toLowerCase();
+                insFilterQuery = ` COALESCE(ARRAY(SELECT LOWER(UNNEST(${insuranceFilterColumn})))::text[] && ARRAY[${search}]::text[], false) `;
+            }
 
+            let insQuery = ` ${conditionIsNot && "NOT" || ""} (${insFilterQuery}) `;
+
+            if (conditionIsNot) {
+                insQuery += insFilterType === 'insProv' ? ` OR insurance_providers.insurance_names IS NULL ` : ` OR insurance_providers.provider_types IS NULL `;
+            }
+
+            query += ` ${util.getRelationOperator(query)} ( ${insQuery} ) `;
+        }
         return query;
     },
-
 
     getPreformattedDateRange: function (option) {
         let dateRange;
