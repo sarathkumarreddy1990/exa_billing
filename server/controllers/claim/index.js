@@ -22,8 +22,8 @@ const api= {
     getPatientInsurancesById: async (params) => {
 
         return await data.getPatientInsurancesById(params);
-    },    
-    
+    },
+
     findModifier: ({
         modifier1_id,
         modifier2_id,
@@ -208,11 +208,11 @@ const api= {
             , is_alberta_billing
             , is_ohip_billing
             , isMobileBillingEnabled
-        } = params;        
+        } = params;
 
         let claimsDetails = await api.splitClaim(claims, charges, insurances, isMobileBillingEnabled);
 
-        return await data.save({
+        const result = await data.save({
             claims: claimsDetails
             , insurances
             , claim_icds
@@ -220,6 +220,16 @@ const api= {
             , is_alberta_billing
             , is_ohip_billing
         });
+
+        if (result.rows.length === 0) {
+            return {
+                rows: [],
+                status: "EXISTS",
+                message: "Claim Already Exists",
+            };
+        }
+
+        return result;
     },
 
     update: async (params) => {
