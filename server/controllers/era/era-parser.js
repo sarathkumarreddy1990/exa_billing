@@ -130,13 +130,19 @@ module.exports = {
                         const validCAS = [];
 
                         _.map(serviceAdjustment, function (obj) {
+                            let grpCount = 1;
                             for (let j = 1; j <= 7; j++) {
+
+                                if (obj['groupCode' + j]) {
+                                    grpCount = Math.max(grpCount, j);
+                                }
+                                let casGroupCode = obj['groupCode' + j] || obj['groupCode' + grpCount];
 
                                 if (obj['reasonCode' + j]
                                     && cas_details.cas_reason_codes.some(val => val.code === obj['reasonCode' + j])
-                                    && cas_details.cas_group_codes.some(val => val.code === obj['groupCode' + j])) {
+                                    && cas_details.cas_group_codes.some(val => val.code === casGroupCode)) {
                                     const casObj = {};
-                                    casObj['groupCode'] = obj['groupCode' + j];
+                                    casObj['groupCode'] = casGroupCode;
                                     casObj['reasonCode' + j] = obj['reasonCode' + j];
                                     casObj['monetaryAmount' + j] = obj['monetaryAmount' + j];
                                     validCAS.push(casObj);
