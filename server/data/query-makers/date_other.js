@@ -21,7 +21,7 @@ module.exports = (fieldID, fieldValue, { options }) => {
                 return ` (to_facility_date(studies.facility_id, ${fieldID}) = ('${date.format('YYYY-MM-DD')}')::date AND ${fieldID} IS NOT NULL)`;
             }
 
-            return ` (timezone(${whichTz}, (${fieldID})::timestamptz)::date = ('${date.format('YYYY-MM-DD')}')::date)`;
+            return ` (timezone(${whichTz}, (${fieldID})::timestamptz)::date = ('${date.format('YYYY-MM-DD')}')::date) AND (${fieldID}) <> ''`;
         }
     } else if (fromToDateTimes.length === 2) {
         const from = moment(fromToDateTimes[0], 'YYYY-MM-DD');
@@ -34,11 +34,11 @@ module.exports = (fieldID, fieldValue, { options }) => {
                 if (claimDateFilter.indexOf(`${fieldID}`) >= 0) {
                     return ` (  ${fieldID} IS NOT NULL AND to_facility_date(claims.facility_id, ${fieldID}) BETWEEN ('${from.format('YYYY-MM-DD')}')::date AND ('${to.format('YYYY-MM-DD')}')::date)`;
                 }
-                
+
                 return ` (to_facility_date(studies.facility_id, ${fieldID}) BETWEEN ('${from.format('YYYY-MM-DD')}')::date AND ('${to.format('YYYY-MM-DD')}')::date AND ${fieldID} IS NOT NULL)`;
             }
 
-            return ` (timezone(${whichTz}, (${fieldID})::timestamptz)::date BETWEEN ('${from.format('YYYY-MM-DD')}')::date AND ('${to.format('YYYY-MM-DD')}')::date)`;
+            return ` (timezone(${whichTz}, (${fieldID})::timestamptz)::date BETWEEN ('${from.format('YYYY-MM-DD')}')::date AND ('${to.format('YYYY-MM-DD')}')::date) AND (${fieldID}) <> ''`;
         }
     }
 
