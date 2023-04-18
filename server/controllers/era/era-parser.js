@@ -145,7 +145,10 @@ module.exports = {
                                     casObj['groupCode'] = casGroupCode;
                                     casObj['reasonCode' + j] = obj['reasonCode' + j];
                                     casObj['monetaryAmount' + j] = obj['monetaryAmount' + j];
-                                    validCAS.push(casObj);
+
+                                    if (!(casObj['groupCode'] === 'PR' && ['1', '2', '3'].includes(obj['reasonCode' + j]))) {
+                                        validCAS.push(casObj);
+                                    }
                                 }
                             }
                         });
