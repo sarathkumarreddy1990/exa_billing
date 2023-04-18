@@ -53,14 +53,13 @@ module.exports = {
                             INNER JOIN ordering_facilities of ON of.id = ofc.ordering_facility_id
                             LEFT JOIN ordering_facility_types oft ON oft.id = ofc.ordering_facility_type_id
                             WHERE s.id = ${firstStudyId}
-                        ),
-                        professional_modifier AS (
-                            SELECT id FROM modifiers WHERE code = '26'
                         ), order_level_beneficiary AS (
                             SELECT
-                                ARRAY_AGG(patient_insurance_id) AS patient_ins_id
-                            FROM public.order_patient_insurances oppi
-                            WHERE oppi.order_id = (SELECT order_id FROM get_study_date)
+                                patient_insurance_id,
+                                coverage_level
+                            FROM public.order_patient_insurances
+                            WHERE order_id = (SELECT order_id FROM get_study_date)
+                            ORDER BY coverage_level ASC
                         ), insurances AS (
                             SELECT
                                 ins.*
@@ -69,9 +68,10 @@ module.exports = {
                                       pi.id AS claim_patient_insurance_id
                                     , pi.patient_id
                                     , ip.id AS insurance_provider_id
+                                    , ip.insurance_name AS insurance_provider_name
                                     , pi.subscriber_relationship_id
                                     , pi.subscriber_dob
-                                    , pi.coverage_level
+                                    , COALESCE(olb.coverage_level, pi.coverage_level) AS coverage_level
                                     , pi.policy_number
                                     , pi.group_number
                                     , pi.subscriber_firstname
@@ -92,28 +92,29 @@ module.exports = {
                                     , pi.valid_to_date
                                     , ipd.billing_method
                                     , ipd.is_split_claim_enabled
-                                    , ROW_NUMBER() OVER (PARTITION BY pi.coverage_level ORDER BY pi.id ASC) AS rank
+                                    , ROW_NUMBER() OVER (PARTITION BY COALESCE(olb.coverage_level, pi.coverage_level) ORDER BY (olb.patient_insurance_id, pi.id) ASC) AS rank
                                 FROM
                                     public.patient_insurances pi
-                                INNER JOIN public.insurance_providers ip ON ip.id= pi.insurance_provider_id
+                                INNER JOIN public.insurance_providers ip ON ip.id = pi.insurance_provider_id
                                 LEFT JOIN billing.insurance_provider_details ipd on ipd.insurance_provider_id = ip.id
-                                LEFT JOIN LATERAL (
-                                    SELECT
-                                        coverage_level,
-                                        MIN(valid_to_date) as valid_to_date
-                                    FROM
-                                        public.patient_insurances
-                                    WHERE
-                                        patient_id = ( SELECT COALESCE(NULLIF(patient_id,'0'),'0')::NUMERIC FROM get_study_date ) AND (valid_to_date >= ( SELECT COALESCE(study_dt,now())::DATE FROM  get_study_date ) OR valid_to_date IS NULL)
-                                        AND CASE WHEN (SELECT patient_ins_id IS NOT NULL FROM order_level_beneficiary) THEN patient_insurances.id = ANY(SELECT UNNEST(patient_ins_id) FROM order_level_beneficiary) ELSE TRUE END
-                                        GROUP BY coverage_level
-                                ) as expiry ON TRUE
-                                WHERE
-                                    pi.patient_id = ( SELECT COALESCE(NULLIF(patient_id,'0'),'0')::NUMERIC FROM get_study_date )  AND (expiry.valid_to_date = pi.valid_to_date OR expiry.valid_to_date IS NULL) AND expiry.coverage_level = pi.coverage_level
-                                    AND CASE WHEN (SELECT patient_ins_id IS NOT NULL FROM order_level_beneficiary) THEN pi.id = ANY(SELECT UNNEST(patient_ins_id) FROM order_level_beneficiary) ELSE TRUE END
-                                    ORDER BY pi.id ASC
-                                ) ins
-                                WHERE  ins.rank = 1
+                                LEFT JOIN order_level_beneficiary olb ON TRUE
+                                WHERE pi.patient_id = (SELECT COALESCE(NULLIF(patient_id,'0'),'0')::NUMERIC FROM get_study_date)
+                                AND EXISTS (
+                                    SELECT 1
+                                    FROM public.patient_insurances ppi
+                                    WHERE ppi.id = pi.id
+                                    AND (
+                                        ppi.valid_to_date >= (SELECT COALESCE(study_dt, now()) FROM get_study_date)
+                                        OR ppi.valid_to_date IS NULL
+                                    )
+                                )
+                                AND CASE
+                                        WHEN EXISTS (SELECT 1 FROM order_level_beneficiary)
+                                        THEN pi.id = olb.patient_insurance_id
+                                        ELSE TRUE
+                                    END
+                            ) ins
+                            WHERE ins.rank = 1
                         ),
                         census_fee_charges_details AS (
                             SELECT (CASE
@@ -142,34 +143,37 @@ module.exports = {
                                 , sc.modifier3_id AS m3
                                 , sc.modifier4_id AS m4
                                 , string_to_array(regexp_replace(study_cpt_info->'diagCodes_pointer', '[^0-9,]', '', 'g'),',')::int[] AS icd_pointers
-                                , (CASE
-                                    WHEN (${params.isMobileBillingEnabled} AND (SELECT billing_type from get_ordering_facility_data) = 'facility') AND NOT sc.is_custom_bill_fee
-                                    THEN billing.get_computed_bill_fee(null, cpt_codes.id, sc.modifier1_id, sc.modifier2_id, sc.modifier3_id, sc.modifier4_id, 'billing', 'ordering_facility',
+                                , CASE
+                                    WHEN (${params.isMobileBillingEnabled} AND (SELECT billing_type FROM get_ordering_facility_data) = 'facility') AND NOT sc.is_custom_bill_fee
+                                    THEN billing.get_computed_bill_fee(null, pcc.id, sc.modifier1_id, sc.modifier2_id, sc.modifier3_id, sc.modifier4_id, 'billing', 'ordering_facility',
                                         (SELECT ordering_facility_contact_id FROM get_ordering_facility_data), o.facility_id, s.id)::NUMERIC
                                     WHEN (SELECT claim_patient_insurance_id FROM insurances where coverage_level = 'primary') IS NOT NULL AND NOT sc.is_custom_bill_fee
-                                    THEN billing.get_computed_bill_fee(null,cpt_codes.id,sc.modifier1_id,sc.modifier2_id,sc.modifier3_id,sc.modifier4_id,'billing','primary_insurance',
+                                    THEN billing.get_computed_bill_fee(null,pcc.id,sc.modifier1_id,sc.modifier2_id,sc.modifier3_id,sc.modifier4_id,'billing','primary_insurance',
                                         (SELECT claim_patient_insurance_id FROM insurances where coverage_level = 'primary'), o.facility_id, s.id)::NUMERIC
                                     WHEN sc.is_custom_bill_fee
                                     THEN sc.bill_fee::NUMERIC
                                     ELSE
-                                        billing.get_computed_bill_fee(null,cpt_codes.id,sc.modifier1_id,sc.modifier2_id,sc.modifier3_id,sc.modifier4_id,'billing','patient',${params.patient_id},o.facility_id, s.id)::NUMERIC
-                                    END) as bill_fee
-                                , (CASE WHEN (${params.isMobileBillingEnabled} AND (SELECT billing_type from get_ordering_facility_data) = 'facility') THEN
-                                            billing.get_computed_bill_fee(null, cpt_codes.id, sc.modifier1_id, sc.modifier2_id, sc.modifier3_id, sc.modifier4_id, 'allowed', 'ordering_facility',
-                                            (SELECT ordering_facility_contact_id FROM get_ordering_facility_data), o.facility_id, s.id)::NUMERIC
-                                        WHEN (select claim_patient_insurance_id from insurances where coverage_level = 'primary') IS NOT NULL THEN
-                                            billing.get_computed_bill_fee(null,cpt_codes.id,sc.modifier1_id,sc.modifier2_id,sc.modifier3_id,sc.modifier4_id,'allowed','primary_insurance',
-                                            (select claim_patient_insurance_id from insurances where coverage_level = 'primary'), o.facility_id, s.id)::NUMERIC
-                                        ELSE
-                                            billing.get_computed_bill_fee(null,cpt_codes.id,sc.modifier1_id,sc.modifier2_id,sc.modifier3_id,sc.modifier4_id,'allowed','patient',${params.patient_id},o.facility_id, s.id)::NUMERIC
-                                        END) as allowed_fee
+                                        billing.get_computed_bill_fee(null,pcc.id,sc.modifier1_id,sc.modifier2_id,sc.modifier3_id,sc.modifier4_id,'billing','patient',${params.patient_id},o.facility_id, s.id)::NUMERIC
+                                  END AS bill_fee
+                                , CASE 
+                                    WHEN (${params.isMobileBillingEnabled} AND (SELECT billing_type FROM get_ordering_facility_data) = 'facility') AND NOT sc.is_custom_bill_fee 
+                                    THEN billing.get_computed_bill_fee(null, pcc.id, sc.modifier1_id, sc.modifier2_id, sc.modifier3_id, sc.modifier4_id, 'allowed', 'ordering_facility',
+                                        (SELECT ordering_facility_contact_id FROM get_ordering_facility_data), o.facility_id, s.id)::NUMERIC
+                                    WHEN (SELECT claim_patient_insurance_id FROM insurances where coverage_level = 'primary') IS NOT NULL AND NOT sc.is_custom_bill_fee 
+                                    THEN billing.get_computed_bill_fee(null,pcc.id,sc.modifier1_id,sc.modifier2_id,sc.modifier3_id,sc.modifier4_id,'allowed','primary_insurance',
+                                        (SELECT claim_patient_insurance_id FROM insurances where coverage_level = 'primary'), o.facility_id, s.id)::NUMERIC
+                                    WHEN sc.is_custom_bill_fee
+                                    THEN sc.allowed_amount::NUMERIC
+                                    ELSE
+                                        billing.get_computed_bill_fee(null,pcc.id,sc.modifier1_id,sc.modifier2_id,sc.modifier3_id,sc.modifier4_id,'allowed','patient',${params.patient_id},o.facility_id, s.id)::NUMERIC
+                                  END AS allowed_fee
                                 , COALESCE(sc.units,'1')::NUMERIC AS units
                                 , sca.authorization_no AS authorization_no
                                 , display_description
                                 , additional_info
                                 , sc.cpt_code_id AS cpt_id
                                 , sc.is_billable
-                                , cpt_codes.charge_type
+                                , pcc.charge_type
                                 , sc.is_custom_bill_fee
                                 , sc.professional_fee
                                 , sc.technical_fee
@@ -178,7 +182,7 @@ module.exports = {
                                 , sc.billing_rule_fee::NUMERIC
                             FROM public.study_cpt sc
                             INNER JOIN public.studies s ON s.id = sc.study_id
-                            INNER JOIN public.cpt_codes on sc.cpt_code_id = cpt_codes.id
+                            INNER JOIN public.cpt_codes pcc on sc.cpt_code_id = pcc.id
                             INNER JOIN public.orders o on o.id = s.order_id
                             LEFT JOIN public.study_cpt_ndc scn ON scn.study_cpt_id = sc.id
                             LEFT JOIN public.study_cpt_authorizations sca ON (
@@ -186,12 +190,11 @@ module.exports = {
                                 AND sca.authorization_type = 'primary'
                                 AND sca.deleted_dt IS NULL
                             )
-			                LEFT JOIN professional_modifier ON TRUE
                             LEFT JOIN LATERAL (
                                 SELECT UNNEST(census_fee_charges_details.split_types) AS split_type FROM census_fee_charges_details
                             ) AS split ON TRUE
                             WHERE
-                                study_id = ANY(${studyIds}) AND sc.deleted_dt IS NULL
+                                sc.study_id = ANY(${studyIds}) AND sc.deleted_dt IS NULL
                             ORDER BY
                                 sc.id ASC
                         )
@@ -382,7 +385,7 @@ module.exports = {
                                                 sc.code AS skill_code
                                             FROM
                                                 public.studies s
-                                                LEFT JOIN public.skill_codes sc ON sc.id =s.can_ahs_skill_code_id
+                                                LEFT JOIN public.skill_codes sc ON sc.id = s.can_ahs_skill_code_id
                                                 LEFT JOIN public.study_transcriptions st ON st.study_id = s.id
                                                 LEFT JOIN public.study_cpt cpt ON cpt.study_id = s.id
                                                 LEFT JOIN public.study_cpt_authorizations sca ON (
@@ -544,7 +547,7 @@ module.exports = {
                                 ELSE TRUE
                             END
                         AND ip.inactivated_dt IS NULL
-                        ORDER BY id ASC
+                        ORDER BY COALESCE(olb.patient_insurance_id, pi.id) ASC
                 ),
                 existing_insurance as (
                         SELECT
