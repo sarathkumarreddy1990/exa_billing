@@ -62,6 +62,7 @@ const api= {
                     if (!item.is_billing_rule_cpt_add_fee && !item.is_billing_rule_applied) {
                         item.is_custom_bill_fee = false;
                         item.bill_fee = 0;
+                        item.allowed_amount = 0;
                     }
 
                     orderingFacilityInvoiceCharges.push(item);
@@ -72,8 +73,10 @@ const api= {
                     if (!(claim.billing_type === 'split' && item.is_billing_rule_applied)) {
                         item.is_custom_bill_fee = false;
                         item.bill_fee = 0;
+                        item.allowed_amount = 0;
                     } else {
                         item.bill_fee = item.billing_rule_fee || item.bill_fee;
+                        item.allowed_amount = item.billing_rule_fee || item.allowed_amount;
                         item.is_custom_bill_fee = true;
                     }
 
@@ -109,7 +112,9 @@ const api= {
                         bill_fee: (claim.billing_type === 'split'
                                     && charge.is_billing_rule_applied
                                     && !charge.is_billing_rule_cpt_add_fee) ? charge.bill_fee : 0,
-                        allowed_amount: 0
+                        allowed_amount: (claim.billing_type === 'split'
+                                    && charge.is_billing_rule_applied
+                                    && !charge.is_billing_rule_cpt_add_fee) ? charge.allowed_amount : 0,
                     };
 
                     technicalCharge[modifier_id] = technical_modifier_id;
@@ -122,6 +127,7 @@ const api= {
                     if (!charge.is_billing_rule_cpt_add_fee && charge.is_billing_rule_applied) {
                         charge.is_custom_bill_fee = false;
                         charge.bill_fee = 0;
+                        charge.allowed_amount = 0;
                     }
                 });
             }
@@ -179,6 +185,7 @@ const api= {
             charges.forEach(item => {
                 if (item.charge_type === 'no_split' && item.is_billing_rule_applied && item.is_billing_rule_cpt_add_fee) {
                     item.bill_fee = item.billing_rule_fee;
+                    item.allowed_amount = item.billing_rule_fee;
                 }
             });
 
