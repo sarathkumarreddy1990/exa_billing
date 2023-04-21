@@ -355,7 +355,7 @@ define('grid', [
                                 },
                                 success: function (data, response) {
 
-                                    if (data && data.length) {
+                                    if (data && data.length && !data[0].status) {                                      
                                         commonjs.showStatus('messages.status.claimStatusChanged');
                                         var colorCodeDetails = commonjs.getClaimColorCodeForStatus(claimStatus.code, 'claim');
                                         var color_code = colorCodeDetails && colorCodeDetails.length && colorCodeDetails[0].color_code || 'transparent';

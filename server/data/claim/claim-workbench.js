@@ -87,13 +87,20 @@ module.exports = {
             updateData = SQL`billing_class_id =  NULLIF(${billing_class_id},'')::bigint`;
         }
 
-        let sql = SQL`with update_cte as (UPDATE
-                             billing.claims
-                        SET
-                    `;
+        let sql = SQL`with select_row as (SELECT id
+                                          FROM billing.claims bc
+                                          WHERE
+                                          bc.id = ANY(${claimIds})
+                                          AND `;
 
         sql.append(updateData);
-        sql.append(SQL` WHERE  id = ANY(${claimIds}) RETURNING id, '{}'::jsonb old_values)`);
+
+        sql.append(SQL` ), update_cte as (UPDATE
+                                          billing.claims
+                                          SET `);
+
+        sql.append(updateData);
+        sql.append(SQL` WHERE  id = ANY(${claimIds}) AND NOT EXISTS (SELECT * FROM select_row) RETURNING id, '{}'::jsonb old_values)`);
 
         sql.append(SQL`SELECT billing.create_audit(
                                   ${companyId}
