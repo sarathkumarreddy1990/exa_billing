@@ -138,12 +138,10 @@ module.exports = {
                                 }
                                 const casReasonCode = obj['reasonCode' + j];
                                 const casGroupCode = obj['groupCode' + j] || obj['groupCode' + grpCount];
-                                const isPatResponsibility = casGroupCode === 'PR' && ['1', '2', '3'].includes(casReasonCode);
 
                                 if (casReasonCode
                                     && cas_details.cas_reason_codes.some(val => val.code === casReasonCode)
                                     && cas_details.cas_group_codes.some(val => val.code === casGroupCode)
-                                    && !isPatResponsibility
                                 ) {
                                     const casObj = {};
                                     casObj['groupCode'] = casGroupCode;
@@ -157,7 +155,7 @@ module.exports = {
                         // reject CAS groupCode['PR'] for calculating adjustment
                         const amountArray = [];
 
-                        _.map(validCAS, function (obj) {
+                        _.map(_.reject(validCAS, { groupCode: 'PR' }), function (obj) {
 
                             // In ERA file CAS have more than 7, but we have limit(7) to process the CAS values.
                             for (let i = 1; i <= 7; i++) {
