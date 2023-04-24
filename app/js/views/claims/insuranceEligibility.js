@@ -1645,7 +1645,12 @@ function (
          * @returns {boolean}
          */
         subscriberNameHeader: function () {
-            return _.toUpper(_.trim(this.data.subscriber_lastname) + ", " + _.trim(this.data.subscriber_firstname));
+            var name = commonjs.getFullName({
+                lastName: _.trim(this.data.subscriber_lastname),
+                firstName: _.trim(this.data.subscriber_firstname)
+            });
+
+            return name || this.data.patient_name || commonjs.geti18NString("messages.warning.claims.pokitdokError");
         },
 
         /**
