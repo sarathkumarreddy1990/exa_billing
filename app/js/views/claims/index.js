@@ -6055,7 +6055,7 @@ define(['jquery',
                 self.cur_patient_name = patient_details.patient_name;
 
                 if (app.isMobileBillingEnabled && app.settings.enableMobileRad) {
-                    self.appendPOSOptions();
+                    self.appendPOSOptions(patient_details.pos_map_code);
                 }
 
                 if (patient_details.patient_alt_acc_nos && app.country_alpha_3_code === 'can') {

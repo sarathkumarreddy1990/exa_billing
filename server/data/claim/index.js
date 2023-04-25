@@ -155,11 +155,11 @@ module.exports = {
                                     ELSE
                                         billing.get_computed_bill_fee(null,pcc.id,sc.modifier1_id,sc.modifier2_id,sc.modifier3_id,sc.modifier4_id,'billing','patient',${params.patient_id},o.facility_id, s.id)::NUMERIC
                                   END AS bill_fee
-                                , CASE 
-                                    WHEN (${params.isMobileBillingEnabled} AND (SELECT billing_type FROM get_ordering_facility_data) = 'facility') AND NOT sc.is_custom_bill_fee 
+                                , CASE
+                                    WHEN (${params.isMobileBillingEnabled} AND (SELECT billing_type FROM get_ordering_facility_data) = 'facility') AND NOT sc.is_custom_bill_fee
                                     THEN billing.get_computed_bill_fee(null, pcc.id, sc.modifier1_id, sc.modifier2_id, sc.modifier3_id, sc.modifier4_id, 'allowed', 'ordering_facility',
                                         (SELECT ordering_facility_contact_id FROM get_ordering_facility_data), o.facility_id, s.id)::NUMERIC
-                                    WHEN (SELECT claim_patient_insurance_id FROM insurances where coverage_level = 'primary') IS NOT NULL AND NOT sc.is_custom_bill_fee 
+                                    WHEN (SELECT claim_patient_insurance_id FROM insurances where coverage_level = 'primary') IS NOT NULL AND NOT sc.is_custom_bill_fee
                                     THEN billing.get_computed_bill_fee(null,pcc.id,sc.modifier1_id,sc.modifier2_id,sc.modifier3_id,sc.modifier4_id,'allowed','primary_insurance',
                                         (SELECT claim_patient_insurance_id FROM insurances where coverage_level = 'primary'), o.facility_id, s.id)::NUMERIC
                                     WHEN sc.is_custom_bill_fee
@@ -1288,6 +1288,7 @@ module.exports = {
                             ,fac_prov_cont.id AS rendering_provider_contact_id
                             ,fac_prov.full_name AS rendering_provider_full_name
                             ,f.place_of_service_id AS fac_place_of_service_id
+                            ,pos_map.more_info -> 'pos_dispatching_address' AS pos_map_code
                             ,(
                                 SELECT
                                     jsonb_agg(jsonb_build_object(
@@ -1316,6 +1317,7 @@ module.exports = {
                         LEFT JOIN provider_contacts fac_prov_cont ON f.facility_info->'rendering_provider_id'::text = fac_prov_cont.id::text
                         LEFT JOIN providers fac_prov ON fac_prov.id = fac_prov_cont.provider_id
                         LEFT JOIN billing.facility_settings fs ON fs.facility_id = pfc.facility_id AND pfc.is_default
+                        LEFT JOIN public.pos_map ON pos_map.id = pof.pos_map_id
                         WHERE p.id = ${id}
                     ) AS patient_default_details
             ) patient_info `;
