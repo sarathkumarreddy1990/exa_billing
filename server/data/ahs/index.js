@@ -186,239 +186,281 @@ const ahsData = {
         // Logic changes as per one claim in one file
 
         const sql = SQL`
-        WITH get_batch_number AS (
-            SELECT
-                nextVal('edi_file_claims_batch_number_seq') % 1000000 AS batch_number
-        )
-        SELECT
-            bc.id AS exa_claim_id
-            , bc.original_reference AS wcb_claim_number
-            , 'EXA' AS sender_application
-            , f.facility_name AS sender_facility
-            , gbn.batch_number
-            , '' AS file_comment
-            , '' AS batch_comment
-            , '001' AS batch_count
-            , '001' AS file_batch_count
-            , ${submission_code} || '.' || gbn.batch_number || '.' || bc.id || '.' || TO_CHAR(now(), 'YYYYMMDDHHMISS') || '.xml' AS file_name
-            , (${submission_code} || bc.id) AS submitter_transaction_id
-            , TO_CHAR(now(), 'YYYYMMDD') AS created_date
-            , TO_CHAR(now(), 'YYYYMMDDHHMI') AS created_date_time
-            , nextVal('edi_file_claims_sequence_number_seq') % 10000000 AS batch_sequence_number
-            , ${submission_code} AS submission_code
-            , TO_CHAR(bc.can_wcb_referral_date, 'YYYYMMDD') AS referral_date
-            , bc.id AS clinic_reference_number
-            , bgct.charges_bill_fee_total::NUMERIC AS total_bill_fee
-            , bc.encounter_no
-            , (CASE
-                WHEN s.hospital_admission_dt IS NULL
-                THEN bch.units
-                ELSE EXTRACT(DAYS FROM s.study_dt - s.hospital_admission_dt)
-               END)::INT AS calls
-            , JSONB_BUILD_OBJECT(
-                'patient_mrn', p.account_no,
-                'last_name', p.last_name,
-                'first_name', p.first_name,
-                'middle_name', p.middle_name,
-                'birth_date', TO_CHAR(p.birth_date, 'YYYYMMDD'),
-                'gender', p.gender,
-                'address1', REGEXP_REPLACE(COALESCE(p.patient_info -> 'c1AddressLine1', ''), '[#-]', '', 'g'),
-                'address2', REGEXP_REPLACE(COALESCE(p.patient_info -> 'c1AddressLine2', ''), '[#-]', '', 'g'),
-                'city', COALESCE(p.patient_info -> 'c1City', ''),
-                'postal_code', REGEXP_REPLACE(COALESCE(p.patient_info -> 'c1Zip', p.patient_info -> 'c1PostalCode', ''), '\\s', '', 'g'),
-                'province_code', COALESCE(p.patient_info -> 'c1State', p.patient_info -> 'c1Province', ''),
-                'country_code', COALESCE(TRIM(p.patient_info -> 'c1country'), ''),
-                'phone_number', NULLIF(TRIM(p.patient_info->'c1HomePhone'), ''),
-                'phone_area_code', SUBSTRING(REGEXP_REPLACE(TRIM(p.patient_info->'c1HomePhone'), '[()#-]', '', 'g'), 1, 3),
-                'patient_phn', (
-                    CASE
-                        WHEN ppaa.province_alpha_2_code = 'AB' AND i.issuer_type = 'uli_phn'
-                        THEN ppaa.alt_account_no
-                        ELSE NULL
-                    END),
-                'patient_phn_flag', (
-                    CASE
-                        WHEN ppaa.province_alpha_2_code = 'AB' AND i.issuer_type = 'uli_phn'
-                        THEN 'N'
-                        ELSE 'Y'
-                    END)
-              ) AS patient_data
-            , JSONB_BUILD_OBJECT(
-                'last_name', p_ref.last_name,
-                'first_name', p_ref.first_name,
-                'middle_name', p_ref.middle_initial,
-                'suffix', p_ref.suffix,
-                'prefix', null,
-                'address1', TRIM(REGEXP_REPLACE(COALESCE(pc_ref.contact_info -> 'ADDR1', ''), '[#-]', '', 'g')),
-                'address2', TRIM(REGEXP_REPLACE(COALESCE(pc_ref.contact_info -> 'ADDR2', ''), '[#-]', '', 'g')),
-                'city', COALESCE(pc_ref.contact_info -> 'CITY', ''),
-                'postal_code', REGEXP_REPLACE(COALESCE(pc_ref.contact_info -> 'ZIP', pc_ref.contact_info -> 'POSTALCODE', ''), '\\s', '', 'g'),
-                'province_code', COALESCE(pc_ref.contact_info -> 'STATE', pc_ref.contact_info -> 'STATE_NAME', ''),
-                'country_code', COALESCE(pc_ref.contact_info -> 'COUNTRY', '')
-              ) AS ref_provider_data
-            , JSONB_BUILD_OBJECT(
-                'last_name', p_app.last_name,
-                'first_name', p_app.first_name,
-                'middle_name', p_app.middle_initial,
-                'suffix', p_app.suffix,
-                'address1', TRIM(REGEXP_REPLACE(COALESCE(pc_app.contact_info -> 'ADDR1', ''), '[#-]', '', 'g')),
-                'address2', TRIM(REGEXP_REPLACE(COALESCE(pc_app.contact_info -> 'ADDR2', ''), '[#-]', '', 'g')),
-                'city', COALESCE(pc_app.contact_info -> 'CITY', ''),
-                'postal_code', REGEXP_REPLACE(COALESCE(pc_app.contact_info -> 'ZIP', pc_app.contact_info -> 'POSTALCODE', ''), '\\s', '', 'g'),
-                'province_code', COALESCE(pc_app.contact_info -> 'STATE', pc_app.contact_info -> 'STATE_NAME', ''),
-                'country_code', COALESCE(pc_app.contact_info -> 'COUNTRY', ''),
-                'fax_area_code', SUBSTRING(REGEXP_REPLACE(TRIM(pc_app.contact_info -> 'FAXNO'), '[()#-]', '', 'g'), 1, 3),
-                'fax_number', NULLIF(pc_app.contact_info-> 'FAXNO', ''),
-                'provider_skill_code', scc.code,
-                'contract_id', '000001',
-                'role', 'GP',
-                'billing_number', LPAD(pc_app.can_prid, 8, '0')
-            ) AS practitioner_data
-            , bch.bill_fee::NUMERIC AS charge_bill_fee
-            , bch.units AS charge_units
-            , CASE
-                  WHEN s.hospital_admission_dt IS NULL
-                  THEN TO_CHAR(timezone(f.time_zone, bc.claim_dt)::DATE, 'YYYYMMDD')
-                  ELSE TO_CHAR(s.hospital_admission_dt, 'YYYYMMDD')
-              END AS service_start_date
-            , COALESCE(icd.codes, '{}') AS diagnosis_codes
-            , bp.address_line1 AS invoice_submitter_address
-            , bp.city AS invoice_submitter_city
-            , get_full_name(p_app.last_name, p_app.first_name, p_app.middle_initial, NULL, p_app.suffix) AS invoice_submitter_name
-            , bp.npi_no AS invoice_submitter_id
-            , bp.state AS invoice_submitter_state
-            , bp.zip_code AS invoice_submitter_zipcode
-            , bc.patient_id
-            , bc.facility_id
-            , bc.accident_state
-            , TO_CHAR(bc.current_illness_date, 'YYYYMMDD') AS accident_date
-            , 'MEDCARE' AS invoice_type_code
-            , '' AS invoice_type_description      -- value will be provided only if invoice_type_code = MEDSUPPLY
-            , pos.code AS place_of_service
-            , orientation_data.orientation
-            , cpt.display_code AS health_service_code
-            , ARRAY[fee_mod.mod1, fee_mod.mod2, fee_mod.mod3] AS fee_modifiers
-            , '' AS additional_injuries
-            , st.attachments
-            , old_claim_data.root_directory
-            , old_claim_data.file_store_id
-            , old_claim_data.uploaded_file_name
-            , old_claim_data.file_path
-        FROM billing.claims bc
-        INNER JOIN get_batch_number gbn ON TRUE
-        INNER JOIN public.facilities f ON f.id = bc.facility_id
-        INNER JOIN billing.claim_status bcs ON bcs.id = bc.claim_status_id
-        INNER JOIN public.patients p ON p.id = bc.patient_id
-        INNER JOIN billing.charges bch ON bch.claim_id = bc.id
-        INNER JOIN billing.providers bp ON bp.id = bc.billing_provider_id
-        LEFT JOIN public.cpt_codes cpt ON cpt.id = bch.cpt_id
-        LEFT JOIN billing.charges_studies bchs ON bchs.charge_id = bch.id
-        LEFT JOIN public.studies s ON s.id = bchs.study_id
-        LEFT JOIN public.skill_codes scc ON scc.id = bc.can_ahs_skill_code_id
-        LEFT JOIN public.places_of_service pos ON pos.id = bc.place_of_service_id
-        LEFT JOIN public.patient_alt_accounts ppaa ON ppaa.patient_id = bc.patient_id
-            AND ppaa.issuer_id = bc.can_issuer_id
-            AND LOWER(ppaa.country_alpha_3_code) = 'can'
-            AND ppaa.is_primary
-        LEFT JOIN public.issuers i ON i.id = ppaa.issuer_id
-            AND i.inactivated_dt IS NULL
-            AND i.issuer_type = 'uli_phn'
-        LEFT JOIN LATERAL (
-            SELECT
-                fse.root_directory
-                , fse.id AS file_store_id
-                , bef.uploaded_file_name
-                , bef.file_path
-            FROM billing.edi_file_claims befc
-            INNER JOIN billing.edi_files bef ON bef.id = befc.edi_file_id
-            INNER JOIN public.file_stores fse ON fse.id = bef.file_store_id
-            WHERE befc.claim_id = bc.id
-                AND fse.deleted_dt IS NULL
-                AND bef.file_type IN ('can_ab_wcb_c568', 'can_ab_wcb_c570')
-            ORDER BY befc.id DESC
-            LIMIT 1
-        ) old_claim_data ON TRUE
-
-        LEFT JOIN LATERAL (
-            SELECT jsonb_agg(orientations.orientation) AS orientation
-            FROM (
+            WITH get_charges_data AS (
                 SELECT
-                    jsonb_build_object(
-                        'body_part_code', cawid.body_part_code,
-                        'body_part_description', cawid.body_part_code,
-                        'side_of_body_code', cawid.orientation_code,
-                        'side_of_body_description', cawid.orientation_code,    -- Handled side of body and body part description using code in encoder
-                        'nature_of_injury_code', nic.code,
-                        'nature_of_injury_description', nic.description
-                ) AS orientation
-            FROM billing.claims bic
-            LEFT JOIN billing.can_ahs_wcb_injury_details cawid ON cawid.claim_id = bic.id
-            LEFT JOIN public.can_wcb_injury_codes nic ON nic.id = cawid.injury_id
-            WHERE bic.id = bc.id
-            AND nic.injury_code_type = 'n'
-            LIMIT 5
-            ) orientations
-        ) AS orientation_data ON TRUE
-        LEFT JOIN LATERAL (
-            WITH bci AS (
+                    JSONB_BUILD_OBJECT (
+                        'charge_bill_fee', bill_fee::NUMERIC
+                        , 'units', bch.units
+                        , 'calls'
+                        , (
+                            CASE
+                                WHEN s.hospital_admission_dt IS NULL
+                                THEN bch.units
+                                ELSE EXTRACT(DAYS FROM s.study_dt - s.hospital_admission_dt)
+                            END
+                        )::INT
+                        , 'health_service_code', cpt.display_code 
+                        , 'fee_modifiers', ARRAY[fee_mod.mod1, fee_mod.mod2, fee_mod.mod3]
+                        , 'attachments', st.attachments
+                        , 'service_start_date'
+                        , CASE
+                            WHEN s.hospital_admission_dt IS NULL
+                            THEN TO_CHAR(timezone(f.time_zone, bc.claim_dt)::DATE, 'YYYYMMDD')
+                            ELSE TO_CHAR(s.hospital_admission_dt, 'YYYYMMDD')
+                        END
+                        , 'billing_number', LPAD(pc_app.can_prid, 8, '0')
+                        , 'invoice_type_code', 'MEDCARE' 
+                        , 'invoice_type_description', ''
+                        , 'provider_skill_code', scc.code
+                        , 'encounter_no', bc.encounter_no
+                        , 'contract_id', '000001'
+                        , 'place_of_service', pos.code
+                        , 'orientation', orientation_data.orientation
+                        , 'diagnosis_codes', COALESCE(icd.codes, '{}')
+                    ) AS charge_details
+                    , claim_id
+                FROM billing.charges bch
+                INNER JOIN billing.charges_studies bcs ON bcs.charge_id = bch.id 
+                INNER JOIN billing.claims bc ON bc.id = bch.claim_id
+                INNER JOIN public.facilities f ON f.id = bc.facility_id
+                INNER JOIN studies s ON s.id = bcs.study_id
+                INNER JOIN public.cpt_codes cpt ON cpt.id = bch.cpt_id
+                LEFT JOIN public.provider_contacts pc_app ON pc_app.id = bc.rendering_provider_contact_id
+                LEFT JOIN public.skill_codes scc ON scc.id = bc.can_ahs_skill_code_id
+                LEFT JOIN public.places_of_service pos ON pos.id = bc.place_of_service_id
+                LEFT JOIN LATERAL (
+                    SELECT
+                        (
+                            SELECT
+                                code
+                            FROM public.modifiers
+                            WHERE
+                                id = bch.modifier1_id
+                                AND NOT is_implicit
+                        ) AS mod1,
+                        (
+                            SELECT
+                                code
+                            FROM public.modifiers
+                            WHERE
+                                id = bch.modifier2_id
+                                AND NOT is_implicit
+                        ) AS mod2,
+                        (
+                            SELECT
+                                code
+                            FROM
+                                public.modifiers
+                            WHERE
+                                id = bch.modifier3_id
+                                AND NOT is_implicit
+                        ) AS mod3
+                ) fee_mod ON TRUE
+                LEFT JOIN LATERAL (
+                    SELECT
+                        JSONB_AGG(attachment.attachments) AS attachments
+                    FROM (
+                        SELECT
+                            JSONB_BUILD_OBJECT(
+                                'study_id', study_id
+                                , 'attachment_name', (study_transcriptions.id || '' || study_id || TO_CHAR(now(), 'YYYYMMDDHH24MISSMS') || 'attachment' || '.rtf')
+                                , 'attachment_type', 'OTHER'
+                                , 'attachment_description', 'This attachment contains approved report for the study'
+                                , 'attachment_content', NULLIF(transcription_text, '')
+                                , 'approved_dt', approved_dt
+                                , 'approving_provider_id', approving_provider_id
+                            ) AS attachments
+                        FROM study_transcriptions
+                        WHERE
+                            study_id = s.id
+                        LIMIT 3
+                    ) AS attachment
+                ) st ON TRUE
+                LEFT JOIN LATERAL (
+                    WITH bci AS (
+                        SELECT
+                            JSONB_BUILD_OBJECT(
+                                'icd_code', icd.code
+                                , 'icd_description', icd.description
+                            ) AS icd_codes
+                            , bci.claim_id
+                        FROM billing.claim_icds bci
+                        JOIN public.icd_codes icd ON bci.icd_id = icd.id
+                        WHERE 
+                            bci.claim_id = bc.id
+                        ORDER BY bci.id
+                        LIMIT 3
+                    )
+                    SELECT
+                        ARRAY_AGG(icd_codes) AS codes
+                    FROM bci
+                    GROUP BY bci.claim_id
+                ) icd ON TRUE
+                LEFT JOIN LATERAL (
+                    SELECT JSONB_AGG(orientations.orientation) AS orientation
+                    FROM (
+                        SELECT
+                            JSONB_BUILD_OBJECT(
+                                'body_part_code', cawid.body_part_code
+                                , 'body_part_description', cawid.body_part_code
+                                , 'side_of_body_code', cawid.orientation_code
+                                , 'side_of_body_description', cawid.orientation_code -- Handled side of body and body part description using code in encoder
+                                , 'nature_of_injury_code', nic.code
+                                , 'nature_of_injury_description', nic.description
+                            ) AS orientation
+                        FROM billing.claims bic
+                        LEFT JOIN billing.can_ahs_wcb_injury_details cawid ON cawid.claim_id = bic.id
+                        LEFT JOIN public.can_wcb_injury_codes nic ON nic.id = cawid.injury_id
+                        WHERE
+                            bic.id = bc.id
+                            AND nic.injury_code_type = 'n'
+                        LIMIT 5
+                    ) orientations
+                ) AS orientation_data ON TRUE
+            )
+            , claim_details AS (
                 SELECT
-                    jsonb_build_object(
-                        'icd_code', icd.code,
-                        'icd_description', icd.description
-                    ) AS icd_codes
-                    , bci.claim_id
-                FROM billing.claim_icds bci
-                JOIN public.icd_codes icd ON bci.icd_id = icd.id
-                WHERE bci.claim_id = bc.id
-                ORDER BY bci.id
-                LIMIT 3
+                    bc.id AS exa_claim_id
+                    , bc.original_reference AS wcb_claim_number
+                    , TO_CHAR(now(), 'YYYYMMDD') AS created_date
+                    , TO_CHAR(now(), 'YYYYMMDDHHMI') AS created_date_time
+                    , ${submission_code} AS submission_code
+                    , TO_CHAR(bc.can_wcb_referral_date, 'YYYYMMDD') AS referral_date
+                    , bc.id AS clinic_reference_number
+                    , bgct.charges_bill_fee_total::NUMERIC AS total_bill_fee
+                    , bc.encounter_no
+                    , nextVal('billing.edi_file_claims_sequence_number_seq') % 10000000 AS batch_sequence_number
+                    , JSONB_BUILD_OBJECT(
+                        'patient_mrn', p.account_no,
+                        'last_name', p.last_name,
+                        'first_name', p.first_name,
+                        'middle_name', p.middle_name,
+                        'birth_date', TO_CHAR(p.birth_date, 'YYYYMMDD'),
+                        'gender', p.gender,
+                        'address1', REGEXP_REPLACE(COALESCE(p.patient_info -> 'c1AddressLine1', ''), '[#-]', '', 'g'),
+                        'address2', REGEXP_REPLACE(COALESCE(p.patient_info -> 'c1AddressLine2', ''), '[#-]', '', 'g'),
+                        'city', COALESCE(p.patient_info -> 'c1City', ''),
+                        'postal_code', REGEXP_REPLACE(COALESCE(p.patient_info -> 'c1Zip', p.patient_info -> 'c1PostalCode', ''), '\\s', '', 'g'),
+                        'province_code', COALESCE(p.patient_info -> 'c1State', p.patient_info -> 'c1Province', ''),
+                        'country_code', COALESCE(TRIM(p.patient_info -> 'c1country'), ''),
+                        'phone_number', NULLIF(TRIM(p.patient_info->'c1HomePhone'), ''),
+                        'phone_area_code', SUBSTRING(REGEXP_REPLACE(TRIM(p.patient_info->'c1HomePhone'), '[()#-]', '', 'g'), 1, 3),
+                        'patient_phn', (
+                            CASE
+                                WHEN ppaa.province_alpha_2_code = 'AB' AND i.issuer_type = 'uli_phn'
+                                THEN ppaa.alt_account_no
+                                ELSE NULL
+                            END),
+                        'patient_phn_flag', (
+                            CASE
+                                WHEN ppaa.province_alpha_2_code = 'AB' AND i.issuer_type = 'uli_phn'
+                                THEN 'N'
+                                ELSE 'Y'
+                            END)
+                      ) AS patient_data
+                    , JSONB_BUILD_OBJECT(
+                        'last_name', p_ref.last_name,
+                        'first_name', p_ref.first_name,
+                        'middle_name', p_ref.middle_initial,
+                        'suffix', p_ref.suffix,
+                        'prefix', null,
+                        'address1', TRIM(REGEXP_REPLACE(COALESCE(pc_ref.contact_info -> 'ADDR1', ''), '[#-]', '', 'g')),
+                        'address2', TRIM(REGEXP_REPLACE(COALESCE(pc_ref.contact_info -> 'ADDR2', ''), '[#-]', '', 'g')),
+                        'city', COALESCE(pc_ref.contact_info -> 'CITY', ''),
+                        'postal_code', REGEXP_REPLACE(COALESCE(pc_ref.contact_info -> 'ZIP', pc_ref.contact_info -> 'POSTALCODE', ''), '\\s', '', 'g'),
+                        'province_code', COALESCE(pc_ref.contact_info -> 'STATE', pc_ref.contact_info -> 'STATE_NAME', ''),
+                        'country_code', COALESCE(pc_ref.contact_info -> 'COUNTRY', '')
+                      ) AS ref_provider_data
+                    , JSONB_BUILD_OBJECT(
+                        'last_name', p_app.last_name,
+                        'first_name', p_app.first_name,
+                        'middle_name', p_app.middle_initial,
+                        'suffix', p_app.suffix,
+                        'address1', TRIM(REGEXP_REPLACE(COALESCE(pc_app.contact_info -> 'ADDR1', ''), '[#-]', '', 'g')),
+                        'address2', TRIM(REGEXP_REPLACE(COALESCE(pc_app.contact_info -> 'ADDR2', ''), '[#-]', '', 'g')),
+                        'city', COALESCE(pc_app.contact_info -> 'CITY', ''),
+                        'postal_code', REGEXP_REPLACE(COALESCE(pc_app.contact_info -> 'ZIP', pc_app.contact_info -> 'POSTALCODE', ''), '\\s', '', 'g'),
+                        'province_code', COALESCE(pc_app.contact_info -> 'STATE', pc_app.contact_info -> 'STATE_NAME', ''),
+                        'country_code', COALESCE(pc_app.contact_info -> 'COUNTRY', ''),
+                        'fax_area_code', SUBSTRING(REGEXP_REPLACE(TRIM(pc_app.contact_info -> 'FAXNO'), '[()#-]', '', 'g'), 1, 3),
+                        'fax_number', NULLIF(pc_app.contact_info-> 'FAXNO', ''),
+                        'provider_skill_code', scc.code,
+                        'contract_id', '000001',
+                        'role', 'GP',
+                        'billing_number', LPAD(pc_app.can_prid, 8, '0')
+                    ) AS practitioner_data
+                    , bp.address_line1 AS invoice_submitter_address
+                    , bp.city AS invoice_submitter_city
+                    , get_full_name(p_app.last_name, p_app.first_name, p_app.middle_initial, NULL, p_app.suffix) AS invoice_submitter_name
+                    , bp.npi_no AS invoice_submitter_id
+                    , bp.state AS invoice_submitter_state
+                    , bp.zip_code AS invoice_submitter_zipcode
+                    , bc.patient_id
+                    , bc.facility_id
+                    , bc.accident_state
+                    , TO_CHAR(bc.current_illness_date, 'YYYYMMDD') AS accident_date
+                    , 'MEDCARE' AS invoice_type_code
+                    , '' AS invoice_type_description      -- value will be provided only if invoice_type_code = MEDSUPPLY
+                    , pos.code AS place_of_service
+                    , '' AS additional_injuries
+                    , cd.charges
+                FROM billing.claims bc
+                INNER JOIN public.facilities f ON f.id = bc.facility_id
+                INNER JOIN billing.claim_status bcs ON bcs.id = bc.claim_status_id
+                INNER JOIN public.patients p ON p.id = bc.patient_id
+                INNER JOIN billing.providers bp ON bp.id = bc.billing_provider_id
+                LEFT JOIN public.skill_codes scc ON scc.id = bc.can_ahs_skill_code_id
+                LEFT JOIN public.places_of_service pos ON pos.id = bc.place_of_service_id
+                LEFT JOIN public.patient_alt_accounts ppaa ON ppaa.patient_id = bc.patient_id
+                    AND ppaa.issuer_id = bc.can_issuer_id
+                    AND LOWER(ppaa.country_alpha_3_code) = 'can'
+                    AND ppaa.is_primary
+                LEFT JOIN public.issuers i ON i.id = ppaa.issuer_id
+                    AND i.inactivated_dt IS NULL
+                    AND i.issuer_type = 'uli_phn'
+                LEFT JOIN public.provider_contacts pc_app ON pc_app.id = bc.rendering_provider_contact_id
+                LEFT JOIN public.providers p_app ON p_app.id = pc_app.provider_id
+                LEFT JOIN public.provider_contacts pc_ref ON pc_ref.id = bc.referring_provider_contact_id
+                LEFT JOIN public.providers p_ref ON p_ref.id = pc_ref.provider_id
+                LEFT JOIN LATERAL billing.get_claim_totals(bc.id) bgct ON TRUE
+                LEFT JOIN LATERAL (
+                    SELECT
+                        JSONB_AGG(charge_details) AS charges
+                        , claim_id
+                    FROM get_charges_data
+                    GROUP BY claim_id
+                ) cd ON cd.claim_id = bc.id
+                WHERE bc.id = ANY(${claimIds})
+                ORDER BY bc.id DESC 
             )
             SELECT
-                ARRAY_AGG(icd_codes) AS codes
-            FROM bci
-            GROUP BY bci.claim_id
-        ) icd ON TRUE
-        LEFT JOIN LATERAL (
-            SELECT
-                ( SELECT
-                    code
-                  FROM public.modifiers WHERE id = bch.modifier1_id AND NOT is_implicit
-                ) AS mod1,
-                ( SELECT
-                    code
-                  FROM public.modifiers WHERE id = bch.modifier2_id AND NOT is_implicit
-                ) AS mod2,
-                ( SELECT
-                    code
-                  FROM public.modifiers WHERE id = bch.modifier3_id AND NOT is_implicit
-                ) AS mod3
-        ) fee_mod ON TRUE
-        LEFT JOIN LATERAL (
-            SELECT
-                jsonb_agg(attachment.attachments) AS attachments
-            FROM (
-                SELECT
-                    jsonb_build_object(
-                        'study_id', study_id,
-                        'attachment_name', (study_transcriptions.id || '' || study_id || TO_CHAR(now(), 'YYYYMMDDHH24MISSMS') || 'attachment' || '.rtf'),
-                        'attachment_type', 'OTHER',
-                        'attachment_description', 'This attachment contains approved report for the study',
-                        'attachment_content', NULLIF(transcription_text, ''),
-                        'approved_dt', approved_dt,
-                        'approving_provider_id', approving_provider_id
-                    ) AS attachments
-            FROM study_transcriptions
-            WHERE study_id = s.id
-            LIMIT 3
-            ) AS attachment
-        ) st ON TRUE
-        LEFT JOIN public.provider_contacts pc_app ON pc_app.id = bc.rendering_provider_contact_id
-        LEFT JOIN public.providers p_app ON p_app.id = pc_app.provider_id
-        LEFT JOIN public.provider_contacts pc_ref ON pc_ref.id = bc.referring_provider_contact_id
-        LEFT JOIN public.providers p_ref ON p_ref.id = pc_ref.provider_id
-        LEFT JOIN LATERAL billing.get_claim_totals(bc.id) bgct ON TRUE
-        WHERE bc.id = ANY(${claimIds})
-        ORDER BY bc.id DESC `;
+                'EXA' AS sender_application
+                , c.company_name AS sender_facility
+                , gbn.batch_number
+                , TO_CHAR(now(), 'YYYYMMDDHHMI') AS created_date_time
+                , '' AS file_comment
+                , '' AS batch_comment
+                , LPAD(cd.claims_count, 3, '0') AS batch_count
+                , LPAD(cd.claims_count, 3, '0') AS file_batch_count
+                , cd.claims_count || ' REPORTS IN THIS FILE' AS file_trailer_comment
+                , ${submission_code} || gbn.batch_number AS submitter_transaction_id
+                , ${submission_code} || '.' || gbn.batch_number || '.' || TO_CHAR(now(), 'YYYYMMDDHHMISS') || '.xml' AS file_name
+                , cd.claims_data
+            FROM companies c
+            LEFT JOIN LATERAL (
+                SELECT 
+                    JSONB_AGG(
+                        ROW_TO_JSON(cd.*)
+                    ) AS claims_data
+                    , COUNT(DISTINCT cd.exa_claim_id)::TEXT AS claims_count
+                FROM claim_details cd
+            ) cd ON TRUE
+            LEFT JOIN LATERAL (
+                SELECT 
+                    NEXTVAL('billing.edi_file_claims_batch_number_seq') % 1000000 AS batch_number
+            ) gbn ON TRUE
+            WHERE c.id = ${companyId} 
+        `;
 
         let { rows = [] } = await query(sql.text, sql.values);
 
@@ -453,7 +495,6 @@ const ahsData = {
                 pp.last_name AS patient_last_name,
                 pp.gender AS patient_gender,
                 pp.birth_date::DATE AS patient_birth_date,
-                bch.charge_dt AS service_date,
                 cawid.id AS wcb_injury_id,
                 COALESCE(bc.encounter_no, '1')::TEXT AS encounters,
                 pp.patient_info->'c1AddressLine1' AS patient_address,
@@ -464,17 +505,6 @@ const ahsData = {
                 p_app.last_name AS practitioner_last_name,
                 scc.code AS practitioner_skill_code,
                 p_ref.first_name AS ref_phy_name,
-                pcc.display_code AS health_service_code,
-                pcc.display_description AS health_service_description,
-                sc.code AS skill_code,
-                (
-                    CASE
-                        WHEN s.hospital_admission_dt IS NULL
-                        THEN bch.units
-                        ELSE EXTRACT(DAYS FROM s.study_dt - s.hospital_admission_dt)
-                    END
-                )::TEXT AS calls,
-                bch.bill_fee AS fee_submitted,
                 bc.billing_method,
                 bc.can_ahs_pay_to_code                       AS pay_to_code,
                 pc.can_submitter_prefix                  AS submitter_prefix,
@@ -506,17 +536,13 @@ const ahsData = {
                 bc.original_reference,
                 bc.payer_type,
                 pos.code AS place_of_service,
-                pip.insurance_code AS payer_code
+                pip.insurance_code AS payer_code,
+                cd.charges_details
                 FROM billing.claims bc
                 INNER JOIN billing.claim_status bcs ON bcs.id = bc.claim_status_id
                 INNER JOIN billing.get_claim_totals(bc.id) bgct ON TRUE
                 LEFT JOIN public.companies pc ON pc.id = bc.company_id
                 LEFT JOIN public.patients pp ON pp.id = bc.patient_id
-                LEFT JOIN billing.charges bch ON bch.claim_id = bc.id
-                LEFT JOIN public.cpt_codes pcc ON pcc.id = bch.cpt_id
-                LEFT JOIN billing.charges_studies bchs ON bchs.charge_id = bch.id
-                LEFT JOIN public.studies s ON s.id = bchs.study_id
-                LEFT JOIN public.skill_codes sc ON sc.id = s.can_ahs_skill_code_id
                 LEFT JOIN public.skill_codes scc ON scc.id = bc.can_ahs_skill_code_id
                 LEFT JOIN public.provider_contacts pc_app ON pc_app.id = bc.rendering_provider_contact_id
                 LEFT JOIN public.providers p_app ON p_app.id = pc_app.provider_id
@@ -560,6 +586,32 @@ const ahsData = {
                     GROUP BY
                         bci.claim_id
                 ) icd ON TRUE
+                LEFT JOIN LATERAL (
+                    SELECT
+                        JSONB_AGG(
+                            JSONB_BUILD_OBJECT(
+                                'service_date', bch.charge_dt
+                                , 'health_service_code', pcc.display_code
+                                , 'health_service_description', pcc.display_description
+                                , 'skill_code', sc.code
+                                , 'calls'
+                                , CASE
+                                    WHEN s.hospital_admission_dt IS NULL
+                                    THEN bch.units
+                                    ELSE EXTRACT(DAYS FROM s.study_dt - s.hospital_admission_dt)
+                                  END::TEXT 
+                                , 'fee_submitted', bch.bill_fee
+                            )
+                        ) AS charges_details
+                        , bch.claim_id
+                    FROM billing.charges bch
+                    LEFT JOIN public.cpt_codes pcc ON pcc.id = bch.cpt_id
+                    LEFT JOIN billing.charges_studies bchs ON bchs.charge_id = bch.id
+                    LEFT JOIN public.studies s ON s.id = bchs.study_id
+                    LEFT JOIN public.skill_codes sc ON sc.id = s.can_ahs_skill_code_id
+                    GROUP BY
+                        bch.claim_id
+                ) AS cd ON cd.claim_id = bc.id
                 WHERE bc.id = ANY (${claimIds})
                 ORDER BY bc.id DESC
             `;
@@ -1239,40 +1291,52 @@ const ahsData = {
     storeFileClaims: async (args) => {
         const {
             edi_file_id,
-            claim_id,
             action_code = null,
             batch_number = null,
-            sequence_number
+            sequence_number,
+            template_data = []
         } = args;
 
         const sql = SQL`
+            WITH template_details AS (
+                SELECT
+                    claim_id::BIGINT
+                    , batch_sequence_number::INT AS batch_sequence_number
+                    , template_data::JSONB
+                FROM JSONB_TO_RECORDSET(${JSON.stringify(template_data)}) AS td (
+                    claim_id TEXT
+                    , batch_sequence_number TEXT
+                    , template_data TEXT
+                )
+            )
             INSERT INTO billing.edi_file_claims (
                 edi_file_id,
                 claim_id,
                 batch_number,
                 sequence_number,
-                can_ahs_action_code
+                can_ahs_action_code,
+                template_data
             )
             SELECT
                 ${edi_file_id},
                 c.id,
                 ${batch_number},
-                ${sequence_number},
+                td.batch_sequence_number,
                 CASE
                     WHEN ${action_code} = 'submit'
                     THEN 'can_ab_wcb_c568'
                     WHEN ${action_code} = 'change'
                     THEN 'can_ab_wcb_c570'
-                END
+                END,
+                td.template_data
             FROM billing.claims c
-            WHERE c.id = ${claim_id}
+            INNER JOIN template_details td ON td.claim_id = c.id
             RETURNING
                 id
         `;
 
         const { rows } = await query(sql.text, sql.values);
-
-        return rows?.[0]?.id || null;
+        return rows;
     },
 
     /**
@@ -1821,6 +1885,150 @@ const ahsData = {
         return await query(sql);
     },
 
+    saveAHSClaims: async (args) => {
+        const {
+            claimIds
+            , auditDetails
+        } = args;
+
+        const sql = SQL`
+            WITH charge_details AS (
+                SELECT
+                    RANK() OVER (
+                        PARTITION BY charges.claim_id
+                        ORDER BY charges.id DESC
+                    ) AS charge_index
+                    , charges.*
+                    , bcs.study_id
+                FROM billing.charges
+                LEFT JOIN billing.charges_studies bcs ON bcs.charge_id = charges.id
+                WHERE 
+                    charges.claim_id = ANY(${claimIds}:: BIGINT[])
+            )
+            , claim_details AS (
+                SELECT
+                    bc.*
+                    , claim_charges::JSONB
+                FROM billing.claims bc
+                INNER JOIN (
+                    SELECT
+                        JSONB_AGG(ROW_TO_JSON(cd)) AS claim_charges
+                        , claim_id
+                    FROM charge_details cd
+                    WHERE 
+                        charge_index > 1
+                    GROUP BY claim_id
+                ) cc ON cc.claim_id = bc.id 
+            )
+            , insurance_details AS (
+                SELECT
+                    JSONB_AGG(ROW_TO_JSON(ins_det)) AS insurance_details
+                    , claim_id
+                FROM (
+                    SELECT
+                        pi.*
+                        , null AS claim_patient_insurance_id
+                        , false AS is_update_patient_info
+                        , bcpi.claim_id
+                FROM patient_insurances pi
+                INNER JOIN billing.claim_patient_insurances bcpi ON bcpi.patient_insurance_id = pi.id         
+                ) AS ins_det
+                GROUP BY 
+                    claim_id           
+            )
+            , claim_icds AS (
+                SELECT
+                    JSONB_AGG(ROW_TO_JSON(icds)) AS icd_details
+                    , claim_id
+                FROM (
+                    SELECT
+                        icd_id 
+                        , claim_id
+                        , false AS is_deleted
+                    FROM billing.claim_icds icds
+                ) AS icds
+                GROUP BY claim_id
+            )
+            , save_claim AS (
+                SELECT
+                    billing.can_ahs_create_claim_per_charge(
+                        claim_det::JSONB
+                        , insurance_details
+                        , icd_details
+                        , ${auditDetails}::JSONB
+                        , true
+                    ) as inserted_claims 
+                FROM (
+                    SELECT
+                        ROW_TO_JSON(claim_details) AS claim_det
+                        , claim_details.id
+                    FROM claim_details
+                ) cd
+                LEFT JOIN insurance_details idd ON idd.claim_id = cd.id
+                LEFT JOIN claim_icds ci ON ci.claim_id = cd.id
+                WHERE 
+                    cd.id = ANY(${claimIds}:: BIGINT[])
+            )
+            
+            SELECT
+                ARRAY_AGG(inserted_claim_ids) AS ahs_claim_ids
+            FROM 
+                save_claim 
+                , UNNEST(inserted_claims) inserted_claim_ids `;
+
+        const { rows = [] } = await query(sql);
+        return rows?.length && rows[0]?.ahs_claim_ids || [];
+    },
+
+    deleteCharges: async (args) => {
+        const {
+            claimIds
+            , auditDetails
+        } = args;
+
+        const sql = SQL`
+            WITH delete_charges AS (
+                SELECT
+                    RANK () OVER (
+                        PARTITION BY charges.claim_id
+                        ORDER BY charges.id DESC
+                    ) AS charge_index
+                    , id
+                FROM billing.charges
+                WHERE charges.claim_id = ANY(${claimIds}:: BIGINT[])
+            )
+            SELECT
+                billing.purge_claim_or_charge (
+                    id
+                    , 'charge'
+                    , ${auditDetails}::JSONB
+                )
+            FROM delete_charges
+            WHERE charge_index > 1 `
+
+        return await query(sql);
+    },
+
+    getCorrectionTemplateData: async (args) => {
+        const sql = SQL`
+            SELECT
+                claim_id
+                , template_data
+            FROM (
+                SELECT 
+                    DENSE_RANK()OVER( PARTITION BY claim_id ORDER BY id DESC) AS row
+                    , claim_id
+                    , template_data
+                FROM billing.edi_file_claims 
+                WHERE
+                    claim_id = ANY(${args})
+            ) AS td
+            WHERE
+                row = 1 `
+        const { rows = [] } = await query(sql);
+
+        return rows?.length && rows;
+    }
 };
 
 module.exports = ahsData;
