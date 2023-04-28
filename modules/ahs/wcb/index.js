@@ -31,7 +31,7 @@ const wcbModule = {
             exa_claim_id,
             place_of_service,
             wcb_claim_number,
-            charges,
+            charges = [],
             patient_data: {
                 phone_area_code,
                 phone_number,
@@ -58,7 +58,7 @@ const wcbModule = {
             validationErrorMessages.push(warningMsg);
         }
 
-        if (charges.some(val => !val.diagnosis_codes)) {
+        if (charges?.some(val => !val.diagnosis_codes)) {
             warningMsg = `${exa_claim_id} - Diagnosis code details were missing. Atleast one Diagnosis code was required`;
 
             logger.info(warningMsg);
