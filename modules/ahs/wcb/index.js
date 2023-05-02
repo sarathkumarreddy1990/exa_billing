@@ -346,7 +346,7 @@ const wcbModule = {
             };
 
             return {
-                err: errorObj
+                err: errorObj.errMsg
             };
         }
 
