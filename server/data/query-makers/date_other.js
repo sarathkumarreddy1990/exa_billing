@@ -20,8 +20,11 @@ module.exports = (fieldID, fieldValue, { options }) => {
 
                 return ` (to_facility_date(studies.facility_id, ${fieldID}) = ('${date.format('YYYY-MM-DD')}')::date AND ${fieldID} IS NOT NULL)`;
             }
+            else if (fieldID === `study_info->'Check-InDt'`) {
+                return ` (timezone(${whichTz}, (${fieldID})::timestamptz)::date = ('${date.format('YYYY-MM-DD')}')::date) AND (${fieldID}) <> ''`
+            }
 
-            return ` (timezone(${whichTz}, (${fieldID})::timestamptz)::date = ('${date.format('YYYY-MM-DD')}')::date) AND (${fieldID}) <> ''`;
+            return ` (timezone(${whichTz}, (${fieldID})::timestamptz)::date = ('${date.format('YYYY-MM-DD')}')::date)`;
         }
     } else if (fromToDateTimes.length === 2) {
         const from = moment(fromToDateTimes[0], 'YYYY-MM-DD');
@@ -37,8 +40,11 @@ module.exports = (fieldID, fieldValue, { options }) => {
 
                 return ` (to_facility_date(studies.facility_id, ${fieldID}) BETWEEN ('${from.format('YYYY-MM-DD')}')::date AND ('${to.format('YYYY-MM-DD')}')::date AND ${fieldID} IS NOT NULL)`;
             }
+            else if (fieldID === `study_info->'Check-InDt'`) {
+                return ` (timezone(${whichTz}, (${fieldID})::timestamptz)::date BETWEEN ('${from.format('YYYY-MM-DD')}')::date AND ('${to.format('YYYY-MM-DD')}')::date) AND (${fieldID}) <> ''`
+            }
 
-            return ` (timezone(${whichTz}, (${fieldID})::timestamptz)::date BETWEEN ('${from.format('YYYY-MM-DD')}')::date AND ('${to.format('YYYY-MM-DD')}')::date) AND (${fieldID}) <> ''`;
+            return ` (timezone(${whichTz}, (${fieldID})::timestamptz)::date BETWEEN ('${from.format('YYYY-MM-DD')}')::date AND ('${to.format('YYYY-MM-DD')}')::date)`;
         }
     }
 
