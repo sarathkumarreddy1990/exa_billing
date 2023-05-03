@@ -319,7 +319,6 @@ module.exports = {
 						    bp_id_codes.qualifier_code AS "legacyID",
 						    bp_id_codes.payer_assigned_provider_id AS "payerAssignedProviderID"
 						FROM billing.providers bp
-						LEFT JOIN billing.providers bpr_code ON bpr_code.id = claims.billing_provider_id
 						LEFT JOIN LATERAL (
 						    SELECT qualifier_code,
 							    payer_assigned_provider_id
@@ -328,38 +327,12 @@ module.exports = {
 						    WHERE provider_id_codes.billing_provider_id = bp.id
 							    AND provider_id_codes.insurance_provider_id = insurance_providers.id
 						) AS bp_id_codes ON TRUE
-						LEFT JOIN LATERAL (
-						    SELECT
-							    MAX(ip.insurance_code) FILTER (WHERE coverage_level = 'primary' AND ipd.claim_filing_indicator_code = 'MB') AS pri_ins_code,
-							    MAX(ip.insurance_code) FILTER (WHERE coverage_level = 'secondary' AND ipd.claim_filing_indicator_code = 'MC') AS sec_ins_code
-						    FROM patient_insurances pi
-						    LEFT JOIN insurance_providers ip ON ip.id = pi.insurance_provider_id
-						    LEFT JOIN billing.insurance_provider_details ipd ON ipd.insurance_provider_id = ip.id
-						    WHERE pi.id IN (claim_ins.primary_patient_insurance_id, claim_ins.secondary_patient_insurance_id)
-						) ins_details ON TRUE
-					    WHERE
-						-- Billing provider logic for QMI
-						CASE WHEN 'QMI' = ${companyCode} AND ins_coverage_level.coverage_level = 'secondary'
-						    THEN
-							CASE WHEN facilities.facility_code = 'QAZU' AND bpr_code.code = 'QMI AZ US'
-							    AND '370' = ins_details.pri_ins_code AND '368' = ins_details.sec_ins_code
-							THEN bp.id = (SELECT id FROM billing.providers WHERE code = 'QMI AZ')
-							WHEN facilities.facility_code = 'QIDU' AND bpr_code.code = 'QMI ID US'
-							    AND '1435' = ins_details.pri_ins_code AND '1850' = ins_details.sec_ins_code
-							THEN bp.id = (SELECT id FROM billing.providers WHERE code = 'QMI ID')
-							WHEN facilities.facility_code = 'QNVU' AND bpr_code.code = 'QMI NV US'
-							    AND '348' = ins_details.pri_ins_code AND '351' = ins_details.sec_ins_code
-							THEN bp.id = (SELECT id FROM billing.providers WHERE code = 'QMI NV')
-							WHEN facilities.facility_code = 'QUTU' AND bpr_code.code = 'QMI UT US'
-							    AND '347' = ins_details.pri_ins_code AND '350' = ins_details.sec_ins_code
-							THEN bp.id = (SELECT id FROM billing.providers WHERE code = 'QMI UT')
-							WHEN facilities.facility_code = 'QWAU' AND bpr_code.code = 'QMI WA US'
-							    AND '812' = ins_details.pri_ins_code AND '18392' = ins_details.sec_ins_code
-							THEN bp.id = (SELECT id FROM billing.providers WHERE code = 'QMI WA')
-							ELSE bp.id = claims.billing_provider_id
-							END
-						    ELSE bp.id = claims.billing_provider_id
-						END
+						WHERE bp.id =
+							CASE 
+                                WHEN bp_data.billing_provider_npi IS NOT NULL
+                                THEN bp_data.billing_provider_id
+                                ELSE claims.billing_provider_id
+                            END
 					) AS billingProvider1
 
 					)
@@ -383,7 +356,7 @@ module.exports = {
 															pay_to_phone_number as "phoneNo",
 															UPPER(contact_person_name) AS "contactName"
 														FROM   billing.providers as billing_providers
-														WHERE  billing_providers.id=billing_provider_id)AS billingProvider
+														WHERE  billing_providers.id = claims.billing_provider_id)AS billingProvider
 					)
 					, cte_subscriber AS(
 														SELECT Json_agg(Row_to_json(subscriber)) subscriber
@@ -591,14 +564,20 @@ module.exports = {
 						if (companyCode === 'QMI') {
 							sql.append(SQL`
 								, CASE
-								    WHEN bp_npi.npi_no IS NOT NULL AND insurance_provider_details.claim_filing_indicator_code = 'MB'
-									    AND ('93306' = ANY(bp_charges.cpt_array) OR '93308' = ANY(bp_charges.cpt_array))
-								    THEN bp_npi.npi_no
-										ELSE( SELECT
-											    npi_no
-											FROM billing.providers bpr
-											WHERE bpr.id = bfs.default_provider_id)
-								END AS "billingProviderNPI" `)
+									WHEN bp_data.billing_provider_npi IS NOT NULL
+									THEN bp_data.billing_provider_npi
+									WHEN bpr_data.billing_provider_npi IS NOT NULL
+										AND bpr_data.bpr_code = 'US' AND facilities.facility_info->'facility_state' = bpr_data.bpr_state
+										AND insurance_provider_details.claim_filing_indicator_code = 'MB'
+										AND ('93306' = ANY(bp_charges.cpt_array) OR '93308' = ANY(bp_charges.cpt_array))
+									THEN bpr_data.billing_provider_npi
+									ELSE (
+										SELECT
+											npi_no
+										FROM billing.providers
+										WHERE id = bfs.default_provider_id
+									)
+								  END AS "billingProviderNPI" `)
 						}
 						sql.append(SQL`
 							,(SELECT Json_agg(Row_to_json(renderingProvider)) "renderingProvider"
@@ -921,68 +900,99 @@ module.exports = {
 					INNER JOIN LATERAL billing.get_claim_payments(claims.id, true) bgcp ON TRUE
 					INNER JOIN facilities ON facilities.id=claims.facility_id
                     INNER JOIN patients ON patients.id=claims.patient_id
+					LEFT JOIN billing.providers bprov ON bprov.id = claims.billing_provider_id
                     LEFT JOIN billing.delay_reasons bdr ON bdr.id = claims.delay_reason_id `
 				)
-
-		if (companyCode === 'QMI') {
-			sql.append(SQL`
-				LEFT JOIN billing.facility_settings bfs ON facilities.id = bfs.facility_id
-				LEFT JOIN ( 
-					SELECT
-					    npi_no
-					    , claims.id AS claim_id
-					FROM billing.claims
-					INNER JOIN ( SELECT
-							bpr.id AS bpr_id
-						    , npi_no
-						    , string_to_array(code, ' ') AS code_array
-						FROM billing.providers bpr
-					)bpr ON  bpr.bpr_id = claims.billing_provider_id
-					INNER JOIN facilities ON facilities.id = claims.facility_id
-					WHERE 'US' = code_array[3] AND facilities.facility_info -> 'facility_state' = code_array[2]
-				)bp_npi ON bp_npi.claim_id = claims.id
-				LEFT JOIN (
-					SELECT
-					    ARRAY_AGG(cc.display_code)AS cpt_array
-					    , bch.claim_id
-					    , ARRAY_AGG(studies.modality_code ) AS mod_array
-					FROM billing.charges bch
-					INNER JOIN billing.charges_studies bcs ON bcs.charge_id = bch.id
-					INNER JOIN public.cpt_codes cc ON cc.id = bch.cpt_id
-					INNER JOIN (
-						SELECT
-						    id
-						    , (SELECT modality_code FROM modalities WHERE modalities.id = s.modality_id)
-						FROM public.studies s
-					) studies ON studies.id = bcs.study_id
-					GROUP BY claim_id
-				)bp_charges ON bp_charges.claim_id = claims.id `)
-		}
-		sql.append(getClaimPatientInsurances('claims'))
-            .append(SQL`
+				sql.append(getClaimPatientInsurances('claims'))
+				.append(SQL`
                     LEFT JOIN LATERAL (
                         SELECT
-                        (CASE COALESCE(${payerType}, payer_type)
-                        WHEN 'primary_insurance' THEN 'primary'
-                        WHEN 'secondary_insurance' THEN 'secondary'
-                        WHEN 'tertiary_insurance' THEN 'tertiary'
-                        END) AS coverage_level
+                        	(CASE COALESCE(${payerType}, payer_type)
+                        		WHEN 'primary_insurance' THEN 'primary'
+                        		WHEN 'secondary_insurance' THEN 'secondary'
+                        		WHEN 'tertiary_insurance' THEN 'tertiary'
+                        	END) AS coverage_level
                     ) AS ins_coverage_level ON TRUE
                     LEFT JOIN patient_insurances pi ON pi.id = (
-												CASE COALESCE(${payerType}, payer_type)
-													WHEN 'primary_insurance' THEN claim_ins.primary_patient_insurance_id
-													WHEN 'secondary_insurance' THEN claim_ins.secondary_patient_insurance_id
-													WHEN 'tertiary_insurance' THEN claim_ins.tertiary_patient_insurance_id
-												END
-											)
-                                            LEFT JOIN  insurance_providers ON insurance_providers.id=insurance_provider_id
-                                            LEFT JOIN billing.insurance_provider_details ON insurance_provider_details.insurance_provider_id = insurance_providers.id
-                                            LEFT JOIN relationship_status ON  subscriber_relationship_id =relationship_status.id
-                                            LEFT JOIN public.insurance_provider_payer_types  ON insurance_provider_payer_types.id = insurance_providers.provider_payer_type_id
-                                            LEFT JOIN public.ordering_facility_contacts pofc ON pofc.id = claims.ordering_facility_contact_id
-                                            LEFT JOIN public.ordering_facilities pof ON pof.id = pofc.ordering_facility_id
-                                            LEFT JOIN public.pos_map pmap ON pmap.id = pof.pos_map_id
-                                            LEFT JOIN LATERAL (
+						CASE COALESCE(${payerType}, payer_type)
+							WHEN 'primary_insurance' THEN claim_ins.primary_patient_insurance_id
+							WHEN 'secondary_insurance' THEN claim_ins.secondary_patient_insurance_id
+							WHEN 'tertiary_insurance' THEN claim_ins.tertiary_patient_insurance_id
+						END
+					)
+                    LEFT JOIN  insurance_providers ON insurance_providers.id=insurance_provider_id
+                    LEFT JOIN billing.insurance_provider_details ON insurance_provider_details.insurance_provider_id = insurance_providers.id
+                    LEFT JOIN relationship_status ON  subscriber_relationship_id =relationship_status.id
+                    LEFT JOIN public.insurance_provider_payer_types  ON insurance_provider_payer_types.id = insurance_providers.provider_payer_type_id
+                    LEFT JOIN public.ordering_facility_contacts pofc ON pofc.id = claims.ordering_facility_contact_id
+                    LEFT JOIN public.ordering_facilities pof ON pof.id = pofc.ordering_facility_id
+                    LEFT JOIN public.pos_map pmap ON pmap.id = pof.pos_map_id
+					LEFT JOIN billing.facility_settings bfs ON facilities.id = bfs.facility_id
+					LEFT JOIN (
+						SELECT
+							ARRAY_AGG(cc.display_code)AS cpt_array
+							, bch.claim_id
+							, ARRAY_AGG(studies.modality_code) AS mod_array
+						FROM billing.charges bch
+						INNER JOIN billing.charges_studies bcs ON bcs.charge_id = bch.id
+						INNER JOIN public.cpt_codes cc ON cc.id = bch.cpt_id
+						INNER JOIN (
+							SELECT
+								id
+								, (SELECT modality_code FROM modalities WHERE modalities.id = s.modality_id)
+							FROM public.studies s
+						) studies ON studies.id = bcs.study_id
+						GROUP BY claim_id
+					) bp_charges ON bp_charges.claim_id = claims.id
+					LEFT JOIN LATERAL (
+						SELECT
+							bpr_code[1] AS bpr_code
+							, bpr_code[2] AS bpr_state
+							, bpr_code[3] AS bpr_modality
+							, bprov.npi_no AS billing_provider_npi
+						FROM string_to_array(bprov.code, ' ') bpr_code
+						WHERE bpr_code[3] = 'US' AND facilities.facility_info->'facility_state' = bpr_code[2]
+					) bpr_data ON TRUE
+					LEFT JOIN LATERAL (
+						SELECT
+							MAX(ip.insurance_code) FILTER (WHERE coverage_level = 'primary' AND ipd.claim_filing_indicator_code = 'MB') AS pri_ins_code,
+							MAX(ip.insurance_code) FILTER (WHERE coverage_level = 'secondary' AND ipd.claim_filing_indicator_code = 'MC') AS sec_ins_code
+						FROM patient_insurances pi
+						LEFT JOIN insurance_providers ip ON ip.id = pi.insurance_provider_id
+						LEFT JOIN billing.insurance_provider_details ipd ON ipd.insurance_provider_id = ip.id
+						WHERE pi.id IN (claim_ins.primary_patient_insurance_id, claim_ins.secondary_patient_insurance_id)
+					) ins_details ON TRUE
+					LEFT JOIN LATERAL (
+						SELECT
+							bpr.id AS billing_provider_id
+							, COALESCE(bpr.npi_no, bpr_fac.npi_no) AS billing_provider_npi
+						FROM billing.providers bpr
+						LEFT JOIN billing.providers bpr_fac ON bpr_fac.id = bfs.default_provider_id
+						WHERE 
+							CASE
+								WHEN 'QMI' = ${companyCode} AND ins_coverage_level.coverage_level = 'secondary'
+								THEN CASE 
+										WHEN facilities.facility_code = 'QAZU' AND bprov.code = 'QMI AZ US' 
+											AND '370' = ins_details.pri_ins_code AND '368' = ins_details.sec_ins_code
+										THEN bpr.id = (SELECT id FROM billing.providers WHERE code = 'QMI AZ')
+										WHEN facilities.facility_code = 'QIDU' AND bprov.code = 'QMI ID US'
+											AND '1435' = ins_details.pri_ins_code AND '1850' = ins_details.sec_ins_code
+										THEN bpr.id = (SELECT id FROM billing.providers WHERE code = 'QMI ID')
+										WHEN facilities.facility_code = 'QNVU' AND bprov.code = 'QMI NV US'
+											AND '348' = ins_details.pri_ins_code AND '351' = ins_details.sec_ins_code
+										THEN bpr.id = (SELECT id FROM billing.providers WHERE code = 'QMI NV')
+										WHEN facilities.facility_code = 'QUTU' AND bprov.code = 'QMI UT US'
+											AND '347' = ins_details.pri_ins_code AND '350' = ins_details.sec_ins_code
+										THEN bpr.id = (SELECT id FROM billing.providers WHERE code = 'QMI UT')
+										WHEN facilities.facility_code = 'QWAU' AND bprov.code = 'QMI WA US'
+											AND '812' = ins_details.pri_ins_code AND '18392' = ins_details.sec_ins_code
+										THEN bpr.id = (SELECT id FROM billing.providers WHERE code = 'QMI WA')
+										ELSE bpr.id = claims.billing_provider_id
+									END
+								ELSE bpr.id = claims.billing_provider_id
+							END
+					) bp_data ON TRUE
+					LEFT JOIN LATERAL (
                                                 SELECT
                                                     bch.authorization_no AS service_line_auth_no
                                                 FROM
