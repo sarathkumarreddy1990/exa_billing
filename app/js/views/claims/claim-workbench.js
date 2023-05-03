@@ -602,6 +602,7 @@ define(['jquery',
                             isClaimGrid: true
                         },
                         isAllClaims: true,
+                        companyCode: app.company.company_code || "",
                         billingRegionCode:app.billingRegionCode
                     }
                 } else {
