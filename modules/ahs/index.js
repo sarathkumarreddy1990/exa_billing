@@ -16,6 +16,19 @@ const validateClaimsData = require('../../server/data/claim/claim-workbench');
 const sftp = require('./sftp');
 const claimEncoder = require('./encoder/claims');
 const logger = require('../../logger');
+const siteConfig = require('../../server/config');
+const uploadDirPath = siteConfig.get('ahsSFTPSendFolder') || `UPLOAD`;
+const sftpClient = require('ssh2-sftp-client');
+const privateKeyPath = siteConfig.get('ahsSFTPPrivateKeyPath');
+const config = {
+    host: siteConfig.get('ahsSFTPAddress'),
+    user: siteConfig.get('ahsSFTPUser'),
+    password: siteConfig.get('ahsSFTPPassword'),
+    port: siteConfig.get('ahsSFTPPort'),
+    algorithms: { cipher: ['aes128-cbc'] },
+    privateKey: fs.existsSync(privateKeyPath) && fs.readFileSync(privateKeyPath, 'utf8'),
+    passphrase: siteConfig.get('ahsSFTPPrivateKeyPassPhrase') || undefined // wont be needed in production
+};
 
 const ahsmodule = {
 
@@ -31,6 +44,7 @@ const ahsmodule = {
             if (ediResponse.isWCBBilling) {
                 ediResponse.companyId = args.companyId;
                 ediResponse.source = args.source;
+                ediResponse.userId = args.userId;
                 let wcbResponse =  await wcbWorkBenchController(ediResponse) || {};
                 wcbResponse.isWCBBilling = true;
                 return wcbResponse;
@@ -133,6 +147,46 @@ const ahsmodule = {
                     args.source = 'add';
                 }
             }
+        }
+
+        let sftp_client = new sftpClient;
+
+        try {
+            await sftp_client.connect(config);
+        } catch (error) {
+            logger.error(error);
+            return { isConnectionFailed: true };
+        }
+
+        const isFolderExists = await sftp_client.exists(uploadDirPath);
+
+        if (!isFolderExists) {
+            logger.error('AHS Remote folder not found for upload');
+            return { isFolderNotExists: true };
+        }
+
+        const {
+            companyId,
+            screenName,
+            clientIp,
+            userId,
+            entityName,
+        } = args;
+
+        args.auditDetails = JSON.stringify({
+            company_id: companyId,
+            screen_name: screenName,
+            module_name: 'claims',
+            client_ip: clientIp,
+            user_id: userId,
+            entity_name: entityName,
+        });
+
+        const ahs_claim_ids  = await ahs.saveAHSClaims(args);
+
+        if (ahs_claim_ids?.length) {
+            await ahs.deleteCharges(args);
+            args.claimIds = args.claimIds.concat(ahs_claim_ids);
         }
 
         let submitResponse = await ahs.saveAddedClaims(args);
