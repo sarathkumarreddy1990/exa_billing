@@ -328,11 +328,11 @@ module.exports = {
 							    AND provider_id_codes.insurance_provider_id = insurance_providers.id
 						) AS bp_id_codes ON TRUE
 						WHERE bp.id =
-							CASE 
-                                WHEN bp_data.billing_provider_npi IS NOT NULL
-                                THEN bp_data.billing_provider_id
-                                ELSE claims.billing_provider_id
-                            END
+							CASE
+								WHEN bp_data.billing_provider_npi IS NOT NULL
+								THEN bp_data.billing_provider_id
+								ELSE claims.billing_provider_id
+							END
 					) AS billingProvider1
 
 					)
@@ -356,7 +356,7 @@ module.exports = {
 															pay_to_phone_number as "phoneNo",
 															UPPER(contact_person_name) AS "contactName"
 														FROM   billing.providers as billing_providers
-														WHERE  billing_providers.id = claims.billing_provider_id)AS billingProvider
+														WHERE  billing_providers.id = claims.billing_provider_id) AS billingProvider
 					)
 					, cte_subscriber AS(
 														SELECT Json_agg(Row_to_json(subscriber)) subscriber
@@ -569,7 +569,7 @@ module.exports = {
 									WHEN bpr_data.billing_provider_npi IS NOT NULL
 										AND bpr_data.bpr_code = 'US' AND facilities.facility_info->'facility_state' = bpr_data.bpr_state
 										AND insurance_provider_details.claim_filing_indicator_code = 'MB'
-										AND ('93306' = ANY(bp_charges.cpt_array) OR '93308' = ANY(bp_charges.cpt_array))
+										AND (ARRAY['93306', '93308'] && bp_charges.cpt_array)
 									THEN bpr_data.billing_provider_npi
 									ELSE (
 										SELECT
