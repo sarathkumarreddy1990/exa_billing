@@ -500,7 +500,7 @@ module.exports = {
         let financialInfo = eraResponseJson.financialInformation && eraResponseJson.financialInformation.length ? eraResponseJson.financialInformation[0] : {};
 
         let monetoryAmount = financialInfo.monetoryAmount ? parseFloat(financialInfo.monetoryAmount).toFixed(2) : 0.00;
-        let notes = 'Amount shown in EOB:' + monetoryAmount;
+        let notes = 'Amount shown in EOB : ' + monetoryAmount;
 
         // notes += '\n \n' + params.file_id + '.ERA';
         payerDetails.paymentId = null;
@@ -512,7 +512,7 @@ module.exports = {
         payerDetails.ordering_facility_id = null;
         payerDetails.provider_contact_id = null;
         payerDetails.payment_reason_id = null;
-        payerDetails.amount = 0;
+        payerDetails.amount = monetoryAmount;
         payerDetails.accounting_date = financialInfo.date || 'now()';
         payerDetails.invoice_no = '';
         payerDetails.display_id = null;  // alternate_payment_id
