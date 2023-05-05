@@ -1050,7 +1050,7 @@ define(['jquery',
                                     search: false,
                                     isIconCol: true,
                                     formatter: function (cellvalue, option, rowObject) {
-                                        return '<input type="checkbox" name="chkSubGridStudyCpt" id="studyCpt' + '_' + rowObject.id + '" data-study_id="' + rowObject.study_id + '"/>';        
+                                        return '<input type="checkbox" name="chkSubGridStudyCpt" id="studyCpt' + '_' + rowObject.id + '" data-study_id="' + rowObject.study_id + '"/>';
                                     },
                                     customAction: function (rowID, e, that) {
                                         var unCheckedCptsCount = $("#" + e.currentTarget.id + " input[name=chkSubGridStudyCpt]").not(":checked").length;
@@ -1090,7 +1090,7 @@ define(['jquery',
                         });
 
                         $(tableId).jqGrid($(".modal-body").height() - 140);
-                        $(tableId).jqGrid('setGridWidth', $(window).width() - 20);                       
+                        $(tableId).jqGrid('setGridWidth', $(window).width() - 20);
                     },
                     onaftergridbind: function (model, gridObj) {
                         self.bindDateRangeOnSearchBox(gridObj, 'tblStudyCpt',study_dt);
@@ -2713,7 +2713,8 @@ define(['jquery',
                     var totalClaimBalance = self.currentOrderBalance && parseFloat(self.currentOrderBalance.replace('$', ''));
                     var isClaimBalance = true;
 
-                    if (totalClaimBalance >= 0 && totalPayment >= totalClaimBalance) {
+                    if (totalClaimBalance >= 0 &&
+                        (totalPayment >= totalClaimBalance || totalAdjustment >= totalClaimBalance)) {
                         isClaimBalance = false;
                     }
 
