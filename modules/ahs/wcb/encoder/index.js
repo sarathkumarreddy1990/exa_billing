@@ -422,7 +422,7 @@ const processOldData = async (claim_ids) => {
     }
 };
 
-const processClaimSegments = async (data) => {
+const processClaimSegments = (data) => {
     let {
         [CONTENT_GRP_4]: {
             [CONTENT_LST_5]: {
