@@ -8,10 +8,12 @@ const moment = require('moment');
 const logger = require('../../../logger');
 const wcb = require('../../../server/data/ahs');
 const siteConfig = require('../../../server/config');
-const claimWorkBenchController = require('../../../server/controllers/claim/claim-workbench');
 const validateClaimsData = require('../../../server/data/claim/claim-workbench');
-
-const { encoder, processOldData } = require('./encoder');
+const {
+    encoder,
+    processOldData,
+    processClaimSegments
+} = require('./encoder');
 
 const WCB_NEW_CLAIM_TEMPLATE = siteConfig.wcbNewClaimTemplate || 'WCB_C568';
 const WCB_CORRECTION_CLAIM_TEMPLATE = siteConfig.wcbCorrectionClaimTemplate || 'WCB_C570';
@@ -29,7 +31,7 @@ const wcbModule = {
             exa_claim_id,
             place_of_service,
             wcb_claim_number,
-            diagnosis_codes,
+            charges = [],
             patient_data: {
                 phone_area_code,
                 phone_number,
@@ -56,7 +58,7 @@ const wcbModule = {
             validationErrorMessages.push(warningMsg);
         }
 
-        if (!diagnosis_codes?.length) {
+        if (charges?.some(val => !val.diagnosis_codes)) {
             warningMsg = `${exa_claim_id} - Diagnosis code details were missing. Atleast one Diagnosis code was required`;
 
             logger.info(warningMsg);
@@ -209,9 +211,12 @@ const wcbModule = {
 
         let validationMessages = claimData.reduce((validations, claim) => {
 
-            const claimItems = claim.claim_totalCharge;
 
-            if (!claimItems) {
+            if (claim.charges_details?.length > 25) {
+                validations.push(`Claim ${claim.claim_id} has more than 25 charges`);
+            }
+
+            if (!claim.claim_totalCharge) {
                 validations.push(`Claim ${claim.claim_id} has no billable charges`);
             }
 
@@ -264,10 +269,66 @@ const wcbModule = {
             };
         }
 
+        const chunkSize = 20;
+        let output = [];
+        let submissionErrors = [];
+
+        for (let i = 0; i < claimIds.length; i += chunkSize) {
+            const chunkClaims = claimIds.slice(i, i+chunkSize);
+
+            let {
+                err = null,
+                validationMessages = [],
+                data = [],
+            } = await wcbModule.processClaimSubmission({
+                ...args, 
+                claimIds: chunkClaims, 
+                submissionCode: submission_code, 
+                templateName: EDI_TEMPLATE, 
+                templateInfo: templateInfo, 
+                submission_file_type: edi_file_type, 
+                source
+            });
+
+            if (!_.isEmpty(err)) {
+                logger.error(err);
+                return {
+                    err
+                };
+            }
+
+            if (validationMessages?.length) {
+                submissionErrors.push(...validationMessages);
+            }
+
+            output.push(...data);
+        }
+
+        if (submissionErrors?.length) {
+            return {
+                submissionErrors
+            }
+        }
+
+        return await wcbModule.generateZipFile(output, submission_code);
+    },
+
+    processClaimSubmission: async (args) => {
         let errorObj = {
             flag: false,
             errMsg: null
         };
+        const validationMessages = [];
+        const {
+            claimIds, 
+            submissionCode, 
+            templateName, 
+            templateInfo, 
+            submission_file_type,
+            source, 
+            userId,
+            companyId
+        } = args || {};
 
         // Logic changes here as per one claim encoding in one xml file. -- Start
         let {
@@ -275,21 +336,22 @@ const wcbModule = {
             rows = [],
             dir_path,
             created_dt,
-            batch_number,
             file_store_id
-        } = await wcb.getWcbClaimsData({ claimIds, companyId, submission_code });
+        } = await wcb.getWcbClaimsData({ claimIds, companyId, submission_code: submissionCode });
 
-        if (err || !rows?.length) {
+        if (err || !rows.length) {
+            errorObj = {
+                flag: true,
+                errMsg: !rows.length && 'No data found for claim submission' || JSON.stringify(err)
+            };
+
             return {
-                err
+                err: errorObj.errMsg
             };
         }
 
-        let validationErrors = [];
-        let errMsg = '';
-
         // WCB Business Rule validations for each claim details
-        rows.map((data, index) => {
+        rows[0]?.claims_data?.map((data) => {
             let errorMessages = wcbModule.getWCBValidationErrors(data);
 
             if (errorMessages?.length) {
@@ -300,6 +362,7 @@ const wcbModule = {
         // throwing validation errors in claim details
         if (validationMessages?.length) {
             return {
+                err: null,
                 validationMessages
             };
         }
@@ -307,27 +370,22 @@ const wcbModule = {
         // Encode each claims as new xml file
         let files = _.map(rows, async (data, index) => {
             let {
-                exa_claim_id,
                 file_name,
                 batch_sequence_number,
                 batch_number,
-                root_directory,
-                uploaded_file_name,
-                file_path
-            } = data
+                claims_data = [],
+            } = data;
+
+            const exa_claim_ids = claims_data.map(val => val.exa_claim_id);
 
             try {
                 let oldClaimJson = {};
 
-                // verification and processing of previously submitted file for a claim	
-                if (EDI_TEMPLATE === WCB_CORRECTION_CLAIM_TEMPLATE) {
-                    // passing old data by fetching from file.	
-                    oldClaimJson = await processOldData({
-                        claim_id: exa_claim_id,
-                        root_directory,
-                        uploaded_file_name,
-                        file_path
-                    }) || {};
+                let errMsg = '';
+                // verification and processing of previously submitted file for a claim
+                if (templateName === WCB_CORRECTION_CLAIM_TEMPLATE) {
+                    // passing old data by fetching from file.
+                    oldClaimJson = await processOldData(exa_claim_ids);
 
                     let {
                         error = null,
@@ -338,28 +396,37 @@ const wcbModule = {
                         errorObj.flag = true;
                         errorObj.errMsg = error;
                         errMsg = `Error occured at fetching old claim details... ${JSON.stringify(error)}`;
-                        return errorObj;
+                        return {
+                            err: errorObj
+                        };
                     }
 
-                    if (!old_data) {
-                        errMsg = `Claim # ${exa_claim_id} was not previously submitted to WCB!`;
+                    if (!old_data.length) {
+                        errMsg = `Claim # ${exa_claim_ids} was not previously submitted to WCB!`;
                         errorObj.flag = true;
                         errorObj.errMsg = errMsg;
-                        
-                        return errorObj;
+
+                        return {
+                            err: errorObj
+                        };
                     }
 
-                    data['old_claim_data'] = old_data;
-                }	
+                    claims_data.forEach((val, index) => {
+                        val['old_claim_data'] = old_data[index];
+                    });
+
+                }
 
                 let {
                     outXml = null,
-                    errors
-                } = await encoder(EDI_TEMPLATE, templateInfo || {}, data);
+                    errors,
+                    claimsSegment
+                } = await encoder(templateName, templateInfo || {}, data);
 
                 if (!outXml || errors?.length) {
-                    validationErrors = errors;
-                    return validationErrors;
+                    return {
+                        err: errors
+                    };
                 }
 
                 const fullPath = `${dir_path}/${file_name}`;
@@ -378,7 +445,7 @@ const wcbModule = {
                     file_name,
                     file_md5,
                     file_size,
-                    file_type: edi_file_type,
+                    file_type: submission_file_type,
                     file_store_id,
                     companyId,
                     file_path: fullPath,
@@ -386,28 +453,41 @@ const wcbModule = {
                 });
 
                 if (!edi_file_id) {
-                    errMsg = `Error occured at storing edi file for the claim # ${exa_claim_id}`;
+                    errMsg = `Error occured at storing edi file for the batch #${batch_number}`;
 
                     errorObj.flag = true;
                     errorObj.errMsg = errMsg;
-                    return errorObj;
+                    return {
+                        err: errorObj
+                    };
                 }
 
+                let claim_details = await processClaimSegments(claimsSegment);
+                let template_data = claim_details.map((obj, index) => {
+                    return { 
+                        claim_id: exa_claim_ids[index],
+                        batch_sequence_number: claims_data[index].batch_sequence_number,
+                        template_data: obj
+                    };
+                });
+
                 // store claims into edi_file_claims table for every claims
-                const edi_file_claim_id = await wcb.storeFileClaims({
+                const edi_file_claim_ids = await wcb.storeFileClaims({
                     edi_file_id,
-                    claim_id: exa_claim_id,
+                    template_data,
                     batch_number,
                     sequence_number: batch_sequence_number,
                     action_code: source || null
                 });
 
-                if (!edi_file_claim_id) {
-                    errMsg = `Error occured at storing claim ${exa_claim_id} into edi file claims table...`;
+                if (!edi_file_claim_ids) {
+                    errMsg = `Error occured at storing claim ${exa_claim_ids} into edi file claims table...`;
                     errorObj.flag = true;
                     errorObj.errMsg = errMsg;
 
-                    return errorObj;
+                    return {
+                        err: errorObj
+                    };
                 }
 
                 const fileInfo = {
@@ -416,10 +496,10 @@ const wcbModule = {
                 };
 
                 await wcb.updateClaimsStatus({
-                    claimIds: [exa_claim_id],
+                    claimIds: exa_claim_ids,
                     statusCode: 'PP',
                     claimNote: 'Electronic claim has been submitted to WCB',
-                    userId: args.userId
+                    userId: userId
                 });
 
                 await wcb.updateEDIFile({
@@ -432,6 +512,7 @@ const wcbModule = {
                     encodedContent: outXml,
                     file_path: fullPath,
                     err: null,
+                    dir_path,
                     batch_number,
                     file_name,
                 };
@@ -440,11 +521,13 @@ const wcbModule = {
                 errorObj.errMsg = err || null;
 
                 logger.error(`Error occured while submitting the claims ${err}`);
-                return errorObj;
+                return {
+                    err: errorObj
+                };
             }
         });
 
-        let out = await Promise.all(files);
+        let data = await Promise.all(files);
 
         if (errorObj.flag) {
             logger.error(errorObj.errMsg);
@@ -454,15 +537,24 @@ const wcbModule = {
             };
         }
 
+        return {
+            dir_path,
+            data: data?.filter(obj => !_.isEmpty(obj?.encodedContent)) || []
+        };
+    },
+
+    generateZipFile: async (filesList, submission_code) => {
+        let errMsg = '';
+        const dir_path = filesList?.[0]?.dir_path || null;
         try {
             // writing the xml files into zip file
             const zip = new JSZip();
-            await out.map(function (obj, index) {
+            await filesList.map(function (obj, index) {
                 return zip.file(obj.file_name, obj.encodedContent);
             });
 
             let zipContent = '';
-            let zipFileName = `${submission_code}${batch_number}${moment().format('YYYYMMDD')}.zip`;
+            let zipFileName = `${submission_code}${moment().format('YYYYMMDDHHmmssmsSSS')}.zip`;
             let outputFilePath = `${dir_path}/${zipFileName}`;
 
             // generating the zip file
@@ -483,7 +575,6 @@ const wcbModule = {
                 err: errMsg
             };
         }
-
     }
 };
 

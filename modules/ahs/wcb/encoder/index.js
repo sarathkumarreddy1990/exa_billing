@@ -1,15 +1,13 @@
 'use strict';
 const _ = require('lodash');
 const builder = require('xmlbuilder');
-const fsPromises = require('fs/promises');
-const path = require('path');
 const { XML_ELEMENTS } = require('./constants');
-const xmlParser = require('xml2js').parseString;
 const {
     isArray,
     getFormattedValue
 } = require('../util');
 const logger = require('../../../../logger');
+const ahsData = require('../../../../server/data/ahs');
 
 const {
     XML_ROOT,
@@ -93,20 +91,26 @@ const bindArrayJson = (node, templateJson, data, templateName) => {
             break;
         case INVOICE_LINE_SEGMENT:
             arrData = templateJson || [];
+            const segment_data = isCorrectionTemplate ? arrData[1] : arrData[0];
 
-            for (let i = 0; i < arrData.length; i++) {
-                keysOrder = keysOrder || getObjKeys(arrData[i]);
+            data.charges?.forEach((charges_data, index) => {
+                charges_data.invoice_id = index + 1;
 
-                outputJson.push(
-                    isCorrectionTemplate && i % 2 === 0
-                        ? data.old_claim_data  // read old claim details from previously submitted file data
-                        : createNode(node, arrData[i], keysOrder, data, templateName) || null
-                );
-            }
+                if (isCorrectionTemplate) {
+                    const old_data = data.old_claim_data;
+                    outputJson = outputJson.concat(
+                        isArray(old_data)
+                            ? _.get(data, `old_claim_data[${index}]`)
+                            : old_data
+                    );
+                }
+                keysOrder = keysOrder || getObjKeys(segment_data);
+                outputJson.push(createNode(node, segment_data, keysOrder, charges_data, templateName) || null);
+            })
 
             break;
         case ATTACHMENT_SEGMENT:
-            let attachments = data?.attachments || [];
+            let attachments = [];
             let mandatoryFieldsCount = isCorrectionTemplate ? 3 : 4;
             let templateLength = templateJson.length;
 
@@ -117,6 +121,17 @@ const bindArrayJson = (node, templateJson, data, templateName) => {
 
                 keysOrder = keysOrder || getObjKeys(templateJson[i]);
                 outputJson.push(createNode(node, templateJson[i], keysOrder, data, templateName) || null);
+            }
+
+            for (let i = 0; i < data.charges?.length; i++) {
+                if (data.charges[i].attachments) {
+                    attachments = attachments.concat(data.charges[i].attachments);
+
+                    if (attachments.length >= 3) {
+                        attachments.splice(3, attachments.length);
+                        break;
+                    }
+                }
             }
 
             if (!isCorrectionTemplate) {
@@ -140,6 +155,22 @@ const bindArrayJson = (node, templateJson, data, templateName) => {
                         outputJson.push(createNode(node, templateJson[k], keysOrder, details, templateName) || null);
                     }
                 }
+            }
+
+            break;
+        case CONTENT_GRP_3:
+            arrData = data?.claims_data || [];
+            keysOrder = keysOrder || getObjKeys(singleTemplateJson);
+            for (let i = 0; i < arrData.length; i++) {
+                arrData[i] = {
+                    ...arrData[i],
+                    sender_application: data.sender_application,
+                    sender_facility: data.sender_facility,
+                    batch_number: data.batch_number,
+                    submitter_transaction_id: data.submitter_transaction_id,
+                    file_name: data.file_name
+                }
+                outputJson.push(createNode(node, singleTemplateJson, keysOrder, arrData[i], templateName) || null);
             }
 
             break;
@@ -288,7 +319,10 @@ const createXMLJson = (templateName, templateJson, inputJson) => {
         [FILE_TRAILER]: TRAILER_SEGMENT
     };
 
-    return outputJson;
+    return {
+        outputJson: outputJson,
+        claimsSegment: DATA_SEGMENT
+    };
 };
 
 /**
@@ -302,7 +336,7 @@ const createXMLJson = (templateName, templateJson, inputJson) => {
  * }
  */
 const encoder = async (templateName, i_json, data) => {
-    let outputJson = await createXMLJson(templateName, i_json, data);
+    let { outputJson, claimsSegment } = await createXMLJson(templateName, i_json, data);
     let output = builder.create(outputJson,
         {
             encoding: 'UTF-8',
@@ -318,6 +352,7 @@ const encoder = async (templateName, i_json, data) => {
 
     return {
         outXml: output,
+        claimsSegment,
         errors: []          // The XML content validation errors will be handled later
     };
 };
@@ -327,104 +362,54 @@ const encoder = async (templateName, i_json, data) => {
  * @param {Object} data 
  * @returns Object of the FT1 segment of previously submitted claim
  */
-const processOldData = async (data) => {
-    let {
-        claim_id,
-        root_directory,
-        file_path,
-        uploaded_file_name
-    } = data || {};
-
+const processOldData = async (claim_ids) => {
     let response = {
         error: null,
         old_data: null
     };
 
-    if (!claim_id) {
+    if (!claim_ids.length) {
         let errMsg = `No Claim # passed to fetch old claim details`;
         response.error = errMsg;
         return response;
     }
 
     try {
-        let dirPath = path.join(root_directory);
-        let dirStat = await fsPromises.stat(dirPath);
+        let correction_data = await ahsData.getCorrectionTemplateData(claim_ids);
 
-        if (!dirStat.isDirectory()) {
-            logger.error(`Error while reading old claim data in C570 template for claim # ${claim_id}...`);
-            return {
-                status: 100,
-                error: 'Directory not found in file store'
-            };
-        }
-
-        let filePath = path.join(file_path);
-        let fileStat = await fsPromises.stat(filePath);
-
-        if (!fileStat?.isFile()) {
-            return {
-                status: 100,
-                error: 'File not found in directory'
-            };
-        }
-
-        let fileContent = await fsPromises.readFile(filePath, 'utf8');
-
-        await xmlParser(fileContent, { explicitArray: false }, (err, result) => {
-
-            if (err) {
-                logger.error(err);
-                response.error = err;
-                return response;
-            };
-
-            if (!result || _.isEmpty(result[XML_ROOT])) {
-                let msg = `No data/root element found in the XML file..`;
-                response.error = msg;
-                logger.error(msg);
-                return response;
-            }
-
+        response.old_data = correction_data.map((charge) => {
             let {
-                [XML_ROOT]: {
-                    [CONTENT_NODE]: {
-                        [CONTENT_GRP_4]: {
-                            [CONTENT_LST_5]: {
-                                [CONTENT_GRP_3]: {
-                                    [CONTENT_GRP_2]: {
-                                        [CONTENT_LST_3]: {
-                                            [CONTENT_GRP_1]: {
-                                                [CONTENT_LST_1]: {
-                                                    FT1 = []
-                                                }
-                                            }
-                                        }
-                                    }
-                                }
+                [CONTENT_GRP_2]: {
+                    [CONTENT_LST_3]: {
+                        [CONTENT_GRP_1]: {
+                            [CONTENT_LST_1]: {
+                                FT1 = []
                             }
                         }
                     }
                 }
-            } = result || {};
-            let data = {};
+            } = charge.template_data
 
             if (_.isEmpty(FT1)) {
                 response.error = `No data found for previously submitted claim!`;
                 return response;
             }
 
-            data = isArray(FT1) && FT1.length > 1
-                ? FT1[1]    // get new claim data of previously submitted C570 template
-                : FT1       // get new claim data of previously submitted C568 template
+            if (!isArray(FT1)) {
+                FT1 = [FT1];
+            }
 
-            data[INVOICE_TYPE_CODE] = 'CG';
-            data[TRANSACTION_CODE] = '';
-            data[TRANSACTION_DESCRIPTION] = '';
-            data[ICD_LST_SEGMENT][ICD_POB_SEGMENT] = _.filter(data[ICD_LST_SEGMENT][ICD_POB_SEGMENT], (diagData) => diagData[ICD_CODE_SEGMENT] === 'DIAGCD');
+            return FT1.filter(data => {
+                if (!data[INVOICE_TYPE_CODE] || data[INVOICE_TYPE_CODE] === 'AJ') {
+                    data[INVOICE_TYPE_CODE] = 'CG';
+                    data[TRANSACTION_CODE] = '';
+                    data[TRANSACTION_DESCRIPTION] = '';
+                    data[ICD_LST_SEGMENT][ICD_POB_SEGMENT] = data[ICD_LST_SEGMENT][ICD_POB_SEGMENT]?.filter((diagData) => diagData[ICD_CODE_SEGMENT] === 'DIAGCD');
 
-            response.old_data = data;
-            return response;
-        });
+                    return true;
+                }
+            });
+        })
 
         return response;
     } catch (err) {
@@ -437,6 +422,18 @@ const processOldData = async (data) => {
     }
 };
 
+const processClaimSegments = (data) => {
+    let {
+        [CONTENT_GRP_4]: {
+            [CONTENT_LST_5]: {
+                [CONTENT_GRP_3]: claim_data
+            }
+        }
+    } = data || {};
+
+    return claim_data;
+};
+
 module.exports = {
     getObjKeys,
     bindArrayJson,
@@ -445,5 +442,6 @@ module.exports = {
     createNode,
     createXMLJson,
     encoder,
-    processOldData
+    processOldData,
+    processClaimSegments
 };
