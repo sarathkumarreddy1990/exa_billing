@@ -756,7 +756,7 @@ define(['jquery',
 
             refreshProviderCodes: function() {
                 this.providerIdCodesTable.refreshAll();
-                commonjs.showWarning("messages.status.reloadedSuccessfully");
+                commonjs.showStatus("messages.status.reloadedSuccessfully");
             },
 
             cancel: function () {
