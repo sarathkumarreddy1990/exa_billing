@@ -119,6 +119,11 @@ WITH payments_pdf as (
     <% if(notes) { %>
         AND bp.notes  ILIKE  '%<%=notes %>%'
     <%}%>
+
+    <% if (card_number) { %>
+        AND bp.card_number ILIKE '%<%= card_number %>%'
+    <%}%>
+
     ORDER BY
       payment_id DESC
     LIMIT
@@ -277,7 +282,8 @@ const api = {
             payment_amount:null,
             accountNo : null,
             notes : null,
-            countryFlag: null
+            countryFlag: null,
+            card_number: null
         };
 
         // company id
@@ -389,6 +395,10 @@ const api = {
 
             if (value == "notes") {
                 filters.notes = reportParams.filterData[i];
+            }
+
+            if (value === "card_number") {
+                filters.card_number = reportParams.filterData[i];
             }
         });
 
