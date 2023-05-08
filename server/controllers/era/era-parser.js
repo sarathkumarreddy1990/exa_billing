@@ -136,14 +136,16 @@ module.exports = {
                                 if (obj['groupCode' + j]) {
                                     grpCount = Math.max(grpCount, j);
                                 }
-                                let casGroupCode = obj['groupCode' + j] || obj['groupCode' + grpCount];
+                                const casReasonCode = obj['reasonCode' + j];
+                                const casGroupCode = obj['groupCode' + j] || obj['groupCode' + grpCount];
 
-                                if (obj['reasonCode' + j]
-                                    && cas_details.cas_reason_codes.some(val => val.code === obj['reasonCode' + j])
-                                    && cas_details.cas_group_codes.some(val => val.code === casGroupCode)) {
+                                if (casReasonCode
+                                    && cas_details.cas_reason_codes.some(val => val.code === casReasonCode)
+                                    && cas_details.cas_group_codes.some(val => val.code === casGroupCode)
+                                ) {
                                     const casObj = {};
                                     casObj['groupCode'] = casGroupCode;
-                                    casObj['reasonCode' + j] = obj['reasonCode' + j];
+                                    casObj['reasonCode' + j] = casReasonCode;
                                     casObj['monetaryAmount' + j] = obj['monetaryAmount' + j];
                                     validCAS.push(casObj);
                                 }
@@ -195,6 +197,7 @@ module.exports = {
                         *  DESC : Formatting cas details
                         */
                         let cas_obj = [];
+                        let isGroupDeniedStatus = false;
 
                         _.each(validCAS, function (cas) {
 
@@ -205,6 +208,9 @@ module.exports = {
                                 if (cas['reasonCode' + j]) {
                                     let reasoncode = _.filter(cas_details.cas_reason_codes, { code: cas['reasonCode' + j] });
 
+                                    if (cas.groupCode === 'PR' && cas['reasonCode' + j] === '96') {
+                                        isGroupDeniedStatus = true;
+                                    }
                                     cas_obj.push({
                                         group_code_id: groupcode && groupcode.length ? groupcode[0].id : null,
                                         reason_code_id: reasoncode && reasoncode.length ? reasoncode[0].id : null,
@@ -274,7 +280,8 @@ module.exports = {
                             duplicate: duplicate_flag,
                             is_debit: isDebit,
                             code: adjustment_code,
-                            claim_index: claim_index
+                            claim_index: claim_index,
+                            is_group_denied: isGroupDeniedStatus
                         });
                     });
 
@@ -363,7 +370,11 @@ module.exports = {
                 groupedLineItems = groupedLineItems.concat(reportingCharges);
             }
 
-            const is_denied_claim_status = items.some(val => val.payment === 0 && (val.adjustment === 0 || val.adjustment === val.bill_fee));
+            const is_denied_claim_status = items.some(val =>
+                (val.payment === 0
+                && (val.adjustment === 0 || val.adjustment === val.bill_fee))
+                || val.is_group_denied
+            );
 
             if (is_denied_claim_status) {
                 items = items.map(item => {

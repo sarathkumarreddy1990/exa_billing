@@ -38,7 +38,7 @@ const {
 
 /**
  * Used to return the array of keys in object
- * @param {Object} input 
+ * @param {Object} input
  * @returns Array of keys in object
  */
 const getObjKeys = (input) => {
@@ -47,10 +47,10 @@ const getObjKeys = (input) => {
 
 /**
  * Used to replace the values of template variables in Array of Object
- * @param {String} node 
- * @param {Object} templateJson 
- * @param {Object} data 
- * @param {String} templateName 
+ * @param {String} node
+ * @param {Object} templateJson
+ * @param {Object} data
+ * @param {String} templateName
  * @returns Formatted JSON object with replaced values
  */
 const bindArrayJson = (node, templateJson, data, templateName) => {
@@ -181,8 +181,8 @@ const bindArrayJson = (node, templateJson, data, templateName) => {
 
 /**
  * Used to replace the single template string with the given input value
- * @param {String} input 
- * @param {Object} data 
+ * @param {String} input
+ * @param {Object} data
  * @returns a Formatted value for the single template variable
  */
 const bindString = (input, data) => {
@@ -213,11 +213,11 @@ const bindString = (input, data) => {
 
 /**
  * Used to replace the values of template variables in Single Object
- * @param {Object} templateJson 
- * @param {Array} keysOrder 
- * @param {Object} data 
- * @param {Object} outputJson 
- * @param {String} templateName 
+ * @param {Object} templateJson
+ * @param {Array} keysOrder
+ * @param {Object} data
+ * @param {Object} outputJson
+ * @param {String} templateName
  * @returns Single object with template variables replaced by the input data
  */
 const bindSingleJson = (templateJson, keysOrder, data, outputJson, templateName) => {
@@ -268,10 +268,10 @@ const createNode = (node, templateJson, keysOrder, data, templateName) => {
 
 /**
  * Function used to form the JSON object for the XML content needs to be generated
- * @param {String} templateName 
- * @param {Object} templateJson 
- * @param {Object} inputJson 
- * @returns Complete JSON for the given XML template 
+ * @param {String} templateName
+ * @param {Object} templateJson
+ * @param {Object} inputJson
+ * @returns Complete JSON for the given XML template
  */
 const createXMLJson = (templateName, templateJson, inputJson) => {
     let templateKeys = getObjKeys(templateJson);
@@ -327,9 +327,9 @@ const createXMLJson = (templateName, templateJson, inputJson) => {
 
 /**
  * Encoder logic to generate the XML content from the formatted input JSON object
- * @param {String} templateName 
- * @param {Object} i_json 
- * @param {Object} data 
+ * @param {String} templateName
+ * @param {Object} i_json
+ * @param {Object} data
  * @returns Object {
  *  outXml - XML content as string,
  *  errors - XML errors
@@ -359,7 +359,7 @@ const encoder = async (templateName, i_json, data) => {
 
 /**
  * Function used to fetch the previous submitted claim
- * @param {Object} data 
+ * @param {Object} data
  * @returns Object of the FT1 segment of previously submitted claim
  */
 const processOldData = async (claim_ids) => {
