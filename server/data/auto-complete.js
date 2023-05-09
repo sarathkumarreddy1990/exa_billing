@@ -515,9 +515,10 @@ module.exports = {
         if (isCensus) {
             contactJoinQuery = ` LEFT JOIN LATERAL (
                 SELECT count(1) AS contact_count
-                FROM ordering_facility_contacts
-                WHERE ordering_facility_id = ordering_facilities.id
-                AND billing_type = 'census'
+                FROM ordering_facility_contacts ofc
+                WHERE ordering_facility_id = of.id
+                AND of.billing_type = 'census'
+                AND ofc.inactivated_dt IS NULL
             ) facility_count ON TRUE`;
 
             whereQuery += ` AND contact_count > 0`;
@@ -527,30 +528,34 @@ module.exports = {
             WITH get_ordering_facility_count AS (
                 SELECT
                     COUNT(1) AS total_records
-                FROM ordering_facilities`
+                FROM ordering_facilities of
+                INNER JOIN ordering_facility_contacts ofc ON of.id = ofc.id`
                 .append(contactJoinQuery)
                 .append(`
-                WHERE deleted_dt IS NULL
-                AND inactivated_dt IS NULL
-                AND company_id = ${company_id}`
+                WHERE of.deleted_dt IS NULL
+                    AND of.inactivated_dt IS NULL
+                    AND ofc.inactivated_dt IS NULL
+                    AND of.company_id = ${company_id}`
                 )
             .append(whereQuery)
             .append(`
             )
             SELECT
-                id
-                , code AS ordering_facility_code
-                , name AS ordering_facility_name
-                , inactivated_dt
-                , company_id
+                of.id
+                , of.code AS ordering_facility_code
+                , of.name AS ordering_facility_name
+                , of.inactivated_dt
+                , of.company_id
                 , gofc.total_records
-            FROM ordering_facilities
+            FROM ordering_facilities of
+            INNER JOIN ordering_facility_contacts ofc ON of.id = ofc.id
             INNER JOIN get_ordering_facility_count gofc ON TRUE`)
             .append(contactJoinQuery)
             .append(`
-            WHERE deleted_dt IS NULL
-            AND inactivated_dt IS NULL
-            AND company_id = ${company_id}
+			WHERE  of.deleted_dt IS NULL
+                AND of.inactivated_dt IS NULL
+                AND ofc.inactivated_dt IS NULL
+                AND of.company_id = ${company_id}
             ${whereQuery} `);
 
         sql.append(`
@@ -614,7 +619,7 @@ module.exports = {
             FROM public.ordering_facility_contacts pofc
             INNER JOIN public.ordering_facilities pof ON pof.id = pofc.ordering_facility_id AND pof.deleted_dt IS NULL
             INNER JOIN get_ordering_facility_contacts_count gofc ON TRUE
-            LEFT JOIN ordering_facility_types oft ON oft.id = pofc.ordering_facility_type_id 
+            LEFT JOIN ordering_facility_types oft ON oft.id = pofc.ordering_facility_type_id
             WHERE pofc.inactivated_dt IS NULL
                 AND pof.inactivated_dt IS NULL
                 AND pof.company_id = ${company_id}`)
