@@ -92,7 +92,6 @@ module.exports = {
                                           SET `;
 
         sql.append(updateData);
-
         sql.append(SQL` WHERE  id = ANY(${claimIds}) AND NOT EXISTS (
                                     SELECT id
                                     FROM billing.claims bc
