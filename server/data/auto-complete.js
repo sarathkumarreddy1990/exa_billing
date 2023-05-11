@@ -503,7 +503,8 @@ module.exports = {
             pageSize,
             page,
             q,
-            isCensus
+            isCensus,
+            hideInactive
         } = args;
         let whereQuery = '';
         let contactJoinQuery = '';
@@ -513,12 +514,16 @@ module.exports = {
         }
 
         if (isCensus) {
+            const inactiveQuery = hideInactive === 'true'
+                ? 'AND ofc.inactivated_dt IS NULL'
+                : '';
+
             contactJoinQuery = ` LEFT JOIN LATERAL (
                 SELECT count(1) AS contact_count
                 FROM ordering_facility_contacts ofc
                 WHERE ordering_facility_id = of.id
-                AND of.billing_type = 'census'
-                AND ofc.inactivated_dt IS NULL
+                AND ofc.billing_type = 'census'
+                ${inactiveQuery}
             ) facility_count ON TRUE`;
 
             whereQuery += ` AND contact_count > 0`;
@@ -529,7 +534,7 @@ module.exports = {
                 SELECT
                     COUNT(1) AS total_records
                 FROM ordering_facilities of
-                INNER JOIN ordering_facility_contacts ofc ON of.id = ofc.id`
+                INNER JOIN ordering_facility_contacts ofc ON of.id = ofc.ordering_facility_id`
                 .append(contactJoinQuery)
                 .append(`
                 WHERE of.deleted_dt IS NULL

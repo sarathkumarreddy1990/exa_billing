@@ -35,6 +35,7 @@ define(['jquery',
                 'click #btnSelectAllCensus': 'checkAll',
                 'click #btnClearAllCensus': 'clearAllChk',
                 'change #ddlOrdFacility': 'loadOrderingFacilityNotes',
+                'change #toggleInactiveOFLocations': 'refreshCensusGrid',
                 'click #btnSaveNotes': 'saveOrderingFacilityNotes',
                 'click #btnCreateClaim': 'updateBillingType',
                 'click #btnValidateExportCensus': 'exportCensus'
@@ -64,6 +65,15 @@ define(['jquery',
                 commonjs.processPostRender();
             },
 
+            /**
+             * refreshCensusGrid - used to set custom args and refreshing the census grid
+             */
+            refreshCensusGrid: function () {
+                var self = this;
+                self.setCustomArgs();
+                self.censusTable.refresh();
+            },
+
             setOrderingFacilityAutoComplete: function () {
                 var self = this;
                 $('#ddlOrdFacility').select2({
@@ -79,7 +89,8 @@ define(['jquery',
                                 sortField: "name",
                                 sortOrder: "ASC",
                                 company_id: app.companyID,
-                                isCensus: true
+                                isCensus: true,
+                                hideInactive: $('#toggleInactiveOFLocations').is(':checked')
                             };
                         },
                         processResults: function (data, params) {
@@ -87,9 +98,10 @@ define(['jquery',
                         },
                         cache: true
                     },
-                    placeholder: 'Ordering Facility',
-                    escapeMarkup: function (markup) { return markup; }, // let our custom formatter work
+                    allowClear: true,
                     minimumInputLength: 0,
+                    placeholder: commonjs.geti18NString('billing.payments.selectOrderingFacility'),
+                    escapeMarkup: function (markup) { return markup; }, // let our custom formatter work
                     templateResult: formatRepo,
                     templateSelection: formatRepoSelection
                 });
@@ -112,8 +124,9 @@ define(['jquery',
             },
 
             dateFormatter: function (value, data) {
-                return commonjs.checkNotEmpty(value) ?
-                    commonjs.convertToFacilityTimeZone(app.default_facility_id, value).format('L LT z') : '';
+                return commonjs.checkNotEmpty(value)
+                    ? commonjs.convertToFacilityTimeZone(app.default_facility_id, value).format('L LT z')
+                    : '';
             },
 
             /**
@@ -139,10 +152,12 @@ define(['jquery',
             },
 
             setCustomArgs: function () {
-                var self = this;
-                $('#tblGridCensus').jqGrid("setGridParam", {customargs: {
-                    orderingFacilityId: $('#ddlOrdFacility').val()
-                }});
+                $('#tblGridCensus').jqGrid("setGridParam", {
+                    customargs: {
+                        orderingFacilityId: $('#ddlOrdFacility').val(),
+                        hideInactive: $('#toggleInactiveOFLocations').is(':checked')
+                    }
+                });
             },
 
             showCensusGrid: function () {
@@ -242,6 +257,7 @@ define(['jquery',
                     pager: '#gridPager_census',
                     customargs: {
                         orderingFacilityId: $('#ddlOrdFacility').val(),
+                        hideInactive: $('#toggleInactiveOFLocations').is(':checked')
                     },
                     beforeSearch: function () {
                         self.setCustomArgs();
@@ -324,8 +340,7 @@ define(['jquery',
                                 var editor = tinymce.get('txtNotesEditor');
                                 editor.setContent((response.result[0] && response.result[0].note) || '');
                                 editor.setDirty(false);
-                                self.censusTable.options.customargs.orderingFacilityId = orderingFacilityId;
-                                self.censusTable.refresh();
+                                self.refreshCensusGrid();
                             } else {
                                 editor.setContent('');
                             }
