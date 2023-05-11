@@ -507,7 +507,6 @@ module.exports = {
             hideInactive
         } = args;
         let whereQuery = '';
-        let contactJoinQuery = '';
 
         if (q) {
             whereQuery += ` AND (code ILIKE '%${q}%' OR name ILIKE '%${q}%' ) `;
@@ -518,35 +517,26 @@ module.exports = {
                 : '';
 
         if (isCensus) {
-            contactJoinQuery = ` LEFT JOIN LATERAL (
-                SELECT count(1) AS contact_count
-                FROM ordering_facility_contacts ofc
-                WHERE ordering_facility_id = of.id
-                AND ofc.billing_type = 'census'
-                ${inactiveQuery}
-            ) facility_count ON TRUE`;
-
-            whereQuery += ` AND contact_count > 0`;
+            whereQuery += `AND ofc.billing_type = 'census'`;
         }
 
         const sql = SQL`
             WITH get_ordering_facility_count AS (
                 SELECT
-                    COUNT(1) AS total_records
+                    COUNT(DISTINCT of.id) AS total_records
                 FROM ordering_facilities of
                 INNER JOIN ordering_facility_contacts ofc ON of.id = ofc.ordering_facility_id`
-                .append(contactJoinQuery)
                 .append(`
                 WHERE of.deleted_dt IS NULL
                     AND of.inactivated_dt IS NULL
-                    ${inactiveQuery} 
+                    ${inactiveQuery}
                     AND of.company_id = ${company_id}`
                 )
             .append(whereQuery)
             .append(`
             )
             SELECT
-                of.id
+                DISTINCT of.id
                 , of.code AS ordering_facility_code
                 , of.name AS ordering_facility_name
                 , of.inactivated_dt
@@ -555,7 +545,6 @@ module.exports = {
             FROM ordering_facilities of
             INNER JOIN ordering_facility_contacts ofc ON of.id = ofc.ordering_facility_id
             INNER JOIN get_ordering_facility_count gofc ON TRUE`)
-            .append(contactJoinQuery)
             .append(`
 			WHERE  of.deleted_dt IS NULL
                 AND of.inactivated_dt IS NULL

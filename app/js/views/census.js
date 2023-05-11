@@ -69,9 +69,8 @@ define(['jquery',
              * refreshCensusGrid - used to set custom args and refreshing the census grid
              */
             refreshCensusGrid: function () {
-                var self = this;
-                self.setCustomArgs();
-                self.censusTable.refresh();
+                this.setCustomArgs();
+                this.censusTable.refresh();
             },
 
             setOrderingFacilityAutoComplete: function () {
