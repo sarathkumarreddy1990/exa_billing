@@ -15,7 +15,8 @@ module.exports = {
             filterCol,
             filterData,
             customArgs: {
-                orderingFacilityId
+                orderingFacilityId,
+                hideInactive
             } = {}
         } = args;
 
@@ -56,6 +57,10 @@ module.exports = {
 
         if (orderingFacilityId) {
             defaultWhere += ` AND pof.id = ${orderingFacilityId} `;
+        }
+
+        if (hideInactive === 'true') {
+            defaultWhere += `AND pofc.inactivated_dt IS NULL`;
         }
 
         args.filterQuery = await filterValidator.generateQuery(colModel, filterCol, filterData, {defaultwherefilter: defaultWhere});
