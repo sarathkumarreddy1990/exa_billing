@@ -513,11 +513,11 @@ module.exports = {
             whereQuery += ` AND (code ILIKE '%${q}%' OR name ILIKE '%${q}%' ) `;
         }
 
-        if (isCensus) {
-            const inactiveQuery = hideInactive === 'true'
+        const inactiveQuery = hideInactive === 'true' || !isCensus
                 ? 'AND ofc.inactivated_dt IS NULL'
                 : '';
 
+        if (isCensus) {
             contactJoinQuery = ` LEFT JOIN LATERAL (
                 SELECT count(1) AS contact_count
                 FROM ordering_facility_contacts ofc
@@ -539,7 +539,7 @@ module.exports = {
                 .append(`
                 WHERE of.deleted_dt IS NULL
                     AND of.inactivated_dt IS NULL
-                    AND ofc.inactivated_dt IS NULL
+                    ${inactiveQuery} 
                     AND of.company_id = ${company_id}`
                 )
             .append(whereQuery)
@@ -553,13 +553,13 @@ module.exports = {
                 , of.company_id
                 , gofc.total_records
             FROM ordering_facilities of
-            INNER JOIN ordering_facility_contacts ofc ON of.id = ofc.id
+            INNER JOIN ordering_facility_contacts ofc ON of.id = ofc.ordering_facility_id
             INNER JOIN get_ordering_facility_count gofc ON TRUE`)
             .append(contactJoinQuery)
             .append(`
 			WHERE  of.deleted_dt IS NULL
                 AND of.inactivated_dt IS NULL
-                AND ofc.inactivated_dt IS NULL
+                ${inactiveQuery}
                 AND of.company_id = ${company_id}
             ${whereQuery} `);
 
