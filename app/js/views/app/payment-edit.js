@@ -2586,6 +2586,7 @@ define(['jquery',
                         _line_item["paymentAppliedDt"] = chargeRow.attr('data_payment_applied_dt');
                         _line_item["payment"] = objIsPayInFull ? balance + parseFloat(this_pay) : parseFloat(this_pay);
                         _line_item["adjustment"] = chargeRow.find('.payment__this_adjustment').val() ? parseFloat(chargeRow.find('.payment__this_adjustment').val()) : 0.00;
+                        _line_item["balance"] = objIsPayInFull ? 0 : balance;
 
                         var _cas = cas.filter(function (obj) {
                             return obj.charge_id == chargeRow.attr('data_charge_id_id')
@@ -2601,6 +2602,7 @@ define(['jquery',
                     */
                     var totalPayment = _.reduce(line_items,function(m,x) { return m + x.payment; }, 0);
                     var totalAdjustment = _.reduce(line_items,function(m,x) { return m + x.adjustment; }, 0);
+                    var totalClaimBalance = _.reduce(line_items, function(m, x) { return m + x.balance; }, 0);
 
                     if (!self.overPaymentValidation()) {
                         return false;
@@ -2615,6 +2617,7 @@ define(['jquery',
                     var claimStatus = _.filter(self.claimStatuses.toJSON(), { id: self.received_claim_status_id });
                     var oldClaimStatus = claimStatus.length && claimStatus[0].code || '';
                     var isClaimStatusChanged = self.received_claim_status_id != $('#ddlClaimStatus').val();
+                    var claimStatusIndex = ['PV', 'PS', 'PP'].indexOf(oldClaimStatus);
 
                     if (totalPayment === 0 && totalAdjustment === 0 && paymentPayerType !=='patient') {
                         var deniedStatus = _.filter(self.claimStatuses.toJSON(), { code: 'D' });
@@ -2629,23 +2632,22 @@ define(['jquery',
                     var deduction = $('#txtDeduction').val();
                     var coInsurance = $('#txtCoInsurance').val();
                     var coPay = $('#txtCoPay').val();
-                    var claimStatusID = self.received_claim_status_id != $('#ddlClaimStatus').val() ? $('#ddlClaimStatus').val()
-                        : isClaimDenied ? $('#ddlClaimStatus').val() : 0;
-                    var totalClaimBalance = self.currentOrderBalance && parseFloat(self.currentOrderBalance.replace('$', ''));
-                    var isClaimBalance = true;
+                    var claimStatusID = (isClaimStatusChanged || isClaimDenied)
+                        ? $('#ddlClaimStatus').val()
+                        : 0;
+                    var isClaimBalance = totalClaimBalance > 0; // verify the claim has balance after current (payment & adjustment)
+                    var preventClaimStatusUpdate = false;
+                    var preventPayerTypeUpdate = false;
 
-                    if (totalClaimBalance >= 0 && totalPayment >= totalClaimBalance) {
-                        isClaimBalance = false;
-                    }
-
-                    var isResponsibleChanged = (
+                    if ($('#ddlClaimResponsible').val() === 'PSF' || 
                         (paymentPayerType === 'patient'
-                            && isPayerChanged === 'false'
+                            && claimStatusIndex > -1
                             && !isClaimStatusChanged
-                            && isClaimBalance
                         )
-                        || $('#ddlClaimResponsible').val() === 'PSF'
-                    );
+                    ) {
+                        preventPayerTypeUpdate = isPayerChanged === 'false' && self.currentResponsible !== 'patient';
+                        preventClaimStatusUpdate = self.currentResponsible !== 'patient';
+                    }
 
                     commonjs.showLoading();
                     targetObj.attr('disabled', true);
@@ -2667,11 +2669,11 @@ define(['jquery',
                             adjustmentId: adjustmentType,
                             paymentStatus: paymentStatus,
                             casDeleted: JSON.stringify(self.casDeleted),
-                            claimStatusID: !isClaimStatusChanged && isClaimBalance && paymentPayerType === 'patient' ? self.received_claim_status_id : claimStatusID,
+                            claimStatusID: preventClaimStatusUpdate ? self.received_claim_status_id : claimStatusID,
                             is_payerChanged: isPayerChanged === 'true' && $('#ddlClaimResponsible').val() !== 'PSF',
                             is_claimDenied: isClaimDenied,
                             isFromClaim: self.isFromClaim,
-                            changeResponsibleParty : isResponsibleChanged
+                            changeResponsibleParty : !preventPayerTypeUpdate
                         },
                         success: function (model, response) {
                             var msg = self.isFromClaim ? commonjs.geti18NString('messages.status.tosSuccessfullyCompleted') :
