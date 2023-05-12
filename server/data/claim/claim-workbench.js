@@ -92,14 +92,23 @@ module.exports = {
                                           SET `;
 
         sql.append(updateData);
-        sql.append(SQL` WHERE  id = ANY(${claimIds}) AND NOT EXISTS (
-                                    SELECT id
-                                    FROM billing.claims bc
-                                    WHERE
-                                    bc.id = ANY(${claimIds})
-                                    AND `);
-        sql.append(updateData);
-        sql.append(`) RETURNING id, '{}'::jsonb old_values)`);
+        sql.append(SQL`
+            WHERE
+                id = ANY(${claimIds})
+                AND NOT EXISTS (
+                    SELECT id
+                    FROM billing.claims bc
+                    WHERE
+                        bc.id = ANY(${claimIds})
+                        AND `)
+                        .append(updateData)
+                        .append(`
+                )
+            RETURNING
+                id,
+                '{}'::jsonb old_values
+            )
+        `);
 
         sql.append(SQL`SELECT billing.create_audit(
                                   ${companyId}
