@@ -641,8 +641,7 @@ module.exports = {
                             ),
                             change_responsible_party AS (
                                     SELECT billing.update_claim_responsible_party(${params.claimId},0,${params.companyId},null, ${params.claimStatusID}, ${is_payerChanged}, ${paymentId}, null) AS result
-                                    WHERE
-                                        NOT ${params.changeResponsibleParty}
+                                    WHERE ${params.changeResponsibleParty}
                             ),
                             create_audit_study_status AS (
                                 SELECT billing.create_audit(
@@ -816,8 +815,7 @@ module.exports = {
                             RETURNING *, '{}'::jsonb old_values),
                             change_responsible_party AS (
                                     SELECT billing.update_claim_responsible_party(${params.claimId},0,${params.companyId},null, ${params.claimStatusID}, ${params.is_payerChanged}, ${params.paymentId}, null) AS result
-                                    WHERE
-                                        NOT ${params.changeResponsibleParty}
+                                    WHERE ${params.changeResponsibleParty}
 
                             ),
                         update_cas_application AS(
