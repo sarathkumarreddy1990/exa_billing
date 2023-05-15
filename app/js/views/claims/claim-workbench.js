@@ -919,6 +919,10 @@ define(['jquery',
                     commonjs.showWarning('messages.status.pleaseSelectValidClaimsMethod');
                 } else if (data && data.isMultipleInsurances) {
                     commonjs.showWarning('messages.warning.claims.multipleInsurancesForSubmission');
+                } else if (data && data.isFolderNotExists) {
+                    commonjs.showWarning('messages.warning.claims.ahsFolderNotFound');
+                } else if (data && data.isConnectionFailed) {
+                    commonjs.showWarning('messages.warning.claims.ahsConnectionFailed');
                 } else if (data.validationMessages && data.validationMessages.length) {
                     var responseTemplate = _.template(validationTemplate);
 
@@ -936,6 +940,7 @@ define(['jquery',
                     commonjs.showWarning(data.err);
                 } else {
                     commonjs.showStatus('messages.status.claimSubmitted');
+                    this.refreshClaims(true);
                 }
 
             },

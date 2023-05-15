@@ -936,7 +936,7 @@ module.exports = {
 							, bpr_code[3] AS bpr_modality
 							, bprov.npi_no AS billing_provider_npi
 						FROM string_to_array(bprov.code, ' ') bpr_code
-						WHERE 
+						WHERE
 							bpr_code[3] = 'US' AND facilities.facility_info->'facility_state' = bpr_code[2]
 							AND insurance_provider_details.claim_filing_indicator_code = 'MB'
 							AND (ARRAY['93306', '93308'] && bp_charges.cpt_array)

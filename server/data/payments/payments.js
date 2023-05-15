@@ -1195,7 +1195,7 @@ module.exports = {
             sql = SQL` SELECT
                     studies.id
                     , studies.accession_no
-                    , studies.study_description
+                    , cc.study_description
                     , studies.study_dt
                     , studies.facility_id
                     , cc.cpt_code
@@ -1204,8 +1204,10 @@ module.exports = {
                 JOIN LATERAL(
                     SELECT
                         study_id
-                        , ARRAY_AGG(scp.cpt_code) AS cpt_code
+                        , ARRAY_AGG(scp.cpt_code ORDER BY scp.id) AS cpt_code
+                        , ARRAY_AGG(' ' || cc.short_description ORDER BY scp.id) AS study_description
                     FROM study_cpt scp
+                    INNER JOIN cpt_codes cc ON cc.id = scp.cpt_code_id
                     WHERE scp.deleted_dt IS NULL
                     GROUP BY study_id
                 ) cc ON cc.study_id = studies.id
@@ -1225,7 +1227,7 @@ module.exports = {
             }
     
             if (study_description) {
-                sql.append(SQL` AND study_description ~* ${study_description}`);
+                sql.append(SQL` AND ARRAY_TO_STRING(cc.study_description, ', ') ~* ${study_description}`);
             }
     
             if (cpt_code) {

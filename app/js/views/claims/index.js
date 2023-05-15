@@ -798,9 +798,16 @@ define(['jquery',
                                     is_deleted: false,
                                     cpt_id: obj.cpt_id
                                 });
-                                if ( app.billingRegionCode === 'can_AB' ) {
+
+                                if (app.billingRegionCode === 'can_AB'
+                                    && claimDetails.billing_method === 'electronic_billing'
+                                    && claimDetails.p_insurance_code.toLowerCase() !== 'wcb') {
+
                                     if ( obj.can_ahs_referral_code ) {
-                                        self.referralCodesList.push(self.referralCodesMap[ obj.can_ahs_referral_code ]);
+                                        self.referralCodesList.push({
+                                            cpt_code: obj.cpt_code,
+                                            can_ahs_referral_code: self.referralCodesMap[obj.can_ahs_referral_code]
+                                        });
                                     }
                                     if ( obj.can_ahs_supporting_text_required ) {
                                         self.supportingTextRequired = true;
@@ -972,7 +979,10 @@ define(['jquery',
                                 }
 
                                 if ( app.province_alpha_2_code === 'AB' ) {
-                                    $('#referralCodeText').html(self.referralCodesList.join('<br />'));
+                                    var referralCodes = self.referralCodesList.map(function (code) {
+                                        return code.can_ahs_referral_code + ' (' + code.cpt_code + ')'
+                                    });
+                                    $('#referralCodeText').html(referralCodes.join('<br />'));
                                     if ( self.supportingTextRequired ) {
                                         $('#lblSupportingText').addClass('field-required');
                                         $('#txtSupportingText').attr('required', 'required');
@@ -2370,6 +2380,9 @@ define(['jquery',
                     }
                 }
 
+                if (app.billingRegionCode === 'can_AB' && index >= 25) {
+                    return commonjs.showWarning("messages.warning.claims.maxChargeLimit");
+                }
                 self.bindModifiersData(_rowObj);
 
                 self.addLineItems(_rowObj, _rowObj.data_row_id, false);
@@ -4425,13 +4438,13 @@ define(['jquery',
                                 commonjs.showWarning(response.message);
                                 $claimProcess.prop('disabled', false);
                             } else {
+                                var result = _.get(response, '[0].result');
 
                                 if (self.isEdit) {
-                                    self.claim_row_version = response && response.length && response[0].result ? response[0].result : null;
+                                    self.claim_row_version = result || null;
                                 } else {
-                                    self.claim_Id = response && response.length && response[0].result ? response[0].result : null
+                                    self.claim_Id = (_.isArray(result) ? result[0] : result) || null;
                                 }
-
                                 var tblID = self.options && self.options.grid_id || '';
                                     tblID = tblID.replace(/#/, '');
 

@@ -774,14 +774,25 @@ module.exports = {
         return !_.isEmpty(value);
     },
 
+
+    validateClaimJson: function (field, claimData, skipValidation, errorMessages) {
+        if (['calls', 'health_service_code', 'fee_submitted', 'service_date'].includes(field)) {
+            claimData?.charges_details?.forEach(cd => {
+                if (!cd[field]) {
+                    errorMessages.push(` Charges - ${field} does not exist for cpt_code ${cd.health_service_code}`);
+                }
+            });
+        } else if (!(field === 'provider_prid' && skipValidation) && !this.validateFields(field, claimData[field])) {
+            errorMessages.push(` Claim - ${field} does not exists`);
+        }
+    },
+
     ahsClaimValidation: async function (params) {
-
+        let self = this;
         let claimDetails = await ahsData.getClaimsData({ claimIds: params.claim_ids });
-
         let file_path = path.join(__dirname, '../../resx/ahs-claim-validation-fields.json');
         let valdationClaimJson = await readFileAsync(file_path, 'utf8');
         valdationClaimJson = JSON.parse(valdationClaimJson);
-
         let billingMethod = claimDetails?.[0]?.billing_method || '';
 
         if (['patient_payment', 'direct_billing'].indexOf(billingMethod) > -1) {
@@ -817,26 +828,17 @@ module.exports = {
 
                 let skipValidation = insurance_code === 'ahs' && claimData.oop_referral_indicator === 'Y';
                 _.each(validationFields, (fieldValue, field) => {
-
                     if (fieldValue) {
                         if (typeof fieldValue === 'object') {
                             if (claimData[field]) {
                                 _.each(fieldValue, (data, dataField) => {
                                     if (data) {
-                                        dataField === 'provider_prid' && skipValidation
-                                            ? null
-                                            : !this.validateFields(dataField, claimData[dataField])
-                                                ? errorMessages.push(` Claim - ${dataField} does not exists`)
-                                                : null;
+                                        self.validateClaimJson(dataField, claimData, skipValidation, errorMessages);
                                     }
                                 });
                             }
                         } else {
-                            field === 'provider_prid' && skipValidation
-                                ? null
-                                : !this.validateFields(field, claimData[field])
-                                    ? errorMessages.push(` Claim - ${field} does not exists`)
-                                    : null;
+                            self.validateClaimJson(field, claimData, skipValidation, errorMessages);
                         }
                     }
                 });
