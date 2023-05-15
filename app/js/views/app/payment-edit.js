@@ -2626,7 +2626,7 @@ define(['jquery',
                     }
 
                     var payerType = $('#ddlResponsible').find(':selected').attr('data-payer_type');
-                    var isPayerChanged = $('#ddlResponsible').find(':selected').attr('is_edit');
+                    var isPayerChanged = $('#ddlResponsible').find(':selected').attr('is_edit') === 'true';
                     var adjustmentType = $('#ddlAdjustmentCode_fast').val() || null;
                     var billingNotes = $('#txtResponsibleNotes').val();
                     var deduction = $('#txtDeduction').val();
@@ -2635,18 +2635,17 @@ define(['jquery',
                     var claimStatusID = (isClaimStatusChanged || isClaimDenied)
                         ? $('#ddlClaimStatus').val()
                         : 0;
-                    var isClaimBalance = totalClaimBalance > 0; // verify the claim has balance after current (payment & adjustment)
+
                     var preventClaimStatusUpdate = false;
                     var preventPayerTypeUpdate = false;
+                    var isClaimOverPaid = totalClaimBalance < 0; // verify claim balance after current (payment & adjustment)
+                    var claimPayerType = ['primary_insurance', 'secondary_insurance', 'tertiary_insurance'].includes(self.currentResponsible) 
+                        ? 'insurance'
+                        : self.currentResponsible;
 
-                    if ($('#ddlClaimResponsible').val() === 'PSF' || 
-                        (paymentPayerType === 'patient'
-                            && claimStatusIndex > -1
-                            && !isClaimStatusChanged
-                        )
-                    ) {
-                        preventPayerTypeUpdate = isPayerChanged === 'false' && self.currentResponsible !== 'patient';
-                        preventClaimStatusUpdate = self.currentResponsible !== 'patient';
+                    if (paymentPayerType !== claimPayerType || $('#ddlClaimResponsible').val() === 'PSF') {
+                        preventPayerTypeUpdate = !isPayerChanged || isClaimOverPaid;
+                        preventClaimStatusUpdate = !isClaimStatusChanged;
                     }
 
                     commonjs.showLoading();
@@ -2670,7 +2669,7 @@ define(['jquery',
                             paymentStatus: paymentStatus,
                             casDeleted: JSON.stringify(self.casDeleted),
                             claimStatusID: preventClaimStatusUpdate ? self.received_claim_status_id : claimStatusID,
-                            is_payerChanged: isPayerChanged === 'true' && $('#ddlClaimResponsible').val() !== 'PSF',
+                            is_payerChanged: isPayerChanged && $('#ddlClaimResponsible').val() !== 'PSF',
                             is_claimDenied: isClaimDenied,
                             isFromClaim: self.isFromClaim,
                             changeResponsibleParty : !preventPayerTypeUpdate
