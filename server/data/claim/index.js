@@ -1288,6 +1288,7 @@ module.exports = {
                             ,fac_prov_cont.id AS rendering_provider_contact_id
                             ,fac_prov.full_name AS rendering_provider_full_name
                             ,f.place_of_service_id AS fac_place_of_service_id
+                            ,pofc.place_of_service_id AS ord_fac_place_of_service_id
                             ,pos_map.more_info -> 'pos_dispatching_address' AS pos_map_code
                             ,(
                                 SELECT
