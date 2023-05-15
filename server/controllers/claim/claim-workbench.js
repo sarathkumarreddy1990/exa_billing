@@ -87,8 +87,14 @@ module.exports = {
         return data.getData(params);
     },
 
-    updateClaimStatus: function (params) {
-        return data.updateClaimStatus(params);
+    updateClaimStatus: async function (params) {
+        let response = await data.updateClaimStatus(params);
+
+        if (response && response.rowCount == 0) {
+            return response = {'rows': [{status : 'exist'}]};
+        } else {
+            return response;
+        }
     },
 
     getClaimObject: async function (params) {
