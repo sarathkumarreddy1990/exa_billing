@@ -2816,46 +2816,51 @@ define(['jquery',
             },
 
             changeFeeData: function (e) {
-                var self = this, total_bill_fee = 0.0, total_allowed = 0.0, patient_paid = 0.0, others_paid = 0.0, refund = 0.0, adjustemnt_amout = 0.0;
-                if (!commonjs.checkNotEmpty($(e.target || e.srcElement).val()))
-                    $(e.target || e.srcElement).hasClass('units') ? $(e.target || e.srcElement).val('1.000') : $(e.target || e.srcElement).val('0.00');
-                if (commonjs.checkNotEmpty($(e.target || e.srcElement).val()) && !$(e.target || e.srcElement).hasClass('units')) {
+                var total_bill_fee = 0.0;
+                var total_allowed = 0.0;
+                var patient_paid = 0.0;
+                var others_paid = 0.0;
+
+                if (!commonjs.checkNotEmpty($(e.target || e.srcElement).val())) {
+                    $(e.target || e.srcElement).hasClass('units')
+                        ? $(e.target || e.srcElement).val('1.000')
+                        : $(e.target || e.srcElement).val('0.00');
+                }
+
+                if (commonjs.checkNotEmpty($(e.target || e.srcElement).val()) &&
+                    !$(e.target || e.srcElement).hasClass('units')) {
                     var billingNumber = $(e.target || e.srcElement).val()
                     $(e.target || e.srcElement).val(parseFloat(billingNumber).toFixed(2));
                 }
+
                 var rowID = $(e.target || e.srcElement).closest('tr').attr('data_row_id');
                 var totalBillFee = parseFloat($('#txtUnits_' + rowID).val()) * parseFloat($('#txtBillFee_' + rowID).val());
                 $('#txtTotalBillFee_' + rowID).val(totalBillFee.toFixed(2));
 
-                if(app.country_alpha_3_code !== 'can'){
-                    var totalAllowedFee = parseFloat($('#txtUnits_' + rowID).val()) * parseFloat($('#txtAllowedFee_' + rowID).val());
-                    $('#txtTotalAllowedFee_' + rowID).val(totalAllowedFee.toFixed(2));
-                }
+                var totalAllowedFee = parseFloat($('#txtUnits_' + rowID).val()) * parseFloat($('#txtAllowedFee_' + rowID).val());
+                $('#txtTotalAllowedFee_' + rowID).val(totalAllowedFee.toFixed(2));
 
                 $("#tBodyCharge").find("tr").each(function (index) {
                     var $totalbillFee = $(this).find("#txtTotalBillFee_" + index);
                     var thisTotalBillFee = $totalbillFee.val() || 0.00;
                     total_bill_fee = total_bill_fee + parseFloat(thisTotalBillFee);
 
-                    if(app.country_alpha_3_code !== 'can'){
-                        var $totalAllowedFee = $(this).find("#txtTotalAllowedFee_" + index);
-                        var thisTotalAllowed = $totalAllowedFee.val() || 0.00;
-                        total_allowed = total_allowed + parseFloat(thisTotalAllowed);
-                    }
+                    var $totalAllowedFee = $(this).find("#txtTotalAllowedFee_" + index);
+                    var thisTotalAllowed = $totalAllowedFee.val() || 0.00;
+                    total_allowed = total_allowed + parseFloat(thisTotalAllowed);
                 });
+
                 var patient_paid = parseFloat($('#spPatientPaid').text());
                 var others_paid = parseFloat($('#spOthersPaid').text());
                 var refund_amount = parseFloat($('#spRefund').text());
                 var adjustment_amount = parseFloat($('#spAdjustment').text());
+                var balance = total_bill_fee - (patient_paid + others_paid + adjustment_amount + refund_amount);
+
                 $('#spTotalBillFeeValue').text(commonjs.roundFee(total_bill_fee));
                 $('#spBillFee').text(commonjs.roundFee(total_bill_fee));
-                var balance = total_bill_fee - (patient_paid + others_paid + adjustment_amount + refund_amount);
                 $('#spBalance').text(commonjs.roundFee(balance));
-
-                if(app.country_alpha_3_code !== 'can'){
-                    $('#spTotalAllowedFeeValue').text(commonjs.roundFee(total_allowed));
-                    $('#spAllowed').text(commonjs.roundFee(total_allowed));
-                }
+                $('#spTotalAllowedFeeValue').text(commonjs.roundFee(total_allowed));
+                $('#spAllowed').text(commonjs.roundFee(total_allowed));
             },
 
             updateResponsibleList: function (payer_details, paymentDetails) {
