@@ -677,60 +677,52 @@ module.exports = {
     getClaimDataInvoice: function (params) {
         let { claimIDs } = params;
 
-        let sql = SQL` SELECT
-                          array_length (array_agg(DISTINCT bc.id), 1) AS claim_count
-                        , array_to_string(array_agg(DISTINCT bc.id), '_')  AS claimids
-                        , CASE WHEN bc.payer_type = 'patient' THEN
-                                        p.full_name
-                                WHEN bc.payer_type = 'primary_insurance' THEN
-                                        pip.insurance_name
-                                WHEN bc.payer_type = 'secondary_insurance' THEN
-                                        sip.insurance_name
-                                WHEN bc.payer_type = 'tertiary_insurance' THEN
-                                        tip.insurance_name
-                                WHEN bc.payer_type = 'ordering_facility' THEN
-                                        pof.name
-                                WHEN bc.payer_type = 'referring_provider' THEN
-                                        pr.full_name
-                                END as payer_name
-                        , SUM(ch.bill_fee * ch.units)  AS tot_bill_fee
-                        , CASE WHEN bc.payer_type = 'patient' THEN
-                                        'PPP'
-                                WHEN bc.payer_type = 'primary_insurance' THEN
-                                        'PIP'
-                                WHEN bc.payer_type = 'secondary_insurance' THEN
-                                        'SIP'
-                                WHEN bc.payer_type = 'tertiary_insurance' THEN
-                                        'SIP'
-                                WHEN bc.payer_type = 'ordering_facility' THEN
-                                        'POF'
-                                WHEN bc.payer_type = 'referring_provider' THEN
-                                        'PR'
-                                END as payer
-                    FROM billing.claims bc
-                    INNER JOIN billing.charges ch ON ch.claim_id = bc.id
-                    LEFT JOIN public.patients p ON p.id = bc.patient_id `
-                   .append(getClaimPatientInsurances('bc'))
-                   .append(SQL`
-                    LEFT JOIN public.patient_insurances ppi ON ppi.id = claim_ins.primary_patient_insurance_id
-                    LEFT JOIN public.insurance_providers pip on pip.id = ppi.insurance_provider_id
-                    LEFT JOIN public.patient_insurances spi ON spi.id = claim_ins.secondary_patient_insurance_id
-                    LEFT JOIN public.insurance_providers sip on sip.id = spi.insurance_provider_id
-                    LEFT JOIN public.patient_insurances tpi ON tpi.id = claim_ins.tertiary_patient_insurance_id
-                    LEFT JOIN public.insurance_providers tip on tip.id = tpi.insurance_provider_id
-                    LEFT JOIN public.ordering_facility_contacts pofc ON pofc.id = bc.ordering_facility_contact_id
-                    LEFT JOIN public.ordering_facilities pof ON pof.id = pofc.ordering_facility_id
-                    LEFT JOIN public.provider_contacts  pc on pc.id = bc.referring_provider_contact_id
-                    LEFT JOIN public.providers pr on pr.id = pc.provider_id
-                    WHERE bc.id = ANY(${claimIDs})
-                    GROUP BY
-                        bc.payer_type
-                        , p.full_name
-                        , pip.insurance_name
-                        , sip.insurance_name
-                        , tip.insurance_name
-                        , pof.name
-                        , pr.full_name `);
+        let sql = SQL`
+            WITH get_claim_payer_types AS (
+                SELECT
+                    bc.id AS claim_id
+                    , CASE
+                        WHEN bc.payer_type = 'patient' THEN p.full_name
+                        WHEN bc.payer_type = 'primary_insurance' THEN pip.insurance_name
+                        WHEN bc.payer_type = 'secondary_insurance' THEN sip.insurance_name
+                        WHEN bc.payer_type = 'tertiary_insurance' THEN tip.insurance_name
+                        WHEN bc.payer_type = 'ordering_facility' THEN pof.name
+                        WHEN bc.payer_type = 'referring_provider' THEN pr.full_name
+                      END AS payer_name
+                    , CASE
+                        WHEN bc.payer_type = 'patient' THEN 'PPP'
+                        WHEN bc.payer_type = 'primary_insurance' THEN 'PIP'
+                        WHEN bc.payer_type = 'secondary_insurance' THEN 'SIP'
+                        WHEN bc.payer_type = 'tertiary_insurance' THEN 'SIP'
+                        WHEN bc.payer_type = 'ordering_facility' THEN 'POF'
+                        WHEN bc.payer_type = 'referring_provider' THEN 'PR'
+                      END AS payer
+                FROM billing.claims bc
+                INNER JOIN public.patients p ON p.id = bc.patient_id `
+        .append(getClaimPatientInsurances('bc'))
+        .append(SQL`
+                LEFT JOIN public.patient_insurances ppi ON ppi.id = claim_ins.primary_patient_insurance_id
+                LEFT JOIN public.insurance_providers pip on pip.id = ppi.insurance_provider_id
+                LEFT JOIN public.patient_insurances spi ON spi.id = claim_ins.secondary_patient_insurance_id
+                LEFT JOIN public.insurance_providers sip on sip.id = spi.insurance_provider_id
+                LEFT JOIN public.patient_insurances tpi ON tpi.id = claim_ins.tertiary_patient_insurance_id
+                LEFT JOIN public.insurance_providers tip on tip.id = tpi.insurance_provider_id
+                LEFT JOIN public.ordering_facility_contacts pofc ON pofc.id = bc.ordering_facility_contact_id
+                LEFT JOIN public.ordering_facilities pof ON pof.id = pofc.ordering_facility_id
+                LEFT JOIN public.provider_contacts  pc on pc.id = bc.referring_provider_contact_id
+                LEFT JOIN public.providers pr on pr.id = pc.provider_id
+                WHERE bc.id = ANY(${claimIDs})
+            )
+            SELECT
+                gcpt.payer
+                , gcpt.payer_name
+                , SUM(bch.bill_fee * bch.units) AS tot_bill_fee
+                , ARRAY_LENGTH(ARRAY_AGG(DISTINCT gcpt.claim_id), 1) AS claim_count
+                , ARRAY_TO_STRING(ARRAY_AGG(DISTINCT gcpt.claim_id), '_') AS claimids
+            FROM get_claim_payer_types gcpt
+            INNER JOIN billing.charges bch ON bch.claim_id = gcpt.claim_id
+            GROUP BY gcpt.payer_name
+                , gcpt.payer `);
 
         return query(sql);
     },
