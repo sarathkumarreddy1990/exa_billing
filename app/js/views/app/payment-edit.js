@@ -2638,14 +2638,15 @@ define(['jquery',
 
                     var preventClaimStatusUpdate = false;
                     var preventPayerTypeUpdate = false;
+                    var isClaimPaidInFull = totalClaimBalance === 0; // Update claim status to paid in full when claim balance = 0 irrespective of payer
                     var isClaimOverPaid = totalClaimBalance < 0; // verify claim balance after current (payment & adjustment)
                     var claimPayerType = ['primary_insurance', 'secondary_insurance', 'tertiary_insurance'].includes(self.currentResponsible) 
                         ? 'insurance'
                         : self.currentResponsible;
 
                     if (paymentPayerType !== claimPayerType || $('#ddlClaimResponsible').val() === 'PSF') {
-                        preventPayerTypeUpdate = !isPayerChanged || isClaimOverPaid;
-                        preventClaimStatusUpdate = !isClaimStatusChanged;
+                        preventPayerTypeUpdate = (!isPayerChanged || isClaimOverPaid) && !isClaimPaidInFull;
+                        preventClaimStatusUpdate = !isClaimStatusChanged && !isClaimPaidInFull;
                     }
 
                     commonjs.showLoading();
