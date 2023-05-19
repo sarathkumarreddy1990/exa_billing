@@ -62,7 +62,7 @@ module.exports = {
 
         if ((params.customArgs && params.customArgs.patientId && params.customArgs.patientId > 0) || params.customArgs && (params.customArgs.claimIdToSearch || params.customArgs.invoiceNoToSearch)) {
             if (display_description) {
-                whereQuery.push(` display_code  ILIKE '%${display_description}%' `);
+                whereQuery.push(` array_to_string(claim_totals.claim_cpt_description,',')  ILIKE '%${display_description}%' `);
             }
         }
 
@@ -91,6 +91,7 @@ module.exports = {
                     COUNT(1) OVER (range unbounded preceding) AS total_records,
                     claim_alert.show_alert_icon
                 FROM billing.claims bc
+                INNER JOIN billing.get_claim_totals(bc.id) AS claim_totals ON true
                 INNER JOIN public.patients pp on pp.id = bc.patient_id
                 LEFT JOIN LATERAL (
                     SELECT
