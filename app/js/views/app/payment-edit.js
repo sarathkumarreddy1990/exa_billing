@@ -216,7 +216,7 @@ define(['jquery',
                 self.from = from;
                 self.payment_id = paymentId || 0;
                 self.paymentDateObj = null;
-                commonjs.showLoading('messages.loadingMsg.default');
+                commonjs.showLoading();
                 self.defalutCASArray = [0, 1, 2, 3, 4, 5, 6];
                 self.claimId = this.options.claim_id;
 
@@ -1374,7 +1374,7 @@ define(['jquery',
                 $('#btnPaymentSave').attr('disabled', true);
                 $target.prop('disabled', true);
 
-                commonjs.showLoading('messages.loadingMsg.default')
+                commonjs.showLoading();
                 var paymentObj = {
                     paymentId: self.payment_id,
                     company_id: app.companyID,
@@ -2735,7 +2735,7 @@ define(['jquery',
                     var preventPayerTypeUpdate = false;
                     var isClaimPaidInFull = totalClaimBalance === 0; // Update claim status to paid in full when claim balance = 0 irrespective of payer
                     var isClaimOverPaid = totalClaimBalance < 0; // verify claim balance after current (payment & adjustment)
-                    var claimPayerType = ['primary_insurance', 'secondary_insurance', 'tertiary_insurance'].includes(self.currentResponsible) 
+                    var claimPayerType = ['primary_insurance', 'secondary_insurance', 'tertiary_insurance'].includes(self.currentResponsible)
                         ? 'insurance'
                         : self.currentResponsible;
 
