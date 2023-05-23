@@ -1888,13 +1888,13 @@ define([ 'backbone', 'immutable', 'moment', 'shared/utils' ], function ( Backbon
                              * if I don't patch this up a little.
                              */
                             var priority = [
-                                "noauthorization",
                                 "needauthorization",
-                                "authorized",
-                                "pending",
-                                "partial",
-                                "denied",
                                 "reauthorization",
+                                "pending",
+                                "denied",
+                                "authorized",
+                                "partial",
+                                "noauthorization",
                                 "none"
                             ];
                             var statuses = authorizations.map(function (item) {
