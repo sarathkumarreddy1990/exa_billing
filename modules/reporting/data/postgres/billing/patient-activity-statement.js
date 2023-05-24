@@ -1086,7 +1086,7 @@ WITH claim_data AS(
             , null
             , null
             , null
-            , 0
+            , c47
           <% } %>
           FROM all_cte
           ORDER BY
