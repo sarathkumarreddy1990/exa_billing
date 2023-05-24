@@ -526,12 +526,12 @@ module.exports = {
                     COUNT(DISTINCT of.id) AS total_records
                 FROM ordering_facilities of
                 INNER JOIN ordering_facility_contacts ofc ON of.id = ofc.ordering_facility_id`
-                .append(`
-                WHERE of.deleted_dt IS NULL
+            .append(`
+                WHERE
+                    of.deleted_dt IS NULL
                     AND of.inactivated_dt IS NULL
                     ${inactiveQuery}
-                    AND of.company_id = ${company_id}`
-                )
+                    AND of.company_id = ${company_id} `)
             .append(whereQuery)
             .append(`
             )
