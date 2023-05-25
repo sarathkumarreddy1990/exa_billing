@@ -429,7 +429,7 @@ module.exports = {
                             , inactivated_dt
                             , code
                             , description
-                        FROM billing.cas_reason_codes ) AS cas_reason_codes
+                        FROM billing.cas_reason_codes WHERE inactivated_dt IS NULL) AS cas_reason_codes
                 ),
                 cte_cities AS (
                     SELECT
