@@ -639,10 +639,6 @@ module.exports = {
                                 FROM insert_calim_comments
                                 WHERE id IS NOT NULL
                             ),
-                            change_responsible_party AS (
-                                    SELECT billing.update_claim_responsible_party(${params.claimId},0,${params.companyId},null, ${params.claimStatusID}, ${is_payerChanged}, ${paymentId}, null) AS result
-                                    WHERE ${params.changeResponsibleParty}
-                            ),
                             create_audit_study_status AS (
                                 SELECT billing.create_audit(
                                       ${auditDetails.company_id}
@@ -667,11 +663,23 @@ module.exports = {
                             UNION ALL
                             SELECT null,id,null FROM insert_claim_comment_audit_cte
                             UNION ALL
-                            SELECT null,null,result::text FROM change_responsible_party
-                            UNION ALL
                             SELECT null, id, null FROM create_audit_study_status`;
 
-        return await query(sql);
+        let result = await query(sql);
+
+        if (result instanceof Error) {
+            logger.error('Error occured while payment application: ', result);
+            return result;
+        }
+
+        let updateResponsibleResult = await this.updateClaimResponsibleParty(params);
+
+        if (updateResponsibleResult instanceof Error) {
+            logger.error('Error occured while updating claim status/responsible party of the claim: ', updateResponsibleResult);
+            return updateResponsibleResult;
+        }
+
+        return result;
     },
 
     getRecoupmentDetails : async function(adjustment_code_id)
@@ -812,12 +820,8 @@ module.exports = {
                             , created_by
                             , now()
                             FROM claim_comment_details
-                            RETURNING *, '{}'::jsonb old_values),
-                            change_responsible_party AS (
-                                    SELECT billing.update_claim_responsible_party(${params.claimId},0,${params.companyId},null, ${params.claimStatusID}, ${params.is_payerChanged}, ${params.paymentId}, null) AS result
-                                    WHERE ${params.changeResponsibleParty}
-
-                            ),
+                            RETURNING *, '{}'::jsonb old_values
+                        ),
                         update_cas_application AS(
                                     UPDATE billing.cas_payment_application_details bcpad
                                         SET
@@ -935,20 +939,60 @@ module.exports = {
                             SELECT id,null from insert_claim_comment_audit_cte
                             UNION
                             SELECT id,null from update_cas_applications_audit
-                            UNION
-                            SELECT null,result::text from change_responsible_party
                             UNION ALL
                             SELECT id, null FROM create_audit_study_status`;
 
         let result = await query(sql);
 
-        let casInsertResult  = await this.insetCasApplications(params);
+        if (result instanceof Error) {
+            logger.error('Error occured while updating payment application: ', result);
+            return result;
+        }
+
+        let casInsertResult = await this.insetCasApplications(params);
 
         if (casInsertResult.name === 'error') {
             return casInsertResult;
         }
 
+        let updateResponsibleResult = await this.updateClaimResponsibleParty(params);
+
+        if (updateResponsibleResult instanceof Error) {
+            logger.error('Error occured while updating claim status/responsible party of the claim: ', updateResponsibleResult);
+            return updateResponsibleResult;
+        }
+
         return result;
+    },
+
+    updateClaimResponsibleParty: async (params) => {
+        const {
+            changeResponsibleParty,
+            claimId,
+            companyId,
+            claimStatusID,
+            is_payerChanged,
+            paymentId
+        } = params;
+
+        let sql = SQL`
+            SELECT
+                result
+            FROM 
+                billing.update_claim_responsible_party(
+                    ${claimId}
+                    , 0
+                    , ${companyId}
+                    , NULL
+                    , ${claimStatusID}
+                    , ${is_payerChanged}
+                    , ${paymentId}
+                    , NULL
+                ) AS result
+            WHERE ${changeResponsibleParty}
+        `;
+
+        return await query(sql);
     },
 
     insetCasApplications: async function (params) {
