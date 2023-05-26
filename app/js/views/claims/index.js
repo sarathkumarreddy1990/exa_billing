@@ -6096,7 +6096,7 @@ define(['jquery',
                     self.getAlertEvent(); // for Patient Alert Button Click event availability
 
                     var isInsuranceExist = self.responsible_list.filter(function (obj) {
-                        return obj.payer_name && ["tertiary_insurance", "secondary_insurance", "primary_insurance"].includes(obj.payer_type_name)
+                        return obj.payer_name && ["tertiary_insurance", "secondary_insurance", "primary_insurance"].includes(obj.payer_type_name);
                     }).length > 0;
 
                     if (!isInsuranceExist) {
