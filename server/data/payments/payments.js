@@ -975,24 +975,26 @@ module.exports = {
             paymentId
         } = params;
 
-        let sql = SQL`
-            SELECT
-                result
-            FROM 
-                billing.update_claim_responsible_party(
-                    ${claimId}
-                    , 0
-                    , ${companyId}
-                    , NULL
-                    , ${claimStatusID}
-                    , ${is_payerChanged}
-                    , ${paymentId}
-                    , NULL
-                ) AS result
-            WHERE ${changeResponsibleParty}
-        `;
+        if (changeResponsibleParty === 'true') {
+            let sql = SQL`
+                SELECT
+                    billing.update_claim_responsible_party(
+                        ${claimId}
+                        , 0
+                        , ${companyId}
+                        , NULL
+                        , ${claimStatusID}
+                        , ${is_payerChanged}
+                        , ${paymentId}
+                        , NULL
+                    ) AS result
+            `;
 
-        return await query(sql);
+            return await query(sql);
+        } else {
+            return false;
+        }
+
     },
 
     insetCasApplications: async function (params) {
