@@ -418,7 +418,7 @@ module.exports = {
                             , receiver_name
                             , receiver_id
                             , communication_info
-                        FROM billing.edi_clearinghouses ) AS clearing_house
+                        FROM billing.edi_clearinghouses WHERE inactivated_dt IS NULL) AS clearing_house
                 ),
                 cte_cas_reason_codes AS(
                     SELECT COALESCE(Json_agg(Row_to_json(cas_reason_codes)),'[]') cas_reason_codes
