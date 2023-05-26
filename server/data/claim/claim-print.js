@@ -158,7 +158,8 @@ module.exports = {
                 LEFT join modifiers as modifier3 on modifier3.id=modifier3_id
                 LEFT join modifiers as modifier4 on modifier4.id=modifier4_id
                 WHERE bch.claim_id = ANY(${params.claimIds})
-
+                ORDER BY
+                    bch.id
             ),
             payment_details as(
                 SELECT
