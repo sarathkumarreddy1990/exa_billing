@@ -212,6 +212,10 @@ define([
                                 $('#lblCIBillProv').text(claim_data.billing_provider_name)
                                 $('#lblCIReadPhy').text(claim_data.rend_provider_name);
                                 $('#lblCIRefPhy').text(claim_data.ref_provider_name);
+                                if(app.settings.enableMobileRad && app.isMobileBillingEnabled) {
+                                    $('#divOrderingFacility').show();
+                                    $('#lblCIOrdFacility').text(claim_data.ordering_facility_name);
+                                }
                                 $('#lblCIOrdFac').text((app.isMobileBillingEnabled && app.settings.enableMobileRad) ? claim_data.service_location : claim_data.ordering_facility_name);
                                 $('#lblCIPOS').text(claim_data.pos_name)
                                 $('#lblCIStatus').text(claim_data.claim_status);
