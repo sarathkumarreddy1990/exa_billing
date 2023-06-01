@@ -2154,7 +2154,7 @@ define('grid', [
                     type: 'PUT',
                     data: dataobject,
                     success: function (data, response) {
-                        if (data && data.length) {
+                        if (data && data.length && !data[0].status) {
                             commonjs.showStatus(billing.status_message);
                             _.each(data, function (obj) {
                                 $target.jqGrid('setCell', obj.id, billing.column, billing.description, { background: billing.color_code || 'transparent'});
