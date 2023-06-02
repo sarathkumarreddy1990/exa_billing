@@ -1934,6 +1934,9 @@ define(['jquery',
                 };
 
                 if (rowData.isFromClaim) {
+                    _showDialogObj.onHidden = function(options) {
+                        $('#modal_div_container').css('overflow-x', 'hidden');
+                    };
                     commonjs.showNestedDialog(_showDialogObj);
                     self.claimPaymentObj = rowData.newPaymentObj;
                     self.payment_id = paymentID;
@@ -2846,7 +2849,7 @@ define(['jquery',
                 var patientStatementParams = this.createPatientActivityParams(claimId, patientId);
                 if (patientStatementParams) {
                     this.PatientStatementView.onReportViewClick(e, patientStatementParams);
-                    $('#modal_div_container').removeAttr('style');
+                    $('#modal_div_container').css('overflow', '');
                 }
             },
 
