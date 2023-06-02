@@ -1308,7 +1308,6 @@ define([
                     var patientActivityParams = self.createPatientActivityParams(claimId, patientId);
                     if(patientActivityParams) {
                         self.patientActivityStatement.onReportViewClick(e, patientActivityParams);
-                        $('#modal_div_container').removeAttr('style');
                     }
                 });
                 $('#btnFaxPatientActivity').off().click(function (e) {
