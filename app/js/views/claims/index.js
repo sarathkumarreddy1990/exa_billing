@@ -6638,7 +6638,7 @@ define(['jquery',
 
                     if (dtp) {
                         self.dtpAccountingDate.push(dtp);
-                        self.dtpAccountingDate[obj.row_index - 1].isModified = false;
+                        self.dtpAccountingDate[index].isModified = false;
                         obj.accounting_date ? self.dtpAccountingDate[index].date(obj.accounting_date) : self.dtpAccountingDate[index].clear();
                     }
                     obj.data_row_id = obj.row_index;
