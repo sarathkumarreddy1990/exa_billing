@@ -152,14 +152,23 @@ module.exports = {
                             }
                         });
 
-                        // reject CAS groupCode['PR'] for calculating adjustment
+                        // reject invalid CAS group codes and adjustment codes for calculating adjustment
                         const amountArray = [];
 
-                        _.map(_.reject(validCAS, { groupCode: 'PR' }), function (obj) {
+                        _.map(validCAS, function (obj) {
 
                             // In ERA file CAS have more than 7, but we have limit(7) to process the CAS values.
                             for (let i = 1; i <= 7; i++) {
-                                if (obj['monetaryAmount' + i]) {
+                                const reasonCode = obj['reasonCode' + i];
+                                const isInvalidAdjustment = obj.groupCode === 'PR' && ['1', '2', '3'].includes(reasonCode) // Suppress 'PR' CAS group codes with reason codes [1, 2, 3] for adjustment calculations.
+                                    || (['2', '20', '3', '21'].includes(value.claimStatusCode)
+                                        && (
+                                            (obj.groupCode === 'CO' && reasonCode === '45')
+                                            || (obj.groupCode === 'OA' && reasonCode === '23')
+                                        )
+                                    );
+
+                                if (!isInvalidAdjustment && obj['monetaryAmount' + i]) {
                                     amountArray.push(parseFloat(obj['monetaryAmount' + i]));
                                 }
                             }
@@ -170,9 +179,11 @@ module.exports = {
                         /**
                         *  Condition : Apply adjustment only for primary payer
                         *  DESC : Primary payers are defined via the claim status of 1 or 19
+                        *  Secondary payers are defined via the claim status of 2 or 20
+                        *  Tertiary payers are defined via the claim status of 3 or 21
                         *  EXA-35927 - Added code 22 for reversal of a previous adjustment
                         */
-                        adjustmentAmount = ['1', '19', '22'].indexOf(value.claimStatusCode) > -1
+                        adjustmentAmount = ['1', '19', '2', '20', '3', '21', '22'].indexOf(value.claimStatusCode) > -1
                             ? adjustmentAmount
                             : 0;
 
