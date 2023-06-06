@@ -1107,7 +1107,7 @@ const util = {
         if (insFilterData && insFilterData.length) {
             let insFilterQuery = ``;
             let condition = insFilterData[ 0 ].condition;
-            let conditionIsNot = condition == "IsNot";
+            let conditionIsNot = condition === "IsNot";
             // De-dupe values
             let search_vals = [ ...new Set(_.map(insFilterData, 'value')) ];
 
@@ -1134,10 +1134,6 @@ const util = {
             }
 
             let insQuery = ` ${conditionIsNot && "NOT" || ""} (${insFilterQuery}) `;
-
-            if (conditionIsNot) {
-                insQuery += insFilterType === 'insProv' ? ` OR insurance_providers.insurance_names IS NULL ` : ` OR insurance_providers.provider_types IS NULL `;
-            }
 
             query += ` ${util.getRelationOperator(query)} ( ${insQuery} ) `;
         }
