@@ -151,6 +151,8 @@ define(['jquery',
             },
 
             setCustomArgs: function () {
+                this.censusTable.options.customargs.hideInactive = $('#toggleInactiveOFLocations').prop('checked');
+                this.censusTable.options.customargs.orderingFacilityId = $('#ddlOrdFacility').val();
                 $('#tblGridCensus').jqGrid("setGridParam", {
                     customargs: {
                         orderingFacilityId: $('#ddlOrdFacility').val(),
