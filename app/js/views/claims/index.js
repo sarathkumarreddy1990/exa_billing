@@ -71,7 +71,6 @@ define(['jquery',
             npiNo: '',
             federalTaxId: '',
             tradingPartnerId: '',
-            splitClaimEnabled: false,
             ACSelect: { refPhy: {}, readPhy: {}, skillCodes: {}, patientAltAccNo: {} },
             icd9to10Template : _.template(icd9to10Template),
             responsible_list: [
@@ -3905,7 +3904,7 @@ define(['jquery',
                             }, null);
                             self.is_primary_available = true;
                             self.priClaimInsID = result.id;
-                            self.splitClaimEnabled = result.is_split_claim_enabled;
+                            self.isSplitClaimEnabled = result.is_split_claim_enabled;
                             self.displayClaimStatusByProvider(self.priInsCode);
                             break;
 
@@ -4285,7 +4284,7 @@ define(['jquery',
                     is_split_claim: app.isMobileBillingEnabled && self.is_split_claim,
                     order_id: self.options && self.options.order_id,
                     is_mobile_billing_enabled: app.isMobileBillingEnabled,
-                    is_split_claim_enabled: self.isSplitClaimEnabled,
+                    is_split_claim_enabled: self.is_primary_available && self.isSplitClaimEnabled,
                     can_ahs_encounter_no: $('#txtEncounterNo').val(),
                     can_issuer_id: self.ACSelect && self.ACSelect.patientAltAccNo
                         ? self.ACSelect.patientAltAccNo.issuer_id
