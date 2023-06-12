@@ -71,7 +71,6 @@ define(['jquery',
             npiNo: '',
             federalTaxId: '',
             tradingPartnerId: '',
-            splitClaimEnabled: false,
             ACSelect: { refPhy: {}, readPhy: {}, skillCodes: {}, patientAltAccNo: {} },
             icd9to10Template : _.template(icd9to10Template),
             responsible_list: [
@@ -3891,56 +3890,56 @@ define(['jquery',
                 if (result) {
                     switch (coverageLevel) {
                         case 'primary':
-                            self.primaryPatientInsuranceId = result.id;
-                            self.priInsID = result.insurance_provider_id;
-                            self.priInsCode = result.insurance_code;
-                            self.priInsName = result.insurance_name;
+                            this.primaryPatientInsuranceId = result.id;
+                            this.priInsID = result.insurance_provider_id;
+                            this.priInsCode = result.insurance_code;
+                            this.priInsName = result.insurance_name;
                             flag = 'Pri';
                             // append to ResponsibleList
-                            self.updateResponsibleList({
+                            this.updateResponsibleList({
                                 payer_type: 'PIP_P',
                                 payer_id: result.insurance_provider_id,
                                 payer_name: result.insurance_name + '( Primary Insurance )',
                                 billing_method: result.billing_method
                             }, null);
-                            self.is_primary_available = true;
-                            self.priClaimInsID = result.id;
-                            self.splitClaimEnabled = result.is_split_claim_enabled;
-                            self.displayClaimStatusByProvider(self.priInsCode);
+                            this.is_primary_available = true;
+                            this.priClaimInsID = result.id;
+                            this.isSplitClaimEnabled = result.is_split_claim_enabled;
+                            this.displayClaimStatusByProvider(this.priInsCode);
                             break;
 
                         case 'secondary':
-                            self.secondaryPatientInsuranceId = result.id;
-                            self.secInsID = result.insurance_provider_id;
-                            self.secInsCode = result.insurance_code;
-                            self.SecInsName = result.insurance_name;
+                            this.secondaryPatientInsuranceId = result.id;
+                            this.secInsID = result.insurance_provider_id;
+                            this.secInsCode = result.insurance_code;
+                            this.SecInsName = result.insurance_name;
                             flag = 'Sec';
                            // append to ResponsibleList
-                            self.updateResponsibleList({
+                            this.updateResponsibleList({
                                 payer_type: 'PIP_S',
                                 payer_id: result.insurance_provider_id,
                                 payer_name: result.insurance_name + '( Secondary Insurance )',
                                 billing_method: result.billing_method
                             }, null);
-                            self.is_secondary_available = true;
-                            self.secClaimInsID = result.id;
+                            this.is_secondary_available = true;
+                            this.secClaimInsID = result.id;
                             break;
 
                         case 'tertiary':
-                            self.tertiaryPatientInsuranceId = result.id;
-                            self.terInsID = result.insurance_provider_id;
-                            self.terInsCode = result.insurance_code;
-                            self.terInsName = result.insurance_name;
+                            this.tertiaryPatientInsuranceId = result.id;
+                            this.terInsID = result.insurance_provider_id;
+                            this.terInsCode = result.insurance_code;
+                            this.terInsName = result.insurance_name;
                             flag = 'Ter';
                             // append to ResponsibleList
-                            self.updateResponsibleList({
+                            this.updateResponsibleList({
                                 payer_type: 'PIP_T',
                                 payer_id: result.insurance_provider_id,
                                 payer_name: result.insurance_name + '( Tertiary Insurance )',
                                 billing_method: result.billing_method
                             }, null);
-                            self.is_tertiary_available = true;
-                            self.terClaimInsID = result.id;
+                            this.is_tertiary_available = true;
+                            this.terClaimInsID = result.id;
                             break;
                     }
 
@@ -3992,7 +3991,7 @@ define(['jquery',
                             infoKey: 'subscriber_zipcode_plus'
                         }
                     }
-                    self.bindCityStateZipTemplate(result, AddressInfoMap, flag);
+                    this.bindCityStateZipTemplate(result, AddressInfoMap, flag);
 
                     if(result.coverage_level == "secondary" && result.medicare_insurance_type_code != null) {
                         $('#chkSecMedicarePayer').prop('checked',true);
