@@ -15,7 +15,8 @@ module.exports = {
             claim_id
         } = params;
 
-        let sql = SQL`WITH claim_details AS
+        let sql = SQL`
+        WITH claim_details AS
         (SELECT json_agg(row_to_json(encounter)) claim_details
         FROM (
             SELECT
@@ -33,15 +34,21 @@ module.exports = {
                 , (timezone(get_facility_tz(bc.facility_id::integer), bc.claim_dt)::date)::text AS claim_dt
                 , pos.description AS pos_name
                 , bpr.name AS billing_provider_name
-                , orders.order_no
+                , ord.order_no
                 , public.get_service_facility_name(bc.id, bc.pos_map_code, bc.patient_id) AS service_location
             FROM billing.claims bc
             INNER JOIN billing.claim_status st ON st.id = bc.claim_status_id
             INNER JOIN public.facilities f ON f.id = bc.facility_id
             INNER JOIN billing.charges ch ON ch.claim_id = bc.id
-            LEFT JOIN billing.charges_studies chs on chs.charge_id = ch.id
-            LEFT JOIN public.studies on studies.id = chs.study_id
-            LEFT JOIN public.orders on orders.id = studies.order_id
+            LEFT JOIN LATERAL (
+                SELECT
+                    STRING_AGG(o.order_no, ',') AS order_no
+                FROM public.orders AS o
+                JOIN public.studies AS s on s.order_id = o.id
+                JOIN billing.charges_studies AS chs ON chs.study_id = s.id
+                JOIN billing.charges AS c ON c.id = chs.charge_id
+                WHERE c.claim_id = bc.id
+            ) AS ord ON TRUE
             INNER JOIN billing.providers bpr ON bpr.id = bc.billing_provider_id
             LEFT JOIN public.provider_contacts ref_pc ON ref_pc.id = bc.referring_provider_contact_id
             LEFT JOIN public.provider_contacts rend_pc ON rend_pc.id = bc.rendering_provider_contact_id
@@ -56,7 +63,7 @@ module.exports = {
                 FROM
                     billing.claim_comments bcc
                 WHERE
-                    bcc.claim_id = ${claim_id}
+                    bcc.claim_id = bc.id
                     AND 'claim_inquiry' = ANY(bcc.alert_screens)
             ) AS ci_alerts ON TRUE
             WHERE
@@ -71,92 +78,99 @@ module.exports = {
                 , pof.name
                 , pos.description
                 , bpr.name
-                , orders.order_no
+                , ord.order_no
                 , ci_alerts.claim_comments
             ) AS encounter
         )
-    , patient_details AS
-        ( SELECT json_agg(row_to_json(patient)) patient_details
-        FROM (
-            SELECT
-                p.id AS patient_id
-                , public.get_full_name(p.last_name, p.first_name, p.middle_name, p.prefix_name, p.suffix_name) AS patient_name
-                , p.account_no
-                , p.birth_date
-                , gender
-            FROM patients p
-            INNER JOIN billing.claims bc ON bc.patient_id = p.id
-            WHERE bc.id = ${claim_id}
-            ) AS patient
-    )
-    , payment_details AS
-        (SELECT json_agg(row_to_json(pay)) payment_details
-         FROM(
-            SELECT
-                  COALESCE(sum(bpa.amount) FILTER(where bp.payer_type = 'patient' AND amount_type = 'payment'),0::money) AS patient_paid
-                , COALESCE(sum(bpa.amount) FILTER(where bp.payer_type != 'patient' AND amount_type = 'payment'),0::money) AS others_paid
-                , SUM(CASE WHEN (amount_type = 'adjustment' AND (accounting_entry_type != 'refund_debit' OR adjustment_code_id IS NULL)) THEN bpa.amount ELSE 0::money END) AS adjustment_amount
-                , SUM(CASE WHEN accounting_entry_type = 'refund_debit' THEN bpa.amount ELSE 0::money END) AS refund_amount
-            FROM billing.claims bc
-            INNER JOIN billing.charges ch ON ch.claim_id = bc.id
-            LEFT JOIN billing.payment_applications bpa ON bpa.charge_id = ch.id
-            LEFT JOIN billing.payments bp ON bp.id = bpa.payment_id
-            LEFT JOIN billing.adjustment_codes adj ON adj.id = bpa.adjustment_code_id
-            WHERE
-                bc.id = ${claim_id}
-         ) AS pay
-    )
-    , icd_details AS
-        (SELECT json_agg(row_to_json(icd)) icdcode_details
-         FROM (
-            SELECT
-                  icd.id
-                , icd.code
-                , icd.description
-            FROM
-                billing.claim_icds ci
-            INNER JOIN public.icd_codes icd ON icd.id = ci.icd_id
-            WHERE ci.claim_id = ${claim_id}
-            ORDER BY ci.id ASC
-            ) AS icd
+        , patient_details AS
+            ( SELECT json_agg(row_to_json(patient)) patient_details
+            FROM (
+                SELECT
+                    p.id AS patient_id
+                    , public.get_full_name(p.last_name, p.first_name, p.middle_name, p.prefix_name, p.suffix_name) AS patient_name
+                    , p.account_no
+                    , p.birth_date
+                    , gender
+                FROM patients p
+                INNER JOIN billing.claims bc ON bc.patient_id = p.id
+                WHERE bc.id = ${claim_id}
+                ) AS patient
         )
-    , pat_ins_ids AS (
+        , payment_details AS
+            (SELECT json_agg(row_to_json(pay)) payment_details
+            FROM(
+                SELECT
+                    COALESCE(sum(bpa.amount) FILTER(where bp.payer_type = 'patient' AND amount_type = 'payment'),0::money) AS patient_paid
+                    , COALESCE(sum(bpa.amount) FILTER(where bp.payer_type != 'patient' AND amount_type = 'payment'),0::money) AS others_paid
+                    , SUM(CASE WHEN (amount_type = 'adjustment' AND (accounting_entry_type != 'refund_debit' OR adjustment_code_id IS NULL)) THEN bpa.amount ELSE 0::money END) AS adjustment_amount
+                    , SUM(CASE WHEN accounting_entry_type = 'refund_debit' THEN bpa.amount ELSE 0::money END) AS refund_amount
+                FROM billing.claims bc
+                INNER JOIN billing.charges ch ON ch.claim_id = bc.id
+                LEFT JOIN billing.payment_applications bpa ON bpa.charge_id = ch.id
+                LEFT JOIN billing.payments bp ON bp.id = bpa.payment_id
+                LEFT JOIN billing.adjustment_codes adj ON adj.id = bpa.adjustment_code_id
+                WHERE
+                    bc.id = ${claim_id}
+            ) AS pay
+        )
+        , icd_details AS
+            (SELECT json_agg(row_to_json(icd)) icdcode_details
+            FROM (
+                SELECT
+                    icd.id
+                    , icd.code
+                    , icd.description
+                FROM
+                    billing.claim_icds ci
+                INNER JOIN public.icd_codes icd ON icd.id = ci.icd_id
+                WHERE ci.claim_id = ${claim_id}
+                ORDER BY ci.id ASC
+                ) AS icd
+            )
+        , pat_ins_ids AS (
+            SELECT *
+            FROM   (SELECT Unnest(pi_ids)      patient_insurance_id,
+                        Unnest(payer_types) payer_type
+                    FROM (
+                        SELECT
+                            ARRAY[
+                                claim_ins.primary_patient_insurance_id,
+                                claim_ins.secondary_patient_insurance_id,
+                                claim_ins.tertiary_patient_insurance_id
+                            ] AS pi_ids,
+                            ARRAY[ 'primary_insurance', 'secondary_insurance', 'tertiary_insurance'] AS payer_types
+                        FROM billing.claims bc `
+                .append(getClaimPatientInsurances('bc'))
+                .append(`
+                        WHERE bc.id = ${claim_id}
+                        ) x) y
+            WHERE  y.patient_insurance_id IS NOT NULL
+        )
+        , insurance_details AS
+            ( SELECT json_agg(row_to_json(ins)) insurance_details
+            FROM (SELECT
+                    ip.id
+                    , claim_ins.payer_type
+                    , ip.insurance_code
+                    , ip.insurance_name
+                    , (COALESCE(TRIM(pi.subscriber_lastname),'') ||' '|| COALESCE(TRIM(pi.subscriber_firstname),'')) AS name
+                    , pi.subscriber_dob :: TEXT
+                    , pi.policy_number
+                    , pi.group_number
+                FROM public.patient_insurances pi
+                INNER JOIN pat_ins_ids claim_ins ON pi.id = claim_ins.patient_insurance_id
+                INNER JOIN insurance_providers ip ON ip.id = pi.insurance_provider_id
+                ORDER BY pi.coverage_level ASC
+                ) AS ins
+            )
+
         SELECT *
-        FROM   (SELECT Unnest(pi_ids)      patient_insurance_id,
-                    Unnest(payer_types) payer_type
-                FROM (
-                    SELECT
-                        ARRAY[
-                            claim_ins.primary_patient_insurance_id,
-                            claim_ins.secondary_patient_insurance_id,
-                            claim_ins.tertiary_patient_insurance_id
-                        ] AS pi_ids,
-                        ARRAY[ 'primary_insurance', 'secondary_insurance', 'tertiary_insurance'] AS payer_types
-                    FROM billing.claims bc `
-            .append(getClaimPatientInsurances('bc'))
-            .append(`
-                    WHERE bc.id = ${claim_id}
-                    ) x) y
-        WHERE  y.patient_insurance_id IS NOT NULL
-    )
-    , insurance_details AS
-        ( SELECT json_agg(row_to_json(ins)) insurance_details
-        FROM (SELECT
-                  ip.id
-                , claim_ins.payer_type
-                , ip.insurance_code
-                , ip.insurance_name
-                , (COALESCE(TRIM(pi.subscriber_lastname),'') ||' '|| COALESCE(TRIM(pi.subscriber_firstname),'')) AS name
-                , pi.subscriber_dob :: TEXT
-                , pi.policy_number
-                , pi.group_number
-            FROM public.patient_insurances pi
-            INNER JOIN pat_ins_ids claim_ins ON pi.id = claim_ins.patient_insurance_id
-            INNER JOIN insurance_providers ip ON ip.id = pi.insurance_provider_id
-            ORDER BY pi.coverage_level ASC
-            ) AS ins
-        )
-    SELECT * FROM  claim_details, payment_details, icd_details, insurance_details, patient_details `);
+        FROM claim_details,
+            payment_details,
+            icd_details,
+            insurance_details,
+            patient_details
+        `);
 
         return await query(sql);
     },
