@@ -279,6 +279,16 @@ define([ 'backbone', 'immutable', 'moment', 'shared/utils' ], function ( Backbon
             return commonjs.getColorCodeForStatus(data.facility_id, status);
         };
 
+        /**
+         * Indicates if the study has addendum report
+         *
+         * @param {Object} data
+         * @returns {boolean}
+         */
+        var hasAddendumReport = function(data) {
+            return data.addendum_no && ['APP', 'DRFT', 'TRAN'].indexOf(data.study_status) > -1
+        };
+
         // ADDING A NEW WORKLIST COLUMN <-- Search for this
         if(filterType=="claims"){
             return Immutable.Map({
@@ -1770,8 +1780,13 @@ define([ 'backbone', 'immutable', 'moment', 'shared/utils' ], function ( Backbon
                     "width": 150,
                     "formatter": function ( cellvalue, options, rowObject ) {
                         var statusDetail = getStatus(rowObject);
-                        var statusObj = statusDetail[ 0 ];
-                        return statusObj && statusDetail[ 0 ].status_desc || (cellvalue ? cellvalue : '');
+                        var statusObj = statusDetail[0];
+
+                        var txtAddendum = hasAddendumReport(rowObject)
+                            ? ' - ' + commonjs.geti18NString('patient.studies.linkStudies.addendum')
+                            : '';
+
+                        return (statusObj && statusObj.status_desc || cellvalue ) + txtAddendum;
                     },
                     "cellattr": function ( id, cellvalue, rowObject ) {
                         var statusDetail = getStatus(rowObject);

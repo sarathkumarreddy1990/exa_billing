@@ -840,6 +840,34 @@ const api = {
             `;
         }
 
+        if (tables.addendum_report) {
+            r += `
+                LEFT JOIN LATERAL (
+                    SELECT
+                        st.addendum_no
+                    FROM
+                        study_transcriptions st
+                    WHERE
+                        st.study_id = studies.id
+
+                    UNION ALL
+
+                    SELECT
+                        st.addendum_no
+                    FROM
+                        study_transcriptions st
+                    INNER JOIN
+                        linked_studies ls ON ls.study_id = studies.id
+                    WHERE
+                        st.study_id = ls.linked_study_id
+
+                    ORDER BY
+                        addendum_no DESC
+                    LIMIT 1
+                ) addendum_report ON TRUE
+            `;
+        }
+
         return r;
     },
 
@@ -992,6 +1020,7 @@ const api = {
             'ordering_facility_contacts.billing_type',
             'primary_insurance.is_split_claim_enabled',
             'claims.can_ahs_claim_number AS can_ahs_claim_no',
+            `addendum_report.addendum_no`,
             `(
                 SELECT
                     description
