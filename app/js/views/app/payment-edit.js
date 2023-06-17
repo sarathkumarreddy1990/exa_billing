@@ -2712,14 +2712,12 @@ define(['jquery',
                     *  Reference ticket  : EXA-12612
                     */
                     var paymentPayerType = self.isFromClaim ? self.claimPaymentObj.payer_type || '' : $('#selectPayerType').val();
-                    var claimStatus = _.filter(self.claimStatuses.toJSON(), { id: self.received_claim_status_id });
-                    var oldClaimStatus = claimStatus.length && claimStatus[0].code || '';
                     var isClaimStatusChanged = self.received_claim_status_id != $('#ddlClaimStatus').val();
-                    var claimStatusIndex = ['PV', 'PS', 'PP'].indexOf(oldClaimStatus);
+                    var deniedStatus = _.filter(self.claimStatuses.toJSON(), { code: 'D' });
+                    var deniedStatusId = deniedStatus.length && deniedStatus[0].id || '';
 
-                    if (totalPayment === 0 && totalAdjustment === 0 && paymentPayerType !=='patient') {
-                        var deniedStatus = _.filter(self.claimStatuses.toJSON(), { code: 'D' });
-                        $('#ddlClaimStatus').val(deniedStatus.length && deniedStatus[0].id || '');
+                    if (totalPayment === 0 && totalAdjustment === 0) {
+                        $('#ddlClaimStatus').val(deniedStatusId);
                         isClaimDenied = true;
                     }
 
@@ -2770,6 +2768,7 @@ define(['jquery',
                             claimStatusID: preventClaimStatusUpdate ? self.received_claim_status_id : claimStatusID,
                             is_payerChanged: isPayerChanged && $('#ddlClaimResponsible').val() !== 'PSF',
                             is_claimDenied: isClaimDenied,
+                            deniedStatusId: deniedStatusId,
                             isFromClaim: self.isFromClaim,
                             changeResponsibleParty : !preventPayerTypeUpdate
                         },
