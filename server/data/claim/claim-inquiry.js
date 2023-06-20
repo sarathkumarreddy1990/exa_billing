@@ -199,7 +199,7 @@ module.exports = {
                     INNER JOIN billing.claims bc ON bc.id = cc.claim_id
                     WHERE cc.claim_id = ${claim_id}
                     UNION ALL
-                    SELECT
+                    (SELECT
                           ch.id AS id
                         , COALESCE(null, '') AS payment_id
                         , 'charge' AS code
@@ -225,6 +225,7 @@ module.exports = {
                         LIMIT 1
                     ) AS seq ON TRUE
                     WHERE ch.claim_id = ${claim_id}
+                    ORDER BY ch.id ASC)
                     UNION ALL
                     (SELECT
                         befbn.id AS id
