@@ -541,6 +541,7 @@ module.exports = {
         let { user_id,
             paymentId,
             is_claimDenied,
+            deniedStatusId,
             line_items,
             adjustmentId,
             auditDetails,
@@ -550,120 +551,149 @@ module.exports = {
         adjustmentId = adjustmentId || null;
         logDescription = `Claim updated Id : ${params.claimId}`;
 
-        const sql = SQL`WITH claim_comment_details AS(
-                                    SELECT
-                                          claim_id
-                                        , note
-                                        , type
-                                        , created_by
-                                    FROM json_to_recordset(${JSON.stringify(params.coPaycoInsDeductdetails)}) AS details(
-                                          claim_id BIGINT
-                                        , note TEXT
-                                        , type TEXT
-                                        , created_by BIGINT)
-                                    ),
-                             insert_application AS(
-                                SELECT billing.create_payment_applications(${paymentId},${adjustmentId},${user_id},(${line_items})::jsonb,(${JSON.stringify(auditDetails)})::jsonb) AS details
-                             ),
-                             update_claims AS(
-                                    UPDATE billing.claims
-                                    SET
-                                        billing_notes = ${params.billingNotes}
-                                      , payer_type =(
-                                                    CASE
-                                                        WHEN ${is_payerChanged} AND NOT ${is_claimDenied} THEN ${params.payerType}
-                                                    ELSE payer_type
-                                                    END
-                                                    )
-                                    WHERE
-                                        id = ${params.claimId}
-                                    RETURNING *,
-                                    (
-                                        SELECT row_to_json(old_row)
-                                        FROM   (SELECT *
-                                            FROM   billing.claims
-                                            WHERE  id = ${params.claimId}) old_row
-                                    ) old_values
-                            ),
-                             insert_calim_comments AS(
-                                    INSERT INTO billing.claim_comments
-                                    ( claim_id
-                                    , note
-                                    , type
-                                    , is_internal
-                                    , created_by
-                                    , created_dt)
-                                    SELECT
-                                      claim_id
-                                    , note
-                                    , type
-                                    , false
-                                    , created_by
-                                    , now()
-                                    FROM claim_comment_details
-                                    RETURNING *, '{}'::jsonb old_values
-                            ),
-                            update_claims_audit_cte as(
-                                SELECT billing.create_audit(
-                                    ${auditDetails.company_id}
-                                    , ${auditDetails.screen_name}
-                                    , id
-                                    , ${auditDetails.screen_name}
-                                    , ${auditDetails.module_name}
-                                    , ${logDescription}
-                                    , ${auditDetails.client_ip}
-                                    , json_build_object(
-                                        'old_values', COALESCE(old_values, '{}'),
-                                        'new_values', (SELECT row_to_json(temp_row)::jsonb - 'old_values'::text FROM (SELECT * FROM update_claims) temp_row)
-                                    )::jsonb
-                                    , ${user_id}
-                                ) AS id
-                                FROM update_claims
-                                WHERE id IS NOT NULL
-                            ),
-                            insert_claim_comment_audit_cte as(
-                                SELECT billing.create_audit(
-                                    ${auditDetails.company_id}
-                                    , ${auditDetails.screen_name}
-                                    , id
-                                    , ${auditDetails.screen_name}
-                                    , ${auditDetails.module_name}
-                                    , 'Claim Comments inserted AS ' || ${params.claimCommentDetails}
-                                    , ${auditDetails.client_ip}
-                                    , json_build_object(
-                                        'old_values', COALESCE(old_values, '{}'),
-                                        'new_values', (${params.claimCommentDetails})::text
-                                    )::jsonb
-                                    , ${user_id}
-                                ) AS id
-                                FROM insert_calim_comments
-                                WHERE id IS NOT NULL
-                            ),
-                            create_audit_study_status AS (
-                                SELECT billing.create_audit(
-                                      ${auditDetails.company_id}
-                                    , ${auditDetails.screen_name}
-                                    , id
-                                    , ${auditDetails.screen_name}
-                                    , ${auditDetails.module_name}
-                                    , 'Claim Status '|| ${params.claimId} || ' manually changed by user ( ' || ${user_id} || ' ) to Claim status id  ' || ${params.claimStatusID}
-                                    , ${auditDetails.client_ip}
-                                    , json_build_object(
-                                        'old_values', '{}',
-                                        'new_values', '{}'
-                                    )::jsonb
-                                    , ${user_id}
-                                ) AS id
-                                FROM update_claims
-                                WHERE id IS NOT NULL AND ${params.claimStatusID} != 0
-                            )
-                            SELECT details,null,null FROM insert_application
-                            UNION ALL
-                            SELECT null,id,null FROM update_claims_audit_cte
-                            UNION ALL
-                            SELECT null,id,null FROM insert_claim_comment_audit_cte
-                            UNION ALL
-                            SELECT null, id, null FROM create_audit_study_status`;
+        const sql = SQL`
+            WITH claim_comment_details AS (
+                SELECT
+                        claim_id
+                    , note
+                    , type
+                    , created_by
+                FROM json_to_recordset(
+                    ${JSON.stringify(params.coPaycoInsDeductdetails)}) AS details (
+                        claim_id BIGINT
+                    , note TEXT
+                    , type TEXT
+                    , created_by BIGINT
+                    )
+            ),
+
+            insert_application AS (
+                SELECT
+                    billing.create_payment_applications(
+                        ${paymentId},
+                        ${adjustmentId},
+                        ${user_id},
+                        (${line_items})::jsonb,
+                        (${JSON.stringify(auditDetails)})::jsonb) AS details
+                    ),
+
+            update_claims AS (
+                UPDATE billing.claims
+                SET
+                    `
+            .append(is_claimDenied === 'true'
+                ? SQL`claim_status_id = ${deniedStatusId},`
+                : ``
+            )
+            .append(SQL`
+                    billing_notes = ${params.billingNotes},
+                    payer_type =
+                                CASE
+                                    WHEN ${is_payerChanged} AND NOT ${is_claimDenied} THEN
+                                        ${params.payerType}
+                                    ELSE payer_type
+                                END
+                WHERE
+                    id = ${params.claimId}
+                RETURNING
+                    *,
+                    (
+                        SELECT row_to_json(old_row)
+                        FROM (
+                            SELECT *
+                            FROM billing.claims
+                            WHERE id = ${params.claimId}) old_row
+                    ) old_values
+            ),
+
+            insert_claim_comments AS (
+                INSERT INTO billing.claim_comments (
+                    claim_id
+                    , note
+                    , type
+                    , is_internal
+                    , created_by
+                    , created_dt
+                )
+                SELECT
+                        claim_id
+                    , note
+                    , type
+                    , false
+                    , created_by
+                    , now()
+                FROM claim_comment_details
+                RETURNING *, '{}'::jsonb old_values
+            ),
+
+            update_claims_audit_cte AS (
+                SELECT billing.create_audit(
+                    ${auditDetails.company_id}
+                    , ${auditDetails.screen_name}
+                    , id
+                    , ${auditDetails.screen_name}
+                    , ${auditDetails.module_name}
+                    , ${logDescription}
+                    , ${auditDetails.client_ip}
+                    , json_build_object(
+                        'old_values', COALESCE(old_values, '{}'),
+                        'new_values', (SELECT row_to_json(temp_row)::jsonb - 'old_values'::text
+                                        FROM (SELECT *
+                                                FROM update_claims
+                                        ) temp_row)
+                        )::jsonb
+                    , ${user_id}
+                ) AS id
+                FROM update_claims
+                WHERE id IS NOT NULL
+            ),
+
+            insert_claim_comment_audit_cte AS (
+                SELECT billing.create_audit(
+                    ${auditDetails.company_id}
+                    , ${auditDetails.screen_name}
+                    , id
+                    , ${auditDetails.screen_name}
+                    , ${auditDetails.module_name}
+                    , 'Claim Comments inserted AS ' || ${params.claimCommentDetails}
+                    , ${auditDetails.client_ip}
+                    , json_build_object(
+                        'old_values', COALESCE(old_values, '{}'),
+                        'new_values', (${params.claimCommentDetails})::text
+                    )::jsonb
+                    , ${user_id}
+                ) AS id
+                FROM insert_claim_comments
+                WHERE id IS NOT NULL
+            ),
+
+            create_audit_study_status AS (
+                SELECT billing.create_audit(
+                        ${auditDetails.company_id}
+                    , ${auditDetails.screen_name}
+                    , id
+                    , ${auditDetails.screen_name}
+                    , ${auditDetails.module_name}
+                    , 'Claim Status '|| ${params.claimId} || ' manually changed by user ( ' || ${user_id} || ' ) to Claim status id  ' || ${params.claimStatusID}
+                    , ${auditDetails.client_ip}
+                    , json_build_object(
+                        'old_values', '{}',
+                        'new_values', '{}'
+                    )::jsonb
+                    , ${user_id}
+                ) AS id
+                FROM update_claims
+                WHERE id IS NOT NULL AND ${params.claimStatusID} != 0
+            )
+
+            SELECT details,null,null FROM insert_application
+            UNION ALL
+            SELECT null,id,null FROM update_claims_audit_cte
+            UNION ALL
+            SELECT null,id,null FROM insert_claim_comment_audit_cte
+            UNION ALL
+            SELECT null, id, null FROM create_audit_study_status
+            `);
 
         let result = await query(sql);
 
@@ -1111,8 +1141,8 @@ module.exports = {
                             ,(
                                 SELECT
                                     ( coalesce(sum(pa.amount)   FILTER (WHERE pa.amount_type = 'payment'),0::money)  +
-			                          coalesce(sum(pa.amount)   FILTER (WHERE pa.amount_type = 'adjustment'),0::money)
-			                        ) as charge_applied_total
+                                      coalesce(sum(pa.amount)   FILTER (WHERE pa.amount_type = 'adjustment'),0::money)
+                                    ) as charge_applied_total
                                 FROM
                                    billing.charges
                                    INNER JOIN billing.payment_applications AS pa ON pa.charge_id = charges.id
@@ -1144,10 +1174,10 @@ module.exports = {
                     ( SELECT payment_balance_total::numeric FROM billing.get_payment_totals(${paymentId}) ),
                     pp.account_no,
                     pp.prefix_name AS patient_prefix,
-		            pp.first_name AS patient_fname,
-		            pp.middle_name AS patient_mname,
-		            pp.last_name AS patient_lname,
-		            pp.suffix_name AS patient_suffix
+                    pp.first_name AS patient_fname,
+                    pp.middle_name AS patient_mname,
+                    pp.last_name AS patient_lname,
+                    pp.suffix_name AS patient_suffix
                 FROM
                     charges
                 INNER JOIN public.patients pp on pp.id = charges.patient_id
@@ -1234,7 +1264,7 @@ module.exports = {
                 WHERE
                     s.accession_no = ${accession_no}
                     AND sc.deleted_dt IS NULL`;
-							
+
         } else {
             sql = SQL` SELECT
                     studies.id
@@ -1265,19 +1295,19 @@ module.exports = {
             } else if (customDt) {
                 sql.append(` AND ${studyDtGenerator('studies.study_dt', customDt, dateArgs)}`);
             }
-    
+
             if (accession_no) {
                 sql.append(SQL` AND accession_no ~* ${accession_no}`);
             }
-    
+
             if (study_description) {
                 sql.append(SQL` AND ARRAY_TO_STRING(cc.study_description, ', ') ~* ${study_description}`);
             }
-    
+
             if (cpt_code) {
                 sql.append(SQL` AND array_to_string(cc.cpt_code, ', ') ~* ${cpt_code}`);
             }
-    
+
             sql.append(SQL` ORDER BY  `)
                 .append(sortField)
                 .append(' ')
@@ -1297,7 +1327,7 @@ module.exports = {
         sql.append(paymentquery);
 
         sql.append(SQL` )
-	                    ,claims_details AS (
+                        ,claims_details AS (
                             SELECT
                                 bc.id AS claim_id,
                                 bc.patient_id,
@@ -1446,7 +1476,7 @@ module.exports = {
                         p.id AS patient_id
                     FROM
                         billing.claims
-		            INNER JOIN claim_payment_lists cpl ON cpl.claim_id = claims.id
+                    INNER JOIN claim_payment_lists cpl ON cpl.claim_id = claims.id
                     INNER JOIN patients p ON p.id = claims.patient_id
                     GROUP BY p.id
                     HAVING sum(cpl.claim_balance_total) <= ${writeOffAmount}::money
@@ -1528,8 +1558,8 @@ module.exports = {
                         applications.payments_applied_total +
                         applications.ajdustments_applied_total +
                         applications.refund_amount
-		            ) AS claim_balance_total
-		            ,ccf.claim_id
+                    ) AS claim_balance_total
+                    ,ccf.claim_id
                 FROM
                     claim_charge_fee ccf
                 LEFT JOIN LATERAL (
@@ -1539,12 +1569,12 @@ module.exports = {
                         AND (adj.accounting_entry_type != 'refund_debit' OR pa.adjustment_code_id IS NULL)),0::money) AS ajdustments_applied_total
                         ,coalesce(sum(pa.amount)   FILTER (WHERE adj.accounting_entry_type = 'refund_debit'),0::money) AS refund_amount
                         ,c.claim_id
-		            FROM
+                    FROM
                         billing.charges AS c
                     LEFT JOIN billing.payment_applications AS pa ON pa.charge_id = c.id
                     LEFT JOIN billing.payments AS p ON pa.payment_id = p.id
                     LEFT JOIN billing.adjustment_codes adj ON adj.id = pa.adjustment_code_id
-		            GROUP BY c.claim_id
+                    GROUP BY c.claim_id
                 ) as applications ON applications.claim_id = ccf.claim_id
              )
             -- --------------------------------------------------------------------------------------------------------------
@@ -1556,9 +1586,9 @@ module.exports = {
                     , p.id AS patient_id
                 FROM
                     billing.claims
-		        INNER JOIN claim_payments_list cp ON cp.claim_id = claims.id
+                INNER JOIN claim_payments_list cp ON cp.claim_id = claims.id
                 INNER JOIN patients p ON p.id = claims.patient_id
-		        GROUP BY p.id
+                GROUP BY p.id
                 HAVING sum(cp.claim_balance_total) <= ${writeOffAmount}::money
                     AND sum(cp.claim_balance_total) > 0::money
                 ORDER BY p.id DESC
@@ -1690,7 +1720,7 @@ module.exports = {
             -- --------------------------------------------------------------------------------------------------------------
             -- Formating charge lineItems for credit adjustment. Create payment application
             -- --------------------------------------------------------------------------------------------------------------
-	        , credit_adjustment_charges AS (
+            , credit_adjustment_charges AS (
                 SELECT
                 billing.create_payment_applications(
                     payment_id
@@ -1703,14 +1733,14 @@ module.exports = {
                     , (${JSON.stringify(auditDetails)})::jsonb
                     , now()
                     )  AS details
-	        	FROM
+                FROM
                     claim_charges
                 WHERE claim_balance_total > 0::money
             )
             -- --------------------------------------------------------------------------------------------------------------
             -- Formating charge lineItems for debit adjustment. Create payment application
             -- --------------------------------------------------------------------------------------------------------------
-	        , debit_adjustment_charges AS (
+            , debit_adjustment_charges AS (
                 SELECT
                 billing.create_payment_applications(
                     payment_id
@@ -1723,11 +1753,11 @@ module.exports = {
                     , (${JSON.stringify(auditDetails)})::jsonb
                     , cad.applied_dt
                     ) AS details
-		        FROM
+                FROM
                     claim_charges
                 LEFT JOIN claim_application_date cad ON cad.claim_id = claim_charges.claim_id
                 WHERE (claim_balance_total < 0::money OR is_debit_adjustment)
-	        )
+            )
             -- --------------------------------------------------------------------------------------------------------------
             -- It will update responsible party, claim status for given claim.
             -- --------------------------------------------------------------------------------------------------------------
@@ -1751,7 +1781,7 @@ module.exports = {
         SELECT null,id,null FROM insert_audit_cte
         UNION ALL
         SELECT details,null,null FROM credit_adjustment_charges
-	    UNION ALL
+        UNION ALL
         SELECT details,null,null FROM debit_adjustment_charges
         UNION ALL
         SELECT null,null,result::text FROM change_responsible_party
@@ -1786,8 +1816,8 @@ module.exports = {
             claim_balance AS (
                 SELECT
                     bgct.claim_balance_total AS claim_balance_total
-					, c.claim_id
-					, cl.patient_id
+                    , c.claim_id
+                    , cl.patient_id
                     , clock_timestamp() AS applied_dt
                 FROM
                     billing.charges AS c
@@ -1885,7 +1915,7 @@ module.exports = {
                     , '[]'::jsonb AS cas_details
                     , cb.claim_balance_total
                     , COALESCE (((bch.bill_fee * bch.units) - ( bgct.other_payment + bgct.other_adjustment )) < 0::money, false) AS is_debit_adjustment
-					, cb.applied_dt
+                    , cb.applied_dt
                 FROM
                     billing.claims bc
                 INNER JOIN insert_payment ip ON ip.patient_id = bc.patient_id
@@ -1899,7 +1929,7 @@ module.exports = {
             -- --------------------------------------------------------------------------------------------------------------
             -- Formatting charge lineItems for credit adjustment. Create payment application
             -- --------------------------------------------------------------------------------------------------------------
-	        , credit_adjustment_charges AS (
+            , credit_adjustment_charges AS (
                 SELECT
                     billing.create_payment_applications(
                         payment_id
@@ -1912,14 +1942,14 @@ module.exports = {
                         , (${JSON.stringify(auditDetails)})::JSONB
                         , now()
                     )  AS details
-	        	FROM
+                FROM
                     claim_charges
                 WHERE claim_balance_total > 0::money
             )
             -- --------------------------------------------------------------------------------------------------------------
             -- Formatting charge lineItems for debit adjustment. Create payment application
             -- --------------------------------------------------------------------------------------------------------------
-	        , debit_adjustment_charges AS (
+            , debit_adjustment_charges AS (
                 SELECT
                     billing.create_payment_applications(
                         payment_id
@@ -1932,10 +1962,10 @@ module.exports = {
                         , (${JSON.stringify(auditDetails)})::jsonb
                         , claim_charges.applied_dt
                     ) AS details
-		        FROM
+                FROM
                     claim_charges
                 WHERE (claim_balance_total < 0::money OR is_debit_adjustment)
-	        )
+            )
             -- --------------------------------------------------------------------------------------------------------------
             -- It will update responsible party, claim status for given claim.
             -- --------------------------------------------------------------------------------------------------------------
@@ -1959,7 +1989,7 @@ module.exports = {
         SELECT NULL,id,NULL FROM insert_audit_cte
         UNION ALL
         SELECT details,NULL,NULL FROM credit_adjustment_charges
-	    UNION ALL
+        UNION ALL
         SELECT details,NULL,NULL FROM debit_adjustment_charges
         UNION ALL
         SELECT NULL,NULL,result::text FROM change_responsible_party
