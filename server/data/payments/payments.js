@@ -666,7 +666,6 @@ module.exports = {
                 FROM insert_claim_comments
                 WHERE id IS NOT NULL
             ),
-
             create_audit_study_status AS (
                 SELECT billing.create_audit(
                         ${auditDetails.company_id}
