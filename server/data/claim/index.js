@@ -839,6 +839,7 @@ module.exports = {
                     , pof.state AS ordering_facility_state
                     , pof.zip_code AS ordering_facility_zip
                     , pofc.location
+                    , c.billing_type
                     , poft.description AS ordering_facility_type
                     , ofcp.id AS ptn_ordering_facility_contact_id
                     , ofcp.location AS ptn_location
@@ -1284,6 +1285,7 @@ module.exports = {
                             ,pof.id AS service_facility_id
                             ,pof.name AS service_facility_name
                             ,oft.description AS ordering_facility_type
+                            ,pofc.billing_type
                             ,COALESCE(NULLIF(f.facility_info->'rendering_provider_id',''),'0')::numeric AS rendering_provider_id
                             ,fac_prov_cont.id AS rendering_provider_contact_id
                             ,fac_prov.full_name AS rendering_provider_full_name
