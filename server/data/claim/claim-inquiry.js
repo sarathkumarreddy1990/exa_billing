@@ -344,8 +344,7 @@ module.exports = {
                     , COUNT(1) OVER (range unbounded preceding) AS total_records
                     , ROW_NUMBER () OVER (
                         ORDER BY
-                            commented_dt
-                            , CASE code
+                            CASE code
                                 WHEN 'charge' THEN 1
                                 WHEN 'auto' THEN 2
                                 WHEN 'patient_statement' THEN 3
@@ -358,8 +357,7 @@ module.exports = {
                     , sequence_number
                 FROM agg
                 ORDER BY
-                      commented_dt
-                    , CASE code
+                    CASE code
                         WHEN 'charge' THEN 1
                         WHEN 'auto' THEN 2
                         WHEN 'patient_statement' THEN 3
