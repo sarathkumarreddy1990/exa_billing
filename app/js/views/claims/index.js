@@ -6046,12 +6046,17 @@ define(['jquery',
                 self.ACSelect.readPhy.contact_id = patient_details.rendering_provider_contact_id || patient_details.rendering_provider_contact_id || null;
                 self.ordering_facility_id = patient_details.service_facility_id || null;
                 self.ordering_facility_contact_id = patient_details.service_facility_contact_id || null;
+                self.billing_type = patient_details.billing_type || null;
                 self.ordering_facility_name = patient_details.service_facility_name;
                 self.isClaimWOStudy = true;
 
                 var orderingFacilityName  = self.ordering_facility_name
                     ? self.ordering_facility_name + ' (' + patient_details.service_facility_contact_name + ')' + (patient_details.ordering_facility_type ? ' (' + patient_details.ordering_facility_type + ')' : '')
                     : self.usermessage.selectOrdFacility;
+
+                if (app.isMobileBillingEnabled) {
+                    $('.splitNotification').removeClass('hidden');
+                }
 
                 if (patient_details.rendering_provider_id) {
                     self.toggleSkillCodeSection();
