@@ -7096,7 +7096,8 @@ define(['jquery',
                         'ULI/PHN',
                         'ULI/PHN (parent/guardian)',
                         'Registration Number',
-                        'Registration Number (parent/guardian)'
+                        'Registration Number (parent/guardian)',
+                        'PID'
                     ];
 
                     return issuerTypes[index];
@@ -7114,7 +7115,8 @@ define(['jquery',
                     // Registration Number(parent / guardian) - id = 4
                     // ULI / PHN - id = 1
                     // ULI / PHN(parent / guardian) - id = 2
-                    var issuerIds = [3, 4, 1, 2];
+                    // PID - id = 5
+                    var issuerIds = [3, 4, 1, 2, 5];
                     for (var index = 0; index < issuerIds.length; index++) {
                         var issuerId = issuerIds[index];
                         defaultPatientAltAccNo = this.getDefaultPatientAltAccNoById(patientAltAccNos, issuerId);
