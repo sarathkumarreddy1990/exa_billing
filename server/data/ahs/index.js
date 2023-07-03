@@ -846,7 +846,6 @@ const ahsData = {
                                 nums.service_recipient_pid IS NULL
                                 OR (
                                     nums.service_recipient_pid_province = 'AB'
-                                    AND nums.service_recipient_pid IS NOT NULL
                                 )
                                 OR (
                                     nums.service_recipient_phn_province = 'AB' 
@@ -860,7 +859,8 @@ const ahsData = {
                         CASE
                             WHEN nums.service_recipient_registration_number IS NOT NULL
                                 AND (
-                                    nums.service_recipient_phn IS NULL OR nums.service_recipient_phn_province != 'AB'
+                                    nums.service_recipient_phn IS NULL 
+                                    OR nums.service_recipient_phn_province != 'AB'
                                     OR (
                                         nums.service_recipient_phn_province = 'AB'
                                         AND nums.service_recipient_registration_number_province != 'AB'
@@ -868,14 +868,16 @@ const ahsData = {
                                 )
                             THEN nums.service_recipient_registration_number
                             WHEN nums.service_recipient_pid IS NOT NULL AND (
-                                nums.service_recipient_phn IS NULL OR nums.service_recipient_phn_province != 'AB'
+                                nums.service_recipient_phn IS NULL 
+                                OR nums.service_recipient_phn_province != 'AB'
                                 OR (
                                     nums.service_recipient_phn_province = 'AB'
                                     AND nums.service_recipient_pid_province != 'AB'
                                 )
                             )
                             AND (
-                                nums.service_recipient_registration_number IS NULL OR nums.service_recipient_registration_number_province != 'AB'
+                                nums.service_recipient_registration_number IS NULL 
+                                OR nums.service_recipient_registration_number_province != 'AB'
                             )
                             THEN nums.service_recipient_pid
                             ELSE NULL
@@ -883,7 +885,8 @@ const ahsData = {
                         CASE
                             WHEN nums.service_recipient_registration_number IS NOT NULL
                             AND (
-                                nums.service_recipient_phn IS NULL OR nums.service_recipient_phn_province != 'AB'
+                                nums.service_recipient_phn IS NULL 
+                                OR nums.service_recipient_phn_province != 'AB'
                                 OR (
                                     nums.service_recipient_phn_province = 'AB'
                                     AND nums.service_recipient_registration_number_province != 'AB'
@@ -891,14 +894,16 @@ const ahsData = {
                             )
                             THEN 'registration_number'
                             WHEN nums.service_recipient_pid IS NOT NULL AND (
-                                nums.service_recipient_phn IS NULL OR nums.service_recipient_phn_province != 'AB'
+                                nums.service_recipient_phn IS NULL 
+                                OR nums.service_recipient_phn_province != 'AB'
                                 OR (
                                     nums.service_recipient_phn_province = 'AB'
                                     AND nums.service_recipient_pid_province != 'AB'
                                 )
                             )
                             AND (
-                                nums.service_recipient_registration_number IS NULL OR nums.service_recipient_registration_number_province != 'AB'
+                                nums.service_recipient_registration_number IS NULL 
+                                OR nums.service_recipient_registration_number_province != 'AB'
                             )
                             THEN 'pid'
                             ELSE NULL
