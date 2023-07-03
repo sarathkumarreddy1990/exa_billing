@@ -723,24 +723,43 @@ const api = {
         }
 
         if (tables.eligibility){
-            r += `
-                LEFT JOIN LATERAL (
-                    SELECT
-                        COALESCE(
-                            eligibility_response->'data'->'coverage'->>'active',
-                            'false'
-                        )::boolean       AS verified,
-                        eligibility_dt   AS dt
-                    FROM
-                        eligibility_log
-                    WHERE
-                        eligibility_log.patient_id = studies.patient_id
-                    ORDER BY
-                        eligibility_log.id DESC
-                    LIMIT 1
-                ) eligibility ON TRUE `;
-
+            if ( config.get(config.keys.insImagineSoftware) ) {
+                r += `
+                    LEFT JOIN LATERAL (
+                        SELECT
+                            isq.is_eligible     AS verified,
+                            isq.request_dt      AS eligibility_dt
+                        FROM
+                            public.imagine_software_queries isq
+                        JOIN public.imagine_software_queries_studies isqs
+                            ON isqs.study_id = studies.id
+                        WHERE
+                            isq.id = isqs.imagine_software_query_id
+                            AND isq.eligibility_id IS NOT NULL
+                        ORDER BY
+                            isq.request_dt DESC
+                        LIMIT 1
+                    ) eligibility ON TRUE
+                `;
+            }
+            else {
+                r += `
+                    LEFT JOIN LATERAL (
+                        SELECT
+                            NULLIF(eligibility_response->'data'->'coverage'->>'active', '') :: BOOLEAN       AS verified,
+                            eligibility_dt
+                        FROM
+                            eligibility_log
+                        WHERE
+                            eligibility_log.patient_id = studies.patient_id
+                        ORDER BY
+                            eligibility_log.id DESC
+                        LIMIT 1
+                    ) eligibility ON TRUE
+                `;
+            }
         }
+
 
         if (tables.study_status){ r += ` LEFT JOIN study_status ON (
             CASE studies.study_status WHEN 'TE' THEN 'INC'
@@ -963,7 +982,7 @@ const api = {
             `insurance_providers.provider_types AS ins_provider_type`,
             `(SELECT array_agg(insurance_name) FROM insurance_providers WHERE id IN (SELECT insurance_provider_id FROM patient_insurances WHERE id = pat_order_ins.primary_patient_insurance_id  OR id = pat_order_ins.secondary_patient_insurance_id OR id = pat_order_ins.tertiary_patient_insurance_id )) AS insurance_providers`,
             `(COALESCE(eligibility.verified, false) OR COALESCE(orders.order_info->'manually_verified', 'false')::BOOLEAN)   AS eligibility_verified`,
-            `eligibility.dt AS eligibility_dt`,
+            `eligibility_dt`,
             `icd_codes.description AS icd_description`,
             `patient_alt_accounts.pid_alt_account`,
             `patient_alt_accounts.phn_alt_account`,

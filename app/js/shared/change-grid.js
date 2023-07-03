@@ -79,10 +79,10 @@ define('change-grid',[
             var verifiedDate = data.manually_verified_dt;
             if ( eligibilityDate && !verifiedDate || moment(eligibilityDate).isAfter(verifiedDate) ) {
                 if ( value === false ) {
-                    html = '<i class="fa fa-square-o" style="color: #FF9000" aria-hidden="true" title="Verified using automated system - inactive coverage" />';
+                    html = '<i class="fa fa-times" style="color: #FF0000" aria-hidden="true" title="Eligibility verified as INACTIVE on ' + dateFormatter(eligibilityDate, data) + '" />';
                 }
                 else {
-                    html = '<i class="fa fa-check-square-o" style="color: green" aria-hidden="true" title="Verified using automated system" />';
+                    html = '<i class="fa fa-check-square-o" style="color: green" aria-hidden="true" title="Eligibility verified as ACTIVE on ' + dateFormatter(eligibilityDate, data) + '" />';
                 }
             }
             else if ( verifiedDate ) {
@@ -91,8 +91,8 @@ define('change-grid',[
                  */
                 var verifiedBy = data.manually_verified_by;
                 var titleText = 'Changed (manually) by ' + verifiedBy + ' on ' + dateFormatter(verifiedDate, data);
-                if ( value === false ) {
-                    html = '<i class="fa fa-square-o" style="color: #FF9000" aria-hidden="true" title="' + titleText + '" />';
+                if ( data.manually_verified === false ) {
+                    html = '<i class="fa fa-times" style="color: #FF0000" aria-hidden="true" title="' + titleText + '" />';
                 }
                 else {
                     html = '<i class="fa fa-check-square-o" style="color: green" aria-hidden="true" title="' + titleText + '" />';
@@ -102,7 +102,7 @@ define('change-grid',[
                 /**
                  * Default appearance
                  */
-                html = '<i class="fa fa-square-o" style="color: #FF9000" aria-hidden="true" />';
+                html = '';
             }
             return [{
                 'field': 'eligibility_verified',
