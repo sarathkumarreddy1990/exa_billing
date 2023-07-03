@@ -1973,9 +1973,9 @@ define([ 'backbone', 'immutable', 'moment', 'shared/utils' ], function ( Backbon
                         if (options.format === 'csv') {
                             if ( eligibilityDate && !verifiedDate || moment(eligibilityDate).isAfter(verifiedDate) ) {
                                 if ( cellvalue === false ) {
-                                    return "Verified using automated system - inactive coverage";
+                                    return "Eligibility verified as INACTIVE on " + dateFormatter(eligibilityDate, options, rowObject);
                                 }
-                                return "Verified using automated system";
+                                return "Eligibility verified as ACTIVE on " + dateFormatter(eligibilityDate, options, rowObject);
                             }
                             else if ( verifiedDate ) {
                                 /**
@@ -1990,9 +1990,9 @@ define([ 'backbone', 'immutable', 'moment', 'shared/utils' ], function ( Backbon
                         else {
                             if ( eligibilityDate && !verifiedDate || moment(eligibilityDate).isAfter(verifiedDate) ) {
                                 if ( cellvalue === false ) {
-                                    return '<i class="fa fa-square-o" style="color: #FF9000" aria-hidden="true" title="Verified using automated system - inactive coverage" />';
+                                    return '<i class="fa fa-times" style="color: #FF0000" aria-hidden="true" title="Eligibility verified as INACTIVE on ' + dateFormatter(eligibilityDate, options, rowObject) + '" />';
                                 }
-                                return '<i class="fa fa-check-square-o" style="color: green" aria-hidden="true" title="Verified using automated system" />';
+                                return '<i class="fa fa-check-square-o" style="color: green" aria-hidden="true" title="Eligibility verified as ACTIVE on ' + dateFormatter(eligibilityDate, options, rowObject) + '" />';
                             }
                             else if ( verifiedDate ) {
                                 /**
@@ -2000,15 +2000,15 @@ define([ 'backbone', 'immutable', 'moment', 'shared/utils' ], function ( Backbon
                                  */
                                 var verifiedBy = rowObject.manually_verified_by;
                                 var titleText = 'Changed (manually) by ' + verifiedBy + ' on ' + dateFormatter(verifiedDate, options, rowObject);
-                                if ( cellvalue === false ) {
-                                    return '<i class="fa fa-square-o" style="color: #FF9000" aria-hidden="true" title="' + titleText + '" />';
+                                if ( rowObject.manually_verified === false ) {
+                                    return '<i class="fa fa-times" style="color: #FF0000" aria-hidden="true" title="' + titleText + '" />';
                                 }
                                 return '<i class="fa fa-check-square-o" style="color: green" aria-hidden="true" title="' + titleText + '" />';
                             }
                             /**
                              * Default appearance
                              */
-                            return '<i class="fa fa-square-o" style="color: #FF9000" aria-hidden="true" title="Unverified" />';
+                            return '';
                         }
                     },
                     "stype": "select",

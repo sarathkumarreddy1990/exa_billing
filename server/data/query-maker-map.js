@@ -38,4 +38,5 @@ module.exports = new Map([
     ['bw', require('./query-makers/money_range')],
     ['authStatus', require('./query-makers/auth_status')],
     ['study_flags', require('./query-makers/study_flags')],
+    [ `eligibility`, require(`./query-makers/eligibility`) ],
 ]);
