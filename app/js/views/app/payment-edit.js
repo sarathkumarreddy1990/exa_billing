@@ -1,9 +1,7 @@
-define(['jquery',
-    'immutable',
+define([
+    'jquery',
     'underscore',
     'backbone',
-    'jqgrid',
-    'jqgridlocale',
     'text!templates/app/payment-edit.html',
     'models/app/payment',
     'models/pager',
@@ -23,11 +21,8 @@ define(['jquery',
     'shared/claim-alerts'
 ], function (
         jQuery,
-        Immutable,
         _,
         Backbone,
-        JGrid,
-        JGridLocale,
         editPayment,
         ModelPayments,
         ModelPaymentsPager,
@@ -45,7 +40,7 @@ define(['jquery',
         AdditionCASTemplate,
         PatientStatementView,
         claimAlertsView
-    ) {
+        ) {
         return Backbone.View.extend({
             el: null,
             pager: null,
@@ -76,9 +71,9 @@ define(['jquery',
             pendingGridLoaderd: false,
             isRefundApplied: false,
             casDeleted: [],
-            saveClick:false,
-            paymentDateObj:null,
-            isEscKeyPress:false,
+            saveClick: false,
+            paymentDateObj: null,
+            isEscKeyPress: false,
             eobFileId: null,
             ediFileId: null,
             claimId: null,
@@ -86,6 +81,7 @@ define(['jquery',
             defaultCASField: 7,
             patientId: null,
             additionCASFormTemplate: _.template(AdditionCASTemplate),
+
             events: {
                 'click #btnPaymentSave': 'savePayment',
                 'click #btnApplyCAS': 'getPayemntApplications',
@@ -93,7 +89,7 @@ define(['jquery',
                 'change .inputType': 'setInputTypeFields',
                 'click #btnPaymentAddNew': 'addNewPayemnt',
                 'click #btnPaymentBack': 'goBackToPayments',
-                'click #btnPaymentClear': 'clearPayemntForm',
+                'click #btnPaymentClear': 'clearPaymentForm',
                 "keyup #searchPatient .search-field": "applySearch",
                 "click #anc_first": "onpaging",
                 "click #anc_previous": "onpaging",
@@ -297,7 +293,7 @@ define(['jquery',
             showBillingForm: function (paymentID, from) {
                 var self = this;
                 self.bindNewDTP();
-                self.clearPayemntForm(from);
+                self.clearPaymentForm(from);
                 self.setAcs();
                 if (paymentID == 0) {
                     this.model = new ModelPayments();
@@ -343,7 +339,7 @@ define(['jquery',
                 window.open('/vieworder#patient/document/' + btoa(this.patient_id) + '/payment');
             },
 
-            clearPayemntForm: function () {
+            clearPaymentForm: function () {
                 var facility = this.paidlocation.get(app.facilityID);
 
                 if (!facility) {
@@ -2466,15 +2462,14 @@ define(['jquery',
             },
 
             savePaymentsCAS: function (claimId, paymentId, paymentStatus, payment_application_id) {
-                var self = this;
                 var charge_id = $('#divPaymentCAS').attr('data-charge_id');
-                self.casSegmentsSelected = self.casSegmentsSelected.filter(function (obj) {
+                this.casSegmentsSelected = this.casSegmentsSelected.filter(function (obj) {
                     return obj.charge_id != charge_id
                 })
-                var cas = self.vaidateCasCodeAndReason(payment_application_id, paymentStatus, charge_id);
+                var cas = this.validateCasCodeAndReason(paymentStatus, charge_id);
                 if (cas) {
-                    self.casSegmentsSelected.push(cas);
-                    self.closePaymentsCAS();
+                    this.casSegmentsSelected.push(cas);
+                    this.closePaymentsCAS();
                 }
             },
 
@@ -2492,30 +2487,39 @@ define(['jquery',
                 return true;
             },
 
-            vaidateCasCodeAndReason: function (payment_application_id, paymentStatus, charge_id) {
+            validateCasCodeAndReason: function (paymentStatus, charge_id) {
                 var self = this;
-                var hasReturned = false;
                 var casObj = [];
                 var rowCame = 0;
                 var length = $('.casPayment').length;
+                var isClaimDenied = false;
+
                 for (var k = 1; k <= length; k++) {
                     var emptyCasObj = {};
-                    var groupCode = $('#selectGroupCode' + k).val();
-                    var reasonCode = $('#selectReason' + k).val();
+                    var groupId = $('#selectGroupCode' + k).val();
+                    var reasonId = $('#selectReason' + k).val();
+                    var groupCode = $('#selectGroupCode' + k + ' option:selected').attr('data-code');
+                    var reasonCode = $('#selectReason' + k + ' option:selected').attr('data-code');
+
+                    if (!isClaimDenied) {
+                        isClaimDenied = groupCode === 'PR' && reasonCode === '96';
+                    }
+
                     var amount = $('#txtAmount' + k).val();
                     var cas_id = '';
+
                     if (paymentStatus === 'applied') {
                         cas_id = $('#selectGroupCode' + k).attr('cas_id');
                     }
 
-                    if (groupCode == '' && ($('#selectGroupCode' + k).attr('cas_id') != '' && $('#selectGroupCode' + k).attr('cas_id') > 0)) {
+                    if (groupId == '' && ($('#selectGroupCode' + k).attr('cas_id') != '' && $('#selectGroupCode' + k).attr('cas_id') > 0)) {
                         self.casDeleted.push($('#selectGroupCode' + k).attr('cas_id'));
                     }
 
-                    if (groupCode != '' && reasonCode != '' && amount != '') {
+                    if (groupId != '' && reasonId != '' && amount != '') {
                         if (k != 0 && self.checkPreviousRowIsEmpty(k - 1, k)) {
-                            emptyCasObj['group_code_id'] = groupCode;
-                            emptyCasObj['reason_code_id'] = reasonCode;
+                            emptyCasObj['group_code_id'] = groupId;
+                            emptyCasObj['reason_code_id'] = reasonId;
                             emptyCasObj['amount'] = amount;
                             if (paymentStatus === 'applied') { emptyCasObj['cas_id'] = cas_id; }
                             casObj.push(emptyCasObj);
@@ -2523,23 +2527,23 @@ define(['jquery',
                         }
                         else return false;
                     }
-                    else if (groupCode != '' && reasonCode == '') {
+                    else if (groupId != '' && reasonId == '') {
                         commonjs.showWarning('Please select the reason in row ' + k);
                         $('#selectReason' + k).focus()
                         return false;
                     }
-                    else if (groupCode == '' && reasonCode != '') {
+                    else if (groupId == '' && reasonId != '') {
                         commonjs.showWarning('Please select the group code in row ' + k);
                         $('#selectGroupCode' + k).focus()
                         return false;
                     }
-                    else if ((reasonCode != '' || groupCode != '') && amount == "") {
+                    else if ((reasonId != '' || groupId != '') && amount == "") {
                         commonjs.showWarning('Please enter amount in row ' + k);
                         $('#txtAmount' + k).focus();
                         return false;
                     }
                 }
-                return { charge_id: charge_id, casObj: casObj };
+                return { charge_id: charge_id, isClaimDenied: isClaimDenied, casObj: casObj };
             },
 
             getPayemntApplications: function (e) {
@@ -2661,12 +2665,13 @@ define(['jquery',
             saveAllPayments: function (e, claimId, paymentId, paymentStatus, chargeId, paymentApplicationId, source) {
                 var targetObj = $(e.target);
                 var objIsPayInFull = targetObj.is('#btnPayfullAppliedPendingPayments');
-                var isClaimDenied = false;
                 var self = this;
+
                 if (this.validatePayerDetails()) {
                     var lineItems = $("#tBodyApplyPendingPayment tr"), dataLineItems = [], orderPayment = 0.00, orderAdjustment = 0.00;
                     var line_items = [];
-                    var cas = self.casSegmentsSelected;
+                    var cas = this.casSegmentsSelected;
+
                     $.each(lineItems, function (index) {
                         var _line_item = {};
                         var chargeRow = $(this);
@@ -2713,12 +2718,17 @@ define(['jquery',
                     */
                     var paymentPayerType = self.isFromClaim ? self.claimPaymentObj.payer_type || '' : $('#selectPayerType').val();
                     var isClaimStatusChanged = self.received_claim_status_id != $('#ddlClaimStatus').val();
+
                     var deniedStatus = _.filter(self.claimStatuses.toJSON(), { code: 'D' });
                     var deniedStatusId = deniedStatus.length && deniedStatus[0].id || '';
+                    var isClaimDenied = _.get(cas, ['0', 'isClaimDenied']) || false;
 
                     if (totalPayment === 0 && totalAdjustment === 0) {
-                        $('#ddlClaimStatus').val(deniedStatusId);
                         isClaimDenied = true;
+                    }
+
+                    if (isClaimDenied) {
+                        $('#ddlClaimStatus').val(deniedStatusId);
                     }
 
                     var payerType = $('#ddlResponsible').find(':selected').attr('data-payer_type');
@@ -3895,4 +3905,4 @@ define(['jquery',
             },
 
         });
-    });
+});
