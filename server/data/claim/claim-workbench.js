@@ -307,7 +307,7 @@ module.exports = {
                                                      END,
                                         submitted_dt=timezone(get_facility_tz(bc.facility_id::int), now()::timestamp)
                                     WHERE bc.id = ANY(${success_claimID}) AND NOT ${is_invoice_inquiry}
-                                    AND bc.billing_method IN ('direct_billing', 'paper_claim')
+                                    AND bc.billing_method IN ('direct_billing', 'paper_claim', 'electronic_billing')
                                     RETURNING *,
                                     (SELECT row_to_json(old_row) FROM (
                                                   SELECT
