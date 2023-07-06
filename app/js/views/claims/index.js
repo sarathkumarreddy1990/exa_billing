@@ -916,6 +916,7 @@ define(['jquery',
                             var existingSecondaryInsurance = [];
                             var existingTriInsurance = [];
                             var existing_insurance = claimDetails.existing_insurance || [];
+                            self.allExistingInsurances = existing_insurance;
 
                             self.npiNo = claimDetails.npi_no || '';
                             self.federalTaxId = claimDetails.federal_tax_id || '';
@@ -3527,6 +3528,7 @@ define(['jquery',
                             self.existingSecondaryInsurance = [];
                             self.existingTriInsurance = [];
                             var existing_insurance = response[0].existing_insurance || [];
+                            self.allExistingInsurances = existing_insurance;
                             var beneficiary_details = response[0].beneficiary_details || [];
                             self.patientAddress = response[0].patient_info ? response[0].patient_info : self.patientAddress;
                             self.npiNo = existing_insurance.length && existing_insurance[0].npi_no ? existing_insurance[0].npi_no : '';
@@ -4557,6 +4559,19 @@ define(['jquery',
                 }
             },
 
+            checkForExistingInsurance: function ( policy, provider, id ) {
+                var insurances = this.allExistingInsurances;
+                if ( !Array.isArray(insurances) ) {
+                    return false;
+                }
+                return insurances.some(function ( info ) {
+                    var sameProvider = info.insurance_provider_id === ~~provider;
+                    var samePolicy = info.policy_number === policy;
+                    var sameRecord = info.id === ~~id;
+                    return sameProvider && samePolicy && !sameRecord;
+                });
+            },
+
             validateClaimData: function () {
                 var self = this;
                 self.is_primary_available = false;
@@ -4662,6 +4677,8 @@ define(['jquery',
                 }
 
                 var txtPriPolicyNo = ($('#txtPriPolicyNo').val() && $('#txtPriPolicyNo').val().trim()) || '';
+                var txtSecPolicyNo = ($('#txtSecPolicyNo').val() && $('#txtSecPolicyNo').val().trim()) || '';
+                var txtTerPolicyNo = ($('#txtTerPolicyNo').val() && $('#txtTerPolicyNo').val().trim()) || '';
 
                 if (app.country_alpha_3_code === 'can') {
                     if ( app.province_alpha_2_code === 'ON' && self.priInsCode && ['HCP', 'WSIB'].indexOf(self.priInsCode.toUpperCase()) >= 0) {
@@ -4742,13 +4759,20 @@ define(['jquery',
                         mandatory_fields.primaryfieldObjs[mandatory_fields.primaryfields.indexOf('')].obj.focus();
                         return false;
                     }
-                    else if (!commonjs.validateFutureDate(commonjs.getISODateString($('#txtPriDOB').val()))) {
+                    if (!commonjs.validateFutureDate(commonjs.getISODateString($('#txtPriDOB').val()))) {
                         $("#txtPriDOB").focus();
                         commonjs.showWarning('messages.warning.shared.entervaliddob');
                         return false;
                     }
-                    else
-                        self.is_primary_available = true;
+                    if ( txtPriPolicyNo && self.priInsID > 0 ) {
+                        var primaryExists = self.checkForExistingInsurance(txtPriPolicyNo, self.priInsID, self.priClaimInsID);
+                        if ( primaryExists ) {
+                            commonjs.showWarning('messages.warning.existsInsurance');
+                            $('#txtPriPolicyNo').focus();
+                            return false;
+                        }
+                    }
+                    self.is_primary_available = true;
                 }
                 if (app.country_alpha_3_code !== 'can' && (self.secInsID || !mandatory_fields.secondaryfields.every(checkEmpty))) {
                     if (!self.priInsID) {
@@ -4764,13 +4788,20 @@ define(['jquery',
                             // commonjs.showWarning("messages.warning.shared.secInsValidation");
                             return false;
                         }
-                        else if (!commonjs.validateFutureDate(commonjs.getISODateString($('#txtSecDOB').val()))) {
+                        if (!commonjs.validateFutureDate(commonjs.getISODateString($('#txtSecDOB').val()))) {
                             $("#txtSecDOB").focus();
                             commonjs.showWarning('messages.warning.shared.entervaliddob');
                             return false;
                         }
-                        else
-                            self.is_secondary_available = true;
+                        if ( txtSecPolicyNo && self.secInsID > 0 ) {
+                            var secondaryExists = self.checkForExistingInsurance(txtSecPolicyNo, self.secInsID, self.secClaimInsID);
+                            if ( secondaryExists ) {
+                                commonjs.showWarning('messages.warning.existsInsurance');
+                                $('#txtSecPolicyNo').focus();
+                                return false;
+                            }
+                        }
+                        self.is_secondary_available = true;
                     }
                 }
                 if (app.country_alpha_3_code !== 'can' && (self.terInsID || !mandatory_fields.tertiaryfields.every(checkEmpty))) {
@@ -4788,13 +4819,20 @@ define(['jquery',
 
                             return false;
                         }
-                        else if (!commonjs.validateFutureDate(commonjs.getISODateString($('#txtTerDOB').val()))) {
+                        if (!commonjs.validateFutureDate(commonjs.getISODateString($('#txtTerDOB').val()))) {
                             $("#txtTerDOB").focus();
                             commonjs.showWarning('messages.warning.shared.entervaliddob');
                             return false;
                         }
-                        else
-                            self.is_tertiary_available = true;
+                        if ( txtTerPolicyNo && self.terInsID > 0 ) {
+                            var tertiaryExists = self.checkForExistingInsurance(txtTerPolicyNo, self.terInsID, self.terClaimInsID);
+                            if ( tertiaryExists ) {
+                                commonjs.showWarning('messages.warning.existsInsurance');
+                                $('#txtTerPolicyNo').focus();
+                                return false;
+                            }
+                        }
+                        self.is_tertiary_available = true;
                     }
                 }
 
@@ -7135,7 +7173,8 @@ define(['jquery',
                         'ULI/PHN',
                         'ULI/PHN (parent/guardian)',
                         'Registration Number',
-                        'Registration Number (parent/guardian)'
+                        'Registration Number (parent/guardian)',
+                        'PID'
                     ];
 
                     return issuerTypes[index];
@@ -7153,7 +7192,8 @@ define(['jquery',
                     // Registration Number(parent / guardian) - id = 4
                     // ULI / PHN - id = 1
                     // ULI / PHN(parent / guardian) - id = 2
-                    var issuerIds = [3, 4, 1, 2];
+                    // PID - id = 5
+                    var issuerIds = [3, 4, 1, 2, 5];
                     for (var index = 0; index < issuerIds.length; index++) {
                         var issuerId = issuerIds[index];
                         defaultPatientAltAccNo = this.getDefaultPatientAltAccNoById(patientAltAccNos, issuerId);
