@@ -6,7 +6,7 @@ define([
     "text!templates/claims/insuranceEligibility.html",
     "text!templates/claims/insurancePokitdokpopup.html",
     "text!templates/claims/eligibilityResponseInfo.html",
-    "text!templates/claims/eligibilityResponseOhip.html",
+    "text!templates/claims/eligibilityResponseOHIP.html",
     "text!templates/claims/eligibilityResponseBC.html",
     "text!templates/claims/eligibilityErrorTemplate.html"
 ],
@@ -1087,7 +1087,7 @@ function (
                     .addClass("fa-times-circle")
                     .addClass("menu-icon-red");
             }
-            
+
             // Status Text
             var text = commonjs.geti18NString("order.insuranceEligibility.statusMessage") + " " + moment(request_dt).format("L LT z");
             $div.find("span").text(text);
@@ -1105,7 +1105,7 @@ function (
         /**
          * Returns the Benefit On Date
          *
-         * @param {string} format 
+         * @param {string} format
          * @returns {string}
          */
         benefitOnDate: function (format) {
