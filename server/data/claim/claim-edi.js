@@ -540,9 +540,9 @@ module.exports = {
 										unable_to_work_to_date::text as "unableToWorkToDate",
 										to_char(unable_to_work_to_date, 'YYYYMMDD')  as "unableToWorkToDateFormat",
 										hospitalization_from_date::text as "hospitailizationFromDate",
-										to_char(hospitalization_to_date, 'YYYYMMDD')  as "hospitailizationFromDateFormat",
+										to_char(hospitalization_from_date, 'YYYYMMDD')  as "hospitailizationFromDateFormat",
 										hospitalization_to_date::text as "hospitailizationToDate",
-										to_char(unable_to_work_to_date, 'YYYYMMDD')  as "hospitailizationToDateFormat",
+										to_char(hospitalization_to_date, 'YYYYMMDD')  as "hospitailizationToDateFormat",
 										pof.state_license_number as "stateLicenseNo",
 										pof.clia_number as "cliaNumber",
                                         (CASE ins_coverage_level.coverage_level
