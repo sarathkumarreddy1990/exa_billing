@@ -1759,12 +1759,12 @@ function formatSingleClaim(claimData, servicelineList) {
                                 widths:[12, 20, 45, 12, 15, 35],
                                 body: [
                                     [
-                                        {text: claimData.subscriber && claimData.subscriber[0].claim && claimData.subscriber[0].claim[0].hospitailizationFromDate ? ((claimData.subscriber[0].claim[0].hospitailizationFromDate).toString().substring(5,7)) : ''},
-                                        {text: claimData.subscriber && claimData.subscriber[0].claim && claimData.subscriber[0].claim[0].hospitailizationFromDate ? ((claimData.subscriber[0].claim[0].hospitailizationFromDate).toString().substring(8,10)) : ''},
-                                        {text: claimData.subscriber && claimData.subscriber[0].claim && claimData.subscriber[0].claim[0].hospitailizationFromDate ? ((claimData.subscriber[0].claim[0].hospitailizationFromDate).toString().substring(0,4)) : ''},
-                                        {text: claimData.subscriber && claimData.subscriber[0].claim && claimData.subscriber[0].claim[0].hospitailizationToDate ? ((claimData.subscriber[0].claim[0].hospitailizationToDate).toString().substring(5,7)) : ''},
-                                        {text: claimData.subscriber && claimData.subscriber[0].claim && claimData.subscriber[0].claim[0].hospitailizationToDate ? ((claimData.subscriber[0].claim[0].hospitailizationToDate).toString().substring(8,10)) : ''},
-                                        {text: claimData.subscriber && claimData.subscriber[0].claim && claimData.subscriber[0].claim[0].hospitailizationToDate ? ((claimData.subscriber[0].claim[0].hospitailizationToDate).toString().substring(0,4)) : ''},
+                                        {text: claimData.subscriber && claimData.subscriber[0].claim && claimData.subscriber[0].claim[0].hospitalizationFromDate ? ((claimData.subscriber[0].claim[0].hospitalizationFromDate).toString().substring(5,7)) : ''},
+                                        {text: claimData.subscriber && claimData.subscriber[0].claim && claimData.subscriber[0].claim[0].hospitalizationFromDate ? ((claimData.subscriber[0].claim[0].hospitalizationFromDate).toString().substring(8,10)) : ''},
+                                        {text: claimData.subscriber && claimData.subscriber[0].claim && claimData.subscriber[0].claim[0].hospitalizationFromDate ? ((claimData.subscriber[0].claim[0].hospitalizationFromDate).toString().substring(0,4)) : ''},
+                                        {text: claimData.subscriber && claimData.subscriber[0].claim && claimData.subscriber[0].claim[0].hospitalizationToDate ? ((claimData.subscriber[0].claim[0].hospitalizationToDate).toString().substring(5,7)) : ''},
+                                        {text: claimData.subscriber && claimData.subscriber[0].claim && claimData.subscriber[0].claim[0].hospitalizationToDate ? ((claimData.subscriber[0].claim[0].hospitalizationToDate).toString().substring(8,10)) : ''},
+                                        {text: claimData.subscriber && claimData.subscriber[0].claim && claimData.subscriber[0].claim[0].hospitalizationToDate ? ((claimData.subscriber[0].claim[0].hospitalizationToDate).toString().substring(0,4)) : ''},
                                     ]
                                 ]
                             },layout: 'noBorders' , colSpan:3

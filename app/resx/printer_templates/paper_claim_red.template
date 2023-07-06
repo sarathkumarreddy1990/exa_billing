@@ -780,29 +780,29 @@ function formatRedForm(claimData, servicelineList, pageBrk) {
                                 getSubstring(claimData.subscriber[0].claim[0].referringProvider[0].NPINO, 17) : '', colSpan: 3
                         }, {}, {}, {},
                         {
-                            text: claimData.subscriber && claimData.subscriber[0].claim && claimData.subscriber[0].claim[0].hospitailizationFromDate ?
-                                ((claimData.subscriber[0].claim[0].hospitailizationFromDate).toString().substring(5,7)) : ''
+                            text: claimData.subscriber && claimData.subscriber[0].claim && claimData.subscriber[0].claim[0].hospitalizationFromDate ?
+                                ((claimData.subscriber[0].claim[0].hospitalizationFromDate).toString().substring(5,7)) : ''
                         },
                         {
-                            text: claimData.subscriber && claimData.subscriber[0].claim && claimData.subscriber[0].claim[0].hospitailizationFromDate ?
-                                ((claimData.subscriber[0].claim[0].hospitailizationFromDate).toString().substring(8,10)) : ''
+                            text: claimData.subscriber && claimData.subscriber[0].claim && claimData.subscriber[0].claim[0].hospitalizationFromDate ?
+                                ((claimData.subscriber[0].claim[0].hospitalizationFromDate).toString().substring(8,10)) : ''
                         },
                         {
-                            text: claimData.subscriber && claimData.subscriber[0].claim && claimData.subscriber[0].claim[0].hospitailizationFromDate ?
-                                ((claimData.subscriber[0].claim[0].hospitailizationFromDate).toString().substring(0,4)) : ''
+                            text: claimData.subscriber && claimData.subscriber[0].claim && claimData.subscriber[0].claim[0].hospitalizationFromDate ?
+                                ((claimData.subscriber[0].claim[0].hospitalizationFromDate).toString().substring(0,4)) : ''
                         }, {},
 
                         {
-                            text: claimData.subscriber && claimData.subscriber[0].claim && claimData.subscriber[0].claim[0].hospitailizationToDate ?
-                                ((claimData.subscriber[0].claim[0].hospitailizationToDate).toString().substring(5,7)) : ''
+                            text: claimData.subscriber && claimData.subscriber[0].claim && claimData.subscriber[0].claim[0].hospitalizationToDate ?
+                                ((claimData.subscriber[0].claim[0].hospitalizationToDate).toString().substring(5,7)) : ''
                         },
                         {
-                            text: claimData.subscriber && claimData.subscriber[0].claim && claimData.subscriber[0].claim[0].hospitailizationToDate ?
-                                ((claimData.subscriber[0].claim[0].hospitailizationToDate).toString().substring(8,10)) : ''
+                            text: claimData.subscriber && claimData.subscriber[0].claim && claimData.subscriber[0].claim[0].hospitalizationToDate ?
+                                ((claimData.subscriber[0].claim[0].hospitalizationToDate).toString().substring(8,10)) : ''
                         },
                         {
-                            text: claimData.subscriber && claimData.subscriber[0].claim && claimData.subscriber[0].claim[0].hospitailizationToDate ?
-                                ((claimData.subscriber[0].claim[0].hospitailizationToDate).toString().substring(0,4)) : ''
+                            text: claimData.subscriber && claimData.subscriber[0].claim && claimData.subscriber[0].claim[0].hospitalizationToDate ?
+                                ((claimData.subscriber[0].claim[0].hospitalizationToDate).toString().substring(0,4)) : ''
                         }
                     ],
                     [
