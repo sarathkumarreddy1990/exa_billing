@@ -919,108 +919,210 @@ module.exports = {
         } = params;
 
         const sql = SQL`
-            WITH cteAutoBillingRules AS (
-                SELECT
-                    abr.id
-                    , claim_status_id
-                    , array_agg(abssr.study_status_code)            AS study_status_codes
-                    , abssr.excludes                                AS exclude_study_statuses
-                    , array_agg(facility_id)                        AS facility_ids
-                    , abfr.excludes                                 AS exclude_facilities
-                    , array_agg(abofr.ordering_facility_id)         AS ordering_facility_ids
-                    , abofr.excludes                                AS exclude_ordering_facilities
-                    , array_agg(modality_id)                        AS modality_ids
-                    , abmr.excludes                                 AS exclude_modalities
-                    , array_agg(cpt_code_id)                        AS cpt_code_ids
-                    , abcptr.excludes                               AS exclude_cpt_codes
-                    , array_agg(insurance_provider_payer_type_id)   AS insurance_provider_payer_type_ids
-                    , abipptr.excludes                              AS exclude_insurance_provider_payer_types
-                    , array_agg(insurance_provider_id)              AS insurance_provider_ids
-                    , abipr.excludes                                AS exclude_insurance_providers
-
-                FROM
-                    billing.autobilling_rules abr
-                    LEFT JOIN billing.autobilling_study_status_rules abssr                      ON abr.id = abssr.autobilling_rule_id
-                    LEFT JOIN billing.autobilling_facility_rules abfr                           ON abr.id = abfr.autobilling_rule_id
-                    LEFT JOIN billing.autobilling_ordering_facility_rules abofr                 ON abr.id = abofr.autobilling_rule_id
-                    LEFT JOIN billing.autobilling_modality_rules abmr                           ON abr.id = abmr.autobilling_rule_id
-                    LEFT JOIN billing.autobilling_cpt_code_rules abcptr                         ON abr.id = abcptr.autobilling_rule_id
-                    LEFT JOIN billing.autobilling_insurance_provider_payer_type_rules abipptr   ON abr.id = abipptr.autobilling_rule_id
-                    LEFT JOIN billing.autobilling_insurance_provider_rules abipr                ON abr.id = abipr.autobilling_rule_id
-                WHERE
-                    inactivated_dt IS NULL
-                    AND deleted_dt IS NULL
-                GROUP BY
-                    abr.id
-                    , abssr.excludes
-                    , abfr.excludes
-                    , abofr.excludes
-                    , abmr.excludes
-                    , abcptr.excludes
-                    , abipptr.excludes
-                    , abipr.excludes
-            )
-            , context AS (
-                SELECT
-                    studies.facility_id
-                    , studies.modality_id
-                    , studies.study_dt
-                    , array_agg(study_cpt.cpt_code_id)              AS cpt_code_ids
-                    , insurance_providers.provider_payer_type_id    AS insurance_provider_payer_type_id
-                    , insurance_providers.id                        AS insurance_provider_id
-                    , pofc.ordering_facility_id
-                FROM
-                    studies
-                    LEFT JOIN study_cpt             ON study_cpt.study_id = studies.id
-                    LEFT JOIN patient_insurances    ON patient_insurances.patient_id = studies.patient_id
-                    LEFT JOIN insurance_providers   ON insurance_providers.id = patient_insurances.insurance_provider_id
-                    LEFT JOIN ordering_facility_contacts pofc ON pofc.id = studies.ordering_facility_contact_id
-
-                WHERE
-                    studies.id = ${studyId}
-                    AND NOT EXISTS (
-                        SELECT 1
-                        FROM billing.claims bc
-                        JOIN billing.charges bch
-                            ON bch.claim_id = bc.id
-                        JOIN billing.charges_studies bchs
-                            ON bchs.charge_id = bch.id
-                        WHERE
-                            bchs.study_id = ${studyId}
-                    )
-
-                GROUP BY
-                    studies.facility_id
-                    , studies.modality_id
-                    , insurance_providers.provider_payer_type_id
-                    , insurance_providers.id
-                    , studies.study_dt
-                    , pofc.ordering_facility_id
-            )
+        WITH cteAutoBillingRules AS (
             SELECT
-            *
-            FROM
-            cteAutoBillingRules
-            INNER JOIN context ON
-                (NOT exclude_study_statuses = (${studyStatus} = ANY(study_status_codes)))
-                AND
-                (exclude_facilities IS null OR NOT exclude_facilities = (context.facility_id = ANY(facility_ids)))
-                AND (
-                    exclude_ordering_facilities IS NULL
-                    OR NOT (exclude_ordering_facilities = COALESCE((context.ordering_facility_id = ANY(cteAutoBillingRules.ordering_facility_ids)), false))
-                )
-                AND
-                (exclude_modalities IS null OR NOT exclude_modalities = (context.modality_id = ANY(modality_ids)))
-                AND
-                (exclude_cpt_codes IS null OR NOT exclude_cpt_codes = (context.cpt_code_ids && cteAutoBillingRules.cpt_code_ids))
-                AND
-                (exclude_insurance_provider_payer_types IS null OR NOT exclude_insurance_provider_payer_types = (context.insurance_provider_payer_type_id = ANY(insurance_provider_payer_type_ids)))
-                AND
-                (exclude_insurance_providers IS null OR NOT exclude_insurance_providers =(context.insurance_provider_id = ANY(insurance_provider_ids)))
+                abr.id,
+                abr.claim_status_id,
+                abssr.exclude_study_statuses,
+                abssr.study_status_codes,
+                abfr.exclude_facilities,
+                abfr.facility_ids,
+                abofr.exclude_ordering_facilities,
+                abofr.ordering_facility_ids,
+                abmr.exclude_modalities,
+                abmr.modality_ids,
+                abcptr.exclude_cpt_codes,
+                abcptr.cpt_code_ids,
+                abipptr.exclude_insurance_provider_payer_types,
+                abipptr.insurance_provider_payer_type_ids,
+                abipr.exclude_insurance_providers,
+                abipr.insurance_provider_ids
+            FROM billing.autobilling_rules abr
 
-            ORDER BY
-            id
-            LIMIT 1
+            LEFT JOIN LATERAL (
+                SELECT
+                    abssr.excludes                                AS exclude_study_statuses,
+                    array_agg(abssr.study_status_code)            AS study_status_codes
+                FROM billing.autobilling_study_status_rules abssr
+                WHERE abr.id = abssr.autobilling_rule_id
+                GROUP BY abssr.excludes
+            ) AS abssr ON TRUE
+
+            LEFT JOIN LATERAL (
+                SELECT
+                    abfr.excludes                                 AS exclude_facilities,
+                    array_agg(abfr.facility_id)                   AS facility_ids
+                FROM billing.autobilling_facility_rules abfr
+                WHERE abr.id = abfr.autobilling_rule_id
+                GROUP BY abfr.excludes
+            ) AS abfr ON TRUE
+
+            LEFT JOIN LATERAL (
+                SELECT
+                    abofr.excludes                                AS exclude_ordering_facilities,
+                    array_agg(abofr.ordering_facility_id)         AS ordering_facility_ids
+                FROM billing.autobilling_ordering_facility_rules abofr
+                WHERE abr.id = abofr.autobilling_rule_id
+                GROUP BY abofr.excludes
+            ) AS abofr ON TRUE
+
+            LEFT JOIN LATERAL (
+                SELECT
+                    abmr.excludes                                 AS exclude_modalities,
+                    array_agg(abmr.modality_id)                   AS modality_ids
+                FROM billing.autobilling_modality_rules abmr
+                WHERE abr.id = abmr.autobilling_rule_id
+                GROUP BY abmr.excludes
+            ) AS abmr ON TRUE
+
+            LEFT JOIN LATERAL (
+                SELECT
+                    abcptr.excludes                               AS exclude_cpt_codes,
+                    array_agg(abcptr.cpt_code_id)                 AS cpt_code_ids
+                FROM billing.autobilling_cpt_code_rules abcptr
+                WHERE abr.id = abcptr.autobilling_rule_id
+                GROUP BY abcptr.excludes
+            ) AS abcptr ON TRUE
+
+            LEFT JOIN LATERAL (
+                SELECT
+                    abipptr.excludes                                    AS exclude_insurance_provider_payer_types,
+                    array_agg(abipptr.insurance_provider_payer_type_id) AS insurance_provider_payer_type_ids
+                FROM billing.autobilling_insurance_provider_payer_type_rules abipptr
+                WHERE abr.id = abipptr.autobilling_rule_id
+                GROUP BY abipptr.excludes
+            ) AS abipptr ON TRUE
+
+            LEFT JOIN LATERAL (
+                SELECT
+                    abipr.excludes                                AS exclude_insurance_providers,
+                    array_agg(abipr.insurance_provider_id)        AS insurance_provider_ids
+                FROM billing.autobilling_insurance_provider_rules abipr
+                WHERE abr.id = abipr.autobilling_rule_id
+                GROUP BY abipr.excludes
+            ) AS abipr ON TRUE
+
+            WHERE abr.inactivated_dt IS NULL
+            AND abr.deleted_dt IS NULL
+        ),
+
+        context AS (
+            SELECT
+                s.study_dt,
+                s.study_status,
+                s.facility_id,
+                ofc.ordering_facility_id,
+                s.modality_id,
+                sc.cpt_code_ids,
+                ip.insurance_provider_payer_type_id,
+                ip.insurance_provider_id
+            FROM studies AS s
+            LEFT JOIN LATERAL (
+                SELECT ordering_facility_id
+                FROM ordering_facility_contacts ofc
+                WHERE ofc.id = s.ordering_facility_contact_id
+            ) as ofc ON TRUE
+            LEFT JOIN LATERAL (
+                SELECT array_agg(sc.cpt_code_id) AS cpt_code_ids
+                FROM study_cpt AS sc
+                WHERE sc.study_id = s.id
+            ) AS sc ON TRUE
+            LEFT JOIN LATERAL (
+                SELECT
+                    ip.id AS insurance_provider_id,
+                    ip.provider_payer_type_id AS insurance_provider_payer_type_id
+                FROM insurance_providers as ip
+                WHERE EXISTS (
+                    SELECT NULL
+                    FROM order_patient_insurances AS opt
+                    JOIN patient_insurances AS pi ON opt.patient_insurance_id = pi.id
+                    WHERE
+                        pi.insurance_provider_id = ip.id
+                    and opt.order_id = s.order_id
+                )
+            ) AS ip ON TRUE
+            WHERE
+                s.id = ${studyId}
+            AND NOT EXISTS (
+                SELECT 1
+                FROM billing.claims bc
+                JOIN billing.charges bch
+                    ON bch.claim_id = bc.id
+                JOIN billing.charges_studies bchs
+                    ON bchs.charge_id = bch.id
+                WHERE
+                    bchs.study_id = ${studyId}
+            )
+        )
+
+        SELECT
+            cr.id,
+            cr.claim_status_id,
+            c.study_dt
+        FROM cteAutoBillingRules AS cr
+        JOIN context AS c ON
+                CASE
+                    WHEN cr.exclude_study_statuses THEN
+                        NOT c.study_status = ANY(cr.study_status_codes)
+                    ELSE
+                        c.study_status = ANY(cr.study_status_codes)
+                END
+
+            AND CASE
+                    WHEN cr.facility_ids IS NULL THEN
+                        TRUE
+                    WHEN cr.exclude_facilities THEN
+                        NOT c.facility_id = ANY(cr.facility_ids)
+                    ELSE
+                        c.facility_id = ANY(cr.facility_ids)
+                END
+
+            AND CASE
+                    WHEN cr.ordering_facility_ids IS NULL THEN
+                        TRUE
+                    WHEN cr.exclude_ordering_facilities THEN
+                        NOT c.ordering_facility_id = ANY(cr.ordering_facility_ids)
+                    ELSE
+                        c.facility_id = ANY(cr.ordering_facility_ids)
+                END
+
+            AND CASE
+                    WHEN cr.modality_ids IS NULL THEN
+                        TRUE
+                    WHEN cr.exclude_modalities THEN
+                        NOT c.modality_id = ANY(cr.modality_ids)
+                    ELSE
+                        c.modality_id = ANY(cr.modality_ids)
+                END
+
+            AND CASE
+                    WHEN cr.cpt_code_ids IS NULL THEN
+                        TRUE
+                    WHEN cr.exclude_cpt_codes THEN
+                        NOT c.cpt_code_ids && cr.cpt_code_ids
+                    ELSE
+                        c.cpt_code_ids && cr.cpt_code_ids
+                END
+
+            AND CASE
+                    WHEN cr.insurance_provider_payer_type_ids IS NULL THEN
+                        TRUE
+                    WHEN cr.exclude_insurance_provider_payer_types THEN
+                        NOT c.insurance_provider_payer_type_id = ANY(cr.insurance_provider_payer_type_ids)
+                    ELSE
+                        c.insurance_provider_payer_type_id = ANY(cr.insurance_provider_payer_type_ids)
+                END
+
+            AND CASE
+                    WHEN cr.insurance_provider_ids IS NULL THEN
+                        TRUE
+                    WHEN cr.exclude_insurance_providers THEN
+                        NOT c.insurance_provider_id = ANY(cr.insurance_provider_ids)
+                    ELSE
+                        c.insurance_provider_id = ANY(cr.insurance_provider_ids)
+                END
+        ORDER BY id
+        LIMIT 1
         `;
 
         const {
