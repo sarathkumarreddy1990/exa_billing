@@ -823,7 +823,10 @@ const ahsData = {
                         (SELECT province_alpha_2_code FROM patient_id_nums WHERE patient_id = pin.patient_id AND issuer_type = 'registration_number' LIMIT 1)                   AS service_recipient_registration_number_province,
 
                         (SELECT alt_account_no FROM patient_id_nums WHERE patient_id = pin.patient_id AND issuer_type = 'registration_number_parent' LIMIT 1)            AS service_recipient_parent_registration_number,
-                        (SELECT province_alpha_2_code FROM patient_id_nums WHERE patient_id = pin.patient_id AND issuer_type = 'registration_number_parent' LIMIT 1)            AS service_recipient_parent_registration_number_province
+                        (SELECT province_alpha_2_code FROM patient_id_nums WHERE patient_id = pin.patient_id AND issuer_type = 'registration_number_parent' LIMIT 1)            AS service_recipient_parent_registration_number_province,
+
+                        (SELECT alt_account_no FROM patient_id_nums WHERE patient_id = pin.patient_id AND issuer_type = 'pid' LIMIT 1)                                   AS service_recipient_pid,
+                        (SELECT province_alpha_2_code FROM patient_id_nums WHERE patient_id = pin.patient_id AND issuer_type = 'pid' LIMIT 1)                            AS service_recipient_pid_province
                     FROM
                         patient_id_nums pin
                 ),
@@ -839,21 +842,72 @@ const ahsData = {
                                     AND nums.service_recipient_registration_number IS NOT NULL
                                 )
                             )
+                            AND (
+                                nums.service_recipient_pid IS NULL
+                                OR (
+                                    nums.service_recipient_pid_province = 'AB'
+                                )
+                                OR (
+                                    nums.service_recipient_phn_province = 'AB' 
+                                    AND nums.service_recipient_registration_number_province = 'AB' 
+                                    AND nums.service_recipient_pid_province != 'AB'
+                                )
+                            )
                             THEN nums.service_recipient_phn
                             ELSE NULL
                         END AS service_recipient_phn,
                         CASE
                             WHEN nums.service_recipient_registration_number IS NOT NULL
+                                AND (
+                                    nums.service_recipient_phn IS NULL 
+                                    OR nums.service_recipient_phn_province != 'AB'
+                                    OR (
+                                        nums.service_recipient_phn_province = 'AB'
+                                        AND nums.service_recipient_registration_number_province != 'AB'
+                                    )
+                                )
+                            THEN nums.service_recipient_registration_number
+                            WHEN nums.service_recipient_pid IS NOT NULL AND (
+                                nums.service_recipient_phn IS NULL 
+                                OR nums.service_recipient_phn_province != 'AB'
+                                OR (
+                                    nums.service_recipient_phn_province = 'AB'
+                                    AND nums.service_recipient_pid_province != 'AB'
+                                )
+                            )
                             AND (
-                                nums.service_recipient_phn IS NULL OR nums.service_recipient_phn_province != 'AB'
+                                nums.service_recipient_registration_number IS NULL 
+                                OR nums.service_recipient_registration_number_province != 'AB'
+                            )
+                            THEN nums.service_recipient_pid
+                            ELSE NULL
+                        END AS service_recipient_registration_number,
+                        CASE
+                            WHEN nums.service_recipient_registration_number IS NOT NULL
+                            AND (
+                                nums.service_recipient_phn IS NULL 
+                                OR nums.service_recipient_phn_province != 'AB'
                                 OR (
                                     nums.service_recipient_phn_province = 'AB'
                                     AND nums.service_recipient_registration_number_province != 'AB'
                                 )
                             )
-                            THEN nums.service_recipient_registration_number
+                            THEN 'registration_number'
+                            WHEN nums.service_recipient_pid IS NOT NULL AND (
+                                nums.service_recipient_phn IS NULL 
+                                OR nums.service_recipient_phn_province != 'AB'
+                                OR (
+                                    nums.service_recipient_phn_province = 'AB'
+                                    AND nums.service_recipient_pid_province != 'AB'
+                                )
+                            )
+                            AND (
+                                nums.service_recipient_registration_number IS NULL 
+                                OR nums.service_recipient_registration_number_province != 'AB'
+                            )
+                            THEN 'pid'
                             ELSE NULL
-                        END AS service_recipient_registration_number
+                        END AS service_recipient_account_type
                     FROM nums
                 ),
                 claim_info AS (
@@ -1024,11 +1078,15 @@ const ahsData = {
                         END                                          AS referring_provider_details,
 
                         CASE
-                            WHEN (
-                                oci.service_recipient_registration_number IS NOT NULL
-                                AND LOWER(nums.service_recipient_registration_number_province) NOT IN ('ab', 'qc')
-                            )
-                            THEN nums.service_recipient_registration_number_province
+                            WHEN oci.service_recipient_registration_number IS NOT NULL
+                            THEN CASE 
+                                    WHEN oci.service_recipient_account_type = 'registration_number'
+                                        AND LOWER(nums.service_recipient_registration_number_province) NOT IN ('ab', 'qc')
+                                    THEN nums.service_recipient_registration_number_province
+                                    WHEN oci.service_recipient_account_type = 'pid'
+                                        AND LOWER(nums.service_recipient_pid_province) NOT IN ('ab', 'qc')
+                                    THEN nums.service_recipient_pid_province
+                                END
                             ELSE ''
                         END                                          AS recovery_code,
                         bc.id                                        AS chart_number,
