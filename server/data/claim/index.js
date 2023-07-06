@@ -590,6 +590,7 @@ module.exports = {
                             , f.facility_info -> 'npino' as npi_no
                             , f.facility_info -> 'federal_tax_id' as federal_tax_id
                             , f.facility_info -> 'enable_insurance_eligibility' as enable_insurance_eligibility
+                            , (pi.valid_to_date >= (${params.claim_date})::DATE OR pi.valid_to_date IS NULL) AS is_active
                             , ipd.billing_method
                         FROM public.patient_insurances pi
                         INNER JOIN public.insurance_providers ip ON ip.id= pi.insurance_provider_id
@@ -599,7 +600,6 @@ module.exports = {
                         LEFT JOIN public.facilities f ON f.id = pf.facility_id AND pf.is_default
                         WHERE
                             pi.patient_id = ${params.patient_id}
-                            AND (pi.valid_to_date >= (${params.claim_date})::DATE OR pi.valid_to_date IS NULL)
                             AND ip.inactivated_dt IS NULL
                         ORDER BY pi.id asc
                 )
