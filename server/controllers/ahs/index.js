@@ -202,14 +202,14 @@ const ahsController = {
 
             if (!dirStat.isDirectory()) {
                 return { message: 'Directory not found in file store' };
-            };
+            }
 
             let filePath = path.join(dirFullPath, params.file_id);
             let fileStat = await statAsync(filePath);
 
             if (!fileStat.isFile()) {
                 return { message: 'File not found in directory' }
-            };
+            }
 
             let fileData = await readFileAsync(filePath, 'utf8');
             let wcb_details = await wcbParser.getWCBData(fileData);
