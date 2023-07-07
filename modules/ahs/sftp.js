@@ -86,7 +86,7 @@ function* processFiles ( files, dirPath ) {
         catch ( e ) {
             logger.error(`Unable to read file at ${file} - `, e);
             return [];
-        };
+        }
     }
 
     for ( let i = 0; i < files.length; ++i ) {

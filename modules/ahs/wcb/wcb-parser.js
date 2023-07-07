@@ -9,7 +9,7 @@ const wcbParser = {
             if (err) {
                 logger.error(err);
                 return data = err;
-            };
+            }
 
             let {
                 PaymentRemittanceReport: {
