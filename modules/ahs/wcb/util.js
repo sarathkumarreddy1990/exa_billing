@@ -26,7 +26,7 @@ const formatPostalCode = (str) => {
     }
 };
 
-const formatPhoneFax = (phnNum, key) => {
+const formatPhoneFax = (phnNum) => {
     let phoneNumberPattern = /^\(?(\d{3})\)?[- ]?(\d{3})[- ]?(\d{4})$/;
     let isValidPhoneNumber = phoneNumberPattern.test(phnNum);
     let cleaned = phnNum && (phnNum).replace(/\D/g, '') || '';

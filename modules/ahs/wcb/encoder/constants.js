@@ -32,7 +32,6 @@ const XML_ELEMENTS = {
     MESSAGE_HEADER: "MSH",
     EVENT_SEGMENT: "EVN",
     REF_PROV_SEGMENT: "RF1",
-    PATIENT_SEGMENT: "PID",
     ACCIDENT_SEGMENT: "ACC",
     NAMESPACE: "urn:WCBhl7_v231-schema_modern_v100",
     XMLSCHEMA_INSTANCE: "http://www.w3.org/2001/XMLSchema-instance",

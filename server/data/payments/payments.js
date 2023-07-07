@@ -3,6 +3,7 @@ const config = require('./../../config');
 const queryMakers = require('./../query-maker-map');
 const generator = queryMakers.get('date');
 const studyDtGenerator = queryMakers.get('datetime');
+const logger = require('../../../logger');
 
 module.exports = {
 

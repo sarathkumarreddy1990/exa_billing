@@ -1,6 +1,5 @@
-const { query, SQL, audit, queryRows } = require('./../index');
+const { query, SQL, queryRows } = require('./../index');
 const moment = require('moment');
-const sprintf = require('sprintf');
 
 const {
     promisify,
@@ -23,11 +22,9 @@ const eraData = require('../../data/era');
 const {
     encoding,
     resourceTypes,
-    resourceDescriptions,
 
     CLAIM_STATUS_REJECTED_DEFAULT,
     CLAIM_STATUS_PENDING_PAYMENT_DEFAULT,
-    CLAIM_STATUS_DENIED_DEFAULT,
     CLAIM_STATUS_BATCH_REJECTED_DEFAULT,
     encoder: {
         technicalProcedureCodesExceptions
@@ -171,7 +168,6 @@ const storeFile = async (args) => {
         appendFileSequence,
         fileSequenceOffset,
         resource_id = null,
-        groupNumber,
         providerNumber,
         providerSpeciality,
         batchSequenceNumber,
@@ -312,10 +308,6 @@ const storeFile = async (args) => {
 };
 
 const getResourceIDs = async (args) => {
-    const {
-        resourceType,
-    } = args;
-
     const sql = SQL`
         SELECT resource_no
         FROM billing.edi_files
@@ -393,10 +385,6 @@ const updateFileStatus = async (args) => {
         errors = []
     } = args;
 
-    const fileIds = files.map((file) => {
-        return file.edi_file_id;
-    });
-
     const sql = SQL`
 
         WITH tempTbl as (
@@ -425,7 +413,6 @@ const updateFileStatus = async (args) => {
 const updateClaimStatus = async (args) => {
     const {
         claimIds,
-        accountingNumber,
         claimStatusCode,
         userId,
         claimNote,
@@ -784,9 +771,7 @@ const toBillingNotes = (obj) => {
 const applyErrorReport = async (args) => {
 
     const {
-        accountingNumber,
         responseFileId,
-        comment,
         parsedResponseFile,
     } = args;
 
@@ -1011,7 +996,7 @@ const OHIPDataAPI = {
         });
     },
 
-    auditTransaction: async (args) => {
+    auditTransaction: async () => {
 
         /* Sample input args.info object, also args.oldInfo which usually be {}:
         {
@@ -1234,7 +1219,6 @@ const OHIPDataAPI = {
             sortField,
             pageNo,
             pageSize,
-            uploaded_file_name,
             payment_id,
             file_name,
             file_type

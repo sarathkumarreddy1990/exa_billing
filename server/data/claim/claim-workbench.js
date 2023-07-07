@@ -2,7 +2,6 @@ const SearchFilter = require('./claim-search-filters');
 const { SQL, query, queryWithAudit, queryRows } = require('../index');
 const filterValidator = require('./../filter-validator')();
 const {
-    getClaimPatientInsuranceId,
     getClaimPatientInsurances
 } = require('../../shared/index');
 

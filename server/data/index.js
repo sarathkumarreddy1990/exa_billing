@@ -159,8 +159,7 @@ const pgData = {
 
         let sql = SQL``;
         sql.append(query)
-        .append(SQL
-            `
+        .append(SQL`
             SELECT billing.create_audit(
                 ${companyId},
                 ${entityName || screenName},

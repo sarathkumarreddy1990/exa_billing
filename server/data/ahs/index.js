@@ -1,8 +1,7 @@
 'use strict';
 
-const { query, SQL, audit } = require('../index');
+const { query, SQL } = require('../index');
 const moment = require('moment');
-const sprintf = require('sprintf');
 
 const {
     promisify,
@@ -12,22 +11,11 @@ const fs = require('fs');
 const writeFileAsync = promisify(fs.writeFile);
 const statAsync = promisify(fs.stat);
 
-const path = require('path');
 const crypto = require('crypto');
-const _ = require('lodash');
 const mkdirp = require('mkdirp');
 const mkdirpAsync = promisify(mkdirp);
 const logger = require('../../../logger');
-const config = require('../../config');
 const shared = require('../../shared');
-
-const claimEncoder = require('../../../modules/ahs/encoder/claims');
-
-const toBillingNotes = (obj) => {
-    return obj.errorCodes.map((errorCode) => {
-        return `${errorCode} - ${errorDescriptionsByCode[errorCode]}`;
-    });
-};
 
 const ahsData = {
 
@@ -199,7 +187,7 @@ const ahsData = {
                                 ELSE EXTRACT(DAYS FROM s.study_dt - s.hospital_admission_dt)
                             END
                         )::INT
-                        , 'health_service_code', cpt.display_code 
+                        , 'health_service_code', cpt.display_code
                         , 'fee_modifiers', ARRAY[fee_mod.mod1, fee_mod.mod2, fee_mod.mod3]
                         , 'attachments', st.attachments
                         , 'service_start_date'
@@ -209,7 +197,7 @@ const ahsData = {
                             ELSE TO_CHAR(s.hospital_admission_dt, 'YYYYMMDD')
                         END
                         , 'billing_number', LPAD(pc_app.can_prid, 8, '0')
-                        , 'invoice_type_code', 'MEDCARE' 
+                        , 'invoice_type_code', 'MEDCARE'
                         , 'invoice_type_description', ''
                         , 'provider_skill_code', scc.code
                         , 'encounter_no', bc.encounter_no
@@ -220,7 +208,7 @@ const ahsData = {
                     ) AS charge_details
                     , claim_id
                 FROM billing.charges bch
-                INNER JOIN billing.charges_studies bcs ON bcs.charge_id = bch.id 
+                INNER JOIN billing.charges_studies bcs ON bcs.charge_id = bch.id
                 INNER JOIN billing.claims bc ON bc.id = bch.claim_id
                 INNER JOIN public.facilities f ON f.id = bc.facility_id
                 INNER JOIN studies s ON s.id = bcs.study_id
@@ -286,7 +274,7 @@ const ahsData = {
                             , bci.claim_id
                         FROM billing.claim_icds bci
                         JOIN public.icd_codes icd ON bci.icd_id = icd.id
-                        WHERE 
+                        WHERE
                             bci.claim_id = bc.id
                         ORDER BY bci.id
                         LIMIT 3
@@ -431,7 +419,7 @@ const ahsData = {
                     GROUP BY claim_id
                 ) cd ON cd.claim_id = bc.id
                 WHERE bc.id = ANY(${claimIds})
-                ORDER BY bc.id DESC 
+                ORDER BY bc.id DESC
             )
             SELECT
                 'EXA' AS sender_application
@@ -448,7 +436,7 @@ const ahsData = {
                 , cd.claims_data
             FROM companies c
             LEFT JOIN LATERAL (
-                SELECT 
+                SELECT
                     JSONB_AGG(
                         ROW_TO_JSON(cd.*)
                     ) AS claims_data
@@ -456,10 +444,10 @@ const ahsData = {
                 FROM claim_details cd
             ) cd ON TRUE
             LEFT JOIN LATERAL (
-                SELECT 
+                SELECT
                     NEXTVAL('billing.edi_file_claims_batch_number_seq') % 1000000 AS batch_number
             ) gbn ON TRUE
-            WHERE c.id = ${companyId} 
+            WHERE c.id = ${companyId}
         `;
 
         let { rows = [] } = await query(sql.text, sql.values);
@@ -599,7 +587,7 @@ const ahsData = {
                                     WHEN s.hospital_admission_dt IS NULL
                                     THEN bch.units
                                     ELSE EXTRACT(DAYS FROM s.study_dt - s.hospital_admission_dt)
-                                  END::TEXT 
+                                  END::TEXT
                                 , 'fee_submitted', bch.bill_fee
                             )
                         ) AS charges_details
@@ -848,8 +836,8 @@ const ahsData = {
                                     nums.service_recipient_pid_province = 'AB'
                                 )
                                 OR (
-                                    nums.service_recipient_phn_province = 'AB' 
-                                    AND nums.service_recipient_registration_number_province = 'AB' 
+                                    nums.service_recipient_phn_province = 'AB'
+                                    AND nums.service_recipient_registration_number_province = 'AB'
                                     AND nums.service_recipient_pid_province != 'AB'
                                 )
                             )
@@ -859,7 +847,7 @@ const ahsData = {
                         CASE
                             WHEN nums.service_recipient_registration_number IS NOT NULL
                                 AND (
-                                    nums.service_recipient_phn IS NULL 
+                                    nums.service_recipient_phn IS NULL
                                     OR nums.service_recipient_phn_province != 'AB'
                                     OR (
                                         nums.service_recipient_phn_province = 'AB'
@@ -868,7 +856,7 @@ const ahsData = {
                                 )
                             THEN nums.service_recipient_registration_number
                             WHEN nums.service_recipient_pid IS NOT NULL AND (
-                                nums.service_recipient_phn IS NULL 
+                                nums.service_recipient_phn IS NULL
                                 OR nums.service_recipient_phn_province != 'AB'
                                 OR (
                                     nums.service_recipient_phn_province = 'AB'
@@ -876,7 +864,7 @@ const ahsData = {
                                 )
                             )
                             AND (
-                                nums.service_recipient_registration_number IS NULL 
+                                nums.service_recipient_registration_number IS NULL
                                 OR nums.service_recipient_registration_number_province != 'AB'
                             )
                             THEN nums.service_recipient_pid
@@ -885,7 +873,7 @@ const ahsData = {
                         CASE
                             WHEN nums.service_recipient_registration_number IS NOT NULL
                             AND (
-                                nums.service_recipient_phn IS NULL 
+                                nums.service_recipient_phn IS NULL
                                 OR nums.service_recipient_phn_province != 'AB'
                                 OR (
                                     nums.service_recipient_phn_province = 'AB'
@@ -894,7 +882,7 @@ const ahsData = {
                             )
                             THEN 'registration_number'
                             WHEN nums.service_recipient_pid IS NOT NULL AND (
-                                nums.service_recipient_phn IS NULL 
+                                nums.service_recipient_phn IS NULL
                                 OR nums.service_recipient_phn_province != 'AB'
                                 OR (
                                     nums.service_recipient_phn_province = 'AB'
@@ -902,7 +890,7 @@ const ahsData = {
                                 )
                             )
                             AND (
-                                nums.service_recipient_registration_number IS NULL 
+                                nums.service_recipient_registration_number IS NULL
                                 OR nums.service_recipient_registration_number_province != 'AB'
                             )
                             THEN 'pid'
@@ -1079,7 +1067,7 @@ const ahsData = {
 
                         CASE
                             WHEN oci.service_recipient_registration_number IS NOT NULL
-                            THEN CASE 
+                            THEN CASE
                                     WHEN oci.service_recipient_account_type = 'registration_number'
                                         AND LOWER(nums.service_recipient_registration_number_province) NOT IN ('ab', 'qc')
                                     THEN nums.service_recipient_registration_number_province
@@ -1351,7 +1339,6 @@ const ahsData = {
             edi_file_id,
             action_code = null,
             batch_number = null,
-            sequence_number,
             template_data = []
         } = args;
 
@@ -1960,7 +1947,7 @@ const ahsData = {
                     , bcs.study_id
                 FROM billing.charges
                 LEFT JOIN billing.charges_studies bcs ON bcs.charge_id = charges.id
-                WHERE 
+                WHERE
                     charges.claim_id = ANY(${claimIds}:: BIGINT[])
             )
             , claim_details AS (
@@ -1973,10 +1960,10 @@ const ahsData = {
                         JSONB_AGG(ROW_TO_JSON(cd)) AS claim_charges
                         , claim_id
                     FROM charge_details cd
-                    WHERE 
+                    WHERE
                         charge_index > 1
                     GROUP BY claim_id
-                ) cc ON cc.claim_id = bc.id 
+                ) cc ON cc.claim_id = bc.id
             )
             , insurance_details AS (
                 SELECT
@@ -1989,10 +1976,10 @@ const ahsData = {
                         , false AS is_update_patient_info
                         , bcpi.claim_id
                 FROM patient_insurances pi
-                INNER JOIN billing.claim_patient_insurances bcpi ON bcpi.patient_insurance_id = pi.id         
+                INNER JOIN billing.claim_patient_insurances bcpi ON bcpi.patient_insurance_id = pi.id
                 ) AS ins_det
-                GROUP BY 
-                    claim_id           
+                GROUP BY
+                    claim_id
             )
             , claim_icds AS (
                 SELECT
@@ -2000,7 +1987,7 @@ const ahsData = {
                     , claim_id
                 FROM (
                     SELECT
-                        icd_id 
+                        icd_id
                         , claim_id
                         , false AS is_deleted
                     FROM billing.claim_icds icds
@@ -2015,7 +2002,7 @@ const ahsData = {
                         , icd_details
                         , ${auditDetails}::JSONB
                         , true
-                    ) as inserted_claims 
+                    ) as inserted_claims
                 FROM (
                     SELECT
                         ROW_TO_JSON(claim_details) AS claim_det
@@ -2024,14 +2011,14 @@ const ahsData = {
                 ) cd
                 LEFT JOIN insurance_details idd ON idd.claim_id = cd.id
                 LEFT JOIN claim_icds ci ON ci.claim_id = cd.id
-                WHERE 
+                WHERE
                     cd.id = ANY(${claimIds}:: BIGINT[])
             )
-            
+
             SELECT
                 ARRAY_AGG(inserted_claim_ids) AS ahs_claim_ids
-            FROM 
-                save_claim 
+            FROM
+                save_claim
                 , UNNEST(inserted_claims) inserted_claim_ids `;
 
         const { rows = [] } = await query(sql);
@@ -2073,11 +2060,11 @@ const ahsData = {
                 claim_id
                 , template_data
             FROM (
-                SELECT 
+                SELECT
                     DENSE_RANK()OVER( PARTITION BY claim_id ORDER BY id DESC) AS row
                     , claim_id
                     , template_data
-                FROM billing.edi_file_claims 
+                FROM billing.edi_file_claims
                 WHERE
                     claim_id = ANY(${args})
             ) AS td

@@ -1,6 +1,6 @@
 'use strict';
 
-const processRow = ( row, header, segmentData ) => {
+const processRow = ( row ) => {
     return {
         ...row,
         'claimed_amount': row.claimed_amount_indicator

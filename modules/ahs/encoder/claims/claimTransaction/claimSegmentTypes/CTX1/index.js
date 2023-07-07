@@ -1,6 +1,6 @@
 'use strict';
 
-const processRow = ( row, context, segmentData ) => {
+const processRow = ( row ) => {
     const {
         cross_reference_claim_numbers,
     } = row;
