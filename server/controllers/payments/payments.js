@@ -349,6 +349,8 @@ module.exports = {
 
             let requests = _.map(chargeDetailsByGroup, (chargeDetails, index) => {
                 params.paymentId = index; // index was payment id
+                /* eslint-disable no-async-promise-executor */
+                // TODO: refactor this so that we don't have to ignore eslint
                 return new Promise(async (resolve, reject) => {
                     const data = await self.createInvoicePaymentapplications(params, chargeDetails);
 
@@ -362,6 +364,7 @@ module.exports = {
                             }]);
                     }
                 });
+                /* eslint-enable no-async-promise-executor */
             });
 
             logger.info('Process started for TOS Payment..');

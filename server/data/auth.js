@@ -84,7 +84,6 @@ module.exports = {
         multi.hmset(session_id, newSessionData);
         multi.expire(session_id, ~~currentSession.session_interval * 60);
 
-        let error = null;
         let results = [];
 
         try {
@@ -94,7 +93,6 @@ module.exports = {
         catch ( e ) {
             user_session_client.quit();
             logger.logError(`User access/session read failure - could not read from redis`, e);
-            error = e;
             return false;
         }
 

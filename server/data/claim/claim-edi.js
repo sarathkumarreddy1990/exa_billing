@@ -1,8 +1,5 @@
 const { SQL, query } = require('../index');
 const { getClaimPatientInsurances } = require('../../shared/index');
-const config = require('../../config');
-
-const isMobileBillingEnabled = config.get(config.keys.enableMobileBilling);
 
 module.exports = {
 
@@ -218,13 +215,11 @@ module.exports = {
     getClaimData: async (params) => {
         let {
             claimIds,
-            payerId,
             payerType,
             companyCode
         } = params || {};
 
         claimIds = claimIds.split(',');
-        payerId = payerId || null;
         payerType = payerType || null;
         companyCode = companyCode?.toUpperCase() || '';
 

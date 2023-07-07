@@ -84,7 +84,7 @@ const isInvalidFile = (fileString, billingRegionCode) => {
             return output;
         case 'can_MB':
             return output;
-        case 'can_BC':
+        case 'can_BC': {
             let fileBuffer = fileString.split('\r\n');
             let remittanceSets = [];
             let remittanceHeaderSets = [];
@@ -110,9 +110,10 @@ const isInvalidFile = (fileString, billingRegionCode) => {
             }
 
             return output;
+        }
         default:
             return output.invalid = !(fileString.indexOf('ISA') !== -1 && fileString.indexOf('CLP') !== -1);
-    };
+    }
 
 };
 
@@ -504,7 +505,6 @@ module.exports = {
 
         // notes += '\n \n' + params.file_id + '.ERA';
         payerDetails.paymentId = null;
-        payerDetails.company_id = payerDetails.company_id;
         payerDetails.user_id = payerDetails.created_by;
         payerDetails.facility_id = params.facility_id;
         payerDetails.patient_id = null;
@@ -528,24 +528,17 @@ module.exports = {
         payerDetails.isERAPayment = true;
         payerDetails.file_id = params.file_id;
 
-        try {
+        paymentResult = await paymentController.createOrUpdatePayment(payerDetails);
+        paymentResult = paymentResult && paymentResult.rows && paymentResult.rows.length ? paymentResult.rows[0] : {};
+        paymentResult.file_id = params.file_id;
+        paymentResult.created_by = payerDetails.created_by;
+        paymentResult.company_id = payerDetails.company_id;
+        paymentResult.uploaded_file_name = params.uploaded_file_name;
+        paymentResult.payer_type = payerDetails.payer_type;
+        paymentResult.messageText = ''; // this column only for ohip payment.
+        await data.createEdiPayment(paymentResult);
 
-            paymentResult = await paymentController.createOrUpdatePayment(payerDetails);
-            paymentResult = paymentResult && paymentResult.rows && paymentResult.rows.length ? paymentResult.rows[0] : {};
-            paymentResult.file_id = params.file_id;
-            paymentResult.created_by = payerDetails.created_by;
-            paymentResult.company_id = payerDetails.company_id;
-            paymentResult.uploaded_file_name = params.uploaded_file_name;
-            paymentResult.payer_type = payerDetails.payer_type;
-            paymentResult.messageText = ''; // this column only for ohip payment.
-            await data.createEdiPayment(paymentResult);
-
-            return paymentResult;
-
-        } catch (err) {
-
-            throw err;
-        }
+        return paymentResult;
 
 
     },
@@ -663,34 +656,24 @@ module.exports = {
         payerDetails.isERAPayment = true;
         payerDetails.file_id = 0; // ToDo:: uploaded ERA file id
 
+        paymentResult = await paymentController.createOrUpdatePayment(payerDetails);
+        paymentResult = paymentResult && paymentResult.rows && paymentResult.rows.length ? paymentResult.rows[0] : {};
+        paymentResult.file_id =  payerDetails.file_id; // imported ERA file id
+        paymentResult.created_by = payerDetails.created_by;
+        paymentResult.company_id = payerDetails.company_id;
+        paymentResult.uploaded_file_name =  'Canada_ERA.txt';
+        paymentResult.payer_type = payerDetails.payer_type;
+        paymentResult.messageText = eraObject.messageText || '';
+        paymentResult.code = 'ERA';
 
-        try {
-
-            paymentResult = await paymentController.createOrUpdatePayment(payerDetails);
-            paymentResult = paymentResult && paymentResult.rows && paymentResult.rows.length ? paymentResult.rows[0] : {};
-            paymentResult.file_id =  payerDetails.file_id; // imported ERA file id
-            paymentResult.created_by = payerDetails.created_by;
-            paymentResult.company_id = payerDetails.company_id;
-            paymentResult.uploaded_file_name =  'Canada_ERA.txt';
-            paymentResult.payer_type = payerDetails.payer_type;
-            paymentResult.messageText = eraObject.messageText || '';
-            paymentResult.code = 'ERA';
-
-            await data.createEdiPayment(paymentResult);
-
-        } catch (err) {
-
-            throw err;
-        }
+        await data.createEdiPayment(paymentResult);
 
         return paymentResult;
     },
 
     getEraFileJson: async (params) => {
-        let
-            eraPath,
-            rootDir,
-            message = [];
+        let eraPath;
+        let rootDir;
         const eraFileDir = await mhsData.getERAFilePathById(params);
 
         if (eraFileDir && eraFileDir.rows && eraFileDir.rows.length) {
@@ -702,15 +685,6 @@ module.exports = {
         eraPath = path.join(rootDir, eraPath);
 
         try {
-            let dirExists = await statAsync(eraPath);
-
-            if (!dirExists) {
-                message = {
-                    status: 100,
-                    message: 'Directory not found in file store'
-                };
-            }
-
             eraPath = path.join(eraPath, params.file_id);
             let eraResponseJson = await mhsController.getFile(eraPath, params);
             eraResponseJson.errno ? logger.info('Failed to Download the Json OutPut...') : logger.info('Json Downloaded Successfully...');

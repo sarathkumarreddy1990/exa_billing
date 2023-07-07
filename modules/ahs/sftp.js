@@ -226,7 +226,6 @@ const sftpService = {
                         file_name,
                         file_md5,
                         file_size,
-                        content,
                         file_type
                     } = fileInfo;
 
