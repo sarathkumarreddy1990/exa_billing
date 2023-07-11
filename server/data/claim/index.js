@@ -1035,6 +1035,8 @@ module.exports = {
                             SELECT
                               pi.id
                             , ip.id AS insurance_provider_id
+                            , pi.policy_number
+                            , (pi.valid_to_date >= c.claim_dt OR pi.valid_to_date IS NULL) AS is_active
                             , ip.insurance_name
                             , ip.insurance_code
                             , ip.insurance_info->'partner_id' AS ins_partner_id
@@ -1044,7 +1046,6 @@ module.exports = {
                         INNER JOIN public.insurance_providers ip ON ip.id = pi.insurance_provider_id
                         WHERE
                             pi.patient_id = c.patient_id
-                            AND (pi.valid_to_date >= c.claim_dt OR pi.valid_to_date IS NULL)
                             AND ip.inactivated_dt IS NULL
                         ORDER BY pi.coverage_level,pi.id ASC
                       ) existing_insurance) AS existing_insurance
