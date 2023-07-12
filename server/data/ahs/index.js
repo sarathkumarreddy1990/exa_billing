@@ -208,11 +208,11 @@ const ahsData = {
                     ) AS charge_details
                     , claim_id
                 FROM billing.charges bch
-                INNER JOIN billing.charges_studies bcs ON bcs.charge_id = bch.id
                 INNER JOIN billing.claims bc ON bc.id = bch.claim_id
                 INNER JOIN public.facilities f ON f.id = bc.facility_id
-                INNER JOIN studies s ON s.id = bcs.study_id
                 INNER JOIN public.cpt_codes cpt ON cpt.id = bch.cpt_id
+                LEFT JOIN billing.charges_studies bcs ON bcs.charge_id = bch.id
+                LEFT JOIN studies s ON s.id = bcs.study_id
                 LEFT JOIN public.provider_contacts pc_app ON pc_app.id = bc.rendering_provider_contact_id
                 LEFT JOIN public.skill_codes scc ON scc.id = bc.can_ahs_skill_code_id
                 LEFT JOIN public.places_of_service pos ON pos.id = bc.place_of_service_id
