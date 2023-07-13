@@ -98,15 +98,10 @@ define([
                                 commonjs.showWarning('Unable to process few claims - ' + discardedIDs.toString());
                             }
 
-                            if (options.payerType) {
-                                self.preparePdfWorker(templateType, template, claimData);
-                            }
-                            else {
-                                self.updateClaimStatus(processedIDs, templateType, is_invoice_inquiry, options, function (err, response) {
-                                    claimData[0].invoiceNo = response && response.invoice_no || '';
-                                    return self.preparePdfWorker(templateType, template, claimData);
-                                });
-                            }
+                            self.updateClaimStatus(processedIDs, templateType, is_invoice_inquiry, options, function (err, response) {
+                                claimData[0].invoiceNo = response && response.invoice_no || '';
+                                return self.preparePdfWorker(templateType, template, claimData);
+                            });
 
                         });
                 } else {
