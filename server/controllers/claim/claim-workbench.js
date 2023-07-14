@@ -16,7 +16,6 @@ const censusController = require('../census');
 
 const studiesController = require('../../controllers/studies');
 
-const helper = require('../../data');
 const _ = require('lodash');
 
 const sftp = require('../../../modules/edi/sftp');
@@ -587,8 +586,6 @@ module.exports = {
     validateBatchClaims: async (params) => {
         let {
             studyDetails,
-            isMobileBillingEnabled,
-            is_us_billing
         } = params;
         let validCharges = await data.validateBatchClaimCharge(JSON.stringify(studyDetails));
         let row = validCharges?.rows?.[0];

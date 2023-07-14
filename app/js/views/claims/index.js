@@ -6101,7 +6101,7 @@ define(['jquery',
                 }
 
                 if (["can_AB", "can_MB", "can_ON"].indexOf(app.billingRegionCode) === -1) {
-                    $('#ddlPOSType').val(patient_details.fac_place_of_service_id || patient_details.ord_fac_place_of_service_id || '');
+                    $('#ddlPOSType').val(patient_details.ord_fac_place_of_service_id || patient_details.fac_place_of_service_id || '');
                 }
 
                 $('#ddlBillingProvider').val(patient_details.billing_provider_id || '');

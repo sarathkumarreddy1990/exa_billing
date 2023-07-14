@@ -235,38 +235,31 @@ module.exports = {
             insurance_provider_id : params.insurance_provider_id,
         };
 
-        try {
+        paymentResult.file_id =  payerDetails.file_id; // imported ERA file id
+        paymentResult.created_by = payerDetails.created_by;
+        paymentResult.company_id = payerDetails.company_id;
+        paymentResult.uploaded_file_name =  f_data.uploaded_file_name || '';
+        paymentResult.payer_type = payerDetails.payer_type;
+        paymentResult.messageText = eraObject.messageText || '';
+        paymentResult.code = 'ERA';
+        paymentResult.from = 'OHIP_EOB';
 
-            paymentResult.file_id =  payerDetails.file_id; // imported ERA file id
-            paymentResult.created_by = payerDetails.created_by;
-            paymentResult.company_id = payerDetails.company_id;
-            paymentResult.uploaded_file_name =  f_data.uploaded_file_name || '';
-            paymentResult.payer_type = payerDetails.payer_type;
-            paymentResult.messageText = eraObject.messageText || '';
-            paymentResult.code = 'ERA';
-            paymentResult.from = 'OHIP_EOB';
+        if(params.payment_id === '' || !params.payment_id ) {
+            result = await paymentController.createOrUpdatePayment(payerDetails);
+            result = result && result.rows && result.rows.length ? result.rows[0] : {};
 
-            if(params.payment_id === '' || !params.payment_id ) {
-                result = await paymentController.createOrUpdatePayment(payerDetails);
-                result = result && result.rows && result.rows.length ? result.rows[0] : {};
+            ohipPaymentResults = {
+                ...paymentResult,
+                ...result
+            };
 
-                ohipPaymentResults = {
-                    ...paymentResult,
-                    ...result
-                };
-
-                await data.createEdiPayment(ohipPaymentResults);
-            }
-            else {
-                ohipPaymentResults = { ...paymentResult, ...params };
-            }
-
-            return ohipPaymentResults;
-
-        } catch (err) {
-
-            throw err;
+            await data.createEdiPayment(ohipPaymentResults);
         }
+        else {
+            ohipPaymentResults = { ...paymentResult, ...params };
+        }
+
+        return ohipPaymentResults;
 
     }
 

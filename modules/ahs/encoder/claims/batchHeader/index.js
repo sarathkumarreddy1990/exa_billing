@@ -1,6 +1,6 @@
 'use strict';
 
-const processResults = ( results, tracker ) => {
+const processResults = ( results ) => {
     const [
         row,
     ] = results;

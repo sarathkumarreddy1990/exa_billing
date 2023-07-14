@@ -61,7 +61,7 @@ const bindArrayJson = (node, templateJson, data, templateName) => {
     let keysOrder = _.get(singleTemplateJson, "ORDER");
 
     switch (node) {
-        case ICD_POB_SEGMENT:
+        case ICD_POB_SEGMENT: {
             let icdArr = data?.diagnosis_codes || [];
             let pobArr = data?.orientation || [];
 
@@ -80,7 +80,8 @@ const bindArrayJson = (node, templateJson, data, templateName) => {
             }
 
             break;
-        case FEE_MODIFIER_SEGMENT:
+        }
+        case FEE_MODIFIER_SEGMENT: {
             arrData = data?.fee_modifiers || [];
 
             for (let i = 0; i < arrData.length; i++) {
@@ -89,7 +90,8 @@ const bindArrayJson = (node, templateJson, data, templateName) => {
             }
 
             break;
-        case INVOICE_LINE_SEGMENT:
+        }
+        case INVOICE_LINE_SEGMENT: {
             arrData = templateJson || [];
             const segment_data = isCorrectionTemplate ? arrData[1] : arrData[0];
 
@@ -109,7 +111,8 @@ const bindArrayJson = (node, templateJson, data, templateName) => {
             })
 
             break;
-        case ATTACHMENT_SEGMENT:
+        }
+        case ATTACHMENT_SEGMENT: {
             let attachments = [];
             let mandatoryFieldsCount = isCorrectionTemplate ? 3 : 4;
             let templateLength = templateJson.length;
@@ -158,7 +161,8 @@ const bindArrayJson = (node, templateJson, data, templateName) => {
             }
 
             break;
-        case CONTENT_GRP_3:
+        }
+        case CONTENT_GRP_3: {
             arrData = data?.claims_data || [];
             keysOrder = keysOrder || getObjKeys(singleTemplateJson);
             for (let i = 0; i < arrData.length; i++) {
@@ -174,6 +178,7 @@ const bindArrayJson = (node, templateJson, data, templateName) => {
             }
 
             break;
+        }
     }
 
     return outputJson || [];

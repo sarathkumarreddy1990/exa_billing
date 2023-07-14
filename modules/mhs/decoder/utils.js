@@ -1,6 +1,6 @@
 const {
-    locationOfService, 
-    prefix, 
+    locationOfService,
+    prefix,
     province,
     positiveValues,
     negativeValues,
@@ -44,7 +44,7 @@ const utils = {
             case 'money':
                 return parseInt(fieldStr) / 100;
 
-            case 'feeAssessed':
+            case 'feeAssessed': {
                 let char = fieldStr.charAt(5);
                 let isNegative = negativeValues.indexOf(char) > -1;
                 let values = isNegative && negativeValues || positiveValues;
@@ -52,9 +52,9 @@ const utils = {
                 fieldStr = `${isNegative ? '-' : ''}` + fieldStr.replace(char, values.indexOf(char).toString());
 
                 return parseInt(fieldStr) / 100;
-
+            }
             case 'YYMMDD':
-            case 'julian':
+            case 'julian': {
                 let month = 1;
                 let days;
                 let YY = fieldStr.substr(0, 2);
@@ -81,7 +81,7 @@ const utils = {
                 month = month < 10 && `0${month}` || month;
                 days = days < 10 && `0${days}` || days;
                 return `${year}-${month}-${days}`; // for the years in range 2000 - 2099
-
+            }
             case 'prefix':
                 return prefix[fieldStr] || fieldStr;
 
@@ -91,17 +91,17 @@ const utils = {
             case 'numeric':
                 return parseInt(fieldStr);
 
-            case 'eobObj':
+            case 'eobObj': {
                 let eobArr = fieldStr.trim().match(/.{2}/g) || [];
                 let eobCodes = [];
 
                 eobArr.forEach((value) => {
                     eobCodes.push({'code': value,
                         'amount': 0});
-                }); 
+                });
 
-                return eobCodes || []; 
-            
+                return eobCodes || [];
+            }
             case 'eobArr':
                 return fieldStr.trim().match(/.{2}/g) || []; // Returning EOB codes as array. eg:["C2", "77", "DR"]
 

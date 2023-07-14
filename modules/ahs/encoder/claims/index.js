@@ -44,7 +44,7 @@ for ( const key in descriptors ) {
     hydrateRecordDescriptor(descriptor, fieldDesc => ({
         'isLeftJustified': fieldDesc.format.toLowerCase() === `a`
     }));
-};
+}
 
 /**
  *

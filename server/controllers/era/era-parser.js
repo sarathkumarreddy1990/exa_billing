@@ -73,12 +73,6 @@ module.exports = {
                 });
 
             }
-
-            else if (obj.claimPaymentInformation && obj.claimPaymentInformation.length == 1) {
-                let tempArray = obj.claimPaymentInformation.map(item => { return { claimPaymentInformation: [item] }; });
-                claimPaymentInformation = claimPaymentInformation.concat(tempArray);
-            }
-
         });
 
         if(claimPaymentInformation && claimPaymentInformation.length){

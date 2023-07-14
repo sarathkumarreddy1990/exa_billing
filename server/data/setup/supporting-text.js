@@ -1,7 +1,6 @@
 const {
     SQL,
     query,
-    queryWithAudit,
     queryCteWithAudit
 } = require('../index');
 

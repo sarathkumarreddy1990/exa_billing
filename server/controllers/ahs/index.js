@@ -1,7 +1,6 @@
 'use strict';
 
 const ahsData = require('../../data/ahs');
-const eraData = require('../../data/era/index');
 const parser = require('../../../modules/ahs/decoder/index');
 const logger = require('../../../logger');
 const fs = require('fs');
@@ -46,21 +45,21 @@ const ahsController = {
 
         let ardFiles = [];
         let bbrFiles = [];
-        
+
         filesList.rows.map(obj => {
             obj.file_type === 'can_ahs_ard' && ardFiles.push(obj);
             obj.file_type === 'can_ahs_bbr' && bbrFiles.push(obj);
         });
 
         let processBBRFiles = await ahsController.processFileData(bbrFiles, args) || []; // To Process all BBR Files
-        let processARDFiles = await ahsController.processFileData(ardFiles, args) || []; // To Process all ARD Files 
-        
+        let processARDFiles = await ahsController.processFileData(ardFiles, args) || []; // To Process all ARD Files
+
         return [...processBBRFiles, ...processARDFiles] || [];
     },
 
     /**
      * Function used to process the list of files with same type(ARD and BBR)
-     * @param {data} filesList 
+     * @param {data} filesList
      */
     processFileData: async (filesList, args) => {
         const { ip } = args;
@@ -117,7 +116,7 @@ const ahsController = {
                 }] = processResult && processResult.rows || [{}];
                 status = bbr_response && bbr_response.length ? 'success' : 'failure';
 
-            } 
+            }
             else if(file_type == 'can_ahs_ard') {
                 let [{
                     applied_payments = []
@@ -202,14 +201,14 @@ const ahsController = {
 
             if (!dirStat.isDirectory()) {
                 return { message: 'Directory not found in file store' };
-            };
+            }
 
             let filePath = path.join(dirFullPath, params.file_id);
             let fileStat = await statAsync(filePath);
 
             if (!fileStat.isFile()) {
                 return { message: 'File not found in directory' }
-            };
+            }
 
             let fileData = await readFileAsync(filePath, 'utf8');
             let wcb_details = await wcbParser.getWCBData(fileData);

@@ -22,7 +22,7 @@ const wcbModule = {
 
     /**
      * Function used to return Validation errors in WCB Business Rules
-     * @param {Object} claimData 
+     * @param {Object} claimData
      * @returns an array of error messages
      */
     getWCBValidationErrors: (claimData) => {
@@ -149,7 +149,6 @@ const wcbModule = {
             companyId,
             claimIds,
             source,
-            isAllClaims,
         } = args || {};
 
         let EDI_TEMPLATE = null;
@@ -281,12 +280,12 @@ const wcbModule = {
                 validationMessages = [],
                 data = [],
             } = await wcbModule.processClaimSubmission({
-                ...args, 
-                claimIds: chunkClaims, 
-                submissionCode: submission_code, 
-                templateName: EDI_TEMPLATE, 
-                templateInfo: templateInfo, 
-                submission_file_type: edi_file_type, 
+                ...args,
+                claimIds: chunkClaims,
+                submissionCode: submission_code,
+                templateName: EDI_TEMPLATE,
+                templateInfo: templateInfo,
+                submission_file_type: edi_file_type,
                 source
             });
 
@@ -320,12 +319,12 @@ const wcbModule = {
         };
         const validationMessages = [];
         const {
-            claimIds, 
-            submissionCode, 
-            templateName, 
-            templateInfo, 
+            claimIds,
+            submissionCode,
+            templateName,
+            templateInfo,
             submission_file_type,
-            source, 
+            source,
             userId,
             companyId
         } = args || {};
@@ -368,7 +367,7 @@ const wcbModule = {
         }
 
         // Encode each claims as new xml file
-        let files = _.map(rows, async (data, index) => {
+        let files = _.map(rows, async (data) => {
             let {
                 file_name,
                 batch_sequence_number,
@@ -464,7 +463,7 @@ const wcbModule = {
 
                 let claim_details = await processClaimSegments(claimsSegment);
                 let template_data = claim_details.map((obj, index) => {
-                    return { 
+                    return {
                         claim_id: exa_claim_ids[index],
                         batch_sequence_number: claims_data[index].batch_sequence_number,
                         template_data: obj
@@ -549,7 +548,7 @@ const wcbModule = {
         try {
             // writing the xml files into zip file
             const zip = new JSZip();
-            await filesList.map(function (obj, index) {
+            await filesList.map(function (obj) {
                 return zip.file(obj.file_name, obj.encodedContent);
             });
 

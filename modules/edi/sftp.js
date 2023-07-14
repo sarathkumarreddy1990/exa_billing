@@ -213,7 +213,6 @@ const sftpService = {
             }
 
             const now = moment();
-            const created_dt = now.format();
             const fileDir = `ERA/${now.format('YYYY/MM/DD')}`;
             let filePath = `${root_directory}/${fileDir}`;
             let savedPaths = [];
@@ -317,7 +316,7 @@ const sftpService = {
             };
         }
 
-        let requests = _.map(sftpDetails, async (sftp, index) => {
+        let requests = _.map(sftpDetails, async (sftp) => {
             return await sftpService.download(companyId, sftp);
         });
 
