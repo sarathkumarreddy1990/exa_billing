@@ -203,6 +203,7 @@ module.exports = {
                         */
                         let cas_obj = [];
                         let isGroupDeniedStatus = false;
+                        let hasCASPatientResponsibility = false;
 
                         _.each(validCAS, function (cas) {
 
@@ -216,6 +217,11 @@ module.exports = {
                                     if (cas.groupCode === 'PR' && cas['reasonCode' + j] === '96') {
                                         isGroupDeniedStatus = true;
                                     }
+
+                                    if (cas.groupCode === 'PR' && cas['reasonCode' + j] !== '96') {
+                                        hasCASPatientResponsibility = true;
+                                    }
+
                                     cas_obj.push({
                                         group_code_id: groupcode && groupcode.length ? groupcode[0].id : null,
                                         reason_code_id: reasoncode && reasoncode.length ? reasoncode[0].id : null,
@@ -286,7 +292,8 @@ module.exports = {
                             is_debit: isDebit,
                             code: adjustment_code,
                             claim_index: claim_index,
-                            is_group_denied: isGroupDeniedStatus
+                            is_group_denied: isGroupDeniedStatus,
+                            has_cas_patient_responsibility: hasCASPatientResponsibility
                         });
                     });
 
@@ -376,8 +383,9 @@ module.exports = {
             }
 
             const is_denied_claim_status = items.some(val =>
-                (val.payment === 0
+                ((val.payment === 0
                 && (val.adjustment === 0 || val.adjustment === val.bill_fee))
+                && !val.has_cas_patient_responsibility)
                 || val.is_group_denied
             );
 
