@@ -755,40 +755,40 @@ define(['jquery',
                     return;
                 }
                 $('#btnSaveautoBilling').prop('disabled', true);
-                autoBillingModelData.study_status_codes = study_status_codes;
+                autoBillingModelData.study_status_codes = _.uniq(study_status_codes);
                 autoBillingModelData.exclude_study_statuses = exclude_study_statuses === "isNOT";
 
                 var facility_ids = _.map($("#listAutoBillingFacilities option"), function(option) {
                     return option.value;
                 });
-                autoBillingModelData.facility_ids = facility_ids;
+                autoBillingModelData.facility_ids = _.uniq(facility_ids);
                 autoBillingModelData.exclude_facilities = $("input[name=chkAutoBillingFacility]:checked").val() === "isNOT";
 
                 var ordering_facility_ids = _.map($("#listAutoBillingOrderingFacilities option"), function(option) {
                     return option.value;
                 });
-                autoBillingModelData.ordering_facility_ids = ordering_facility_ids;
+                autoBillingModelData.ordering_facility_ids = _.uniq(ordering_facility_ids);
                 autoBillingModelData.exclude_ordering_facilities = $("input[name=chkAutoBillingOrderingFacility]:checked").val() === "isNOT";
 
                 var modality_ids = getSelectedModalities();
-                autoBillingModelData.modality_ids = modality_ids;
+                autoBillingModelData.modality_ids = _.uniq(modality_ids);
                 autoBillingModelData.exclude_modalities = $("input[name=chkAutoBillingModality]:checked").val() === "isNOT";
 
                 var cpt_code_ids = getSelectedCptCodes();
-                autoBillingModelData.cpt_code_ids = cpt_code_ids;
+                autoBillingModelData.cpt_code_ids = _.uniq(cpt_code_ids);
                 autoBillingModelData.exclude_cpt_codes = $("input[name=chkAutoBillingCptCode]:checked").val() === "isNOT";
 
 
                 var insurance_provider_payer_type_ids = _.map($("#listAutoBillingInsuranceProviderPayerTypes option"), function(option) {
                     return option.value;
                 });
-                autoBillingModelData.insurance_provider_payer_type_ids = insurance_provider_payer_type_ids;
+                autoBillingModelData.insurance_provider_payer_type_ids = _.uniq(insurance_provider_payer_type_ids);
                 autoBillingModelData.exclude_insurance_provider_payer_types = $("input[name=chkAutoBillingInsuranceProviderPayerType]:checked").val() === "isNOT";
 
                 var insurance_provider_ids = _.map($("#listAutoBillingInsuranceProviders option"), function(option) {
                     return option.value;
                 });
-                autoBillingModelData.insurance_provider_ids = insurance_provider_ids;
+                autoBillingModelData.insurance_provider_ids = _.uniq(insurance_provider_ids);
                 autoBillingModelData.exclude_insurance_providers = $("input[name=chkAutoBillingInsuranceProvider]:checked").val() === "isNOT";
 
                 this.autoBillingModel.set(autoBillingModelData);
@@ -796,9 +796,9 @@ define(['jquery',
                 this.autoBillingModel.save({
                 }, {
                     success: function (model, response) {
+                        $('#btnSaveautoBilling').prop('disabled', false);
                         if (response) {
                             commonjs.showStatus('messages.status.savedSuccessfully');
-                            $('#btnSaveautoBilling').prop('disabled', false);
                             if (options.closeOnSuccess) {
                                 Backbone.history.navigate('#setup/auto_billing/list', true);
                             }
@@ -811,6 +811,7 @@ define(['jquery',
                         }
                     },
                     error: function (model, response) {
+                        $('#btnSaveautoBilling').prop('disabled', false);
                         commonjs.handleXhrError(model, response);
                     }
                 });
