@@ -1089,7 +1089,10 @@ function (
             }
 
             // Status Text
-            var text = commonjs.geti18NString("order.insuranceEligibility.statusMessage") + " " + moment(request_dt).format("L LT z");
+            var i18n = is_eligible
+                ? "order.insuranceEligibility.statusMessage"
+                : "order.insuranceEligibility.notVerifiedMessage";
+            var text = commonjs.geti18NString(i18n) + " " + moment(request_dt).format("L LT z");
             $div.find("span").text(text);
             $div.show();
 
