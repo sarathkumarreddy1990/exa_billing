@@ -226,6 +226,7 @@ module.exports = {
         'can_delete_payment': 'PAYM',
         'claims_total_balance': 'CLIM',
         'submitClaims': 'BIVA',
+        'submitWcbClaim': 'BIVA',
         'fileManagement': 'CLFM',
         'paper_claim_fax': 'CLIM',
         'payment_count': 'PAYM',
