@@ -707,6 +707,7 @@ module.exports = {
 					subscriber_state as "state",
 					subscriber_zipcode AS "zipCode",
 					subscriber_zipcode_plus AS "zipCodePlus",
+					subscriber_zipcode_plus AS "zipPlus",
 					home_phone_number as "phoneNumber",
 					assign_benefits_to_patient as "acceptAssignment",
 					subscriber_dob::text as "dob",
