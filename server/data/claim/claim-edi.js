@@ -870,10 +870,7 @@ module.exports = {
 					) AS claim
 					)
 					) AS subscriber)
-					SELECT
-                        claims.id,
-                        insurance_providers.insurance_code AS insurance_provider_code,
-                        *
+					SELECT claims.id, insurance_providers.insurance_code AS insurance_provider_code, *
 					FROM
 						cte_billing_providers,cte_pay_to_providers,cte_subscriber
 					)
