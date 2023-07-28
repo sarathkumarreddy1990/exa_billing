@@ -504,14 +504,7 @@ const api = {
 
             r += ' LEFT JOIN insurance_providers payer_insurance ON patient_insurances.insurance_provider_id = payer_insurance.id ';
             r += ' LEFT JOIN billing.insurance_provider_details ON insurance_provider_details.insurance_provider_id = payer_insurance.id ';
-            r += `LEFT JOIN LATERAL (
-                        SELECT
-                            id,
-                            name
-                        FROM  billing.edi_clearinghouses
-                        WHERE
-                            inactivated_dt IS NULL
-                ) AS edi_clearinghouses ON edi_clearinghouses.id = insurance_provider_details.clearing_house_id`;
+            r += ' LEFT JOIN billing.edi_clearinghouses ON  billing.edi_clearinghouses.id=insurance_provider_details.clearing_house_id AND billing.edi_clearinghouses.inactivated_dt IS NULL';
         }
 
         if (tables.ordering_facilities || tables.ordering_facility_contacts) {
