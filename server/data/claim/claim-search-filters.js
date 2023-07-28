@@ -475,6 +475,8 @@ const api = {
                         LEFT JOIN billing.cas_reason_codes bcr ON bcr.id = pa.cas_reason_code_id
                         WHERE (bcrc.code IS NOT NULL OR bcr.code IS NOT NULL) AND bcs.code NOT IN('PA', 'PP')
                         AND bc.id = claims.id
+                        AND bcrc.inactivated_dt IS NULL
+                        AND bcr.inactivated_dt IS NULL
                         ORDER BY cc.created_dt, pa.created_dt DESC
                         )  AS code
                     ) AS cas_reason_codes
@@ -502,7 +504,7 @@ const api = {
 
             r += ' LEFT JOIN insurance_providers payer_insurance ON patient_insurances.insurance_provider_id = payer_insurance.id ';
             r += ' LEFT JOIN billing.insurance_provider_details ON insurance_provider_details.insurance_provider_id = payer_insurance.id ';
-            r += ' LEFT JOIN billing.edi_clearinghouses ON  billing.edi_clearinghouses.id=insurance_provider_details.clearing_house_id';
+            r += ' LEFT JOIN billing.edi_clearinghouses ON  billing.edi_clearinghouses.id=insurance_provider_details.clearing_house_id AND billing.edi_clearinghouses.inactivated_dt IS NULL';
         }
 
         if (tables.ordering_facilities || tables.ordering_facility_contacts) {
