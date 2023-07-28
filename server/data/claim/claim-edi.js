@@ -545,6 +545,7 @@ module.exports = {
 										to_char(hospitalization_to_date, 'YYYYMMDD')  as "hospitalizationToDateFormat",
 										pof.state_license_number as "stateLicenseNo",
 										pof.clia_number as "cliaNumber",
+										pof.taxonomy_code AS "serviceFacilityTaxonomyCode",
                                         (CASE ins_coverage_level.coverage_level
                                             WHEN 'primary' THEN 'P'
                                             WHEN 'secondary' THEN 'S'
@@ -559,12 +560,8 @@ module.exports = {
 										,(SELECT Json_agg(Row_to_json(icd)) "icd" FROM
 										(SELECT icd_id,  code,description,(CASE code_type
 											WHEN 'icd9' THEN '0'
-											WHEN 'icd10' THEN '1' END ) as code_type   FROM billing.claim_icds ci INNER JOIN icd_codes ON icd_codes.id=ci.icd_id  WHERE ci.claim_id = claims.id order by  ci.id ) as icd)`
-
-						if (companyCode === 'QMI') {
-							sql.append(SQL`
-								, bp_data.billing_provider_npi AS "billingProviderNPI" `)
-						}
+											WHEN 'icd10' THEN '1' END ) as code_type   FROM billing.claim_icds ci INNER JOIN icd_codes ON icd_codes.id=ci.icd_id  WHERE ci.claim_id = claims.id order by  ci.id ) as icd)
+										, bp_data.billing_provider_npi AS "billingProviderNPI"`
 						sql.append(SQL`
 							,(SELECT Json_agg(Row_to_json(renderingProvider)) "renderingProvider"
 									FROM
@@ -875,7 +872,7 @@ module.exports = {
 					) AS claim
 					)
 					) AS subscriber)
-					SELECT claims.id,*
+					SELECT claims.id, insurance_providers.insurance_code AS insurance_provider_code, *
 					FROM
 						cte_billing_providers,cte_pay_to_providers,cte_subscriber
 					)
