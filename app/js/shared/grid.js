@@ -84,7 +84,7 @@ define('grid', [
                 });
             }
         };
-        
+
         var showValidationWarning = function (msg) {
             commonjs.showWarning(msg);
             $("#studyRightMenu").empty().css('display','none');
@@ -931,7 +931,8 @@ define('grid', [
                     patient_id: gridData.hidden_patient_id,
                     study_id: gridData.hidden_study_id,
                     order_id: gridData.hidden_order_id,
-                    billing_type: (app.isMobileBillingEnabled && gridData.hidden_billing_type) || 'global'
+                    billing_type: (app.isMobileBillingEnabled && gridData.hidden_billing_type) || 'global',
+                    facility_id: gridData.hidden_facility_id
                 });
             }
 
