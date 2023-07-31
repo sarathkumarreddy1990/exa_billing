@@ -810,29 +810,18 @@ module.exports = {
         return await query(sql.text, sql.values);
     },
 
-    validateBatchClaimFacilities: async(study_data) => {
+    validateBatchClaimFacilities: async(claimFacilities) => {
         const sql = SQL`
-            WITH batch_claim_details AS (
-                SELECT
-                    facility_id
-                FROM
-                    json_to_recordset(${study_data}) AS facility_recordset
-                    (
-                        facility_id bigint
-                    )
-            )
-
             SELECT STRING_AGG(f.facility_name, ',') AS facility_names
             FROM facilities AS f
             WHERE EXISTS (
                 SELECT NULL
-                FROM batch_claim_details AS bcd
-                WHERE NOT EXISTS (
-                    SELECT NULL
-                    FROM billing.facility_settings fs
-                    WHERE fs.facility_id = bcd.facility_id
-                )
-                AND bcd.facility_id = f.id
+                FROM unnest(${claimFacilities}::INT[]) AS cf(facility_id)
+                WHERE cf.facility_id = f.id
+                EXCEPT
+                SELECT
+                    facility_id
+                FROM billing.facility_settings
             )`;
 
         return (await query(sql.text, sql.values)).rows[0].facility_names;

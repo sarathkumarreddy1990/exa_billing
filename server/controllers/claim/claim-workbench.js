@@ -588,7 +588,17 @@ module.exports = {
             studyDetails,
         } = params;
 
-        const facilitiesWithNoBillingProvider = await data.validateBatchClaimFacilities(JSON.stringify(studyDetails));
+
+        const facilitySet = new Set(studyDetails.map(study => study.facility_id));
+        let facilitiesWithNoBillingProvider;
+
+        try {
+            facilitiesWithNoBillingProvider = await data.validateBatchClaimFacilities([ ...facilitySet ]);
+        }
+        catch (err) {
+            logger.logError(`Error during validation of facilities of batch claims.`, err);
+            return;
+        }
 
         if (facilitiesWithNoBillingProvider) {
             return {
