@@ -815,7 +815,7 @@ module.exports = {
             SELECT STRING_AGG(f.facility_name, ',') AS facility_names
             FROM facilities AS f
             WHERE EXISTS (
-                SELECT NULL
+                SELECT facility_id
                 FROM unnest(${claimFacilities}::INT[]) AS cf(facility_id)
                 WHERE cf.facility_id = f.id
                 EXCEPT
@@ -824,7 +824,7 @@ module.exports = {
                 FROM billing.facility_settings
             )`;
 
-        return (await query(sql.text, sql.values)).rows[0].facility_names;
+        return (await query(sql.text, sql.values))?.rows?.[0]?.facility_names;
     },
 
     validateEDIClaimCreation: async(claimIds) => {
