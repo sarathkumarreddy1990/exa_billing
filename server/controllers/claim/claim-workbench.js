@@ -614,6 +614,32 @@ module.exports = {
             };
         }
 
+        const studySet = new Set(studyDetails.map(study => study.study_id));
+        let studiesWithNoOrderingFacility;
+
+        try {
+            studiesWithNoOrderingFacility = await data.validateBatchClaimStudyOrderingFacility([ ...studySet ]);
+        }
+        catch (err) {
+            logger.logError(`Error during validation of studies of batch claims.`, err);
+            return;
+        }
+
+        if (studiesWithNoOrderingFacility) {
+            return {
+                err: {
+                    code: '55804',
+                    message: 'Missing study ordering facility of charge type of ordering facility invoice.',
+                    name: 'error',
+                    Error: 'Missing study ordering facility of charge type of ordering facility invoice.',
+                    severity: 'Error',
+                    studiesWithNoOrderingFacility: `Accession# ${studiesWithNoOrderingFacility}`
+                },
+                result: false
+            };
+        }
+
+
         let validCharges = await data.validateBatchClaimCharge(JSON.stringify(studyDetails));
         let row = validCharges?.rows?.[0];
         let errorData;

@@ -1421,6 +1421,10 @@ var commonjs = {
                 commonjs.showError('messages.warning.claims.missingBillingProvider');
                 commonjs.showError(err.facilitiesWithNoBillingProvider);
                 break;
+            case '55804':
+                commonjs.showError('messages.warning.claims.missingOrderingFacility');
+                commonjs.showError(err.studiesWithNoOrderingFacility);
+                break;
             case 'EXISTS':
                 commonjs.showWarning("messages.warning.shared.alreadyexists");
                 break;
