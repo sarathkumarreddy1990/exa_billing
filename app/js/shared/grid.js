@@ -1039,6 +1039,7 @@ define('grid', [
         },
 
         self.renderStudy = function (doExport, filterData, filterCol) {
+            var isPopupOpen = false;
             if (options.isClaimGrid)
                 var studyStore = studyDataStore = new claimWorkbench(null, { 'filterID': filterID });
             else {
@@ -1205,6 +1206,9 @@ define('grid', [
                         return '<i href="#" class="icon-ic-worklist" data-toggle="popover" i18nt="shared.fields.claimSummary"></i>';
                     },
                     customAction: function (rowID, e, that) {
+                        if (isPopupOpen) {
+                            return false;
+                        }
                         var claimSummaryId = $('.claim-summary:visible').attr('id');
                         claimSummaryId = claimSummaryId && claimSummaryId.split('_') || [];
                         var warningMsg = commonjs.geti18NString("messages.warning.claims.unableToGetClaimSummary");
@@ -1370,6 +1374,15 @@ define('grid', [
                                         var contentHeight = $('.claim-summary').outerHeight();
                                         var targetBottomOffset = targetOffset + targetHeight - contentHeight;
                                         openPopup(targetBottomOffset);
+                                    }
+                                    if (!isPopupOpen) {
+                                        // Set the flag to indicate that the popup is open
+                                        isPopupOpen = true;
+                                        // Remove the popup and reset the flag on popup close
+                                        $('.claim-summary').on('hidden.bs.modal', function () {
+                                            isPopupOpen = false;
+                                            $(this).remove();
+                                        });
                                     }
                                 } else {
                                     $('.popover-header').empty();
