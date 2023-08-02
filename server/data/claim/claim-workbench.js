@@ -827,6 +827,28 @@ module.exports = {
         return (await query(sql.text, sql.values))?.rows?.[0]?.facility_names;
     },
 
+    validateBatchClaimStudyOrderingFacility: async(claimStudies) => {
+        const sql = SQL`
+            SELECT STRING_AGG(s.accession_no, ',') AS accessions
+            FROM studies AS s
+            WHERE EXISTS (
+                SELECT study_id
+                FROM unnest(${claimStudies}::BIGINT[]) AS cs(study_id)
+                WHERE cs.study_id = s.id
+                AND EXISTS (
+                    SELECT sc.study_id
+                    FROM study_cpt sc
+                    INNER JOIN cpt_codes cc on sc.cpt_code_id = cc.id
+                    WHERE cc.charge_type = 'ordering_facility_invoice'
+                    AND sc.study_id = cs.study_id
+                )
+            )
+            AND s.ordering_facility_contact_id IS NULL
+        `;
+
+        return (await query(sql.text, sql.values))?.rows?.[0]?.accessions;
+    },
+
     validateEDIClaimCreation: async(claimIds) => {
         const sql = SQL`
                 WITH invalid_claim AS
