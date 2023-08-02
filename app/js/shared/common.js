@@ -85,15 +85,15 @@ var commonjs = {
         {
             code: 'unapplied',
             description: 'Unapplied'
-        }, 
+        },
         {
             code: 'partially_applied',
             description: 'Partial Applied'
-        }, 
+        },
         {
             code: 'fully_applied',
             description: 'Applied'
-        }, 
+        },
         {
             code: 'over_applied',
             description: 'Over Applied'
@@ -1417,7 +1417,10 @@ var commonjs = {
             case '55802':
                 commonjs.showError('messages.errors.selectClaimToCreate');
                 break;
-
+            case '55803':
+                commonjs.showError('messages.warning.claims.missingBillingProvider');
+                commonjs.showError(err.facilitiesWithNoBillingProvider);
+                break;
             case 'EXISTS':
                 commonjs.showWarning("messages.warning.shared.alreadyexists");
                 break;

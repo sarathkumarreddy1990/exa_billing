@@ -810,6 +810,23 @@ module.exports = {
         return await query(sql.text, sql.values);
     },
 
+    validateBatchClaimFacilities: async(claimFacilities) => {
+        const sql = SQL`
+            SELECT STRING_AGG(f.facility_name, ',') AS facility_names
+            FROM facilities AS f
+            WHERE EXISTS (
+                SELECT facility_id
+                FROM unnest(${claimFacilities}::INT[]) AS cf(facility_id)
+                WHERE cf.facility_id = f.id
+                EXCEPT
+                SELECT
+                    facility_id
+                FROM billing.facility_settings
+            )`;
+
+        return (await query(sql.text, sql.values))?.rows?.[0]?.facility_names;
+    },
+
     validateEDIClaimCreation: async(claimIds) => {
         const sql = SQL`
                 WITH invalid_claim AS

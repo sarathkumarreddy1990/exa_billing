@@ -587,6 +587,33 @@ module.exports = {
         let {
             studyDetails,
         } = params;
+
+
+        const facilitySet = new Set(studyDetails.map(study => study.facility_id));
+        let facilitiesWithNoBillingProvider;
+
+        try {
+            facilitiesWithNoBillingProvider = await data.validateBatchClaimFacilities([ ...facilitySet ]);
+        }
+        catch (err) {
+            logger.logError(`Error during validation of facilities of batch claims.`, err);
+            return;
+        }
+
+        if (facilitiesWithNoBillingProvider) {
+            return {
+                err: {
+                    code: '55803',
+                    message: 'Missing default facility billing provider',
+                    name: 'error',
+                    Error: 'Missing default facility billing provider',
+                    severity: 'Error',
+                    facilitiesWithNoBillingProvider: facilitiesWithNoBillingProvider
+                },
+                result: false
+            };
+        }
+
         let validCharges = await data.validateBatchClaimCharge(JSON.stringify(studyDetails));
         let row = validCharges?.rows?.[0];
         let errorData;
@@ -610,7 +637,6 @@ module.exports = {
             err: null,
             result: true
         };
-
     },
 
     createBatchClaims: async function (params) {
