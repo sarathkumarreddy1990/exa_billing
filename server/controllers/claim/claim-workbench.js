@@ -689,7 +689,8 @@ module.exports = {
                             patient_id: study.patient_id,
                             study_id: study.study_id,
                             order_id: study.order_id,
-                            billing_type: study.billing_type || 'global'
+                            billing_type: study.billing_type || 'global',
+                            facility_id: study.facility_id
                         });
                     }
                 });
@@ -699,7 +700,8 @@ module.exports = {
                         patient_id: study.patient_id,
                         study_id: study.study_id,
                         order_id: study.order_id,
-                        billing_type: 'global'
+                        billing_type: 'global',
+                        facility_id: study.facility_id
                     });
                 });
             }
