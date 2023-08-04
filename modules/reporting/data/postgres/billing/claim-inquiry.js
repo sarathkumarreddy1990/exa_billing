@@ -83,7 +83,6 @@ const claimInquiryDataSetQueryTemplate = _.template(`
                   WHEN bc.payer_type = 'ordering_facility' THEN pof.name
                   WHEN bc.payer_type = 'referring_provider' THEN pr.full_name
                   WHEN bc.payer_type = 'service_facility_location' THEN public.get_service_facility_name(bc.id, bc.pos_map_code, bc.patient_id)
-                  ELSE  NULL
                 END AS carrier,
                 COALESCE(coverage_level.primary_coverage_level,'{}'),
                 COALESCE(coverage_level.secondary_coverage_level,'{}'),
@@ -94,9 +93,26 @@ const claimInquiryDataSetQueryTemplate = _.template(`
                   WHEN bc.payer_type = 'primary_insurance' OR bc.payer_type = 'secondary_insurance' OR bc.payer_type = 'tertiary_insurance' THEN ip.id
                   WHEN bc.payer_type = 'patient'  THEN p.id
                   WHEN bc.payer_type = 'ordering_facility' THEN f.id
-                  WHEN bc.payer_type = 'referring_provider' THEN null
-                  ELSE  NULL
-                END AS carrier_id
+                  WHEN bc.payer_type = 'service_facility_location' THEN
+                    CASE bc.pos_map_code
+                        WHEN 'OF' THEN
+                            pof.id
+                        WHEN 'OFP' THEN
+                            pof.id
+                        WHEN 'PR' THEN
+                            bc.patient_id
+                        WHEN 'F' THEN
+                            bc.facility_id
+                        WHEN 'OP' THEN
+                            ppc.provider_id
+                    END
+                END AS carrier_id,
+                CASE
+                    WHEN bc.payer_type = 'service_facility_location' THEN
+                        bc.pos_map_code
+                    ELSE
+                        bc.payer_type
+                END AS carrier_indicator
             FROM
                 billing.claims bc
             INNER JOIN LATERAL billing.get_claim_totals(bc.id) AS claim_totals ON TRUE
@@ -464,16 +480,20 @@ const api = {
                 initialReportData.lookups.referringPhyInfo = referringPhysicianInfo || [];
                 initialReportData.filters = api.createReportFilters(initialReportData);
 
-                var carrierNameIndex = 19;
-                var carrierIdIndex = 25;
-                var lastCarrierId = 0;
-                var lastCarrierName = '';
-                var lastProcessedIndex = 0;
-                var commentsByCarrier = {};
-                var commentsByClaim = [];
-                var finalInquiryDataset = { rows: [] };
-                var coverage_result = [];
-                var total_balance;
+                let carrierNameIndex = 19;
+                let carrierIdIndex = 25;
+                let lastCarrierId = 0;
+                let lastCarrierName = '';
+                let commentsByCarrier = {};
+                let commentsByClaim = [];
+                let finalInquiryDataset = { rows: [] };
+                let coverage_result = [];
+                let total_balance;
+
+                // this prevents calculating total for the same carrier_id,
+                // ie, facility_id = 1 and patient_id = 1
+                const carrierIndicatorIndex = _.findIndex(claimInquiryDataSet.columns, ['name', 'carrier_indicator']);
+                let lastCarrierIndicator = '';
 
                 function addCommentsByCarrier(carrierName, comments) {
 
@@ -486,7 +506,12 @@ const api = {
 
                 for (var i = 0; i < claimInquiryDataSet.rows.length; i++) {
                     total_balance = 0;
-                    if (i > -1 && Object.keys(commentsByCarrier).length && claimInquiryDataSet.rows[i][carrierIdIndex] != lastCarrierId) {
+                    if (i > -1 && Object.keys(commentsByCarrier).length &&
+                        (
+                            claimInquiryDataSet.rows[i][carrierIdIndex] != lastCarrierId ||
+                            claimInquiryDataSet.rows[i][carrierIndicatorIndex] != lastCarrierIndicator
+                        )
+                        ) {
                         var index = 1;
                         _.map(commentsByCarrier, function (Obj) {
                             Obj.claim[0].carrier_count = index;
@@ -501,6 +526,7 @@ const api = {
                         addCommentsByCarrier(lastCarrierName, commentsByCarrier);
                         commentsByCarrier = {};
                         lastCarrierId = 0;
+                        lastCarrierIndicator = '';
                     }
                     else {
                         total_balance += JSON.parse(claimInquiryDataSet.rows[0][6].replace(/[&\/\\#,+()$~%'":*?<>{}]/g, ''));
@@ -509,6 +535,7 @@ const api = {
                     commentsByClaim = [];
                     lastCarrierId = claimInquiryDataSet.rows[i][carrierIdIndex];
                     lastCarrierName = claimInquiryDataSet.rows[i][carrierNameIndex];
+                    lastCarrierIndicator = claimInquiryDataSet.rows[i][carrierIndicatorIndex];
 
                     var claimId = claimInquiryDataSet.rows[i][0];
                     if (claimId == claimInquiryDataSet.rows[i][0]) {
