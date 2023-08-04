@@ -2033,6 +2033,15 @@ define([
                 $('#lblPatient').text(order_info.patient_paid ? order_info.patient_paid : "0.00");
             },
 
+            isServiceFacilityLocation: function (posCode) {
+                return (
+                    app.isMobileBillingEnabled
+                    && app.settings.enableMobileRad
+                    && posCode
+                    && posCode !== 'OF'
+                );
+            },
+
             getClaimBasedCharges: function (claimId, paymentId, paymentStatus, chargeId, paymentApplicationId, isInitialBind) {
                 var self = this;
                 var $ddlResponsible = $('#ddlResponsible');
@@ -2141,6 +2150,7 @@ define([
 
                         $.each(payerTypes, function (index, payerObj) {
                             self.patientId = payerObj.patient_id;
+                            var hasMatchingOrderingFacility = ~~payerObj.ordering_facility_contact_id === ~~payerObj.patient_ordering_facility_contact_id;
 
                             if (payerObj.patient_id) {
                                 responsibleObjArray.push({
@@ -2196,6 +2206,20 @@ define([
                                     text: payerObj.provider_name + '(Provider)',
                                     payer_type: 'referring_provider',
                                     selected: payerObj.payer_type === 'referring_provider'
+                                });
+                            }
+
+                            // Binding Service facility location as responsible party in edit payments screen.
+                            if (
+                                self.isServiceFacilityLocation(payerObj.pos_map_code) 
+                                && !hasMatchingOrderingFacility 
+                                && payerObj.patient_ordering_facility_contact_id
+                            ) {
+                                responsibleObjArray.push({
+                                    id: payerObj.patient_ordering_facility_id,
+                                    text: payerObj.patient_ordering_facility_name + '(Service Facility)',
+                                    payer_type: 'service_facility_location',
+                                    selected: payerObj.payer_type === 'service_facility_location'
                                 });
                             }
                         });
