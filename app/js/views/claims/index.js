@@ -2237,16 +2237,11 @@ define(['jquery',
                                     });
                                 });
 
-                                self.isChargeTypeOrderingFacility = false;
                                 _.each(modelDetails.charges, function (item) {
                                     var index = $('#tBodyCharge').find('tr').length;
                                     item.data_row_id = index;
                                     item.is_custom_bill_fee = item.is_custom_bill_fee || false;
                                     self.addLineItems(item, index, true);
-
-                                    if (!self.isChargeTypeOrderingFacility) {
-                                        self.isChargeTypeOrderingFacility = item.charge_type === 'ordering_facility_invoice';
-                                    }
 
                                     self.chargeModel.push({
                                         id: null,
@@ -4438,6 +4433,10 @@ define(['jquery',
                 if (self.validateClaimData()) {
                     self.setClaimDetails();
 
+                    if (!this.hasClaimStudyOrderingFacility()) {
+                        return;
+                    }
+
                     $('#divPageLoading').hide();
                     commonjs.showLoading();
                     saveButton.prop('disabled', true);
@@ -4606,12 +4605,6 @@ define(['jquery',
                 if (!self.ACSelect.refPhy.contact_id && app.billingRegionCode === 'can_AB') {
                     commonjs.showWarning("messages.warning.shared.selectReferringProvider");
                     $('#ddlReferringProvider').focus();
-                    return false;
-                }
-
-                if (this.isChargeTypeOrderingFacility && !$('#ddlOrdFacility').val()) {
-                    commonjs.showWarning("billing.payments.selectChargeOrderingFacility");
-                    $('#ddlOrdFacility').focus();
                     return false;
                 }
 
@@ -4985,6 +4978,20 @@ define(['jquery',
                 else
                     return true;
 
+            },
+
+            hasClaimStudyOrderingFacility: function () {
+                var charges = _.get(this, "model.attributes.charges");
+
+                for (var i = 0; i < charges.length; i++) {
+                    if (charges[i].charge_type === 'ordering_facility_invoice' && !this.ordering_facility_contact_id) {
+                        commonjs.showWarning("billing.payments.selectChargeOrderingFacility");
+                        $('#ddlOrdFacility').focus();
+                        return false;
+                    }
+                }
+
+                return true;
             },
 
             convertToTimeZone: function (facility_id, date_data) {
