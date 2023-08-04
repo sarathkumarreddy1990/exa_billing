@@ -517,8 +517,9 @@ module.exports = {
                             claim_ins.tertiary_patient_insurance_id AS tertiary,
 
                             of.id AS order_facility_id,
+                            bc.ordering_facility_contact_id,
                             bc.referring_provider_contact_id,
-                            payer_type ,
+                            payer_type,
                             patients.full_name AS patient_name,
                             facilities.facility_name AS facility_name,
 
@@ -530,6 +531,11 @@ module.exports = {
 
                             tips.insurance_name AS tertiary_ins_provider_name,
                             tips.insurance_code AS tertiary_ins_provider_code,
+
+                            bc.pos_map_code,
+                            ppofc.id AS patient_ordering_facility_contact_id,
+                            pof.id AS patient_ordering_facility_id,
+                            pof.name AS patient_ordering_facility_name,
 
                             of.name AS ordering_facility_name,
                             providers.full_name AS provider_name,
@@ -551,6 +557,9 @@ module.exports = {
             LEFT JOIN ordering_facility_contacts ofc on ofc.id = bc.ordering_facility_contact_id
             LEFT JOIN public.ordering_facilities of on of.id = ofc.ordering_facility_id
             LEFT JOIN public.providers ON providers.id = bc.referring_provider_contact_id
+
+            LEFT JOIN public.ordering_facility_contacts ppofc ON ppofc.id = patients.default_ordering_facility_contact_id
+            LEFT JOIN public.ordering_facilities pof ON pof.id = ppofc.ordering_facility_id
             WHERE bc.id =  ${claimId}
             ) AS payer_types ),
             adjustment_codes AS(
