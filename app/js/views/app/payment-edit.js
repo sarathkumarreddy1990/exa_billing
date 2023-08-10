@@ -2246,11 +2246,11 @@ define([
                             }
 
                             if (self.isServiceFacilityLocation(payerObj.pos_map_code)) {
-                                var serviceFacLocation = self.getPOSDetails(payerObj);
+                                var posData = self.getPOSDetails(payerObj);
 
-                                serviceFacLocation.value && responsibleObjArray.push({
-                                    id: serviceFacLocation.value,
-                                    text: serviceFacLocation.text + '(Service Facility)',
+                                posData.value && responsibleObjArray.push({
+                                    id: posData.value,
+                                    text: posData.text + '(Service Facility)',
                                     payer_type: 'service_facility_location',
                                     selected: payerObj.payer_type === 'service_facility_location'
                                 });
