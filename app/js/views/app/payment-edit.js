@@ -2042,41 +2042,41 @@ define([
                 );
             },
 
-            getPOSDetails: function(payerObj) {
-                var serviceFacilityLocation = {
+            getPOSDetails: function (payerObj) {
+                var placeOfService = {
                     value: null,
                     text: ''
-                }
+                };
 
                 var posCode = payerObj.pos_map_code;
                 var hasMatchingOrderingFacility = ~~payerObj.ordering_facility_contact_id === ~~payerObj.patient_ordering_facility_contact_id;
 
                 switch (posCode) {
                     case 'F':
-                        serviceFacilityLocation.value = payerObj.facility_id;
-                        serviceFacilityLocation.text = payerObj.facility_name;
+                        placeOfService.value = payerObj.facility_id;
+                        placeOfService.text = payerObj.facility_name;
                         break;
                     case 'PR':
-                        serviceFacilityLocation.value = payerObj.patient_id;
-                        serviceFacilityLocation.text = payerObj.patient_name;
+                        placeOfService.value = payerObj.patient_id;
+                        placeOfService.text = payerObj.patient_name;
                         break;
                     case 'OP':
-                        serviceFacilityLocation.value = payerObj.provider_contact_id;
-                        serviceFacilityLocation.text = payerObj.provider_name;
+                        placeOfService.value = payerObj.provider_contact_id;
+                        placeOfService.text = payerObj.provider_name;
                         break;
                     case 'OF':
-                        serviceFacilityLocation.value = payerObj.order_facility_id;
-                        serviceFacilityLocation.text = payerObj.ordering_facility_name;
+                        placeOfService.value = payerObj.order_facility_id;
+                        placeOfService.text = payerObj.ordering_facility_name;
                         break;
                     case 'OFP':
-                        if(!hasMatchingOrderingFacility) {
-                            serviceFacilityLocation.value = payerObj.patient_ordering_facility_contact_id;
-                            serviceFacilityLocation.text = payerObj.patient_ordering_facility_name;
+                        if (!hasMatchingOrderingFacility) {
+                            placeOfService.value = payerObj.patient_ordering_facility_contact_id;
+                            placeOfService.text = payerObj.patient_ordering_facility_name;
                         }
                         break;
                 }
 
-                return serviceFacilityLocation;
+                return placeOfService;
             },
 
             getClaimBasedCharges: function (claimId, paymentId, paymentStatus, chargeId, paymentApplicationId, isInitialBind) {
