@@ -2042,6 +2042,43 @@ define([
                 );
             },
 
+            getPOSDetails: function(payerObj) {
+                var serviceFacilityLocation = {
+                    value: null,
+                    text: ''
+                }
+
+                var posCode = payerObj.pos_map_code;
+                var hasMatchingOrderingFacility = ~~payerObj.ordering_facility_contact_id === ~~payerObj.patient_ordering_facility_contact_id;
+
+                switch (posCode) {
+                    case 'F':
+                        serviceFacilityLocation.value = payerObj.facility_id;
+                        serviceFacilityLocation.text = payerObj.facility_name;
+                        break;
+                    case 'PR':
+                        serviceFacilityLocation.value = payerObj.patient_id;
+                        serviceFacilityLocation.text = payerObj.patient_name;
+                        break;
+                    case 'OP':
+                        serviceFacilityLocation.value = payerObj.provider_contact_id;
+                        serviceFacilityLocation.text = payerObj.provider_name;
+                        break;
+                    case 'OF':
+                        serviceFacilityLocation.value = payerObj.order_facility_id;
+                        serviceFacilityLocation.text = payerObj.ordering_facility_name;
+                        break;
+                    case 'OFP':
+                        if(!hasMatchingOrderingFacility) {
+                            serviceFacilityLocation.value = payerObj.patient_ordering_facility_contact_id;
+                            serviceFacilityLocation.text = payerObj.patient_ordering_facility_name;
+                        }
+                        break;
+                }
+
+                return serviceFacilityLocation;
+            },
+
             getClaimBasedCharges: function (claimId, paymentId, paymentStatus, chargeId, paymentApplicationId, isInitialBind) {
                 var self = this;
                 var $ddlResponsible = $('#ddlResponsible');
@@ -2150,7 +2187,6 @@ define([
 
                         $.each(payerTypes, function (index, payerObj) {
                             self.patientId = payerObj.patient_id;
-                            var hasMatchingOrderingFacility = ~~payerObj.ordering_facility_contact_id === ~~payerObj.patient_ordering_facility_contact_id;
 
                             if (payerObj.patient_id) {
                                 responsibleObjArray.push({
@@ -2209,19 +2245,17 @@ define([
                                 });
                             }
 
-                            // Binding Service facility location as responsible party in edit payments screen.
-                            if (
-                                self.isServiceFacilityLocation(payerObj.pos_map_code) 
-                                && !hasMatchingOrderingFacility 
-                                && payerObj.patient_ordering_facility_contact_id
-                            ) {
-                                responsibleObjArray.push({
-                                    id: payerObj.patient_ordering_facility_id,
-                                    text: payerObj.patient_ordering_facility_name + '(Service Facility)',
+                            if (self.isServiceFacilityLocation(payerObj.pos_map_code)) {
+                                var serviceFacLocation = self.getPOSDetails(payerObj);
+
+                                serviceFacLocation.value && responsibleObjArray.push({
+                                    id: serviceFacLocation.value,
+                                    text: serviceFacLocation.text + '(Service Facility)',
                                     payer_type: 'service_facility_location',
                                     selected: payerObj.payer_type === 'service_facility_location'
                                 });
                             }
+
                         });
 
                         self.currentResponsible = payerTypes && payerTypes.length ? payerTypes[0].payer_type : null;
