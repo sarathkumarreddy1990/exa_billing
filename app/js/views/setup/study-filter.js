@@ -699,7 +699,7 @@ define([
                           $('#listStudyInsuranceProvider').append(opt);
                           $studyContainerId.val('');
                           $studyContainerId.text('');
-                          $('#select2-txtStudyInsuranceProviderName-container').empty();
+                          $('#txtStudyInsuranceProviderName').select2('val', null);
                       } else if (!commonjs.checkNotEmpty($studyContainerId.val())) {
                           return commonjs.showWarning("messages.warning.setup.entertextandselect");
                       }
