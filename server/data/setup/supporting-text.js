@@ -141,9 +141,9 @@ module.exports = {
             }
 
             return await query(sql);
-        } else {
-            return { rows: [] };
         }
+        return { rows: [] };
+
     },
 
     getDataById: async (params) => {

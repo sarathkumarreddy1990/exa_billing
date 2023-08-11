@@ -16,7 +16,7 @@ module.exports = {
         }
 
         let sql = SQL`
-			WITH claim_details AS(
+            WITH claim_details AS(
                 SELECT
                     bc.invoice_no,
                     timezone(get_facility_tz(bc.facility_id::int), now()) AS invoice_date,
@@ -137,7 +137,7 @@ module.exports = {
             `)
             .append(` ORDER BY ${params.sortBy}) ,`)
             .append( SQL`
-			charge_details as(
+            charge_details as(
                 SELECT
                     bch.claim_id as claim_no,
                     pcc.display_code,
@@ -145,9 +145,9 @@ module.exports = {
                     charge_dt as "service_date",
                     billing.get_charge_icds(bch.id),
                     modifier1.code as "modifier1",
-					modifier2.code as "modifier2",
-					modifier3.code as "modifier3",
-					modifier4.code as "modifier4",
+                    modifier2.code as "modifier2",
+                    modifier3.code as "modifier3",
+                    modifier4.code as "modifier4",
                     bch.units,
                     (bch.units * bch.bill_fee) AS bill_fee,
                     (bch.units * bch.allowed_amount) AS allowed_fee
@@ -221,7 +221,7 @@ module.exports = {
                 INNER JOIN icd_codes ON icd_codes.id = ci.icd_id
                 WHERE ci.claim_id = ANY(${params.claimIds})
             )
-			SELECT (SELECT json_agg(row_to_json(claim_details)) AS claim_details FROM (SELECT * FROM claim_details) AS claim_details),
+            SELECT (SELECT json_agg(row_to_json(claim_details)) AS claim_details FROM (SELECT * FROM claim_details) AS claim_details),
                     (SELECT json_agg(row_to_json(charge_details)) AS charge_details FROM (SELECT * FROM charge_details) AS charge_details),
                     (SELECT json_agg(row_to_json(payment_details)) AS payment_details FROM (SELECT * FROM payment_details) AS payment_details),
                     (SELECT json_agg(row_to_json(icd_details)) AS icd_details FROM (SELECT * FROM icd_details) AS icd_details)
@@ -255,13 +255,15 @@ module.exports = {
                         AND (id IN (
                 `;
 
-        sql.append(`SELECT	COALESCE(
-                        (SELECT ${colName[templateType]} FROM	billing.user_settings
-                        WHERE	user_id = ${userId} AND grid_name = 'claims'),`);
+        sql.append(`SELECT COALESCE(
+                        (SELECT ${colName[templateType]} FROM billing.user_settings
+                        WHERE user_id = ${userId} AND grid_name = 'claims'),`);
 
-        sql.append(SQL` (SELECT	id
-                                FROM	billing.printer_templates
-                                WHERE	template_type = ${templateType} AND is_default
+        sql.append(SQL` (SELECT id
+                                FROM
+                                    billing.printer_templates
+                                WHERE
+                                    template_type = ${templateType} AND is_default
                                 ORDER BY id DESC
                                 LIMIT  1 )
                             ) AS id

@@ -409,20 +409,20 @@ module.exports = {
                                 (
                                     CASE
                                         WHEN claim_details.claim_balance_total = 0::money
-					                        THEN ( SELECT COALESCE(id, mc.claim_status_id ) FROM billing.claim_status WHERE company_id = ${paymentDetails.company_id} AND code = 'PIF' AND inactivated_dt IS NULL )
-				                        WHEN claim_details.claim_balance_total < 0::money
-					                        THEN ( SELECT COALESCE(id, mc.claim_status_id ) FROM billing.claim_status WHERE company_id = ${paymentDetails.company_id} AND code = 'OP' AND inactivated_dt IS NULL )
+                                            THEN ( SELECT COALESCE(id, mc.claim_status_id ) FROM billing.claim_status WHERE company_id = ${paymentDetails.company_id} AND code = 'PIF' AND inactivated_dt IS NULL )
+                                        WHEN claim_details.claim_balance_total < 0::money
+                                            THEN ( SELECT COALESCE(id, mc.claim_status_id ) FROM billing.claim_status WHERE company_id = ${paymentDetails.company_id} AND code = 'OP' AND inactivated_dt IS NULL )
                                         WHEN '0'::MONEY IN (SELECT payment FROM matched_claims mc WHERE mc.claim_id = billing.claims.id)
                                             THEN (SELECT COALESCE(id, mc.claim_status_id) FROM billing.claim_status WHERE company_id = ${paymentDetails.company_id} AND code = 'D' AND inactivated_dt IS NULL)
-				                        WHEN claim_details.claim_balance_total > 0::money
-					                        THEN ( SELECT COALESCE(id, mc.claim_status_id ) FROM billing.claim_status WHERE company_id = ${paymentDetails.company_id} AND code = 'PAP' AND inactivated_dt IS NULL )
-				                    ELSE
-				                        mc.claim_status_id
+                                        WHEN claim_details.claim_balance_total > 0::money
+                                            THEN ( SELECT COALESCE(id, mc.claim_status_id ) FROM billing.claim_status WHERE company_id = ${paymentDetails.company_id} AND code = 'PAP' AND inactivated_dt IS NULL )
+                                    ELSE
+                                        mc.claim_status_id
                                     END
                                 )
                             FROM matched_claims mc
                             INNER JOIN billing.get_claim_totals(mc.claim_id) claim_details ON TRUE
-			                WHERE billing.claims.id = mc.claim_id
+                            WHERE billing.claims.id = mc.claim_id
                                 AND 'OHIP_EOB' = ${paymentDetails.from}
                             RETURNING id as claim_id
                         )
@@ -642,11 +642,11 @@ module.exports = {
         const sql = `
                 Select
                     ef.id
-				    ,ef.status
-				    ,ef.file_type
-				    ,ef.file_path
-				    ,fs.root_directory
-				    ,ef.uploaded_file_name
+                    ,ef.status
+                    ,ef.file_type
+                    ,ef.file_path
+                    ,fs.root_directory
+                    ,ef.uploaded_file_name
                 FROM
                     billing.edi_files ef
                 INNER JOIN file_stores fs on fs.id = ef.file_store_id

@@ -717,9 +717,11 @@ module.exports = {
                     INNER JOIN billing.charges ch ON ch.id = pa.charge_id
                     INNER JOIN public.cpt_codes cpt ON cpt.id = ch.cpt_id
                     LEFT JOIN LATERAL (
-                        SELECT 	*
-                        FROM	billing.payment_applications bpa
-                        WHERE	bpa.payment_id = pa.payment_id
+                        SELECT *
+                        FROM
+                            billing.payment_applications bpa
+                        WHERE
+                            bpa.payment_id = pa.payment_id
                             AND bpa.charge_id = pa.charge_id
                             AND bpa.applied_dt = pa.applied_dt
                             AND bpa.amount_type = 'adjustment'
@@ -736,7 +738,8 @@ module.exports = {
                                 ORDER BY cas.id
                                 ) as cas
                     ) cas on true
-                    WHERE	pa.charge_id = ${charge_id}
+                    WHERE
+                        pa.charge_id = ${charge_id}
                         AND pa.amount_type = 'payment'
                     ORDER BY pa.applied_dt ASC `;
 
@@ -799,14 +802,14 @@ module.exports = {
                     LEFT JOIN public.ordering_facilities pof ON pof.id = pofc.ordering_facility_id
                     LEFT JOIN billing.claim_status  ON claim_status.id=claims.claim_status_id
                     LEFT JOIN LATERAL (
-                    	SELECT
-                    	    ARRAY_AGG(note) AS claim_comments
-                    	FROM
+                        SELECT
+                            ARRAY_AGG(note) AS claim_comments
+                        FROM
                             billing.claim_comments bcc
-                    	WHERE
+                        WHERE
                             ${initialLoad}
                             AND bcc.claim_id = claims.id
-                    	    AND 'patient_claims' = ANY(bcc.alert_screens)
+                            AND 'patient_claims' = ANY(bcc.alert_screens)
                     ) AS pc_alerts ON TRUE
                     WHERE patients.id = ${patientId}
                     `);
@@ -849,7 +852,7 @@ module.exports = {
                         INNER JOIN LATERAL (
                             SELECT id
                             FROM public.patient_insurances ppi
-                            INNER JOIN	get_payer_details gpd ON gpd.insurance_provider_id = ppi.insurance_provider_id
+                            INNER JOIN get_payer_details gpd ON gpd.insurance_provider_id = ppi.insurance_provider_id
                         ) ppi ON TRUE `;
 
                 whereQuery = ` AND bc.payer_type = 'primary_insurance' AND bcpi.patient_insurance_id = ppi.id`;
@@ -1042,7 +1045,8 @@ module.exports = {
                             FROM billing.claims bc
                             ${joinQuery}
                             INNER JOIN LATERAL (SELECT * FROM billing.get_claim_totals(bc.id)) claim_totals ON true
-                            WHERE 	bc.invoice_no is not null
+                            WHERE
+                                bc.invoice_no is not null
                             ${whereQuery}
                             group by submitted_dt,claim_totals.claim_balance_total)
                             SELECT

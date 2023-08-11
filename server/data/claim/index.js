@@ -451,9 +451,9 @@ module.exports = {
                                         ORDER BY pi.order_no
                             )
                             SELECT  ( SELECT COALESCE(json_agg(row_to_json(charge)),'[]') charges
-		                                FROM (
+                                        FROM (
                                                 SELECT
-		                                	    *
+                                                *
                                                 FROM claim_charges
                                             ) AS charge
                                     ) AS charges
@@ -462,17 +462,17 @@ module.exports = {
                                         FROM wcb_injury_details
                                     ) AS injury_details
                                     ,( SELECT COALESCE(json_agg(row_to_json(claims)),'[]') claim_details
-		                                FROM (
+                                        FROM (
                                                 SELECT
-		                                	    *
+                                                *
                                                 FROM claim_details
                                             ) AS claims
                                     ) AS claim_details
                                     , ( SELECT study_dt FROM get_study_date )
-	                                ,( SELECT COALESCE(json_agg(row_to_json(claim_problems)),'[]') problems
-		                                FROM (
+                                    ,( SELECT COALESCE(json_agg(row_to_json(claim_problems)),'[]') problems
+                                        FROM (
                                                 SELECT
-			                                    *
+                                                *
                                                 FROM claim_problems
                                             ) AS claim_problems
                                     ) AS problems `;
@@ -1088,7 +1088,7 @@ module.exports = {
                                 row_number() OVER( ORDER BY p.id ) as row_index,
                                 p.payment_dt,
                                 p.facility_id
-	                        FROM
+                            FROM
                                 billing.payments AS p
                                 INNER JOIN (
                                     SELECT
@@ -1269,8 +1269,8 @@ module.exports = {
                         SELECT
                             p.id AS patient_id
                             ,p.full_name AS patient_name
-				            ,p.birth_date AS patient_dob
-				            ,p.gender AS patient_gender
+                            ,p.birth_date AS patient_dob
+                            ,p.gender AS patient_gender
                             ,p.account_no AS patient_account_no
                             ,p.alt_account_no
                             ,p.last_name
@@ -1650,7 +1650,7 @@ module.exports = {
                     (
                         SELECT json_agg(row_to_json(payment_details.*)) AS payment_details FROM payment_details
                     ),
-                    (	SELECT json_agg(row_to_json(claim_fee_details.*)) AS claim_fee_details FROM claim_fee_details
+                    (    SELECT json_agg(row_to_json(claim_fee_details.*)) AS claim_fee_details FROM claim_fee_details
                     ) `;
 
         return await query(sqlQry);

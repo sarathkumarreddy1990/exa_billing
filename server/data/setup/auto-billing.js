@@ -913,7 +913,6 @@ module.exports = {
     executeAutobillingRules: async (params) => {
         const {
             studyId,
-            studyStatus,
             patientId,
             orderId,
         } = params;
