@@ -2087,7 +2087,8 @@ define([
                             paymentDet.payment_adjustment_id = payment.adjustment_id;
                             paymentDet.other_payment = (parseFloat(paymentDet.other_payment) - parseFloat(paymentDet.payment_amount)).toFixed(2);
                             paymentDet.other_adjustment = (parseFloat(paymentDet.other_adjustment) - parseFloat(paymentDet.adjustment)).toFixed(2);
-                            paymentDet.allowed_amount = '0.00';
+                            paymentDet.allowed_id = payment.allowed_id;
+                            paymentDet.allowed_amount = payment.allowed_amount;
                             var balance = parseFloat(paymentDet.bill_fee) - (parseFloat(paymentDet.other_payment) + parseFloat(paymentDet.other_adjustment) + parseFloat(paymentDet.adjustment) + parseFloat(paymentDet.payment_amount)).toFixed(2);
                             paymentDet.balance = parseFloat(balance).toFixed(2);
 
@@ -2211,8 +2212,8 @@ define([
 
                             // Binding Service facility location as responsible party in edit payments screen.
                             if (
-                                self.isServiceFacilityLocation(payerObj.pos_map_code) 
-                                && !hasMatchingOrderingFacility 
+                                self.isServiceFacilityLocation(payerObj.pos_map_code)
+                                && !hasMatchingOrderingFacility
                                 && payerObj.patient_ordering_facility_contact_id
                             ) {
                                 responsibleObjArray.push({
@@ -2264,11 +2265,12 @@ define([
                             width: '300px',
                             templateResult: formatRepo
                         });
-                        function formatRepo(repo) {
 
+                        function formatRepo(repo) {
                             if (repo.loading) {
                                 return repo.text;
                             }
+
                             var _div = $('<div/>').append(repo.text);
 
                             if ($(repo.element).hasClass('recoupment_debit')) {
@@ -2279,7 +2281,6 @@ define([
 
                             return _div;
                         };
-
 
                         $('#tBodyApplyPendingPayment').find('.applyCAS').on('click', function (e) {
                             var selectedRow = $(e.target || e.srcElement).closest('tr');
@@ -2329,20 +2330,17 @@ define([
                         });
 
                         self.reloadPaymentFields(claimId, paymentId, paymentApplicationId, isInitialBind);
-
                         $('#txtResponsibleNotes').val(payerTypes[0].billing_notes);
-
                         var adjCodeType = $('#ddlAdjustmentCode_fast').find(':selected').attr('data_code_type');
 
                         if (adjCodeType === 'recoupment_debit' || adjCodeType === 'refund_debit') {
-
                             $('.checkDebit').prop('checked', true);
                             self.updateRefundRecoupment();
                             if (paymentStatus === 'applied' && adjCodeType === 'refund_debit') {
                                 self.isRefundApplied = true;
-                            }
-                            else
+                            } else {
                                 self.isRefundApplied = false;
+                            }
                         }
                         else {
                             $('.checkDebit').prop('checked', false);
@@ -2714,6 +2712,8 @@ define([
                         _line_item["payment"] = objIsPayInFull ? balance + parseFloat(this_pay) : parseFloat(this_pay);
                         _line_item["adjustment"] = chargeRow.find('.payment__this_adjustment').val() ? parseFloat(chargeRow.find('.payment__this_adjustment').val()) : 0.00;
                         _line_item["balance"] = objIsPayInFull ? 0 : balance;
+                        _line_item["allowed_id"] = chargeRow.attr('data_allowed_id');
+                        _line_item["allowed_amount"] = parseFloat($(this).find('.payment__this_allowed').val() || 0.00);
 
                         var _cas = cas.filter(function (obj) {
                             return obj.charge_id == chargeRow.attr('data_charge_id_id')

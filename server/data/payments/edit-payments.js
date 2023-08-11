@@ -116,7 +116,7 @@ module.exports = {
                 sql.append(whereQuery.join(' AND '));
             }
 
-            sql.append(SQL` GROUP BY 
+            sql.append(SQL` GROUP BY
                 bc.id,
                 pp.last_name,
                 pp.first_name,
@@ -501,11 +501,29 @@ module.exports = {
 
         if (paymentStatus == 'applied') {
             joinQuery = `INNER JOIN billing.get_payment_applications(${paymentId},${paymentApplicationId}) ppa ON ppa.charge_id = bch.id `;
-            selectQuery = ' , ppa.id AS payment_application_id,ppa.adjustment_code_id AS adjustment_code_id,ppa.payment_amount::numeric AS payment_amount,ppa.adjustment_amount::numeric AS adjustment_amount , ppa.payment_application_adjustment_id as adjustment_id, ppa.payment_applied_dt AS payment_applied_dt';
-            groupByQuery = ', ppa.payment_id , ppa.id,ppa.adjustment_code_id, ppa.payment_amount,ppa.adjustment_amount , ppa.payment_application_adjustment_id,ppa.payment_applied_dt ';
+            selectQuery = `,
+                ppa.id AS payment_application_id,
+                ppa.adjustment_code_id AS adjustment_code_id,
+                ppa.payment_amount::numeric AS payment_amount,
+                ppa.adjustment_amount::numeric AS adjustment_amount,
+                ppa.payment_application_adjustment_id AS adjustment_id,
+                ppa.payment_applied_dt AS payment_applied_dt,
+                ppa.allowed_id,
+                ppa.allowed_amount::NUMERIC
+            `;
+            groupByQuery = `,
+                ppa.payment_id,
+                ppa.id,ppa.adjustment_code_id,
+                ppa.payment_amount,
+                ppa.adjustment_amount,
+                ppa.payment_application_adjustment_id,
+                ppa.payment_applied_dt,
+                ppa.allowed_id,
+                ppa.allowed_amount
+            `;
         }
 
-        let sql = SQL` 
+        let sql = SQL`
             WITH payer_types AS (
                 SELECT JSON_AGG(ROW_TO_JSON(payer_types)) payer_types
                     FROM (
