@@ -556,6 +556,7 @@ module.exports = {
                             pof.name AS patient_ordering_facility_name,
 
                             of.name AS ordering_facility_name,
+                            bc.referring_provider_contact_id AS provider_contact_id,
                             providers.full_name AS provider_name,
                             bc.claim_status_id
                         FROM billing.claims bc

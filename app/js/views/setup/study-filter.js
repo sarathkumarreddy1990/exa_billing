@@ -523,7 +523,7 @@ define([
                     datastore: self.studyFiltersList,
                     container: self.el,
                     customizeSort: true,
-                    offsetHeight: 01,
+                    offsetHeight: 1,
                     sortname: "id",
                     sortorder: "desc",
                     ondblClickRow: function (rowID) {
@@ -699,6 +699,7 @@ define([
                           $('#listStudyInsuranceProvider').append(opt);
                           $studyContainerId.val('');
                           $studyContainerId.text('');
+                          $('#txtStudyInsuranceProviderName').select2('val', null);
                       } else if (!commonjs.checkNotEmpty($studyContainerId.val())) {
                           return commonjs.showWarning("messages.warning.setup.entertextandselect");
                       }

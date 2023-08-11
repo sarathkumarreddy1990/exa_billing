@@ -135,10 +135,10 @@ const colModel = [
                 WHEN 'primary_insurance' THEN payer_insurance.insurance_name
                 WHEN 'secondary_insurance' THEN payer_insurance.insurance_name
                 WHEN 'tertiary_insurance' THEN payer_insurance.insurance_name
-	            WHEN 'ordering_facility' THEN ordering_facilities.name
-	            WHEN 'referring_provider' THEN ref_provider.full_name
-	            WHEN 'rendering_provider' THEN render_provider.full_name
-	            WHEN 'patient' THEN patients.full_name        END) `]
+                WHEN 'ordering_facility' THEN ordering_facilities.name
+                WHEN 'referring_provider' THEN ref_provider.full_name
+                WHEN 'rendering_provider' THEN render_provider.full_name
+                WHEN 'patient' THEN patients.full_name        END) `]
     },
     {
         name: 'clearing_house',
@@ -337,10 +337,10 @@ const api = {
                 WHEN 'primary_insurance' THEN payer_insurance.insurance_name
                 WHEN 'secondary_insurance' THEN payer_insurance.insurance_name
                 WHEN 'tertiary_insurance' THEN payer_insurance.insurance_name
-	            WHEN 'ordering_facility' THEN ordering_facilities.name
-	            WHEN 'referring_provider' THEN ref_provider.full_name
-	            WHEN 'rendering_provider' THEN render_provider.full_name
-	            WHEN 'patient' THEN patients.full_name        END)
+                WHEN 'ordering_facility' THEN ordering_facilities.name
+                WHEN 'referring_provider' THEN ref_provider.full_name
+                WHEN 'rendering_provider' THEN render_provider.full_name
+                WHEN 'patient' THEN patients.full_name        END)
                     `;
             case 'clearing_house': return 'edi_clearinghouses.name';
             case 'claim_balance': return 'bgct.claim_balance_total';

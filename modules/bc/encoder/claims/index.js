@@ -207,7 +207,7 @@ const encoder = (rows, isCron) => {
 
                 encoderBatchArray = [];
                 submittedClaimIds = [];
-                isBatchError = error ? true : false;
+                isBatchError = !!error;
                 rowCount = claimEncodedArray.length + 1;
                 totalFileBillFee = row.claim_total_bill_fee;
                 encoderBatchArray.push(encodedData);

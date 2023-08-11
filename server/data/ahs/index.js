@@ -692,14 +692,14 @@ const ahsData = {
                 resubmission_claims AS(
                     SELECT
                         claim_id
-	                  , MAX(batch_number) AS batch_number
-	                  , MAX(sequence_number) AS sequence_number
-	                  , MAX(edi_file_id) AS edi_file_id
-	                  , MAX(can_ahs_year_source_code) AS can_ahs_year_source_code
-	                FROM billing.edi_file_claims
-	                WHERE claim_id = ANY(${claimIds}) AND can_ahs_action_code = 'a'
-	                GROUP BY can_ahs_action_code, claim_id
-	                ORDER BY sequence_number DESC
+                      , MAX(batch_number) AS batch_number
+                      , MAX(sequence_number) AS sequence_number
+                      , MAX(edi_file_id) AS edi_file_id
+                      , MAX(can_ahs_year_source_code) AS can_ahs_year_source_code
+                    FROM billing.edi_file_claims
+                    WHERE claim_id = ANY(${claimIds}) AND can_ahs_action_code = 'a'
+                    GROUP BY can_ahs_action_code, claim_id
+                    ORDER BY sequence_number DESC
                 ),
                 status AS (
                     SELECT

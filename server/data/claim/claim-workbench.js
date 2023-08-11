@@ -143,15 +143,15 @@ module.exports = {
         } = params;
 
         let sql = SQL`WITH getStatus AS (
-							SELECT
-							    id
-							FROM billing.claim_status
-							WHERE code = 'PS')
-						, update_cte AS (
+                            SELECT
+                                id
+                            FROM billing.claim_status
+                            WHERE code = 'PS')
+                        , update_cte AS (
                             UPDATE billing.claims bc
                             SET
                                 claim_status_id = (SELECT id FROM getStatus)
-						    WHERE bc.id = ANY(${success_claimID})
+                            WHERE bc.id = ANY(${success_claimID})
                             RETURNING *,
                                       bc.xmin as claim_row_version,
                                       (SELECT row_to_json(old_row) FROM (
@@ -283,12 +283,12 @@ module.exports = {
                 INNER JOIN  update_status ON update_status.id = claim_details.claim_id  )`;
 
         let sql = SQL`WITH getStatus AS
-						(
-							SELECT
-								id
-							FROM
-								billing.claim_status
-							WHERE code  = ${claim_status}
+                        (
+                            SELECT
+                                id
+                            FROM
+                                billing.claim_status
+                            WHERE code  = ${claim_status}
                         )`;
 
         if (templateType) {
@@ -658,11 +658,11 @@ module.exports = {
         const sql = SQL`
                     WITH batch_claim_details AS (
                         SELECT
-		                    patient_id, study_id, order_id, billing_type
-	                    FROM
-	                        json_to_recordset(${studyDetails}) AS study_ids
-		                    (
-		                        patient_id bigint,
+                            patient_id, study_id, order_id, billing_type
+                        FROM
+                            json_to_recordset(${studyDetails}) AS study_ids
+                            (
+                                patient_id bigint,
                                 study_id bigint,
                                 order_id bigint,
                                 billing_type text
@@ -958,7 +958,7 @@ module.exports = {
         }
 
         const sql = SQL`WITH
-	        -- --------------------------------------------------------------------------------------------------------------
+            -- --------------------------------------------------------------------------------------------------------------
             -- Apply claims grid filters
             -- --------------------------------------------------------------------------------------------------------------
             claim_details AS ( `;
@@ -966,7 +966,7 @@ module.exports = {
         sql.append(claimGridFilter);
 
         sql.append(`)
-	        -- --------------------------------------------------------------------------------------------------------------
+            -- --------------------------------------------------------------------------------------------------------------
             -- Calculate charge bill fee for claim.
             -- --------------------------------------------------------------------------------------------------------------
             ,claim_charge_fee AS (
@@ -986,8 +986,8 @@ module.exports = {
             ,claim_payments_list AS (
                 SELECT
                      ccf.claim_id
-		            ,ccf.charges_bill_fee_total
-		            ,bgct.claim_balance_total
+                    ,ccf.charges_bill_fee_total
+                    ,bgct.claim_balance_total
                 FROM
                     claim_charge_fee ccf
                 LEFT JOIN LATERAL (
@@ -997,21 +997,21 @@ module.exports = {
                         AND (adj.accounting_entry_type != 'refund_debit' OR pa.adjustment_code_id IS NULL)),0::money) AS ajdustments_applied_total
                         ,coalesce(sum(pa.amount)   FILTER (WHERE adj.accounting_entry_type = 'refund_debit'),0::money) AS refund_amount
                         ,c.claim_id
-		            FROM
+                    FROM
                         billing.charges AS c
                     LEFT JOIN billing.payment_applications AS pa ON pa.charge_id = c.id
                     LEFT JOIN billing.payments AS p ON pa.payment_id = p.id
                     LEFT JOIN billing.adjustment_codes adj ON adj.id = pa.adjustment_code_id
-		            GROUP BY c.claim_id
+                    GROUP BY c.claim_id
                 ) AS applications ON applications.claim_id = ccf.claim_id
 
                 INNER JOIN LATERAL (
-			        SELECT
-			            ccf.charges_bill_fee_total - (
-				            applications.payments_applied_total +
-				            applications.ajdustments_applied_total +
-				            applications.refund_amount
-			            ) AS claim_balance_total
+                    SELECT
+                        ccf.charges_bill_fee_total - (
+                            applications.payments_applied_total +
+                            applications.ajdustments_applied_total +
+                            applications.refund_amount
+                        ) AS claim_balance_total
                 ) AS bgct ON TRUE `);
 
         sql.append(balanceFilter);

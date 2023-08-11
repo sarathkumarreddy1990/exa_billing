@@ -1024,7 +1024,7 @@ const bcModules = {
                 let validRemittanceElements = ['B14', 'C12', 'S00', 'S01', 'S02', 'S03', 'S04', 'S21', 'S22', 'S23', 'S24', 'S25'];
 
                 fileBuffer.filter(function (record) {
-                    let recordHeader = record.substring(0,3);
+                    let recordHeader = record.substring(0, 3);
                     if (validRemittanceHeaders.includes(recordHeader)) {
                         remittanceHeaderSets.push(record);
                     }

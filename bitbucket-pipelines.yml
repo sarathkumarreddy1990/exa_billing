@@ -38,7 +38,7 @@ definitions:
         name: Trigger Jenkins job
         script:
           - echo "BB_SRC_BRANCH=$BITBUCKET_BRANCH, BB_DEST_BRANCH=$BITBUCKET_PR_DESTINATION_BRANCH, BITBUCKET_REPO_FULL_NAME=$BITBUCKET_REPO_FULL_NAME, BB_USER_UUID=$BITBUCKET_STEP_TRIGGERER_UUID, BITBUCKET_COMMIT=$BITBUCKET_COMMIT, BITBUCKET_REPO_SLUG=$BITBUCKET_REPO_SLUG"
-          - curl --http0.9 -k -X POST -u bitbucket_api:$KMHA_JENKINS_API_PWD https://exa-ci.kmhcit.com/api/job/EXA-Platform/view/ConfigMgrs/job/Config-Managers/job/Handle-Bitbucket-PR-Trigger/buildWithParameters -F BB_SRC_BRANCH=$BITBUCKET_BRANCH -F BB_DEST_BRANCH=$BITBUCKET_PR_DESTINATION_BRANCH -F BITBUCKET_REPO_FULL_NAME=$BITBUCKET_REPO_FULL_NAME -F BB_USER_UUID=$BITBUCKET_STEP_TRIGGERER_UUID -F BITBUCKET_COMMIT=$BITBUCKET_COMMIT -F BITBUCKET_REPO_SLUG=$BITBUCKET_REPO_SLUG --output curl.txt      
+          - curl --http0.9 -k -X POST -u bitbucket_api:$KMHA_JENKINS_API_PWD https://exa-ci.kmhcit.com/api/job/EXA-Platform/view/ConfigMgrs/job/Config-Managers/job/Handle-Bitbucket-PR-Trigger/buildWithParameters -F BB_SRC_BRANCH=$BITBUCKET_BRANCH -F BB_DEST_BRANCH=$BITBUCKET_PR_DESTINATION_BRANCH -F BITBUCKET_REPO_FULL_NAME=$BITBUCKET_REPO_FULL_NAME -F BB_USER_UUID=$BITBUCKET_STEP_TRIGGERER_UUID -F BITBUCKET_COMMIT=$BITBUCKET_COMMIT -F BITBUCKET_REPO_SLUG=$BITBUCKET_REPO_SLUG --output curl.txt
 pipelines:
   #branches:
   #  development:
@@ -50,4 +50,5 @@ pipelines:
       - step: *step_lint-with-eslint
   pull-requests:
     '{feature/*}':
-      - step: *trigger_jenkins_job    
+      - step: *step_lint-with-eslint
+      - step: *trigger_jenkins_job
