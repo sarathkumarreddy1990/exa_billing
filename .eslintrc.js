@@ -14,6 +14,14 @@ module.exports = {
     ],
     "parserOptions": {
         "sourceType": "module",
-        "ecmaVersion": 2020,
+        "ecmaVersion": 2020
     },
+    "rules": {
+        'one-var-declaration-per-line': ['error', 'initializations'],
+        'no-tabs': 'error',
+        'no-unneeded-ternary': 'error',
+        'comma-spacing': ['error', { 'before': false, 'after': true }],
+        'no-duplicate-imports': 'error',
+        'no-else-return': 'error'
+    }
 };

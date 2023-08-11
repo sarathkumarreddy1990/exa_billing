@@ -428,7 +428,7 @@ const updateClaimStatus = async (args) => {
     const sql = SQL`
         WITH
         submissionDate AS (
-        	SELECT timezone(get_facility_tz(1::int), now()::timestamp) LIMIT 1
+            SELECT timezone(get_facility_tz(1::int), now()::timestamp) LIMIT 1
         )
         , addClaimComment AS (
             INSERT INTO billing.claim_comments (
@@ -891,7 +891,7 @@ const applyErrorReport = async (args) => {
                 error_file.status = 'success'
             ON CONFLICT ON CONSTRAINT edi_related_files_submission_file_id_response_file_id_uc
             DO NOTHING
-			RETURNING
+            RETURNING
                 *
         ), update_process AS (
             -- update process status to check whether the claim processed or not
@@ -1578,7 +1578,7 @@ const OHIPDataAPI = {
                             ) bc ON TRUE
                             INNER JOIN billing.claim_status cs ON cs.id = bc.claim_status_id
                             LEFT JOIN LATERAL (
-								SELECT
+                                SELECT
                                     bch.id AS charge_id
                                 FROM billing.charges bch
                                 INNER JOIN public.cpt_codes pcc ON pcc.id = bch.cpt_id
@@ -1685,7 +1685,7 @@ const OHIPDataAPI = {
                                         WHEN claim_details.claim_balance_total > 0::money
                                             THEN ( SELECT COALESCE(id, mc.claim_status_id ) FROM billing.claim_status WHERE company_id = ${paymentDetails.company_id} AND code = 'PAP' AND inactivated_dt IS NULL )
                                         ELSE
-				                        mc.claim_status_id
+                                        mc.claim_status_id
                                     END
                                 )
                             FROM matched_claims mc

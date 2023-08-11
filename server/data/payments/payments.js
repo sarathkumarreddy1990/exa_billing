@@ -1021,9 +1021,9 @@ module.exports = {
             `;
 
             return await query(sql);
-        } else {
-            return false;
         }
+        return false;
+
 
     },
 

@@ -328,7 +328,7 @@ const acr = {
                 -- --------------------------------------------------------------------------------------------------------------
                 -- Formatting charge lineItems for credit adjustment. Create payment application
                 -- --------------------------------------------------------------------------------------------------------------
-	            , credit_adjustment_charges AS (
+                , credit_adjustment_charges AS (
                     SELECT
                     billing.create_payment_applications(
                         payment_id
@@ -341,14 +341,14 @@ const acr = {
                         , (${JSON.stringify(auditDetails)})::jsonb
                         , now()
                         )  AS details
-	            	FROM
+                    FROM
                         claim_charges
                     WHERE claim_balance_total > 0::money
                 )
                 -- --------------------------------------------------------------------------------------------------------------
                 -- Formatting charge lineItems for debit adjustment. Create payment application
                 -- --------------------------------------------------------------------------------------------------------------
-	            , debit_adjustment_charges AS (
+                , debit_adjustment_charges AS (
                     SELECT
                     billing.create_payment_applications(
                         payment_id
@@ -361,7 +361,7 @@ const acr = {
                         , (${JSON.stringify(auditDetails)})::jsonb
                         , cad.applied_dt
                         ) AS details
-		            FROM
+                    FROM
                         claim_charges
                     LEFT JOIN claim_application_date cad ON cad.claim_id = claim_charges.claim_id
                     WHERE (claim_balance_total < 0::money OR is_debit_adjustment)
@@ -535,13 +535,13 @@ const acr = {
                         ,ARRAY_AGG(claims.id) FILTER ( WHERE claim_status_id != ${acr_claim_status_id} AND cpl.claim_balance_total > 0::money ) AS claim_ids
                     FROM
                         billing.claims
-		            INNER JOIN claim_payment_lists cpl ON cpl.claim_id = claims.id
+                    INNER JOIN claim_payment_lists cpl ON cpl.claim_id = claims.id
                     INNER JOIN patients p ON p.id = claims.patient_id
                     GROUP BY p.id
                     HAVING sum(cpl.claim_balance_total) >= ${acr_min_balance_amount}::money
                     ORDER BY p.id DESC
-		        )
-		        -- --------------------------------------------------------------------------------------------------------------
+                )
+                -- --------------------------------------------------------------------------------------------------------------
                 -- Update claims status = 'Collection Review' which satisfied the review cond.
                 -- Should not change claims status which already in 'claim in collection'
                 -- --------------------------------------------------------------------------------------------------------------

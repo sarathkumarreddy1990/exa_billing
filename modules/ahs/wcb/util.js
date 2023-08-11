@@ -21,9 +21,9 @@ const formatPostalCode = (str) => {
 
     if (zipLength === 7 && postal.test(str)) {
         return str;
-    } else {
-        return str.replace(/\s/g, '');
     }
+    return str.replace(/\s/g, '');
+
 };
 
 const formatPhoneFax = (phnNum) => {
@@ -74,9 +74,9 @@ const getFormattedValue = (key, inputObj) => {
 
     if (key in formatters && typeof formatters[key] === "function") {
         return formatters[key](inputObj[key], key) || '';
-    } else {
-        return inputObj[key] || '';
     }
+    return inputObj[key] || '';
+
 };
 
 module.exports = {

@@ -546,7 +546,7 @@ module.exports = {
             INNER JOIN ordering_facility_contacts ofc ON of.id = ofc.ordering_facility_id
             INNER JOIN get_ordering_facility_count gofc ON TRUE`)
             .append(`
-			WHERE  of.deleted_dt IS NULL
+            WHERE  of.deleted_dt IS NULL
                 AND of.inactivated_dt IS NULL
                 ${inactiveQuery}
                 AND of.company_id = ${company_id}

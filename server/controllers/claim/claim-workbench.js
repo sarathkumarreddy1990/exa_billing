@@ -62,9 +62,9 @@ const getClaimsForEDI = async (params) => {
                 return {
                     isMultipleInsurances: true
                 };
-            } else {
-                isWCBBilling = uniqInsProviders.length === 1 && uniqInsProviders[0] === 'WCB';
             }
+                isWCBBilling = uniqInsProviders.length === 1 && uniqInsProviders[0] === 'WCB';
+
         }
     }
 
@@ -91,9 +91,9 @@ module.exports = {
 
         if (response && response.rowCount == 0) {
             return response = {'rows': [{status : 'exist'}]};
-        } else {
-            return response;
         }
+        return response;
+
     },
 
     getClaimObject: async function (params) {
