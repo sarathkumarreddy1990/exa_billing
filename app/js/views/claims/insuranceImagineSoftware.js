@@ -1355,7 +1355,7 @@ function (
             var estimation = this.data.estimation || {};
 
             return (
-                estimation.hasOwnProperty("message") ||
+                estimation.message ||
                 !_.includes([0, 200], ~~estimation.status) ||
                 _.get(estimation, "responseJSON.errorDesc")
             );
