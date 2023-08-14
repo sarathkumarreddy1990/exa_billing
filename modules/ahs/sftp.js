@@ -94,6 +94,29 @@ function* processFiles ( files, dirPath ) {
     }
 }
 
+/**
+ * @param   {number}            duration - in ms
+ * @param   {function?}         cb - optional, run after timer finishes
+ * @return  {Promise<unknown>}
+ */
+function delay ( duration, cb ) {
+    if ( !(duration > 0) ) {
+        throw new Error(`Sleep duration (ms) required`);
+    }
+
+    return new Promise(( resolve, reject ) => {
+        setTimeout(() => {
+            try {
+                const result = cb?.();
+                resolve(result);
+            }
+            catch (e) {
+                reject(e.message);
+            }
+        }, duration);
+    });
+}
+
 const sftpService = {
 
     /**
@@ -116,7 +139,7 @@ const sftpService = {
             let isFolderExists = await sftp.exists(uploadDirPath);
 
             if (!isFolderExists) {
-                sftpService.sendDataError('AHS Remote folder not found for upload');
+                sftpService.sendDataError(`[UPLOAD] AHS Remote folder not found for upload`);
             }
 
             await sftp.fastPut(`${folderPath}/${fileName}`, `${uploadDirPath}/${fileName}`);
@@ -124,13 +147,13 @@ const sftpService = {
             return {
                 err: null,
                 response: {
-                    status: 'ok',
-                    message: 'Files uploaded succesfully'
+                    status: `ok`,
+                    message: `[UPLOAD] Files uploaded succesfully`,
                 }
             };
         }
         catch (e) {
-            logger.error('Error occured while AHS SFTP file upload', e.message);
+            logger.error(`[UPLOAD] Error occured while AHS SFTP file upload`, e.message);
             return {
                 err: e.message,
                 response: {}
@@ -138,7 +161,7 @@ const sftpService = {
         }
         finally {
             sftp.end();
-            logger.info('AHS SFTP files upload process done');
+            logger.info(`[UPLOAD] AHS SFTP files upload process done`);
         }
     },
 
@@ -147,7 +170,7 @@ const sftpService = {
    * {@param} data - which contains fileName, companyId of uploading file
    * {@param} cb - callback fn
    */
-    download: async (data) => {
+    download: async function download (data) {
         let {
             company_id
         } = data;
@@ -162,21 +185,31 @@ const sftpService = {
             } = fileStoreDetails.rows.pop();
 
             if ( !root_directory ) {
-                sftpService.sendDataError(`Company file store missing for companyId ${company_id}`);
+                sftpService.sendDataError(`[DOWNLOAD] Company file store missing for companyId ${company_id}`);
             }
 
             try {
                 await statAsync(root_directory);
             }
             catch ( e ) {
-                sftpService.sendDataError('Company file store folder missing in server file system');
+                sftpService.sendDataError(`[DOWNLOAD] Company file store folder missing in server file system`);
             }
 
-            await sftp.connect(config);
+            try {
+                await sftp.connect(config);
+            }
+            catch (e) {
+                logger.error(`[DOWNLOAD] ${e.message}`);
+                // Give it a few seconds and try again ... until it works
+                // Don't want accidental DoS
+                await delay(5000);
+                return await sftpService.download(data);
+            }
+
             let remotePathExists = await sftp.exists(downloadDirPath);
 
             if ( !remotePathExists ) {
-                sftpService.sendDataError(`AHS Remote folder not found for download at ${downloadDirPath}`);
+                sftpService.sendDataError(`[DOWNLOAD] AHS Remote folder not found for download at ${downloadDirPath}`);
             }
 
             let fileList = await sftp.list(downloadDirPath);
@@ -186,7 +219,7 @@ const sftpService = {
                     err: null,
                     response: {
                         status: `ok`,
-                        message: `There are no files to download`
+                        message: `[DOWNLOAD] There are no files to download`
                     }
                 };
             }
@@ -229,7 +262,7 @@ const sftpService = {
                         file_type
                     } = fileInfo;
 
-                    logger.info(`Writing the file ${file_type} - ${file_name} into Database...`);
+                    logger.info(`[DOWNLOAD] Writing the file ${file_type} - ${file_name} into Database...`);
 
                     await ahsData.storeFile({
                         file_name,
@@ -253,26 +286,26 @@ const sftpService = {
                 extractedFiles = extract.next();
             }
 
+            logger.info(`[DOWNLOAD] AHS SFTP files download process done`);
+
             return {
                 err: null,
                 response: {
                     status: `ok`,
-                    message: `${savedPaths.length} files downloaded successfully`
+                    message: `[DOWNLOAD] ${savedPaths.length} files downloaded successfully`
                 }
             };
         }
         catch (e) {
-            logger.error('Error occured in files download', e.message);
+            logger.error(`[DOWNLOAD] Unrecoverable error during files download attempt`, e.message);
             return {
                 err: e.message,
                 response: {}
             };
         }
         finally {
-            sftp.end();
-            logger.info('AHS SFTP files download process done');
+            sftp.end?.();
         }
-
     },
 
     /**
