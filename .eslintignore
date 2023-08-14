@@ -1,5 +1,10 @@
 /node_modules/**
-/app/**
+/app/node_modules/**
+/app/libs/**
+/app/fonts/**
+/app/images/**
+/app/resx/**
+/app/build/**
 /dist/**
 /build/**
 /build2/**
@@ -9,3 +14,15 @@
 .eslintrc.js
 gulpfile.js
 dbManager.js
+
+# temporarily ignore files and directories that are not yet ready for linting
+/app/js/collections/**
+/app/js/models/**
+/app/js/modules/**
+/app/js/routes/**
+/app/js/shared/**
+/app/js/templates/**
+/app/js/views/**
+/app/js/workers/**
+/app/js/main.js
+/app/js/app.js
