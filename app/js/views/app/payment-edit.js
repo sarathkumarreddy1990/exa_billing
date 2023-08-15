@@ -2124,7 +2124,8 @@ define([
                             paymentDet.payment_adjustment_id = payment.adjustment_id;
                             paymentDet.other_payment = (parseFloat(paymentDet.other_payment) - parseFloat(paymentDet.payment_amount)).toFixed(2);
                             paymentDet.other_adjustment = (parseFloat(paymentDet.other_adjustment) - parseFloat(paymentDet.adjustment)).toFixed(2);
-                            paymentDet.allowed_amount = '0.00';
+                            paymentDet.allowed_id = payment.allowed_id;
+                            paymentDet.allowed_amount = payment.allowed_amount;
                             var balance = parseFloat(paymentDet.bill_fee) - (parseFloat(paymentDet.other_payment) + parseFloat(paymentDet.other_adjustment) + parseFloat(paymentDet.adjustment) + parseFloat(paymentDet.payment_amount)).toFixed(2);
                             paymentDet.balance = parseFloat(balance).toFixed(2);
 
@@ -2748,6 +2749,8 @@ define([
                         _line_item["payment"] = objIsPayInFull ? balance + parseFloat(this_pay) : parseFloat(this_pay);
                         _line_item["adjustment"] = chargeRow.find('.payment__this_adjustment').val() ? parseFloat(chargeRow.find('.payment__this_adjustment').val()) : 0.00;
                         _line_item["balance"] = objIsPayInFull ? 0 : balance;
+                        _line_item["allowed_id"] = chargeRow.attr('data_allowed_id');
+                        _line_item["allowed_amount"] = parseFloat($(this).find('.payment__this_allowed').val() || 0.00);
 
                         var _cas = cas.filter(function (obj) {
                             return obj.charge_id == chargeRow.attr('data_charge_id_id')

@@ -575,8 +575,37 @@ module.exports = {
                         ${adjustmentId},
                         ${user_id},
                         (${line_items})::jsonb,
-                        (${JSON.stringify(auditDetails)})::jsonb) AS details
-                    ),
+                        (${JSON.stringify(auditDetails)})::jsonb
+                    ) AS details
+            ),
+
+            insert_allowed_payment_application AS (
+                INSERT INTO billing.payment_applications (
+                    payment_id,
+                    charge_id,
+                    amount_type,
+                    amount,
+                    created_by,
+                    applied_dt
+                )
+
+                SELECT
+                    ${paymentId},
+                    charge_id,
+                    'allowed',
+                    allowed_amount,
+                    ${user_id},
+                    coalesce(applied_dt,now())
+                FROM jsonb_to_recordset(
+                    ${line_items}::jsonb
+                ) AS allowed_amount_in_charges (
+                    charge_id bigint,
+                    allowed_amount money,
+                    applied_dt timestamptz
+                )
+                WHERE allowed_amount != 0::money
+                RETURNING *, '{}'::jsonb old_values
+            ),
 
             update_claims AS (
                 UPDATE billing.claims
@@ -617,7 +646,7 @@ module.exports = {
                     , created_dt
                 )
                 SELECT
-                        claim_id
+                    claim_id
                     , note
                     , type
                     , false
@@ -667,6 +696,7 @@ module.exports = {
                 FROM insert_claim_comments
                 WHERE id IS NOT NULL
             ),
+
             create_audit_study_status AS (
                 SELECT billing.create_audit(
                         ${auditDetails.company_id}
@@ -684,6 +714,31 @@ module.exports = {
                 ) AS id
                 FROM update_claims
                 WHERE id IS NOT NULL AND ${params.claimStatusID} != 0
+            ),
+
+            allowed_payment_application_audit AS (
+                SELECT billing.create_audit(
+                    ${auditDetails.company_id},
+                    ${auditDetails.screen_name},
+                    id,
+                    ${auditDetails.screen_name},
+                    ${auditDetails.module_name},
+                    'Allowed applied for Payment id: ' || ap.payment_id || ' Charge id :' || ap.charge_id || ' Amount :' || ap.amount,
+                    ${auditDetails.client_ip},
+                    json_build_object(
+                        'old_values', COALESCE(ap.old_values, '{}'),
+                        'new_values', (
+                            SELECT row_to_json(temp_row)::jsonb - 'old_values'::text
+                            FROM (
+                                    SELECT *
+                                    FROM insert_allowed_payment_application
+                            ) AS temp_row
+                        )
+                    )::jsonb,
+                    ${user_id}
+                ) AS id
+                FROM insert_allowed_payment_application AS ap
+                WHERE ap.id IS NOT NULL
             )
 
             SELECT details,null,null FROM insert_application
@@ -693,6 +748,8 @@ module.exports = {
             SELECT null,id,null FROM insert_claim_comment_audit_cte
             UNION ALL
             SELECT null, id, null FROM create_audit_study_status
+            UNION ALL
+            SELECT null, id, null FROM allowed_payment_application_audit
             `);
 
         let result = await query(sql);
@@ -736,21 +793,26 @@ module.exports = {
 
         const sql = SQL`WITH update_application_details AS(
                             SELECT
-                                payment_application_id
-                              , amount
-                              , adjustment_id
-                              , charge_id
-                              , parent_application_id
-                              , parent_applied_dt
-                              , is_recoupment
+                                payment_application_id,
+                                amount,
+                                adjustment_id,
+                                charge_id,
+                                parent_application_id,
+                                parent_applied_dt,
+                                is_recoupment,
+                                amount_type
                             FROM json_to_recordset(${JSON.stringify(params.updateAppliedPayments)}) AS details(
-                               payment_application_id BIGINT
-                             , amount MONEY
-                             , adjustment_id BIGINT
-                             , charge_id BIGINT
-                             , parent_application_id BIGINT
-                             , parent_applied_dt TIMESTAMPTZ
-                             , is_recoupment BOOLEAN)),
+                                payment_application_id BIGINT,
+                                amount MONEY,
+                                adjustment_id BIGINT,
+                                charge_id BIGINT,
+                                parent_application_id BIGINT,
+                                parent_applied_dt TIMESTAMPTZ,
+                                is_recoupment BOOLEAN,
+                                amount_type TEXT
+                            )
+                        ),
+
                         claim_comment_details AS(
                                 SELECT
                                       claim_id
@@ -793,7 +855,7 @@ module.exports = {
                                     FROM   billing.payment_applications
                                     WHERE  id = uad.payment_application_id) old_row
                             ) old_value),
-                        insert_applications AS(
+                        insert_applications AS (
                             INSERT INTO billing.payment_applications(
                                 payment_id,
                                 charge_id,
@@ -804,17 +866,43 @@ module.exports = {
                                 applied_dt
                             )
                             SELECT
-                                  ${params.paymentId}
-                                , charge_id
-                                , 'adjustment'
-                                , amount
-                                , adjustment_id
-                                , ${params.userId}
-                                , parent_applied_dt
+                                ${params.paymentId},
+                                charge_id,
+                                'adjustment',
+                                amount,
+                                adjustment_id,
+                                ${params.userId},
+                                parent_applied_dt
                             FROM update_application_details
-                            WHERE  payment_application_id is null and (amount != 0::money OR is_recoupment)
+                            WHERE payment_application_id is null
+                            AND (amount != 0::money OR is_recoupment)
+                            AND amount_type = 'adjustment'
                             RETURNING *
                         ),
+
+                        insert_allowed_payment_application AS (
+                            INSERT INTO billing.payment_applications (
+                                payment_id,
+                                charge_id,
+                                amount_type,
+                                amount,
+                                created_by,
+                                applied_dt
+                            )
+                            SELECT
+                                ${params.paymentId},
+                                charge_id,
+                                'allowed',
+                                amount,
+                                ${params.userId},
+                                parent_applied_dt
+                            FROM update_application_details
+                            WHERE payment_application_id is null
+                            AND amount != 0::money
+                            AND amount_type = 'allowed'
+                            RETURNING *
+                        ),
+
                         update_claim_details AS(
                             UPDATE billing.claims
                             SET
@@ -1303,6 +1391,7 @@ module.exports = {
             if (study_description) {
                 sql.append(SQL` AND ARRAY_TO_STRING(cc.study_description, ', ') ~* ${study_description}`);
             }
+
 
             if (cpt_code) {
                 sql.append(SQL` AND array_to_string(cc.cpt_code, ', ') ~* ${cpt_code}`);

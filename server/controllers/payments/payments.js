@@ -120,7 +120,8 @@ module.exports = {
                     adjustment_id: null,
                     parent_application_id: null,
                     parent_applied_dt: null,
-                    is_recoupment : is_recoupment
+                    is_recoupment: is_recoupment,
+                    amount_type: 'payment'
                 });
 
                 updateAppliedPayments.push({
@@ -131,9 +132,21 @@ module.exports = {
                     adjustment_id: adjustmentId || null,
                     parent_application_id: value.paymentApplicationId,
                     parent_applied_dt: value.paymentAppliedDt,
-                    is_recoupment : is_recoupment
+                    is_recoupment: is_recoupment,
+                    amount_type: 'adjustment'
                 });
 
+                updateAppliedPayments.push({
+                    payment_application_id: value.allowed_id || null,
+                    payment_id: paymentId,
+                    charge_id: value.charge_id,
+                    amount: value.allowed_amount || 0.00,
+                    adjustment_id: null,
+                    parent_application_id: null,
+                    parent_applied_dt: value.paymentAppliedDt,
+                    is_recoupment: is_recoupment,
+                    amount_type: 'allowed'
+                });
 
                 _.each(value.cas_details, function (details) {
                     save_cas_details.push({
