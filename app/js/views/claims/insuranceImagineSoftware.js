@@ -1346,17 +1346,14 @@ function (
         /**
          * Indicates if the estimation request resulted in an error
          *
-         * At the moment, the only way I can tell this is to see if there is a message property
-         * I will refine the function when I can get an actual error back from them
-         *
          * @returns {boolean}
          */
         estimationRequestError: function () {
             var estimation = this.data.estimation || {};
 
             return (
-                estimation.hasOwnProperty("message") ||
-                !_.includes([0, 200], ~~estimation.status) ||
+                _.toUpper(estimation.status) === "FAILED" ||
+                !!estimation.message ||
                 _.get(estimation, "responseJSON.errorDesc")
             );
         },
