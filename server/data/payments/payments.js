@@ -720,25 +720,18 @@ module.exports = {
                 SELECT billing.create_audit(
                     ${auditDetails.company_id},
                     ${auditDetails.screen_name},
-                    id,
+                    ${paymentId},
                     ${auditDetails.screen_name},
                     ${auditDetails.module_name},
-                    'Allowed applied for Payment id: ' || ap.payment_id || ' Charge id :' || ap.charge_id || ' Amount :' || ap.amount,
+                    'Allowed amount added for payment ' || ${paymentId},
                     ${auditDetails.client_ip},
-                    json_build_object(
-                        'old_values', COALESCE(ap.old_values, '{}'),
-                        'new_values', (
-                            SELECT row_to_json(temp_row)::jsonb - 'old_values'::text
-                            FROM (
-                                    SELECT *
-                                    FROM insert_allowed_payment_application
-                            ) AS temp_row
-                        )
-                    )::jsonb,
+                    get_added_allowed_amount_audit_jsonb(${line_items}::jsonb),
                     ${user_id}
                 ) AS id
-                FROM insert_allowed_payment_application AS ap
-                WHERE ap.id IS NOT NULL
+                WHERE EXISTS (
+                    SELECT 1
+                    FROM insert_allowed_payment_application
+                )
             )
 
             SELECT details,null,null FROM insert_application
