@@ -1,4 +1,4 @@
-define(['backbone','models/setup/printer-templates'], function (Backbone,PaperClaimTemplatesModel) {
+define(['backbone', 'models/setup/printer-templates'], function (Backbone, PaperClaimTemplatesModel) {
 
     var PaperClaimTemplatesList = Backbone.Collection.extend({
         model: PaperClaimTemplatesModel,

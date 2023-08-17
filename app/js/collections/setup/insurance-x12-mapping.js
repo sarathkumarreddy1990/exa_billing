@@ -1,4 +1,4 @@
-define(['backbone','models/setup/insurance-x12-mapping'], function (Backbone,insuranceX12MappingModel) {
+define(['backbone', 'models/setup/insurance-x12-mapping'], function (Backbone, insuranceX12MappingModel) {
 
     var insuranceX12MappingList = Backbone.Collection.extend({
         model: insuranceX12MappingModel,

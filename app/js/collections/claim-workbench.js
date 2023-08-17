@@ -1,5 +1,5 @@
 
-define([ 'backbone','models/claims-workbench'], function ( Backbone,claimsModel) {
+define([ 'backbone', 'models/claims-workbench'], function ( Backbone, claimsModel) {
     return Backbone.Collection.extend({
         'model': claimsModel,
         'url': '/exa_modules/billing/claim_workbench',

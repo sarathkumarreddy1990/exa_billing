@@ -1,4 +1,4 @@
-define(['backbone','models/setup/billing-messages'], function (Backbone,billingMessagesModel) {
+define(['backbone', 'models/setup/billing-messages'], function (Backbone, billingMessagesModel) {
 
     var billingMessagesList = Backbone.Collection.extend({
         model: billingMessagesModel,

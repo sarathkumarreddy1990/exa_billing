@@ -1,4 +1,4 @@
-define(['backbone','models/setup/delay-reasons'], function (Backbone,DelayReasonModel) {
+define(['backbone', 'models/setup/delay-reasons'], function (Backbone, DelayReasonModel) {
 
     var DelayReasonList = Backbone.Collection.extend({
         model: DelayReasonModel,

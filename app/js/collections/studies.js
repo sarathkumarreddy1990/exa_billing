@@ -1,5 +1,5 @@
 
-define([ 'backbone','models/study'], function ( Backbone,StudyModel) {
+define([ 'backbone', 'models/study'], function ( Backbone, StudyModel) {
     return Backbone.Collection.extend({
         'model': StudyModel,
         'url': '/exa_modules/billing/studies',

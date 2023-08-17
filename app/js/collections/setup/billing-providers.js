@@ -1,4 +1,4 @@
-define(['backbone','models/setup/billing-providers'], function (Backbone,billingProviderModel) {
+define(['backbone', 'models/setup/billing-providers'], function (Backbone, billingProviderModel) {
 
     var billingProvList = Backbone.Collection.extend({
         model: billingProviderModel,
