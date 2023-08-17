@@ -725,7 +725,7 @@ module.exports = {
                     ${auditDetails.module_name},
                     'Allowed amount added for payment ' || ${paymentId},
                     ${auditDetails.client_ip},
-                    get_added_allowed_amount_audit_jsonb(${line_items}::jsonb),
+                    billing.get_added_allowed_amount_audit_jsonb(${line_items}::jsonb),
                     ${user_id}
                 ) AS id
                 WHERE EXISTS (
