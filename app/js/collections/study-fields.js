@@ -1,4 +1,16 @@
-define([ 'backbone', 'immutable', 'models/study-field', 'shared/fields' ], function ( Backbone, Immutable, StudyFieldModel, defaultFields ) {
+define([
+    'backbone',
+    'immutable',
+    'models/study-field',
+    'shared/fields',
+    'underscore'
+], function (
+    Backbone,
+    Immutable,
+    StudyFieldModel,
+    defaultFields,
+    _
+) {
     var defaultFieldsSorter = function ( a, b ) {
         /**
          * There will always be an id and it will always be unique
@@ -32,16 +44,16 @@ define([ 'backbone', 'immutable', 'models/study-field', 'shared/fields' ], funct
             var processedModels = options && Array.isArray(options.gridOptions) ?
                                   createModels(options.gridOptions, this.defaults) :
                                   this.defaults.toArray().sort(defaultFieldsSorter);
-                                  
+
                                     var key = [];
                                     _.each(options.field_order, function(value){
-                                    _.find(processedModels, function(v, k) {
+                                    _.find(processedModels, function(v) {
                                         if (v.id === value) {
                                             key.push(v);
                                         }
                                     });
                                 });
-                            
+
             this.set(key);
         }
     });
