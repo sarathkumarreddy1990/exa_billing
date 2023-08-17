@@ -1442,7 +1442,7 @@ define([ 'backbone', 'immutable', 'moment', 'shared/utils' ], function ( Backbon
                         var value =  rowObject.notes ;
                         var notes = commonjs.formatJson(value);
                         if ( notes && notes.length > 0 ) {
-                            return notes[ notes.length - 1 ].notes;
+                            return notes[ 0 ].notes;
                         }
                         return '';
                     },

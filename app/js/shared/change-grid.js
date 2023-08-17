@@ -390,7 +390,7 @@ define('change-grid',[
                 };
             }
             else {
-                var note = notes[ notes.length - 1 ];
+                var note = notes[ 0 ];
                 var notesCol = note && note.notes;
                 notesField = {
                     'field': 'notes',
