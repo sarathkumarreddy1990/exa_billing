@@ -3,7 +3,7 @@ define(['backbone'], function (Backbone) {
         url: "/exa_modules/billing/setup/audit_log",
         defaults: {
         },
-        initialize: function (models) {
+        initialize: function () {
         }
     });
     return AuditLogModel;

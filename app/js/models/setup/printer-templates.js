@@ -7,7 +7,7 @@ define(['backbone'], function (Backbone) {
             templateName : ""
         },
 
-        initialize: function (models) {
+        initialize: function () {
         }
     });
     return PaperClaimTemplatesModel;

@@ -17,7 +17,7 @@ define(['backbone'], function (Backbone) {
             "company_id":""
         },
 
-        initialize: function (models) {
+        initialize: function () {
         }
     });
     return EDIClearingHousesModel;

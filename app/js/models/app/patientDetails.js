@@ -1,4 +1,3 @@
-var tmp1 = null;
 define([ 'backbone' ], function ( Backbone ) {
     return Backbone.Model.extend({
         defaults: {
@@ -49,7 +48,7 @@ define([ 'backbone' ], function ( Backbone ) {
                     var audit_info = {
                         "columninfo" :auditinformation
                     };
-                    model.set("audit_info",commonjs.hstoreStringify(audit_info));
+                    model.set("audit_info", commonjs.hstoreStringify(audit_info));
                 }
             });
             this.on("change:last_name", function(model){
@@ -59,7 +58,7 @@ define([ 'backbone' ], function ( Backbone ) {
                     var audit_info = {
                         "columninfo" :auditinformation
                     };
-                    model.set("audit_info",commonjs.hstoreStringify(audit_info));
+                    model.set("audit_info", commonjs.hstoreStringify(audit_info));
                 }
             });
             this.on("change:gender", function(model){
@@ -69,7 +68,7 @@ define([ 'backbone' ], function ( Backbone ) {
                     var audit_info = {
                         "columninfo" :auditinformation
                     };
-                    model.set("audit_info",commonjs.hstoreStringify(audit_info));
+                    model.set("audit_info", commonjs.hstoreStringify(audit_info));
                 }
             });
             this.on("change:birth_date", function(model) {
@@ -80,10 +79,10 @@ define([ 'backbone' ], function ( Backbone ) {
                     var audit_info = {
                         "columninfo" :auditinformation
                     };
-                    model.set("audit_info",commonjs.hstoreStringify(audit_info));
+                    model.set("audit_info", commonjs.hstoreStringify(audit_info));
                 }
             });
-            this.on("sync", function ( model, data ) {
+            this.on("sync", function ( model ) {
                 var root = parent && parent.commonjs ?
                            parent.commonjs :
                            commonjs;

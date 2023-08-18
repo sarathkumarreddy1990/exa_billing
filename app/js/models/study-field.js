@@ -1,6 +1,6 @@
 define([ 'backbone' ], function ( Backbone ) {
     var validate = function ( attrs ) {
-        if ( !attrs.hasOwnProperty('field_info') || !attrs.field_info.custom_name ) {
+        if ( !attrs.field_info || !attrs.field_info.custom_name ) {
             return true;
         }
     };

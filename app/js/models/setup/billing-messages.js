@@ -6,7 +6,7 @@ define(['backbone'], function (Backbone) {
             code: "",
             description: ""
         },
-        initialize: function (models) {
+        initialize: function () {
         }
     });
     return billingMessagesModel;

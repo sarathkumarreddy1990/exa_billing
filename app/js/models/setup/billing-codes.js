@@ -8,7 +8,7 @@ define(['backbone'], function (Backbone) {
             isActive: "",
             colorCode: ""
         },
-        initialize: function (models) {
+        initialize: function () {
         }
     });
     return billingCodesModel;
