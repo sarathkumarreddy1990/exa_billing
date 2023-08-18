@@ -255,15 +255,15 @@ var commonjs = {
                 var date2 = moment(dateArray[1], 'L').locale('en').format('YYYY-MM-DD');
                 return date1 + ' - ' + date2;
             }
-            else {
+
                 date1 = moment(data.slice(0, ~~(data.length / 2)), 'L').locale('en').format('YYYY-MM-DD');
                 date2 = moment(data.slice(-(~~(data.length / 2) + 1)), 'L').locale('en').format('YYYY-MM-DD');
                 return date1 + ' - ' + date2;
-            }
+
         }
-        else {
+
             return moment(data, 'L').locale('en').format('YYYY-MM-DD');
-        }
+
     },
 
     setFilter: function (id, data) {
@@ -277,7 +277,7 @@ var commonjs = {
                 cjs.loadedStudyFilters = filters.set(id, data);
                 return true;
             }
-            else {
+
                 if (typeof data === 'function') {
                     cjs.loadedStudyFilters = filters.update(id, data);
                     return true;
@@ -288,7 +288,7 @@ var commonjs = {
                     });
                     return true;
                 }
-            }
+
         }
         else {
             if (typeof filter !== 'undefined') {
@@ -296,9 +296,9 @@ var commonjs = {
                 cjs.loadedStudyFilters = filters.delete(id);
                 return true;
             }
-            else {
+
                 cjs.loadedStudyFilters = (Immutable || root.Immutable).Map();
-            }
+
         }
         return false;
     },
@@ -440,19 +440,19 @@ var commonjs = {
     // N = Numeric
     // X = Alphanumeric
     healthNumberValidation: [
-        { province_code : 'QC' , format:'' , limit:'' , province: "Quebec" }, // No need any validation
-        { province_code : 'YT' , format:'N' , regexp:'^[0-9]{0,9}$' , province: "Yukon" },
-        { province_code : 'AB' , format:'N' , regexp:'' , province: "Alberta" }, // EXA-36099 - Policy # validation not needed
-        { province_code : 'NU' , format:'N' , regexp:'^[0-9]{0,9}$' , province: "Nunavut" },
-        { province_code : 'ON' , format:'N' , regexp:'^[0-9]{0,10}$' , province: "Ontario" },
-        { province_code : 'MB' , format:'N' , regexp:'^[0-9]{0,9}$' , province: "Manitoba" },
-        { province_code : 'NS' , format:'N' , regexp:'^[0-9]{0,10}$' , province: "Nova Scotia" },
-        { province_code : 'SK' , format:'N' , regexp:'^[0-9]{0,9}$' , province: "Saskatchewan" },
-        { province_code : 'NB' , format:'N' , regexp:'^[0-9]{0,9}$' , province: "New Brunswick" },
-        { province_code : 'BC' , format:'N' , regexp:'^[0-9]{0,10}$' , province: "British Columbia" },
-        { province_code : 'PE' , format:'N' , regexp:'^[0-9]{0,8}$' , province: "Prince Edward Island" },
-        { province_code : 'NT' , format:'X' , regexp:'^[a-zA-Z0-9_]{0,8}$' , province: "Northwest Territories" },
-        { province_code : 'NL' , format:'N' , regexp:'^[0-9]{0,12}$' , province: "Newfoundland and Labrador" },
+        { province_code : 'QC', format:'', limit:'', province: "Quebec" }, // No need any validation
+        { province_code : 'YT', format:'N', regexp:'^[0-9]{0,9}$', province: "Yukon" },
+        { province_code : 'AB', format:'N', regexp:'', province: "Alberta" }, // EXA-36099 - Policy # validation not needed
+        { province_code : 'NU', format:'N', regexp:'^[0-9]{0,9}$', province: "Nunavut" },
+        { province_code : 'ON', format:'N', regexp:'^[0-9]{0,10}$', province: "Ontario" },
+        { province_code : 'MB', format:'N', regexp:'^[0-9]{0,9}$', province: "Manitoba" },
+        { province_code : 'NS', format:'N', regexp:'^[0-9]{0,10}$', province: "Nova Scotia" },
+        { province_code : 'SK', format:'N', regexp:'^[0-9]{0,9}$', province: "Saskatchewan" },
+        { province_code : 'NB', format:'N', regexp:'^[0-9]{0,9}$', province: "New Brunswick" },
+        { province_code : 'BC', format:'N', regexp:'^[0-9]{0,10}$', province: "British Columbia" },
+        { province_code : 'PE', format:'N', regexp:'^[0-9]{0,8}$', province: "Prince Edward Island" },
+        { province_code : 'NT', format:'X', regexp:'^[a-zA-Z0-9_]{0,8}$', province: "Northwest Territories" },
+        { province_code : 'NL', format:'N', regexp:'^[0-9]{0,12}$', province: "Newfoundland and Labrador" },
     ],
     searchLimitValidation: [
         { minimum: 3, regexp: '^(?=.{3,}$)', fieldName: 'MRN', id: 'mrn' },
@@ -1479,7 +1479,7 @@ var commonjs = {
             }
             return true;
         }
-        else {
+
             if (response.result && response.result.error && response.result.error.code == '04') {
                 commonjs.showError('messages.errors.dependentrecordfound');
             }
@@ -1520,7 +1520,7 @@ var commonjs = {
                 // }
             }
             return false;
-        }
+
     },
 
     validateForm: function (options) {
@@ -1594,9 +1594,9 @@ var commonjs = {
         var hstore = Object.keys(data).map(function (key) {
             if (data[key] === null) {
                 return '"' + to_string(key, true) + '"=>NULL';
-            } else {
-                return '"' + to_string(key, true) + '"=>"' + to_string(data[key], true) + '"';
             }
+            return '"' + to_string(key, true) + '"=>"' + to_string(data[key], true) + '"';
+
         });
         var joined = hstore.join();
         return joined;
@@ -1668,7 +1668,7 @@ var commonjs = {
             }
             return settingsArray;
         }
-        else {
+
             if (isSelect) {
                 settingsArray.push({
                     id: '',
@@ -1692,7 +1692,7 @@ var commonjs = {
                 settingsArray.push(obj);
             }
             return settingsArray;
-        }
+
     },
 
     validateFutureDate: function (txtBoxValue, msg) {
@@ -1729,12 +1729,12 @@ var commonjs = {
         else if (option.suffix) {
             return option.lastName + ', ' + option.firstName + ' ' + option.suffix;
         }
-        else {
-            if (option.lastName || option.firstName)
+
+            if (option.lastName || option.firstName) {
                 return option.lastName + ', ' + option.firstName;
-            else
-                return "";
-        }
+            }
+            return "";
+
     },
 
     getNameDicomFormat: function (args) {
@@ -1967,9 +1967,9 @@ var commonjs = {
     getCompanyFromAppSettings: function () {
         if (app.company && app.company.id > 0) {
             return app.company;
-        } else {
-            throw new Error('Company id must be greater than 0!');
         }
+        throw new Error('Company id must be greater than 0!');
+
     },
 
     // @return {Object} facility from app settings
@@ -2575,7 +2575,9 @@ var commonjs = {
         // Come back to this rat's nest later
         if (typeof $target.data('original-title') == 'undefined' && !$target.parents().is('.popover.in') && $('.masonry-wrap').is(":visible") && !$target.parents().is('#divSmokeStatusHistory')
             && !$target.parents().is('#divNewProblem')) {
-            var labResult = $target.hasClass('viewResultEnable'), probPlus = $target.hasClass('viewAddProblems'), editProblem = $target.hasClass('editProblem')
+            var labResult = $target.hasClass('viewResultEnable');
+            var probPlus = $target.hasClass('viewAddProblems');
+            var editProblem = $target.hasClass('editProblem');
             if (!labResult && !probPlus && !editProblem) {
                 if ($('[data-original-title]').length > 0) $('[data-original-title]').popover('hide');
             }
@@ -2887,7 +2889,8 @@ var commonjs = {
     },
 
     getStatus: function (code) {
-        var current_status = '', color = '';
+        var current_status = '';
+        var color = '';
         switch (code) {
             case 'CO':
                 current_status = 'Completed';
@@ -3970,7 +3973,7 @@ var commonjs = {
                 }
                 return false;
             }
-            else {
+
                 if (element.localName == "input") {
 
                     $(".tooltipactive").tooltip("hide");
@@ -3984,7 +3987,7 @@ var commonjs = {
 
                 }
 
-            }
+
         }
         if (e.shiftKey) {
             for (var i = 0;
@@ -4061,7 +4064,7 @@ var commonjs = {
                         }
                         return false;
                     }
-                    else {
+
                         if (element.localName == "input") {
 
                             $(".tooltipactive").tooltip("hide");
@@ -4075,7 +4078,7 @@ var commonjs = {
 
                         }
 
-                    }
+
                 }
             }
         }
@@ -4129,9 +4132,9 @@ var commonjs = {
             });
             return false;
         }
-        else {
+
             if ($('#divInvalidChar').length) $('#divInvalidChar').remove();
-        }
+
     },
 
     sortByKey: function (array, key, orderBy) {
@@ -4139,7 +4142,8 @@ var commonjs = {
         var aLength = array.length;
         var aTempLength = aLength;
         for (var i = 0; i < aLength; i++) {
-            var sIndex = 0, temp;
+            var sIndex = 0;
+            var temp;
             for (var j = 0; j < aTempLength; j++) {
                 if (orderBy == 'ASC' && parseFloat(array[sIndex][key]) > parseFloat(array[j][key])) {
                     sIndex = j;
@@ -4327,9 +4331,9 @@ var commonjs = {
             return '<li class="dropdown-submenu" id=li_' + elementID + '><a tabindex="-1" href="javascript: void(0)" i18n=' + i18n + ' class="dropdown-item">' + elementName + '</a><ul id=' + elementID + ' style="float:right; max-width: 500px; overflow: auto; max-height: 300px";" class="dropdown-menu"></ul></li>';
         } else if (isSubMenu) {
             return '<li><a class="dropdown-item" id=' + elementID + '  href="javascript: void(0)" >' + elementName + '</a></li>'
-        } else {
-            return '<li><a id=' + elementID + ' href="javascript: void(0)" i18n=' + i18n + ' class="dropdown-item">' + elementName + '</a></li>';
         }
+        return '<li><a id=' + elementID + ' href="javascript: void(0)" i18n=' + i18n + ' class="dropdown-item">' + elementName + '</a></li>';
+
     },
 
     getColorCodeForStatus: function (facility_id, code, screenName) {
@@ -4420,10 +4424,10 @@ var commonjs = {
                 if (window.parent.reportWindow && !window.parent.reportWindow.closed) {
                     window.parent.reportWindow.location.href = url + '?m_i=' + (0) + '&l=2';
                     return;
-                } else {
+                }
                     window.parent.reportWindow = window.open("about:blank", "mywin" + 0, "left=" + left + ",top=" + top + ",width=" + width + ",height=" + height);
                     window.parent.reportWindow.location.href = url + '?m_i=' + (0) + '&l=' + (1);
-                }
+
             }
         });
     },
@@ -4686,7 +4690,11 @@ var commonjs = {
     },
 
     getParameterByName: function (queryString, sep) {
-        var params = {}, queries, temp, i, l;
+        var params = {};
+        var queries;
+        var temp;
+        var i;
+        var l;
         if (queryString) {
             // Split into key/value pairs
             queries = queryString.split(sep || /[\?&]/);
@@ -4718,7 +4726,7 @@ var commonjs = {
     },
 
     isDemoSession: function () {
-        return location.href.indexOf('demo_session') > -1 ? true : false;
+        return location.href.indexOf('demo_session') > -1;
     },
 
     getMinutes: function (time, type) {
@@ -4809,7 +4817,7 @@ var commonjs = {
         if (app.enableEmergencyAccess) {
             hasPermission = true;
             return true;
-        } else {
+        }
             if (app.permissions) {
                 app.permissions.some(function (permission) {
                     if (permission.permission_name == currentScreen) {
@@ -4837,10 +4845,10 @@ var commonjs = {
                 }
                 return false;
             }
-            else {
-                return true;
-            }
-        }
+
+            return true;
+
+
     },
 
     // SMH Bug #2604 - Method for showing/hiding worklist columns
@@ -5133,8 +5141,8 @@ var commonjs = {
             // Set defaults
             o.searchKey = o.searchKey || o.textDescription;
             o.textDescription = o.textDescription || o.searchKey;
-            o.sort = (o.sort && (o.sort === true || o.sort.toLowerCase() == "true")) ? true : false;
-            o.prependKey = (o.prependKey && (o.prependKey === true || o.prependKey.toLowerCase() == "true")) ? true : false;
+            o.sort = !!((o.sort && (o.sort === true || o.sort.toLowerCase() == "true")));
+            o.prependKey = !!((o.prependKey && (o.prependKey === true || o.prependKey.toLowerCase() == "true")));
 
             if (o.searchKey && o.textDescription) {
                 // Sort
@@ -5205,11 +5213,11 @@ var commonjs = {
                 if (facility.is_active || parsedFacility.facility_info.show_studies === "true") facilitiesAcc.push(facility);
                 return facilitiesAcc;
             }, []);
-        } else {
-            return facilities.filter(function (fac) {
-                return fac.is_active
-            });
         }
+        return facilities.filter(function (fac) {
+            return fac.is_active
+        });
+
     },
 
     // confineTabbing - Tabbing is confined to the specified element(s) - useful for modals
@@ -5470,12 +5478,11 @@ var commonjs = {
                 var zip_data = $(_ele).val();
                 return postal.test(zip_data);
             }
-            else {
-                return false;
-            }
+
+            return false;
+
         }
-        else
-            return true;
+        return true;
     },
 
     hasModalClosed: function () {

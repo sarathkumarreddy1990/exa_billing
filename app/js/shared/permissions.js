@@ -81,7 +81,7 @@ var permissions = {
             'DELR':'aDelayReasons'
         };
 
-        var tosPayments = (app.screens).indexOf('TOSP') > -1 && (app.screens).indexOf('PAYM') === -1 ? true : false ;
+        var tosPayments = !!((app.screens).indexOf('TOSP') > -1 && (app.screens).indexOf('PAYM') === -1) ;
 
         accessDeniedScreens = _.difference(billingScreenCodes, app.screens);
         if(tosPayments) {

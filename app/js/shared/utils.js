@@ -246,7 +246,8 @@ define([ 'jquery', 'underscore' ], function ( jQuery, _ ) {
 
 
     var setScrollHandler = function ( filterid, divId ) {
-        var divid = "#divGrid" + filterid, scrolldiv = "";
+        var divid = "#divGrid" + filterid;
+        var scrolldiv = "";
 
         if ( $(divid).find("#gview_tblGrid" + filterid).length > 0 ) {
             scrolldiv = $(divid).find("#gview_tblGrid" + filterid).find(".ui-jqgrid-bdiv");

@@ -183,7 +183,7 @@ define([ 'backbone', 'immutable', 'moment', 'shared/utils' ], function ( Backbon
 
         var studyFlagValue = commonjs.makeValue(studyFlagArray, !isNoneExist ?
                                                        ":All;None:None;" :
-                                                       ":All;","id", "description");
+                                                       ":All;", "id", "description");
 
         var studyFlagFormatter = function (cellvalue, options, rowObject) {
             var flag_design = [];
@@ -537,7 +537,7 @@ define([ 'backbone', 'immutable', 'moment', 'shared/utils' ], function ( Backbon
                         },
                         "defaultValue": "",
                         "cellattr": function ( id, cellvalue, rowObject ) {
-                            var statusDetail = commonjs.getClaimColorCodeForStatus(rowObject.claim_status_code,'claim');
+                            var statusDetail = commonjs.getClaimColorCodeForStatus(rowObject.claim_status_code, 'claim');
                             var statusObj = statusDetail[ 0 ];
                             return 'style="background:' + (statusObj && statusObj.color_code || 'transparent') + ';"';
                         },
@@ -1011,7 +1011,7 @@ define([ 'backbone', 'immutable', 'moment', 'shared/utils' ], function ( Backbon
                     }
                 }
             });
-        }else{
+        }
         return Immutable.Map({
             "Account#": {
                 "id": 1,
@@ -1144,11 +1144,11 @@ define([ 'backbone', 'immutable', 'moment', 'shared/utils' ], function ( Backbon
                         if (options.format === 'csv') {
                             return rowObject.linked_study_id > 0 ? rowObject.patient_name : cellvalue;
                         }
-                        else {
-                            return rowObject.linked_study_id > 0 ?
-                                '<span class="linkSpan"><span>' + rowObject.patient_name + '</span><span title="linked study" style="display:inline-block;" class="ui-icon ui-icon-link linkSpan"></span></span>' :
-                                cellvalue;
-                        }
+
+                        return rowObject.linked_study_id > 0 ?
+                            '<span class="linkSpan"><span>' + rowObject.patient_name + '</span><span title="linked study" style="display:inline-block;" class="ui-icon ui-icon-link linkSpan"></span></span>' :
+                            cellvalue;
+
 
                     }
                 },
@@ -1936,9 +1936,9 @@ define([ 'backbone', 'immutable', 'moment', 'shared/utils' ], function ( Backbon
                         if ( cellvalue === false ) {
                             return 'No';
                         }
-                        else {
-                            return 'Yes';
-                        }
+
+                        return 'Yes';
+
                     },
                     "stype": "select",
                     "searchoptions": {
@@ -1965,11 +1965,11 @@ define([ 'backbone', 'immutable', 'moment', 'shared/utils' ], function ( Backbon
                         if (options.format === 'csv') {
                             return isTrue(rowObject.mu_passed) ? 'MU Data Capture Completed' : 'MU Data Capture not Completed';
                         }
-                        else {
-                            return isTrue(rowObject.mu_passed) ?
-                                   "<span style='color: #008000' class='icon-ic-drawer' title='MU Data Capture Completed'></span>" :
-                                   "<span style='color: brown' class='icon-ic-drawer' title='MU Data Capture not Completed'></span>";
-                        }
+
+                        return isTrue(rowObject.mu_passed) ?
+                                "<span style='color: #008000' class='icon-ic-drawer' title='MU Data Capture Completed'></span>" :
+                                "<span style='color: brown' class='icon-ic-drawer' title='MU Data Capture not Completed'></span>";
+
 
                     },
                     "sortable": false,
@@ -2024,29 +2024,29 @@ define([ 'backbone', 'immutable', 'moment', 'shared/utils' ], function ( Backbon
                             return "Unverified";
                         }
 
-                        else {
-                            if ( eligibilityDate && !verifiedDate || moment(eligibilityDate).isAfter(verifiedDate) ) {
-                                if ( cellvalue === false ) {
-                                    return '<i class="fa fa-times" style="color: #FF0000" aria-hidden="true" title="Eligibility verified as INACTIVE on ' + dateFormatter(eligibilityDate, options, rowObject) + '" />';
-                                }
-                                return '<i class="fa fa-check-square-o" style="color: green" aria-hidden="true" title="Eligibility verified as ACTIVE on ' + dateFormatter(eligibilityDate, options, rowObject) + '" />';
+
+                        if ( eligibilityDate && !verifiedDate || moment(eligibilityDate).isAfter(verifiedDate) ) {
+                            if ( cellvalue === false ) {
+                                return '<i class="fa fa-times" style="color: #FF0000" aria-hidden="true" title="Eligibility verified as INACTIVE on ' + dateFormatter(eligibilityDate, options, rowObject) + '" />';
                             }
-                            else if ( verifiedDate ) {
-                                /**
-                                 * For when a user manually verified eligibility
-                                 */
-                                var verifiedBy = rowObject.manually_verified_by;
-                                var titleText = 'Changed (manually) by ' + verifiedBy + ' on ' + dateFormatter(verifiedDate, options, rowObject);
-                                if ( rowObject.manually_verified === false ) {
-                                    return '<i class="fa fa-times" style="color: #FF0000" aria-hidden="true" title="' + titleText + '" />';
-                                }
-                                return '<i class="fa fa-check-square-o" style="color: green" aria-hidden="true" title="' + titleText + '" />';
-                            }
-                            /**
-                             * Default appearance
-                             */
-                            return '';
+                            return '<i class="fa fa-check-square-o" style="color: green" aria-hidden="true" title="Eligibility verified as ACTIVE on ' + dateFormatter(eligibilityDate, options, rowObject) + '" />';
                         }
+                        else if ( verifiedDate ) {
+                            /**
+                             * For when a user manually verified eligibility
+                             */
+                            var verifiedBy = rowObject.manually_verified_by;
+                            var titleText = 'Changed (manually) by ' + verifiedBy + ' on ' + dateFormatter(verifiedDate, options, rowObject);
+                            if ( rowObject.manually_verified === false ) {
+                                return '<i class="fa fa-times" style="color: #FF0000" aria-hidden="true" title="' + titleText + '" />';
+                            }
+                            return '<i class="fa fa-check-square-o" style="color: green" aria-hidden="true" title="' + titleText + '" />';
+                        }
+                        /**
+                         * Default appearance
+                         */
+                        return '';
+
                     },
                     "stype": "select",
                     "searchoptions": {
@@ -2302,6 +2302,6 @@ define([ 'backbone', 'immutable', 'moment', 'shared/utils' ], function ( Backbon
                 }
             }
         });
-    }
+
     };
 });

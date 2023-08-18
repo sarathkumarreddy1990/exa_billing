@@ -28,5 +28,6 @@ module.exports = {
     },
     "globals": {
         "commonjs": true,
+        "app": true
     }
 };
