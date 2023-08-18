@@ -25,5 +25,8 @@ module.exports = {
         'comma-spacing': ['error', { 'before': false, 'after': true }],
         'no-duplicate-imports': 'error',
         'no-else-return': 'error'
+    },
+    "globals": {
+        "commonjs": true,
     }
 };
