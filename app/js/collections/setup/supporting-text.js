@@ -1,4 +1,4 @@
-define(['backbone','models/setup/supporting-text'], function (Backbone,supportingTextModel) {
+define(['backbone', 'models/setup/supporting-text'], function (Backbone, supportingTextModel) {
 
     var supportingTextList = Backbone.Collection.extend({
         model: supportingTextModel,

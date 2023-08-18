@@ -1,4 +1,4 @@
-define(['backbone','models/setup/provider-level-codes'], function (Backbone,providerLevelCodesModel) {
+define(['backbone', 'models/setup/provider-level-codes'], function (Backbone, providerLevelCodesModel) {
 
     var providerLevelCodesList = Backbone.Collection.extend({
         model: providerLevelCodesModel,

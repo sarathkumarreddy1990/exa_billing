@@ -1,19 +1,9 @@
 
-define([ 'backbone','models/study'], function ( Backbone,StudyModel) {
+define([ 'backbone', 'models/study'], function ( Backbone, StudyModel) {
     return Backbone.Collection.extend({
         'model': StudyModel,
         'url': '/exa_modules/billing/studies',
-        'initialize': function ( models, options ) {
-            var self = this;
-
-//            function setupEvents () {
-//                self.off('request', setupEvents);
-//                if ( options && options.filterID ) {
-//                    self.on(_events(options.filterID));
-//                }
-//            }
-//
-//            this.on('request', setupEvents);
+        'initialize': function () {
         },
         'parse': function ( response ) {
             var rows = response;

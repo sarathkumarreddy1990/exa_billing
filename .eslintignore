@@ -16,7 +16,7 @@ gulpfile.js
 dbManager.js
 
 # temporarily ignore files and directories that are not yet ready for linting
-/app/js/collections/**
+# /app/js/collections/**
 /app/js/models/**
 /app/js/modules/**
 /app/js/routes/**

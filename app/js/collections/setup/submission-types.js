@@ -1,4 +1,4 @@
-define(['backbone','models/setup/submission-types'], function (Backbone, submissionTypesModel) {
+define(['backbone', 'models/setup/submission-types'], function (Backbone, submissionTypesModel) {
 
     var submissionTypesList = Backbone.Collection.extend({
         model: submissionTypesModel,

@@ -1,4 +1,4 @@
-define(['backbone','models/setup/provider-id-codes'], function (Backbone,providerIdCodesModel) {
+define(['backbone', 'models/setup/provider-id-codes'], function (Backbone, providerIdCodesModel) {
 
     var providerIdCodes = Backbone.Collection.extend({
         model: providerIdCodesModel,

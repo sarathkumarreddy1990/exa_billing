@@ -1,4 +1,4 @@
-define(['backbone','models/setup/auto-billing'], function (Backbone,AutoBillingModel) {
+define(['backbone', 'models/setup/auto-billing'], function (Backbone, AutoBillingModel) {
 
     var AutoBillingList = Backbone.Collection.extend({
         model: AutoBillingModel,

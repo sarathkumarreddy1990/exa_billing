@@ -1,4 +1,4 @@
-define(['backbone','models/setup/cas-group-codes'], function (Backbone,casGroupCodesModel) {
+define(['backbone', 'models/setup/cas-group-codes'], function (Backbone, casGroupCodesModel) {
 
     var casGroupCodesList = Backbone.Collection.extend({
         model: casGroupCodesModel,
