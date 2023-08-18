@@ -3,7 +3,7 @@ define(['backbone'], function (Backbone) {
         url: "/exa_modules/billing/setup/validations",
         defaults: {
         },
-        initialize: function (models) {
+        initialize: function () {
         }
     });
     return ValidationsModel;

@@ -6,7 +6,7 @@ define(['backbone'], function (Backbone) {
         defaults: {
         },
 
-        initialize: function (models) {
+        initialize: function () {
         }
     });
     return AutoBillingModel;

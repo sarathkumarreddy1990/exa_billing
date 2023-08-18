@@ -8,7 +8,7 @@ define(['backbone'], function (Backbone) {
             description: "",
             readingProviderPercentLevel: ""
         },
-        initialize: function (models) {
+        initialize: function () {
         }
     });
     return providerLevelCodesModel;

@@ -8,9 +8,9 @@ define(['backbone'], function (Backbone) {
             isActive: "",
             company_id: ""
         },
-        initialize: function (models) {
+        initialize: function () {
         }
     });
-    
+
     return providerIdCodeModel;
 });

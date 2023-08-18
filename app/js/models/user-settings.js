@@ -3,9 +3,8 @@ define(['backbone'], function(Backbone){
                         url:"/exa_modules/billing/user_settings",
                         defaults:{
                         },
-                        initialize:function(UserSettingsModel){
+                        initialize:function(){
                         }
                     });
                     return UserSettingsModel;
                 });
-                

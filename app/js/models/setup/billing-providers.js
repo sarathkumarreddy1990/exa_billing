@@ -40,7 +40,7 @@ define(['backbone'], function (Backbone) {
 
         },
 
-        initialize: function (models) {
+        initialize: function () {
         }
     });
     return billingProviderModels;

@@ -11,7 +11,7 @@ define(['backbone'], function (Backbone) {
             companyId:"",
         },
 
-        initialize: function (models) {
+        initialize: function () {
         }
     });
     return casGroupCodesModel;
