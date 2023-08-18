@@ -16,17 +16,6 @@ define([ 'backbone', 'immutable', 'moment', 'shared/utils' ], function ( Backbon
         "W": "Walkin"
     };
 
-    var billing_status = [
-        "SCH",
-        "ORD",
-        "CON",
-        "ASS",
-        "NOS",
-        "ASAC",
-        "CAN",
-        "ABRT"
-    ];
-
     var billingClassesColorCode = function (rowObject) {
 
         if (rowObject && rowObject.billing_class_id) {

@@ -42,7 +42,6 @@ define([
 
             this.print = function (templateType, claimIDs, is_invoice_inquiry, options) {
                 var self = this;
-                var win = null;
 
                 options = options || {};
 
@@ -57,7 +56,7 @@ define([
                 }
 
                 if (commonjs.openPdfNewWindow) {
-                    win = window.open('', '_blank');
+                    window.open('', '_blank');
                 }
 
                 commonjs.showLoading();
@@ -241,7 +240,7 @@ define([
                         sortBy: options.sortBy || '',
                         invoiceNo: options.invoiceNo,
                         companyCode: app.company.company_code || ''
-                    }, success: function (data, response) {
+                    }, success: function (data) {
                         callback(null, data);
                     }, error: function (err, response) {
                         commonjs.handleXhrError(err, response);
@@ -258,7 +257,7 @@ define([
                     data: {
                         claimIds: claimIDs.toString(),
                         templateType: templateType
-                    }, success: function (data, response) {
+                    }, success: function (data) {
                         callback(null, data.length > 0 ? data[0] : {});
                     }, error: function (err, response) {
                         commonjs.handleXhrError(err, response);
@@ -277,7 +276,7 @@ define([
                         templateType: templateType,
                         payerType:options.payerType,
                         is_invoice_inquiry: is_invoice_inquiry
-                    }, success: function (data, response) {
+                    }, success: function (data) {
                         $("#btnClaimsRefresh").click();
                         data = _.reject(data, { id: null });
                         callback(null, data.length > 0 ? data[0] : {});

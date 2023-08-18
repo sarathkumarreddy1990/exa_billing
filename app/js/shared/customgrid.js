@@ -908,13 +908,13 @@ function customGrid ( datastore, gridID ) {
         var reader = {
             rowNum: 5,
             repeatitems: false,
-            page: function ( obj ) {
+            page: function () {
                 return self.pager.get('PageNo');
             },
-            total: function ( obj ) {
+            total: function () {
                 return Math.ceil(self.pager.get('TotalRecords') / self.pager.get('PageSize'));
             },
-            records: function ( obj ) {
+            records: function () {
                 return self.pager.get('TotalRecords');
             }
         };
@@ -999,7 +999,7 @@ function customGrid ( datastore, gridID ) {
             'placement': 'right'
         });
 
-        $('.ui-jqgrid-hdiv').on('scroll', function ( e ) {
+        $('.ui-jqgrid-hdiv').on('scroll', function () {
             $('.ui-jqgrid-bdiv').scrollLeft($(this).scrollLeft())
         });
 
@@ -1024,13 +1024,13 @@ function customGrid ( datastore, gridID ) {
         var reader = {
             rowNum: 5,
             repeatitems: false,
-            page: function (obj) {
+            page: function () {
                 return self.pager.get('PageNo');
             },
-            total: function (obj) {
+            total: function () {
                 return Math.ceil(self.pager.get('TotalRecords') / self.pager.get('PageSize'));
             },
-            records: function (obj) {
+            records: function () {
                 return self.pager.get('TotalRecords');
             }
         };
@@ -1173,7 +1173,7 @@ function customGrid ( datastore, gridID ) {
                 customArgs: customArgs,
                 SearchFlag:filterObj.pager.get('searchFlag')
             },
-            success: function (data, textStatus, jqXHR) {
+            success: function (data) {
                 if (data && data.length) {
                     filterObj.pager.set({ "TotalRecords": data[0].total_records });
                     filterObj.setPagerInfos();

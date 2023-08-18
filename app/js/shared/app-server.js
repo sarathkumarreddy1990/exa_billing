@@ -2,7 +2,6 @@ define(['backbone', 'collections/app-settings'], function (Backbone, AppCollecti
     var appServerView = Backbone.View.extend({
 
         initialize: function (callback) {
-            var self = this;
             var qs = {}; // commonjs.getParametersByName();
             var settingsData = qs.def_session ? { def_session: qs.def_session } : {};
             var studySetting = {
@@ -152,7 +151,7 @@ define(['backbone', 'collections/app-settings'], function (Backbone, AppCollecti
 
                     var docTypes = [];
                     $.each(app.userdocumenttypes, function (index, val) {
-                        $.each(app.scanDocumentTypes, function (ind, value) {
+                        $.each(app.scanDocumentTypes, function (ind) {
 
                             if (app.scanDocumentTypes[ind].description === val) {
                                 docTypes.push({

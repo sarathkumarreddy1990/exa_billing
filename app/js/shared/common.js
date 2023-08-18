@@ -1927,23 +1927,6 @@ var commonjs = {
         return momentVal;
     },
 
-    // isValidTimeUnit: function(val) {
-    //     var validTimeUnits = [ "year", "month", "week", "day", "hour", "minute", "second" ];
-    //     return val ? validTimeUnits.indexOf(val) > -1 : false;
-    // },
-    //
-    // isFutureDateTime: function(val, facilityId, timeUnit) {
-    // 	if (timeUnit && !this.isValidTimeUnit(timeUnit)) {
-    // 		console.warn("Invalid time unit specified! Defaulting to 'day'...");
-    // 		timeUnit = "day";
-    // 	}
-    // 	var currentDateTime = (facilityId && facilityId > 0) ? this.getFacilityCurrentDateTime(facilityId) : this.getCompanyCurrentDateTime();
-    // 	var timeUnit = timeUnit || "day";
-    // 	var targetDateTime = this.toMoment(val);
-    //     console.log("Testing if: %s is after: %s with time unit of: '%s'", targetDateTime.format(), currentDateTime.format(), timeUnit);
-    // 	return (targetDateTime.isAfter(currentDateTime, timeUnit)) ? true : false;
-    // },
-
     getFormattedUtcDate: function (utcDateString) {
         var result = "";
         if (commonjs.checkNotEmpty(utcDateString) && utcDateString != null) {

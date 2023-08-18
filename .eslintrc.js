@@ -28,6 +28,20 @@ module.exports = {
     },
     "globals": {
         "commonjs": true,
-        "app": true
+        "app": true,
+        "i18n": true,
+        "_": true,
+        "Immutable": true,
+        "Backbone": true,
+        "customGrid": true,
+
+        // jqgrid vars defined in commonjs
+        "jq_isWidthResize": true,
+        "jq_isHeightResize": true,
+        "jq_userWidth": true,
+        "jq_userHeight": true,
+        "jq_offsetWidth": true,
+        "jq_offsetheight": true
+
     }
 };

@@ -1,8 +1,7 @@
-define([ 'jquery', 'underscore' ], function ( jQuery, _ ) {
+define([ 'jquery' ], function ( jQuery ) {
     var $ = jQuery;
     var _TRUE = 'true';
     var _FALSE = 'false';
-    var validationHeaderTimeout = null;
 
     var isTrue = function ( val ) {
         return val === true || val === _TRUE;
@@ -46,13 +45,11 @@ define([ 'jquery', 'underscore' ], function ( jQuery, _ ) {
         return true;
     };
 
-    var serverPrefetch = function ( studyids, callback ) {
-        prefetch.serverPrefetch(true, studyids, 0, callback);
-    };
-
     var setRightMenuPosition = function ( divObj, e ) {
         var $menu = $(document.getElementById(divObj));
-        if (!$menu.children().length) { return; }
+        if (!$menu.children().length) {
+            return;
+        }
 
         var mouseX = e.clientX;
         var mouseY = e.clientY;
@@ -149,102 +146,6 @@ define([ 'jquery', 'underscore' ], function ( jQuery, _ ) {
         });
     };
 
-    var getDatasetName = function ( datasetname ) {
-        switch ( datasetname ) {
-            case 'patientName':
-                return 'Patient Name';
-            case 'patientGender':
-                return 'Gender';
-            case 'patientDOB':
-                return 'DOB';
-            case 'patientRace':
-                return 'Patient Race';
-            case 'patientEthnicity':
-                return 'Patient Ethnicity';
-            case 'patientPreferredLanguage':
-                return 'Patient Language';
-            case 'patientMedication':
-                return 'Patient Medication';
-            case 'patientPrescription':
-                return 'Patient Prescription';
-            case 'patientAllergies':
-                return 'Patient Allergies';
-            case 'patientProblems':
-                return 'Patient Problems';
-            case 'patientLaboratoryTest':
-                return 'Lab Tests';
-            case 'patientLaboratoryResults':
-                return 'Lab Results';
-            case 'Procedures':
-                return 'Procedures';
-            case 'patientSmokingStatus':
-                return 'Patient Smoking Status';
-            case 'patientVitalSigns':
-                return 'Patient Vital Signs';
-            case 'providername_office':
-                return 'Provider Office';
-            case 'Reason_referral':
-                return 'Referral Reasons';
-            case 'Encounter_diagnoses':
-                return 'Encounter Diagnoses';
-            case 'patientCognitiveStatus':
-                return 'Cognitive Status';
-            case 'functional_status':
-                return 'Functional Status';
-            case 'patientImmunizations':
-                return 'Patient Immunizations';
-            case 'patientEduMaterial':
-                return 'Patient Education Material';
-            case 'discharge_insructions':
-                return 'Patient Discharge Insructions';
-            case 'care_team':
-                return 'Patient Care Team';
-            case 'care_plan':
-                return 'Patient Care Plan';
-            case 'directive_status':
-                return 'Patient Directive Status';
-            case 'timely_access':
-                return 'Timely Access';
-            case 'health_info':
-                return 'Patient Health Info';
-            case 'clinical_summary':
-                return 'Patient Clinical Summary';
-            case 'Remainder':
-                return 'Patient Remainder';
-            case 'medrecon':
-                return 'Patient Medrecon';
-            case 'transactioncare':
-                return 'Patient Transaction Care';
-            case 'transcationref':
-                return 'Transaction And Referrals';
-            case 'patientDemographics':
-                return 'Patient Demographics';
-            case 'ePrescriptions':
-                return 'Patient ePrescriptions';
-            case 'family_health_info':
-                return 'Family Health History';
-            case 'healthHistory':
-                return 'Health Info';
-            case 'patientMessages':
-                return 'Patient Messages';
-            case 'electronicNotes':
-                return 'Patient Electronic Notes';
-            case 'imageResults':
-                return 'Patient Image Results';
-            case 'clinicalSummaryReq':
-                return 'Clinical Summary Request';
-            case 'patientSummaryOfCare':
-                return 'Patient Summary Of Care';
-            case 'patientSummaryOfCareElectronic':
-                return 'Patient Summary Of Care Electronic';
-            case 'patientElectronicAccessVDT':
-                return 'Patient Electronic Access VDT';
-            case 'default':
-                return '';
-        }
-    };
-
-
     var setScrollHandler = function ( filterid, divId ) {
         var divid = "#divGrid" + filterid;
         var scrolldiv = "";
@@ -253,43 +154,8 @@ define([ 'jquery', 'underscore' ], function ( jQuery, _ ) {
             scrolldiv = $(divid).find("#gview_tblGrid" + filterid).find(".ui-jqgrid-bdiv");
         }
 
-        scrolldiv.scroll(function ( e ) {
+        scrolldiv.scroll(function () {
             $(divId).hide();
-        });
-    };
-
-    var getTATCount = function () {
-        var self = this;
-        $.ajax({
-            url: '/getTatCount',
-            data: {
-                flag: 'TAT',
-                providercontact_ids: app.providercontact_ids
-            },
-
-            type: 'GET',
-            success: function (response, textStatus, jqXHR) {
-                if (response && response.result) {
-                    var tat = response.result;
-                    for (var i=0; i<4; i++) {
-                        $("#tatCount" + i).text(tat[i].y);
-                    }
-
-                    if (app && app.tat_config && app.tat_config.length > 0) {
-                        for (var i=0; i<app.tat_config.length; i++) {
-                            var tc = app.tat_config[i];
-                            if (tc.color) {
-                                $("#tatCount" + tc.level)
-                                    .css("background-color", tc.color)
-                                    .css("color", tc.text_color || "White");
-                            }
-                        }
-                    }
-                }
-            },
-            error: function (err) {
-                $('#divStudiesTat').html("");
-            }
         });
     };
 

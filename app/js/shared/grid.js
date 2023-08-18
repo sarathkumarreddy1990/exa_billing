@@ -1116,9 +1116,9 @@ define('grid', [
                                 && rowObject.billed_status === 'unbilled')) {
                             return "";
                         }
-                        
-                            return '<input type="checkbox" name="chkStudy" id="chk' + gridID.slice(1) + '_' + (options.isClaimGrid ? rowObject.id : rowObject.study_id) + '" />'
-                        
+
+                        return '<input type="checkbox" name="chkStudy" id="chk' + gridID.slice(1) + '_' + (options.isClaimGrid ? rowObject.id : rowObject.study_id) + '" />'
+
 
                     },
                     customAction: function (rowID, e, that) {
@@ -1909,10 +1909,10 @@ define('grid', [
                     });
                     return true;
                 }
-                
-                    $('#btnValidateExport').css('display', 'inline');
-                    options.filterid = '';
-                
+
+                $('#btnValidateExport').css('display', 'inline');
+                options.filterid = '';
+
             }
 
             claimsTable.render({
@@ -1955,7 +1955,7 @@ define('grid', [
                             order_id: order_id,
                             grid_id: gridID
                         });
-                    } 
+                    }
                         if (['ABRT', 'CAN', 'NOS'].indexOf(gridData.study_status) < 0 && !gridData.has_deleted) {
                             var study = {
                                 study_id: rowID,
@@ -1975,7 +1975,7 @@ define('grid', [
                             self.claimView = new claimsView();
                             self.claimView.showClaimForm({ 'grid_id': gridID }, 'studies');
                         }
-                    
+
 
                     $('.claim-summary').remove();
                 },
@@ -2120,7 +2120,6 @@ define('grid', [
             var menuHeight = $divObj.outerHeight();
             var list = $(e.target.parentElement).find('ul')[0];
             var subMenuWidth = $(list).width();
-            var subMenuHeight = $(list).height();
             if (mouseX + menuWidth + subMenuWidth > windowWidth) {
                 $(list).css('left', '-100%');
                 list.style.float = 'left';
@@ -2151,7 +2150,7 @@ define('grid', [
                     data: {
                         invoiceNo: invoiceNo
                     },
-                    success: function (data, response) {
+                    success: function () {
                         commonjs.showStatus('messages.status.invoiceNoReset');
                         $("#btnClaimsRefresh").click();
                     },
@@ -2167,7 +2166,7 @@ define('grid', [
                     url: '/exa_modules/billing/claim_workbench/claims/update',
                     type: 'PUT',
                     data: dataobject,
-                    success: function (data, response) {
+                    success: function (data) {
                         if (data && data.length && !data[0].status) {
                             commonjs.showStatus(billing.status_message);
                             _.each(data, function (obj) {
@@ -2183,7 +2182,7 @@ define('grid', [
         },
 
         //To bind province based right click menus in claim grid
-        self.bindProvinceBasedMenus = function ($divObj, studyArray, gridData, isClaimGrid, selectedStudies, $target) {
+        self.bindProvinceBasedMenus = function ($divObj, studyArray, gridData, isClaimGrid, selectedStudies) {
             var isWCBBilling = gridData.hidden_insurance_provider_codes
                 && gridData.hidden_insurance_provider_codes.toLowerCase() === 'wcb';
 
@@ -2271,7 +2270,7 @@ define('grid', [
                             url: '/exa_modules/billing/claim_workbench/claims/update',
                             type: 'PUT',
                             data: dataObj,
-                            success: function (data, response) {
+                            success: function (data) {
                                 if (data && data.length) {
                                     commonjs.showStatus('messages.status.claimStatusChanged');
                                     var colorCodeDetails = commonjs.getClaimColorCodeForStatus(queryClaimStatus.code, 'claim');
@@ -2346,7 +2345,7 @@ define('grid', [
                         target_id: studyIds,
                         type: 'claim'
                     },
-                    success: function (data, response) {
+                    success: function () {
                         commonjs.showStatus('messages.status.claimHasBeenDeleted');
                         $("#btnClaimsRefresh").click();
                     },
@@ -2385,9 +2384,9 @@ define('grid', [
                                 source: 'delete'
                             }
                         };
-                    } 
+                    }
                         return defaultParamsForDelete;
-                    
+
                 default:
                     if (from == 'delete') {
                         return defaultParamsForDelete;
