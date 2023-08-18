@@ -19,6 +19,8 @@ dbManager.js
 /app/js/modules/**
 /app/js/routes/**
 /app/js/shared/**
+# lots of errors here, so saving it for later
+/app/js/shared/common.js
 /app/js/templates/**
 /app/js/views/**
 /app/js/workers/**

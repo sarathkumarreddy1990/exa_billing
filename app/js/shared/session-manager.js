@@ -5,17 +5,14 @@ var sessionManager = {
     hbIndex: 0,
 
     initialize: function () {
-
-        var self = this;
-
         $.active = false;
 
-        $.jStorage.subscribe("EMD_PACS_SESSION", function(channel, payload){
+        $.jStorage.subscribe("EMD_PACS_SESSION", function(){
             //console.log(payload+ " from " + channel);
             sessionManager.sessionElapsed = 0;
         });
 
-        $.jStorage.subscribe("EMD_PACS_LOGOUT", function(channel, payload){
+        $.jStorage.subscribe("EMD_PACS_LOGOUT", function(){
             //console.log(payload+ " from " + channel);
             /// TODO: logout all tabs
         });
@@ -54,7 +51,7 @@ var sessionManager = {
         }
     },
 
-    redirectToLoginPage: function (errCode) {
+    redirectToLoginPage: function () {
         // Release all user locks
         commonjs.resetScreenNameCookie();
         commonjs.emitViewerClose({
@@ -63,12 +60,6 @@ var sessionManager = {
             user_name: app.userInfo.first_name + ' ' + app.userInfo.last_name,
             async: true
         });
-
-        var logoutInfo = '';
-
-        if (errCode) {
-            logoutInfo = '?err=' + errCode;
-        }
 
         // TODO: Handle any popups
         if (window.opener && !window.opener.closed) {

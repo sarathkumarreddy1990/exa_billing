@@ -51,7 +51,7 @@ define('grid-events', [ 'jquery', 'underscore', './formatter', './change-grid' ]
         var applyChanges = function ( filter, id, model, changed ) {
             var data = model.toJSON();
             // Only move things around if the level changed or if it's a new item
-            if ( !changed || changed.hasOwnProperty('stat_level') && changed.stat_level !== model.previous('stat_level') ) {
+            if ( !changed ||  _.has(changed, 'stat_level') && changed.stat_level !== model.previous('stat_level') ) {
                 var previousLevel = model.previous('stat_level');
                 var newLevel = changed ?
                                changed.stat_level :
@@ -124,7 +124,7 @@ define('grid-events', [ 'jquery', 'underscore', './formatter', './change-grid' ]
             var $tblGrid = filter.customGridTable || $(filter.options.gridelementid);
             var data = model.toJSON();
             var id = model.id;
-            if ( data.record_no !== 'NEW' && ( !data.hasOwnProperty('dicom_status') || data.dicom_status === 'MM' || data.dicom_status === 'CX' ) ) {
+            if ( data.record_no !== 'NEW' && ( !_.has(data, 'dicom_status') || data.dicom_status === 'MM' || data.dicom_status === 'CX' ) ) {
                 $tblGrid.jqGrid('addRowData', id, data);
             }
             else {

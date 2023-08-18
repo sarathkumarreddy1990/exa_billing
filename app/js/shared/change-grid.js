@@ -1,4 +1,4 @@
-define('change-grid',[
+define('change-grid', [
     'jquery',
     'text!templates/orderingFacilityAlert.html',
     'text!templates/contactIcon.html'
@@ -133,13 +133,13 @@ define('change-grid',[
                     'data': 'No'
                 }];
             }
-            else {
+
                 $row.addClass('inActiveRow');
                 return [{
                     'field': 'has_deleted',
                     'data': 'Yes'
                 }];
-            }
+
         };
 
         var getStatLevelAttr = function ( value ) {
@@ -154,13 +154,13 @@ define('change-grid',[
                     'text': statObj.description
                 };
             }
-            else {
+
                 return {
                     'bgColor': 'transparent',
                     'textColor': '',
                     'text': ''
                 };
-            }
+
         };
 
         var getStatLevel = function ( $row, value ) {
@@ -475,7 +475,7 @@ define('change-grid',[
                     }
                 ];
             }
-            else {
+
                 return [
                     {
                         'field': 'as_webviewer',
@@ -488,7 +488,7 @@ define('change-grid',[
                         'data': "<span class='icon-ic-external-app' title='External app[To be implemented]'></span>"
                     }
                 ];
-            }
+
         };
 
         var getHasUnreadDicom = function ( data ) {
@@ -610,9 +610,9 @@ define('change-grid',[
                                                 if ( $cell.parent().closest('tr').index() < 12 ) {
                                                     return "bottom";
                                                 }
-                                                else {
+
                                                     return "top";
-                                                }
+
                                             },
                                             html: true,
                                             content: $("<div style='opacity: 1000001; max-height: 225px; overflow: auto;'></div>").html(phtm)
@@ -718,9 +718,9 @@ define('change-grid',[
                     }
                 };
             }
-            else {
+
                 return getOrdFacilityName(data);
-            }
+
         };
 
         /**
@@ -769,10 +769,10 @@ define('change-grid',[
                                 _target.popover('destroy');
                                 _target.popover({
                                     placement: function () {
-                                        if ( $td.parent().closest('tr').index() < 12 )
+                                        if ( $td.parent().closest('tr').index() < 12 ) {
                                             return "bottom";
-                                        else
-                                            return "top";
+                                        }
+                                        return "top";
                                     },
                                     html: true,
                                     content: $('<div class="divBackground" style="opacity: 1000001; max-height: 210px;overflow: auto;"></div>').html(readingProvidersContent)

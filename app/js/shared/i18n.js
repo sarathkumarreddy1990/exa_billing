@@ -34,8 +34,9 @@ var i18n = {
     },
 
     load: function (cb, reqLang) {
-        var self = this, lang = reqLang ? reqLang : this.getLang();
-        $.getJSON('../i18n/' + lang + '.json',function (data) {
+        var self = this;
+        var lang = reqLang ? reqLang : this.getLang();
+        $.getJSON('../i18n/' + lang + '.json', function (data) {
             self.put(lang, data).t(undefined, cb);
         }).fail(function () {
             self.put(lang, {}).t(undefined, cb);

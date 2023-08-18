@@ -19,7 +19,7 @@ define([
             swal2.fire({
                 title: commonjs.geti18NString("billing.claims.alert"),
                 html: this.claimAlertsTemplate({claimAlerts, isFrom}),
-                onOpen: function (e) {
+                onOpen: function () {
                     $('.swal2-checkbox').addClass('d-none');
                     $('#alertContent').css('padding', '0px')
                     $('#swal2-content').css({

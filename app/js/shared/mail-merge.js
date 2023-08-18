@@ -28,9 +28,9 @@ var mailMerge = {
 
             var data = get(obj, tokenString);
             return data || '';
-        } catch (err) { return '' }
-
-        return '';
+        } catch (err) {
+            return '';
+        }
     },
 
     executeJsCode: function (code, jsData) {

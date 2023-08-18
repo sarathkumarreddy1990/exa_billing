@@ -32,7 +32,7 @@
  *          .set("validFrom", data.valid_from)
  *          .disable("dob");
  */
-define(["underscore"], function(_) {
+define([], function() {
     return {
         data: {},
 
