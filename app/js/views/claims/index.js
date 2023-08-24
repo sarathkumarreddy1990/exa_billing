@@ -1390,6 +1390,11 @@ define(['jquery',
                     }
                 }
 
+                if (claim_data.can_ahs_pay_to_code === 'RECP') {
+                    $businessArrangement.prop('checked', false);
+                    $businessArrangement.prop('disabled', true);
+                } 
+
                 /* Claim section end */
                 /* Additional info start*/
 
@@ -5098,6 +5103,18 @@ define(['jquery',
 
             // Pay-to Code changed
             changePayToCode: function (val) {
+                var $businessArrangement = $('input[name="BusinessArrangement"]');
+                
+                if (val === 'RECP') {
+                    $businessArrangement.prop('checked', false);
+                    $businessArrangement.prop('disabled', true);
+                    self.can_ahs_business_arrangement = null;
+                    self.can_ahs_locum_arrangement = null;
+                } else if ($businessArrangement.prop("disabled")) {
+                    $businessArrangement.prop('disabled', false);
+                    var payToValue = this.getPayToValue();
+                    $businessArrangement.val([payToValue]);
+                }
                 (val === 'OTHR')
                     ? $('#divPayToDetails').show()
                     : $('#divPayToDetails').hide();
