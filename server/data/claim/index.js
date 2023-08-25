@@ -1,5 +1,6 @@
 const { query, queryRows, SQL } = require('../index');
 const { getClaimPatientInsurances } = require('../../shared/index');
+const countryData = require('../../../app/resx/countries.json');
 
 module.exports = {
 
@@ -702,13 +703,16 @@ module.exports = {
             createClaimFunction = 'billing.can_ohip_create_claim_split_charge';
         }
 
+        const countryCodeName = countryData.map(({alpha_3_code, display_name}) => ({alpha_3_code, display_name}));
+
         const sql = SQL`SELECT `
             .append(createClaimFunction)
             .append(SQL`(
                 jsonb_array_elements(${JSON.stringify(claims)})::jsonb,
                 (${JSON.stringify(insurances)})::jsonb,
                 (${JSON.stringify(claim_icds)})::jsonb,
-                (${JSON.stringify(auditDetails)})::jsonb
+                (${JSON.stringify(auditDetails)})::jsonb,
+                (${JSON.stringify(countryCodeName)})::jsonb
             ) as result`);
 
         if (!is_alberta_billing && !is_ohip_billing) {
@@ -1186,13 +1190,16 @@ module.exports = {
             , charges
             , auditDetails } = args;
 
+            const countryCodeName = countryData.map(({alpha_3_code, display_name}) => ({alpha_3_code, display_name}));
 
         const sqlQry = SQL`SELECT billing.update_claim_charge (
             (${JSON.stringify(claims)})::jsonb,
             (${JSON.stringify(insurances)})::jsonb,
             (${JSON.stringify(claim_icds)})::jsonb,
             (${JSON.stringify(auditDetails)})::jsonb,
-            (${JSON.stringify(charges)})::jsonb) as result`;
+            (${JSON.stringify(charges)})::jsonb,
+            (${JSON.stringify(countryCodeName)})::jsonb
+            ) as result`;
 
         return await query(sqlQry);
     },
