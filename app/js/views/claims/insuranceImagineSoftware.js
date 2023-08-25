@@ -705,7 +705,7 @@ function (
                 $("#btnPrintEligibility").hide();
                 $("#divImagineEstimation").hide();
                 $("#divImagineEstimationError").hide();
-    
+
                 if (self.eligibilityRequestError()) {
                     $("#divImagineEligibilityError").show();
                     $("#divImagineEligibilityError").text(self.eligibilityErrorMessage());
@@ -715,7 +715,7 @@ function (
                     $("#btnRecheckEligibility").show();
                     $("#btnPrintEligibility").show();
                 }
-    
+
                 $(".clickImagineEstimation").removeClass("active");
                 $(".clickImagineEligibility").addClass("active");
             });
@@ -738,7 +738,7 @@ function (
                 $("#divImagineEstimationError").hide();
                 $("#btnReestimate").hide();
                 $("#btnReestimateWarning").hide();
-    
+
                 if (self.estimationRequestError()) {
                     $("#divImagineEstimationError").show();
                     $("#divImagineEstimationError").text(self.estimationErrorMessage());
@@ -749,11 +749,11 @@ function (
                     $("#btnPrintEligibility").show();
                     $("#btnGoodFaithLetter").show();
                 }
-    
+
                 self.data.eligibility.isStale
                     ? $("#btnReestimateWarning").show()
                     : $("#btnReestimate").show();
-    
+
                 $(".clickImagineEligibility").removeClass("active");
                 $(".clickImagineEstimation").addClass("active");
             });
@@ -1545,6 +1545,8 @@ function (
                 facility_id: this.data.visit.facilityId,
                 study_ids: this.getStudyIds(),
                 appointment_type_ids: this.getAppointmentIds(),
+                balance_due: this.data.estimation.balanceDue,
+                procedure_estimates: this.data.estimation.procedureEstimates,
                 async: false,
                 save: false
             }
