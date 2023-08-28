@@ -189,19 +189,19 @@ module.exports = {
                     }
                 );
 
-                // let claimInfo = obj.data[0].subscriber[0].claim[0];
+                let claimInfo = obj.data[0].subscriber[0].claim[0];
 
-                // if (claimInfo) {
-                //     claimInfo.hasProfessionalModifier = (claimInfo.serviceLine || []).some(s => [s.mod1, s.mod2, s.mod3, s.mod4].includes('26'));
-                //     claimInfo.hasInsuranceSplitEnabled = obj?.data?.[0]?.subscriber?.[0].isSplitClaimEnabled;
-                //     claimInfo.isProfessionalSplitClaim = claimInfo.hasProfessionalModifier
-                //         && (
-                //             ['split', 'split_p'].includes(claimInfo.billingType)
-                //             || (claimInfo.billingType == 'global' && hasInsuranceSplitEnabled)
-                //         );
-                // }
+                if (claimInfo) {
+                    claimInfo.hasProfessionalModifier = (claimInfo.serviceLine || []).some(s => [s.mod1, s.mod2, s.mod3, s.mod4].includes('26'));
+                    claimInfo.hasInsuranceSplitEnabled = obj?.data?.[0]?.subscriber?.[0].isSplitClaimEnabled;
+                    claimInfo.isProfessionalSplitClaim = claimInfo.hasProfessionalModifier
+                        && (
+                            ['split', 'split_p'].includes(claimInfo.billingType)
+                            || (claimInfo.billingType == 'global' && hasInsuranceSplitEnabled)
+                        );
+                }
 
-                // obj.data[0].subscriber[0].claim[0] = claimInfo;
+                obj.data[0].subscriber[0].claim[0] = claimInfo;
 
 
                 if ((obj.subscriber_relationship).toUpperCase() != 'SELF') {
