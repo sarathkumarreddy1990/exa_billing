@@ -1,4 +1,4 @@
-@Library("kmha-infrastructure@feature/devops-78-exa-platform-support") _
+@Library("kmha-infrastructure@release/2.1.2") _
 import com.kmha.exa.builders.BaseBuilder
 import com.kmha.exa.builders.BillingBuilder
 
@@ -93,7 +93,7 @@ else {
   ])
 }
 
-node('exa-windows-builder') {
+node('exa-windows-node-16.x') {
   if(env.VERSION_CHOICE && env.VERSION_CHOICE == "default" &&
      !env.VERSION_PASSEDIN.trim()) {
     println "For testing only!"
