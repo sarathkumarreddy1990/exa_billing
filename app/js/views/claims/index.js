@@ -1406,7 +1406,7 @@ define(['jquery',
                 document.querySelector('#txtDate').value = claim_data.current_illness_date ? moment(claim_data.current_illness_date).format('L') : '';
                 var isCauseCode = (claim_data.is_employed || claim_data.is_auto_accident || claim_data.is_other_accident);
 
-                var isProfessionalSplitClaim = claim_data.claim_charges.some(function(ch) {
+                var isProfessionalClaim = claim_data.claim_charges.some(function(ch) {
                     var modifier1_code = self.getModifierCode(ch.modifier1_id);
                     var modifier2_code = self.getModifierCode(ch.modifier2_id);
                     var modifier3_code = self.getModifierCode(ch.modifier3_id);
@@ -1414,7 +1414,7 @@ define(['jquery',
                     return [modifier1_code, modifier2_code, modifier3_code, modifier4_code].includes('26');
                 });
                 var isOutsideLabClaim = claim_data.service_by_outside_lab ||
-                    isProfessionalSplitClaim && (
+                    isProfessionalClaim && (
                         ['split_p', 'split'].includes(claim_data.claim_billing_type)
                         || (claim_data.claim_billing_type === 'global' && self.isSplitClaimEnabled)
                     )
