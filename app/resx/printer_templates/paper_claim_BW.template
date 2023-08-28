@@ -780,7 +780,7 @@ function getServiceFacilityData() {
     }
 
     if (isProfessionalClaim) {
-        var phyData = approvingProv || studyRendProv || facilityRendProv;
+        let phyData = approvingProv || studyRendProv || facilityRendProv;
         phyData.fullName = getName(phyData);
         serviceFacNPI = phyData && phyData.NPINO || "";
         return getAddressDetails(phyData, 'zipPlus');
