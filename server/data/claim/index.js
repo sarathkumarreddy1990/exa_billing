@@ -762,6 +762,7 @@ module.exports = {
                     , c.created_by
                     , c.billing_method
                     , c.billing_notes
+                    , c.billing_type AS claim_billing_type
                     , c.claim_dt::text
                     , c.created_dt::text
                     , c.current_illness_date::text

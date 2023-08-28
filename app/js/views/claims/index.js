@@ -1406,7 +1406,20 @@ define(['jquery',
                 document.querySelector('#txtDate').value = claim_data.current_illness_date ? moment(claim_data.current_illness_date).format('L') : '';
                 var isCauseCode = (claim_data.is_employed || claim_data.is_auto_accident || claim_data.is_other_accident);
 
-                $('input[name="outSideLab"]').prop('checked', claim_data.service_by_outside_lab);
+                var isProfessionalSplitClaim = claim_data.claim_charges.some(function(ch) {
+                    var modifier1_code = self.getModifierCode(ch.modifier1_id);
+                    var modifier2_code = self.getModifierCode(ch.modifier2_id);
+                    var modifier3_code = self.getModifierCode(ch.modifier3_id);
+                    var modifier4_code = self.getModifierCode(ch.modifier4_id);
+                    return [modifier1_code, modifier2_code, modifier3_code, modifier4_code].includes('26');
+                });
+                var isOutsideLabClaim = claim_data.service_by_outside_lab ||
+                    isProfessionalSplitClaim && (
+                        ['split_p', 'split'].includes(claim_data.claim_billing_type)
+                        || (claim_data.claim_billing_type === 'global' && self.isSplitClaimEnabled)
+                    )
+
+                $('input[name="outSideLab"]').prop('checked', isOutsideLabClaim);
                 $('input[name="employment"]').prop('checked', claim_data.is_employed);
                 $('input[name="autoAccident"]').prop('checked', claim_data.is_auto_accident);
                 $('input[name="manualReviewIndicator"]').prop('checked', claim_data.manual_review_indicator);
