@@ -329,7 +329,7 @@ module.exports = {
                                         AND provider_id_codes.insurance_provider_id = insurance_providers.id
                                 ) AS bp_id_codes ON TRUE
                                 WHERE bp.id = CASE
-                                                WHEN 'QMI' = ${companyCode} AND bp_data.billing_provider_id IS NOT NULL
+                                                WHEN 'QMI' = ${companyCode} AND bp_data.billing_provider_npi IS NOT NULL
                                                 THEN bp_data.billing_provider_id
                                                 ELSE claims.billing_provider_id
                                             END
