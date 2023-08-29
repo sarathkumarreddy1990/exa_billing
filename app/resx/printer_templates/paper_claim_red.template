@@ -368,7 +368,7 @@ function verifyProfessionalClaim(chargesData, billingType, isInsuranceSplit) {
     return isProfessionalModifier && isSplitClaim;
 }
 
-function getPhySign(isProfessionalClaim) {
+function getPhySign() {
 
     let phyData = {};
 
@@ -859,8 +859,8 @@ function formatRedForm(claimData, servicelineList, pageBrk) {
                                     : ' '
                                 ), alignment: 'center', margin:[-12,0,0,0]
                         },
-                        { text: isProfessionalClaim ? getDecimalNumericValue(claimDet.claimTotalCharge) : '' , colSpan: 3, alignment: 'right' }, {}, {},
-                        { text: isProfessionalClaim ? getDecimalPointsValue(claimDet.claimTotalCharge) : '' , alignment: 'center', colSpan: 2 }, {}
+                        { text: (claimDet.outSideLab || isProfessionalClaim) ? getDecimalNumericValue(claimDet.claimTotalCharge) : '' , colSpan: 3, alignment: 'right' }, {}, {},
+                        { text: (claimDet.outSideLab || isProfessionalClaim) ? getDecimalPointsValue(claimDet.claimTotalCharge) : '' , alignment: 'center', colSpan: 2 }, {}
                     ],
                 ],
 
@@ -1005,7 +1005,7 @@ function formatRedForm(claimData, servicelineList, pageBrk) {
                         {}, {}
                     ],
                     [
-                        { text: (getPhySign(isProfessionalClaim) || ''), colSpan: 3, margin: [-10, 17, 0, 0]
+                        { text: (getPhySign() || ''), colSpan: 3, margin: [-10, 17, 0, 0]
                         }, {}, {},
                         { text: serviceFacDet, colSpan: 4, margin: [-6, 0, 0, 0] },
                         {}, {}, {},

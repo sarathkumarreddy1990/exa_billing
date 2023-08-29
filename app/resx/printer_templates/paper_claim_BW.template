@@ -766,7 +766,7 @@ function getPhySign() {
         return `${getName(phyData, 34)}
                 NPI: ${phyData.NPINO || ''}`;
     } else if (renderingProv) {
-        return `${getSubstring(getName(renderingProv), 34)}
+        return `${getName(renderingProv, 34)}
                 NPI: ${renderingProv.NPINO || ''}`;
     }
 
@@ -1819,8 +1819,8 @@ function formatSingleClaim(claimData, servicelineList) {
                                     [
                                         {image: getImage(claimDet.outSideLab || isProfessionalClaim), fit: [8, 8]},
                                         {image: getImage(claimDet.outSideLab != null && !claimDet.outSideLab && !isProfessionalClaim), fit: [8, 8]},
-                                        { text: (outSideLab || isProfessionalClaim) ? getDecimalNumericValue(claimDet.claimTotalCharge) : '' , alignment:"center"},
-                                        { text: (outSideLab || isProfessionalClaim) ? getDecimalPointsValue(claimDet.claimTotalCharge) : '' , alignment:"center"}
+                                        { text: (claimDet.outSideLab || isProfessionalClaim) ? getDecimalNumericValue(claimDet.claimTotalCharge) : '' , alignment:"center"},
+                                        { text: (claimDet.outSideLab || isProfessionalClaim) ? getDecimalPointsValue(claimDet.claimTotalCharge) : '' , alignment:"center"}
                                     ]
                                 ]
                             },layout: 'noBorders' , colSpan:3

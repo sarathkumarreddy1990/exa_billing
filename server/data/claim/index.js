@@ -855,6 +855,7 @@ module.exports = {
                     , ipp.insurance_name AS p_insurance_name
                     , ipp.insurance_code AS p_insurance_code
                     , (SELECT billing_method as p_billing_method FROM billing.insurance_provider_details WHERE insurance_provider_id = ipp.id)
+                    , (SELECT is_split_claim_enabled AS is_split_claim_enabled FROM billing.insurance_provider_details WHERE insurance_provider_id = ipp.id)
                     , cpi.insurance_provider_id AS p_insurance_provider_id
                     , cpi.subscriber_zipcode AS p_subscriber_zipcode
                     , cpi.subscriber_zipcode_plus AS p_subscriber_zipcode_plus

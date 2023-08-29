@@ -197,7 +197,7 @@ module.exports = {
                     claimInfo.isProfessionalSplitClaim = claimInfo.hasProfessionalModifier
                         && (
                             ['split', 'split_p'].includes(claimInfo.billingType)
-                            || (claimInfo.billingType == 'global' && hasInsuranceSplitEnabled)
+                            || (claimInfo.billingType == 'global' && claimInfo.hasInsuranceSplitEnabled)
                         );
                 }
 
