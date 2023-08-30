@@ -120,7 +120,7 @@ define(['jquery',
                     datastore: self.billingClassesList,
                     container:self.el,
                     customizeSort: true,
-                    offsetHeight: 01,
+                    offsetHeight: 1,
                     sortname: "id",
                     sortorder: "desc",
                     sortable: {
@@ -230,7 +230,10 @@ define(['jquery',
                 this.model.save({
                 }, {
                     success: function (model, response) {
-                        if(response) {
+                        if (!response.length) {
+                            commonjs.showWarning('messages.warning.shared.alreadyexists');
+                        }
+                        else if (response) {
                             commonjs.showStatus('messages.status.savedSuccessfully');
                             location.href = "#setup/billing_classes/list";
                         }

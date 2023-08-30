@@ -87,12 +87,17 @@ module.exports = {
                             , description
                             , inactivated_dt
                             , color_code)
-                        VALUES(
+                        SELECT
                                ${companyId}
                              , ${code}
                              , ${description}
                              , ${inactivated_date}
-                             , ${colorCode} )
+                             , ${colorCode}
+                        WHERE NOT EXISTS (
+                                SELECT 1
+                                FROM billing.billing_classes
+                                WHERE code = ${code}
+                        )
                              RETURNING *, '{}'::jsonb old_values`;
 
         return await queryWithAudit(sql, {
