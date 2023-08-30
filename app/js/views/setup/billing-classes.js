@@ -230,7 +230,7 @@ define(['jquery',
                 this.model.save({
                 }, {
                     success: function (model, response) {
-                        if(response) {
+                        if (response) {
                             commonjs.showStatus('messages.status.savedSuccessfully');
                             location.href = "#setup/billing_classes/list";
                         }
