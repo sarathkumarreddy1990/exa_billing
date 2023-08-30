@@ -1,4 +1,4 @@
-const { query, SQL, queryWithAudit } = require('../index');
+const { query, SQL, queryWithAudit, queryWithDuplicateCheck } = require('../index');
 
 module.exports = {
 
@@ -100,7 +100,7 @@ module.exports = {
                         )
                              RETURNING *, '{}'::jsonb old_values`;
 
-        return await queryWithAudit(sql, {
+        return await queryWithDuplicateCheck(sql, {
             ...params,
             logDescription: `Add: New Billing Class(${code}) created`
         });
