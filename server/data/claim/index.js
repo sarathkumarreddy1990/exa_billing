@@ -396,18 +396,12 @@ module.exports = {
                                                 )
                                                 LEFT JOIN provider_contacts pc ON pc.id = (
                                                     CASE
-                                                        WHEN NOT ${isOHIPBilling}
-                                                        THEN
-                                                            CASE
-                                                                WHEN NULLIF(facilities.facility_info->'rendering_provider_id','') IS NOT NULL
-                                                                THEN (facilities.facility_info->'rendering_provider_id')::INTEGER
-                                                                WHEN s.study_status = 'APP'
-                                                                THEN st.approving_provider_id
-                                                                ELSE
-                                                                    s.reading_physician_id
-                                                            END
-                                                        ELSE
-                                                            s.reading_physician_id
+                                                        WHEN st.approving_provider_id IS NOT NULL
+                                                        THEN st.approving_provider_id
+                                                        WHEN s.reading_physician_id IS NOT NULL
+                                                        THEN s.reading_physician_id
+                                                        WHEN NULLIF(facilities.facility_info->'rendering_provider_id', '') IS NOT NULL
+                                                        THEN (facilities.facility_info->'rendering_provider_id')::INTEGER
                                                     END
                                                 )
                                                 LEFT JOIN providers p ON p.id = pc.provider_id

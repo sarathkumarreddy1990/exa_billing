@@ -580,7 +580,7 @@ module.exports = {
                                                   END AS "claimResponsibleParty"
                                                 , (
                                                     SELECT
-                                                        json_agg(row_to_json(payerpaidAmount)) "payerpaidAmount"
+                                                        jsonb_agg(row_to_json(payerpaidAmount)) "payerpaidAmount"
                                                     FROM (
                                                         SELECT
                                                             primary_paid_total AS "primaryPaidTotal"
@@ -610,7 +610,7 @@ module.exports = {
                                                 , bp_data.billing_provider_npi AS "billingProviderNPI"
                                                 , (
                                                     SELECT
-                                                        json_agg(rendering_provider_default) "renderingProviderDefault"
+                                                        jsonb_agg(rendering_provider_default) "renderingProviderDefault"
                                                     FROM billing.get_claim_provider_data (
                                                         claims.id
                                                         , 'default'
@@ -620,7 +620,7 @@ module.exports = {
                                                   )
                                                 , (
                                                     SELECT
-                                                        json_agg(rendering_provider_claim) "renderingProviderClaim"
+                                                        jsonb_agg(rendering_provider_claim) "renderingProviderClaim"
                                                     FROM billing.get_claim_provider_data(
                                                         claims.id
                                                         , 'rendering_provider_claim'
@@ -630,7 +630,7 @@ module.exports = {
                                                   )
                                                 , (
                                                     SELECT
-                                                        json_agg(rendering_provider_facility) "renderingProviderFacility"
+                                                        jsonb_agg(rendering_provider_facility) "renderingProviderFacility"
                                                     FROM billing.get_claim_provider_data(
                                                         claims.id
                                                         , 'rendering_provider_facility'
@@ -640,7 +640,7 @@ module.exports = {
                                                   )
                                                 , (
                                                     SELECT
-                                                        json_agg(rendering_provider_study) AS "renderingProviderStudy"
+                                                        jsonb_agg(rendering_provider_study) AS "renderingProviderStudy"
                                                     FROM billing.get_claim_provider_data(
                                                         claims.id
                                                         , 'rendering_provider_study'
