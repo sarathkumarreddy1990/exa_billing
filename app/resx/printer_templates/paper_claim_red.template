@@ -390,16 +390,18 @@ function getPhySign() {
 }
 
 function getServiceFacilityData() {
-    if (pos === '12') {
-        patientDet.fullName = "PRIVATE HOME";
-        return getAddressDetails(patientDet, 'zipPlus');
-    }
 
     if (isProfessionalClaim) {
         let phyData = approvingProv || studyRendProv || facilityRendProv;
         phyData.fullName = getName(phyData);
         serviceFacNPI = phyData && phyData.NPINO || "";
+
         return getAddressDetails(phyData, 'zipPlus');
+    }
+
+    if (pos === '12') {
+        patientDet.fullName = "PRIVATE HOME";
+        return getAddressDetails(patientDet, 'zipPlus');
     } else {
         return getAddressDetails(serviceFac, 'zipPlus');
     }

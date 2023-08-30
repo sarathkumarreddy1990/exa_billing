@@ -1277,6 +1277,7 @@ define(['jquery',
                 }
 
                 self.ACSelect.readPhy.contact_id = claim_data.rendering_provider_contact_id || claim_data.fac_rendering_provider_contact_id || null;
+                self.facility_rendering_provider_contact_id = claim_data.fac_rendering_provider_contact_id || null;
                 self.ACSelect.skillCodes.ID = claim_data.can_ahs_skill_code_id || null;
 
                 if ((!claim_data.rendering_provider_contact_id || !claim_data.can_ahs_skill_code_id) && claim_data.fac_rendering_provider_contact_id ) {
@@ -4238,6 +4239,7 @@ define(['jquery',
                     billing_provider_id: $('#ddlBillingProvider option:selected').val() != '' ? parseInt($('#ddlBillingProvider option:selected').val()) : null,
                     delay_reason_id: delayReasonId != '' ? parseInt(delayReasonId) : null,
                     rendering_provider_contact_id: self.ACSelect && self.ACSelect.readPhy ? self.ACSelect.readPhy.contact_id : null,
+                    facility_rendering_provider_contact_id: self.facility_rendering_provider_contact_id || null,
                     can_ahs_skill_code_id: can_ahs_skill_code_id || null,
                     referring_provider_contact_id: self.ACSelect && self.ACSelect.refPhy ? self.ACSelect.refPhy.contact_id : null,
                     ordering_facility_contact_id: self.ordering_facility_contact_id || null,
@@ -6077,6 +6079,7 @@ define(['jquery',
                 var renderingProvider = patient_details.rendering_provider_full_name || self.usermessage.selectStudyReadPhysician;
                 var service_facility_name = patient_details.service_facility_name || self.usermessage.selectOrdFacility;
                 self.ACSelect.readPhy.contact_id = patient_details.rendering_provider_contact_id || patient_details.rendering_provider_contact_id || null;
+                self.facility_rendering_provider_contact_id = patient_details.rendering_provider_contact_id || null;
                 self.ordering_facility_id = patient_details.service_facility_id || null;
                 self.ordering_facility_contact_id = patient_details.service_facility_contact_id || null;
                 self.ordering_facility_name = service_facility_name;

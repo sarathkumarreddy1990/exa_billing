@@ -155,11 +155,11 @@ module.exports = {
                                     ELSE
                                         billing.get_computed_bill_fee(null,pcc.id,sc.modifier1_id,sc.modifier2_id,sc.modifier3_id,sc.modifier4_id,'billing','patient',${params.patient_id},o.facility_id, s.id)::NUMERIC
                                   END AS bill_fee
-                                , CASE 
-                                    WHEN (${params.isMobileBillingEnabled} AND (SELECT billing_type FROM get_ordering_facility_data) = 'facility') AND NOT sc.is_custom_bill_fee 
+                                , CASE
+                                    WHEN (${params.isMobileBillingEnabled} AND (SELECT billing_type FROM get_ordering_facility_data) = 'facility') AND NOT sc.is_custom_bill_fee
                                     THEN billing.get_computed_bill_fee(null, pcc.id, sc.modifier1_id, sc.modifier2_id, sc.modifier3_id, sc.modifier4_id, 'allowed', 'ordering_facility',
                                         (SELECT ordering_facility_contact_id FROM get_ordering_facility_data), o.facility_id, s.id)::NUMERIC
-                                    WHEN (SELECT claim_patient_insurance_id FROM insurances where coverage_level = 'primary') IS NOT NULL AND NOT sc.is_custom_bill_fee 
+                                    WHEN (SELECT claim_patient_insurance_id FROM insurances where coverage_level = 'primary') IS NOT NULL AND NOT sc.is_custom_bill_fee
                                     THEN billing.get_computed_bill_fee(null,pcc.id,sc.modifier1_id,sc.modifier2_id,sc.modifier3_id,sc.modifier4_id,'allowed','primary_insurance',
                                         (SELECT claim_patient_insurance_id FROM insurances where coverage_level = 'primary'), o.facility_id, s.id)::NUMERIC
                                     WHEN sc.is_custom_bill_fee
@@ -395,18 +395,12 @@ module.exports = {
                                                 )
                                                 LEFT JOIN provider_contacts pc ON pc.id = (
                                                     CASE
-                                                        WHEN NOT ${isOHIPBilling}
-                                                        THEN
-                                                            CASE
-                                                                WHEN NULLIF(facilities.facility_info->'rendering_provider_id','') IS NOT NULL
-                                                                THEN (facilities.facility_info->'rendering_provider_id')::INTEGER
-                                                                WHEN s.study_status = 'APP'
-                                                                THEN st.approving_provider_id
-                                                                ELSE
-                                                                    s.reading_physician_id
-                                                            END
-                                                        ELSE
-                                                            s.reading_physician_id
+                                                        WHEN st.approving_provider_id IS NOT NULL
+                                                        THEN st.approving_provider_id
+                                                        WHEN s.reading_physician_id IS NOT NULL
+                                                        THEN s.reading_physician_id
+                                                        WHEN NULLIF(facilities.facility_info->'rendering_provider_id', '') IS NOT NULL
+                                                        THEN (facilities.facility_info->'rendering_provider_id')::INTEGER
                                                     END
                                                 )
                                                 LEFT JOIN providers p ON p.id = pc.provider_id
