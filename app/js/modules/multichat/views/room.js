@@ -82,7 +82,7 @@ define(['jquery'
                 this.makeRoomResizable();
 
                 this.model.set('isMinimized', false);
-                this.model.setIsOpenedCallback( _.bind(this._checkIsExpanded,this));
+                this.model.setIsOpenedCallback( _.bind(this._checkIsExpanded, this));
             },
 
             _reloadMessages: function(){
@@ -157,10 +157,11 @@ define(['jquery'
 
             _getQuillDeltaOps: function () {
                 var delta = this.quill.getContents();
-                if (delta.ops.length > 1 || delta.ops[0].insert.trim().length !== 0)
+                if (delta.ops.length > 1 || delta.ops[0].insert.trim().length !== 0) {
                     return delta.ops;
-                else
-                    return false;
+                }
+
+                return false;
             },
             _clearQuillContents: function () {
                 this.quill.setContents('\n');
@@ -347,7 +348,7 @@ define(['jquery'
                         return firstVisibleMessage.dataset.messageId;
                     }
                     return null;
-                };
+                }
 
 // Preserve data needed for the "scroll keeping" after update
                 var firstMessageIdBeforeUpdate = detectFirstMessageId();
@@ -482,12 +483,12 @@ define(['jquery'
                     $messageLimit.addClass('chat-content-footer__limit--red');
 
                     return false;
-                } else {
-                    this._enableSendButton(true);
-                    $messageLimit.removeClass('chat-content-footer__limit--red');
-
-                    return true;
                 }
+                this._enableSendButton(true);
+                $messageLimit.removeClass('chat-content-footer__limit--red');
+
+                return true;
+
             },
 
             focus: function () {
@@ -556,13 +557,13 @@ define(['jquery'
                 var roomChat = this.$el.find('.js_chat-content').eq(0);
                 var roomChatMini = this.$el.find('.js_chat-content--minimized').eq(0);
                 if (setMinimized) {
-                    app.chat.trigger(Triggers.MINIMIZED_ROOM,true);
+                    app.chat.trigger(Triggers.MINIMIZED_ROOM, true);
                     roomChat.addClass('hidden');
                     roomChatMini.removeClass('hidden');
                     this.model.unsetActiveRoom();
                 }
                 else {
-                    app.chat.trigger(Triggers.MINIMIZED_ROOM,false);
+                    app.chat.trigger(Triggers.MINIMIZED_ROOM, false);
                     roomChat.removeClass('hidden');
                     roomChatMini.addClass('hidden');
 

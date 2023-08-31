@@ -1,5 +1,5 @@
 define(['jquery'
-        ,'underscore'
+        , 'underscore'
         , 'backbone'
         , 'text!modules/multichat/templates/modals/modalBase.html'
         , 'modules/multichat/utils/triggers'

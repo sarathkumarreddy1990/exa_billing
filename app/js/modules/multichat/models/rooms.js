@@ -261,7 +261,9 @@ define([
         };
 
         BaseRoomModel.addUsers = function (room, users, type, room_title, cb) {
-            var self = this, room_id = room.id || 0, data = {
+            var self = this;
+            var room_id = room.id || 0;
+            var data = {
                 users: [],
             };
             if (room_id === 0) {
@@ -390,7 +392,7 @@ define([
                 var lastMessage = _.last(this.get('messages'));
                 if (lastMessage) {
                     last_message_id = lastMessage.id;
-                };
+                }
                 var q_id = Date.now() + this._usersCache.getMe().get('id') + this.get('id');
                 if (this._q) {
                     if (this._q.content == content) q_id = this._q.q_id;

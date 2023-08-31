@@ -63,14 +63,12 @@ define([
                 if (name.match(/\b\w/g)) {
                     return name.match(/\b\w/g).join('');
                 }
-                else {
-                    if (name.match(/\S/g)) {
-                        return name.match(/\S/g)[0];
-                    }
-                    else {
-                        return "";
-                    }
+
+                if (name.match(/\S/g)) {
+                    return name.match(/\S/g)[0];
                 }
+
+                return "";
             },
         });
 

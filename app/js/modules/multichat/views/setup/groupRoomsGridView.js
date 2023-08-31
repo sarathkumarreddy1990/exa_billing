@@ -39,7 +39,7 @@ define(['jquery'
                     stickysearch:true,
                     emptyMessage: 'No Record found',
                     colNames: ['', '', '', '', '', ''],
-                    i18nNames: ['', '', '', 'chat.setup.fields.title','chat.setup.fields.users_count', 'chat.setup.fields.visibility_list_items_count'],
+                    i18nNames: ['', '', '', 'chat.setup.fields.title', 'chat.setup.fields.users_count', 'chat.setup.fields.visibility_list_items_count'],
                     colModel: [
                         { name: 'id', index: 'id', key: true, hidden: true},
                         {
