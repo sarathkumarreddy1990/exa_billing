@@ -2180,12 +2180,15 @@ define([
                         $('#ddlAdjustmentCode_fast').append($('<option/>', { value: '', text: 'Select' }));
 
                         $.each(adjustmentCodes, function (index, adjustmentCode) {
-                            var $Option = $('<option/>', { value: adjustmentCode.id, text: adjustmentCode.description, 'data_code_type': adjustmentCode.type });
+                            var $Option = $('<option/>', { value: adjustmentCode.id, text: adjustmentCode.description, 'data_code_type': adjustmentCode.type, 'data_code': adjustmentCode.code });
                             if (adjustmentCode.type === 'refund_debit') {
                                 $Option.css({ background: 'gray' }).attr('title', 'Refund Adjustment').addClass('refund_debit');
                             }
                             else if (adjustmentCode.type === 'recoupment_debit') {
                                 $Option.css({ background: 'lightgray' }).attr('title', 'Recoupment Adjustment').addClass('recoupment_debit');
+                            }
+                            else if (adjustmentCode.type === 'debit') {
+                                $Option.css({ background: 'gray' }).attr('title', 'Debit Adjustment').addClass('recoupment_debit');
                             }
                             $('#ddlAdjustmentCode_fast').append($Option);
                         });
@@ -2370,8 +2373,9 @@ define([
                         $('#txtResponsibleNotes').val(payerTypes[0].billing_notes);
 
                         var adjCodeType = $('#ddlAdjustmentCode_fast').find(':selected').attr('data_code_type');
+                        var adjCode = $('#ddlAdjustmentCode_fast').find(':selected').attr('data_code');
 
-                        if (adjCodeType === 'recoupment_debit' || adjCodeType === 'refund_debit') {
+                        if (['recoupment_debit', 'refund_debit'].indexOf(adjCodeType) > -1 || (adjCode === 'BDR' && adjCodeType === 'debit')) {
 
                             $('.checkDebit').prop('checked', true);
                             self.updateRefundRecoupment();
@@ -2416,6 +2420,7 @@ define([
                 var lineItems = $("#tBodyApplyPendingPayment tr");
                 var isDebit = $('.checkDebit').length && $('.checkDebit')[0].checked;
                 var adjustmentCodeType = $('#ddlAdjustmentCode_fast').find(':selected').attr('data_code_type');
+                var adjustmentCode = $('#ddlAdjustmentCode_fast').find(':selected').attr('data_code');
 
                 if (isDebit && adjustmentCodeType) {
                     $('#btnPayfullAppliedPendingPayments').attr('disabled', true);
@@ -2423,11 +2428,15 @@ define([
 
                     $.each(lineItems, function () {
                         thisAdjustment = $(this).find('.payment__this_adjustment');
-                        var thisPayment = $(this).find('.payment__this_pay');
+                        thisPayment = $(this).find('.payment__this_pay');
+                        $(this).find('.payment__this_pay').attr('disabled', ['refund_debit', 'debit'].indexOf(adjustmentCodeType) > -1);
+
                         if (adjustmentCodeType === 'refund_debit') {
                             $(this).find('.payment__this_pay').val('0.00');
                             $(this).find('.payment__other_adjustment').val('0.00');
-                            $(this).find('.payment__this_pay').attr('disabled', true);
+                            thisAdjustment.val(parseFloat(-Math.abs(thisAdjustment.val())).toFixed(2));
+                        }
+                        else if (adjustmentCode === 'BDR') {
                             thisAdjustment.val(parseFloat(-Math.abs(thisAdjustment.val())).toFixed(2));
                         }
                         else if (adjustmentCodeType === 'recoupment_debit') {
@@ -2677,7 +2686,9 @@ define([
                 var self = this;
                 var isDebit = $('.checkDebit')[0].checked;
                 var adjustment_codetype = $('#ddlAdjustmentCode_fast').find(':selected').attr('data_code_type');
-                var val = ['refund_debit', 'recoupment_debit']
+                var adjustment_code = $('#ddlAdjustmentCode_fast').find(':selected').attr('data_code');
+                var val = ['refund_debit', 'recoupment_debit', 'debit'];
+                var isNegativeAdj = val.indexOf(adjustment_codetype) > -1;
 
                 if ($('#ddlResponsible').val() === '') {
                     commonjs.showWarning('shared.warning.missingResponsible');
@@ -2687,10 +2698,10 @@ define([
                 else if ($('#ddlAdjustmentCode_fast').val() === '0') {
                     commonjs.showWarning('messages.warning.payments.pleaseSelectAdjustment');
                     return false;
-                } else if (isDebit && val.indexOf(adjustment_codetype) < 0) {
+                } else if (isDebit && !isNegativeAdj) {
                     commonjs.showWarning('messages.warning.payments.pleaseSelectRefAdjCode');
                     return false;
-                } else if (!isDebit && val.indexOf(adjustment_codetype) >= 0) {
+                } else if (!isDebit && isNegativeAdj) {
                     commonjs.showWarning('messages.warning.payments.pleaseSelectDRCheckBox');
                     return false;
                 } else if (self.isRefundApplied === true) {
