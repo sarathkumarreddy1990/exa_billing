@@ -1,9 +1,5 @@
-define([
-    'jquery'
-    , 'underscore'
-    , 'backbone'
-],
-    function ($, _, Backbone) {
+define([],
+    function () {
         var Routing = {
             clearView: function (view) {
                 if (view) {

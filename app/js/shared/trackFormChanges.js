@@ -21,13 +21,10 @@
                 self.setFormChanged();
             });
 
-            $(window).on('beforeunload', function (e) {
+            $(window).on('beforeunload', function () {
                 if (self.isFormChanged()) {
                     return true;
                 }
-
-                e = null;
-
             });
 
             $(document).off('keydown')

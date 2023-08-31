@@ -1,11 +1,7 @@
 define([
-    'jquery',
-    '_get',
-    'backbone',
+    'jquery'
 ], function (
-    $,
-    _get,
-    Backbone
+    $
 ) {
         return function (showNestedDialog) {
 
@@ -192,14 +188,10 @@ define([
                 this.pdfWorker.postMessage(docDefinition);
             };
 
-            this.mergeTemplate = function (templateType, template, claimData) {
+            this.mergeTemplate = function (templateType, template) {
                 template = template.template_content;
 
                 var dd = null;
-
-                if (templateType === 'direct_invoice' || templateType === 'patient_invoice') {
-                    claimData = claimData[0];
-                }
 
                 try {
                     eval(template);
@@ -216,7 +208,6 @@ define([
                     return false;
                 }
 
-                //template = mailMerge.mergeData(dd, claimData);
                 template = dd;
                 if (template.content === "Test Data" || template.content === "Need to setup") {
                     commonjs.hideLoading();
