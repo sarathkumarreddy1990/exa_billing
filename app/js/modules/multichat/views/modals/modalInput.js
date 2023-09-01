@@ -36,11 +36,11 @@ define(['jquery'
                 return $('.js_chat-modal__input').val();
             },
 
-            getActionData: function (el) {
+            getActionData: function () {
                 this.getInputData();
             },
 
-            onInputKeyUp: function (data) {
+            onInputKeyUp: function () {
                 if (this.isKeyUpHandled) {
                     var inputKeyUpAction = this.options.actions.inputKeyUpAction.bind(this);
                     inputKeyUpAction(this.getInputData());

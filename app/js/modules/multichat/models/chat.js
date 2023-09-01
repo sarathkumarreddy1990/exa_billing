@@ -48,7 +48,7 @@ define([
                             self._dispatchWS_messagesUpdates(data.updated_messages);
                         }
                     });
-                    chat_socket.on('roomsUpdates', function (data) {
+                    chat_socket.on('roomsUpdates', function () {
                         self._dispatchWS_roomsUpdates();
                     });
                     chat_socket.on('usersInRoomUpdates', function (data) {
@@ -77,7 +77,7 @@ define([
                 });
             },
 
-            initialize: function (attributes, options) {
+            initialize: function (attributes) {
                 _.extend(this, ErrorHandler);
                 var self = this;
                 this._usersCache = new Users.UsersCollection();

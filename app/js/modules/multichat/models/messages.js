@@ -18,14 +18,14 @@ define([
                 content: null
             },
 
-            initialize: function (attributes, options) {
+            initialize: function () {
                 _.extend(this, ErrorHandler);
             },
-            
+
             getTimestamp: function (){
                 return MomentTimezone(this.get('createdDt'));
             },
-            
+
             getTimeDiffFrom: function(prevMessage) {
                 return this.getTimestamp().diff(prevMessage.getTimestamp(), 'minutes');
             },
@@ -35,12 +35,12 @@ define([
                 //If so, manual importing of MomentTimezone may be avoided
                 return moment().diff(this.getTimestamp(), 'minutes');
             },
-            
+
             getAuthor: function() {
                 //TECHDEBT: Why do we have .author field with the only .user field inside?
                 return this.get('author').user;
             },
-            
+
             getAuthorId: function() {
                 return this.getAuthor().get('id');
             }
@@ -152,7 +152,7 @@ define([
                 var lastMessageModel = this.last();
                 if (lastMessageModel) lastId = lastMessageModel.get('id');
                 this._fetchWithParameters(null, this._DIRECTION_FORWARD, lastId, cb);
-            }        
+            }
         });
 
         // "Static" API

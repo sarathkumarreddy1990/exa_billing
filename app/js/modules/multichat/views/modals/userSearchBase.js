@@ -34,7 +34,7 @@ function (
                     searchScope: this.searchScope,
                 };
 
-                var searchCollection = (options.searchScope === 'users') ? new searchUsers([],options) : new searchUsersOrGroups(options);
+                var searchCollection = (options.searchScope === 'users') ? new searchUsers([], options) : new searchUsersOrGroups(options);
                 searchCollection.fetch({
                     error: function(err) {
                         self.room.handleRequestError(err);
