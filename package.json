@@ -13,7 +13,8 @@
         "build": "npm run ci && gulp build",
         "start-production": "node ./bin/www-cluster",
         "test": "mocha --recursive test/unit",
-        "ci": "npm ci && npm ci --prefix ./app"
+        "ci": "npm ci && npm ci --prefix ./app",
+        "prepare": "husky install"
     },
     "dependencies": {
         "bluebird": "^3.5.5",
@@ -81,6 +82,7 @@
         "gulp-less": "^3.5.0",
         "gulp-uglify": "^3.0.0",
         "gulp-zip": "^4.1.0",
+        "husky": "^8.0.3",
         "mocha": "^5.2.0",
         "nodemon": "^1.17.5",
         "npm-run-all": "^4.1.3",
