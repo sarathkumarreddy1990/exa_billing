@@ -1,4 +1,4 @@
-define(['backbone'],function(Backbone){
+define(['backbone'], function(Backbone){
     var pagerModel=Backbone.Model.extend({
         defaults:{
             "PageNo":1,

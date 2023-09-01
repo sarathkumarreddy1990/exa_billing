@@ -7,7 +7,7 @@ define(['backbone'], function (Backbone) {
             payer_edi_code: null,
             billingMethod: ""
         },
-        initialize: function (models) {
+        initialize: function () {
         }
     });
     return insuranceX12MappingModel;

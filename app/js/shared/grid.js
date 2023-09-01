@@ -87,7 +87,7 @@ define('grid', [
 
         var showValidationWarning = function (msg) {
             commonjs.showWarning(msg);
-            $("#studyRightMenu").empty().css('display','none');
+            $("#studyRightMenu").empty().css('display', 'none');
         };
 
         var validateClaimSelection = function (row_id, enabled, _element, store) {
@@ -389,7 +389,7 @@ define('grid', [
                 }
 
                 // Billing Code status updation
-                var liBillingCode = commonjs.getRightClickMenu('ul_change_billing_code','setup.rightClickMenu.billingCode',false,'Change Billing Code',true);
+                var liBillingCode = commonjs.getRightClickMenu('ul_change_billing_code', 'setup.rightClickMenu.billingCode', false, 'Change Billing Code', true);
                 $divObj.append(liBillingCode);
                 self.checkSubMenuRights('li_ul_change_billing_code');
                 var liArrayBillingCode = [];
@@ -419,7 +419,7 @@ define('grid', [
                 $('#ul_change_billing_code').append(liArrayBillingCode);
 
                 // Billing class updation
-                var liBillingClass = commonjs.getRightClickMenu('ul_change_billing_class','setup.rightClickMenu.billingClass',false,'Change Billing Class',true);
+                var liBillingClass = commonjs.getRightClickMenu('ul_change_billing_class', 'setup.rightClickMenu.billingClass', false, 'Change Billing Class', true);
                 $divObj.append(liBillingClass);
                 self.checkSubMenuRights('li_ul_change_billing_class');
                 var liArrayBillingClass = [];
@@ -550,7 +550,7 @@ define('grid', [
                     });
                 }
 
-                var liEditClaim = commonjs.getRightClickMenu('anc_edit_claim','setup.rightClickMenu.editClaim',false,'Edit Claim',false);
+                var liEditClaim = commonjs.getRightClickMenu('anc_edit_claim', 'setup.rightClickMenu.editClaim', false, 'Edit Claim', false);
                 if(studyArray.length == 1)
                     $divObj.append(liEditClaim);
 
@@ -668,7 +668,7 @@ define('grid', [
                     });
                 }
 
-                var liClaimInquiry = commonjs.getRightClickMenu('anc_claim_inquiry','setup.rightClickMenu.claimInquiry',false,'Claim Inquiry',false);
+                var liClaimInquiry = commonjs.getRightClickMenu('anc_claim_inquiry', 'setup.rightClickMenu.claimInquiry', false, 'Claim Inquiry', false);
                 if(studyArray.length == 1)
                     $divObj.append(liClaimInquiry);
                 self.checkRights('anc_claim_inquiry');
@@ -687,7 +687,7 @@ define('grid', [
 
                 });
 
-                var liPatientClaimInquiry = commonjs.getRightClickMenu('anc_patient_claim_inquiry','setup.rightClickMenu.patientClaims',false,'Patient Claims',false);
+                var liPatientClaimInquiry = commonjs.getRightClickMenu('anc_patient_claim_inquiry', 'setup.rightClickMenu.patientClaims', false, 'Patient Claims', false);
                 if(studyArray.length == 1)
                     $divObj.append(liPatientClaimInquiry);
                 self.checkRights('anc_patient_claim_inquiry');
@@ -701,7 +701,7 @@ define('grid', [
                 });
 
 
-                var liInvoiceInquiry = commonjs.getRightClickMenu('anc_invoice_inquiry','setup.rightClickMenu.directBillingInquiry',false,'Direct Billing Inquiry',false);
+                var liInvoiceInquiry = commonjs.getRightClickMenu('anc_invoice_inquiry', 'setup.rightClickMenu.directBillingInquiry', false, 'Direct Billing Inquiry', false);
                 if (studyArray.length == 1 && firstSelectedStudy.billing_method == "direct_billing")
                     $divObj.append(liInvoiceInquiry);
                 self.checkRights('anc_invoice_inquiry');
@@ -710,16 +710,16 @@ define('grid', [
                         return false;
                     }
                     commonjs.showDialog({
-                        'header': commonjs.geti18NString('shared.fields.invoices') + ' ' +  commonjs.geti18NString('shared.fields.payerName') + ': ' + gridData.hidden_payer_name ,
+                        'header': commonjs.geti18NString('shared.fields.invoices') + ' ' +  commonjs.geti18NString('shared.fields.payerName') + ': ' + gridData.hidden_payer_name,
                         'width': '95%',
                         'height': '80%',
                         'needShrink': true
                     });
                 self.claimInquiryView = new claimInquiryView({ el: $('#modal_div_container') });
-                self.claimInquiryView.invoiceInquiry(studyIds,firstSelectedStudy.patient_id,firstSelectedStudy.payer_type); //firstSelectedStudy.invoice_no
+                self.claimInquiryView.invoiceInquiry(studyIds, firstSelectedStudy.patient_id, firstSelectedStudy.payer_type); //firstSelectedStudy.invoice_no
                 });
 
-                var liPatientClaimLog = commonjs.getRightClickMenu('anc_patient_claim_log','setup.rightClickMenu.patientClaimLog',false,'Patient Claim Log',false);
+                var liPatientClaimLog = commonjs.getRightClickMenu('anc_patient_claim_log', 'setup.rightClickMenu.patientClaimLog', false, 'Patient Claim Log', false);
                 if(studyArray.length == 1)
                     $divObj.append(liPatientClaimLog);
                 self.checkRights('anc_patient_claim_log');
@@ -833,7 +833,7 @@ define('grid', [
                 }
 
                 if (options.filterid != 'Follow_up_queue') {
-                    var liEditClaim = commonjs.getRightClickMenu('anc_reset_invoice_no','setup.rightClickMenu.resetInvoice',false,'Reset Invoice Number',false);
+                    var liEditClaim = commonjs.getRightClickMenu('anc_reset_invoice_no', 'setup.rightClickMenu.resetInvoice', false, 'Reset Invoice Number', false);
                     if(studyArray.length == 1 && firstSelectedStudy.invoice_no != null && firstSelectedStudy.invoice_no != '')
                         $divObj.append(liEditClaim);
                     self.checkRights('anc_reset_invoice_no');
@@ -849,7 +849,7 @@ define('grid', [
 
             } else {
                 if (!isbilled_status) {
-                    var liCreateClaim = commonjs.getRightClickMenu('anc_create_claim','setup.rightClickMenu.createClaim',false,'Create Claim',false);
+                    var liCreateClaim = commonjs.getRightClickMenu('anc_create_claim', 'setup.rightClickMenu.createClaim', false, 'Create Claim', false);
                     $divObj.append(liCreateClaim);
                     self.checkRights('anc_create_claim');
                     $('#anc_create_claim').off().click(function () {
@@ -1095,11 +1095,11 @@ define('grid', [
             var icon_width = 24;
             colName = colName.concat([
                 ('<input type="checkbox" i18nt="billing.payments.selectAllStudies" id="chkStudyHeader_' + filterID + '" class="chkheader" onclick="commonjs.checkMultiple(event)" />'),
-                '','','','','','', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', 'Assigned To', '', '', '', ''
+                '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', 'Assigned To', '', '', '', ''
             ]);
 
             i18nName = i18nName.concat([
-                '','','','','', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '','', '', 'billing.claims.assignedTo', '', '', '', ''
+                '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', 'billing.claims.assignedTo', '', '', '', ''
             ]);
 
             colModel = colModel.concat([
@@ -1116,9 +1116,9 @@ define('grid', [
                                 && rowObject.billed_status === 'unbilled')) {
                             return "";
                         }
-                        else {
-                            return '<input type="checkbox" name="chkStudy" id="chk' + gridID.slice(1) + '_' + (options.isClaimGrid ? rowObject.id : rowObject.study_id) + '" />'
-                        }
+
+                        return '<input type="checkbox" name="chkStudy" id="chk' + gridID.slice(1) + '_' + (options.isClaimGrid ? rowObject.id : rowObject.study_id) + '" />'
+
 
                     },
                     customAction: function (rowID, e, that) {
@@ -1146,7 +1146,7 @@ define('grid', [
                     formatter: function (cellvalue, options, rowObject) {
                             if(!rowObject.claim_id)
                                 return "";
-                            else  return "<i class='icon-ic-edit' i18nt='shared.buttons.edit'></i>"
+                            return "<i class='icon-ic-edit' i18nt='shared.buttons.edit'></i>"
 
                     },
                     customAction: function (rowID, e, that) {
@@ -1909,10 +1909,10 @@ define('grid', [
                     });
                     return true;
                 }
-                else {
-                    $('#btnValidateExport').css('display', 'inline');
-                    options.filterid = '';
-                }
+
+                $('#btnValidateExport').css('display', 'inline');
+                options.filterid = '';
+
             }
 
             claimsTable.render({
@@ -1955,7 +1955,7 @@ define('grid', [
                             order_id: order_id,
                             grid_id: gridID
                         });
-                    } else {
+                    }
                         if (['ABRT', 'CAN', 'NOS'].indexOf(gridData.study_status) < 0 && !gridData.has_deleted) {
                             var study = {
                                 study_id: rowID,
@@ -1975,7 +1975,7 @@ define('grid', [
                             self.claimView = new claimsView();
                             self.claimView.showClaimForm({ 'grid_id': gridID }, 'studies');
                         }
-                    }
+
 
                     $('.claim-summary').remove();
                 },
@@ -2120,7 +2120,6 @@ define('grid', [
             var menuHeight = $divObj.outerHeight();
             var list = $(e.target.parentElement).find('ul')[0];
             var subMenuWidth = $(list).width();
-            var subMenuHeight = $(list).height();
             if (mouseX + menuWidth + subMenuWidth > windowWidth) {
                 $(list).css('left', '-100%');
                 list.style.float = 'left';
@@ -2151,7 +2150,7 @@ define('grid', [
                     data: {
                         invoiceNo: invoiceNo
                     },
-                    success: function (data, response) {
+                    success: function () {
                         commonjs.showStatus('messages.status.invoiceNoReset');
                         $("#btnClaimsRefresh").click();
                     },
@@ -2167,7 +2166,7 @@ define('grid', [
                     url: '/exa_modules/billing/claim_workbench/claims/update',
                     type: 'PUT',
                     data: dataobject,
-                    success: function (data, response) {
+                    success: function (data) {
                         if (data && data.length && !data[0].status) {
                             commonjs.showStatus(billing.status_message);
                             _.each(data, function (obj) {
@@ -2183,7 +2182,7 @@ define('grid', [
         },
 
         //To bind province based right click menus in claim grid
-        self.bindProvinceBasedMenus = function ($divObj, studyArray, gridData, isClaimGrid, selectedStudies, $target) {
+        self.bindProvinceBasedMenus = function ($divObj, studyArray, gridData, isClaimGrid, selectedStudies) {
             var isWCBBilling = gridData.hidden_insurance_provider_codes
                 && gridData.hidden_insurance_provider_codes.toLowerCase() === 'wcb';
 
@@ -2271,7 +2270,7 @@ define('grid', [
                             url: '/exa_modules/billing/claim_workbench/claims/update',
                             type: 'PUT',
                             data: dataObj,
-                            success: function (data, response) {
+                            success: function (data) {
                                 if (data && data.length) {
                                     commonjs.showStatus('messages.status.claimStatusChanged');
                                     var colorCodeDetails = commonjs.getClaimColorCodeForStatus(queryClaimStatus.code, 'claim');
@@ -2346,7 +2345,7 @@ define('grid', [
                         target_id: studyIds,
                         type: 'claim'
                     },
-                    success: function (data, response) {
+                    success: function () {
                         commonjs.showStatus('messages.status.claimHasBeenDeleted');
                         $("#btnClaimsRefresh").click();
                     },
@@ -2385,9 +2384,9 @@ define('grid', [
                                 source: 'delete'
                             }
                         };
-                    } else {
-                        return defaultParamsForDelete;
                     }
+                        return defaultParamsForDelete;
+
                 default:
                     if (from == 'delete') {
                         return defaultParamsForDelete;

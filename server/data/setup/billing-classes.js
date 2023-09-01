@@ -1,4 +1,4 @@
-const { query, SQL, queryWithAudit } = require('../index');
+const { query, SQL, queryWithAudit, queryWithDuplicateCheck } = require('../index');
 
 module.exports = {
 
@@ -87,15 +87,20 @@ module.exports = {
                             , description
                             , inactivated_dt
                             , color_code)
-                        VALUES(
+                        SELECT
                                ${companyId}
                              , ${code}
                              , ${description}
                              , ${inactivated_date}
-                             , ${colorCode} )
+                             , ${colorCode}
+                        WHERE NOT EXISTS (
+                                SELECT 1
+                                FROM billing.billing_classes
+                                WHERE code = ${code}
+                        )
                              RETURNING *, '{}'::jsonb old_values`;
 
-        return await queryWithAudit(sql, {
+        return await queryWithDuplicateCheck(sql, {
             ...params,
             logDescription: `Add: New Billing Class(${code}) created`
         });

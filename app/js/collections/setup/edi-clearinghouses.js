@@ -1,4 +1,4 @@
-define(['backbone','models/setup/edi-clearinghouses'], function (Backbone,ediClearinghousesModel) {
+define(['backbone', 'models/setup/edi-clearinghouses'], function (Backbone, ediClearinghousesModel) {
 
     var ediClearingHousesList = Backbone.Collection.extend({
         model: ediClearinghousesModel,

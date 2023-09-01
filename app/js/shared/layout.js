@@ -243,7 +243,7 @@ var layout = {
         document.title = layout.moduleHeaders[module] + ' - EXA Billing';
     },
 
-    triggerSettingsRefresh: function (module, currentScreen) {
+    triggerSettingsRefresh: function (module) {
         if (['Studies', 'Claims', 'Payments'].indexOf(module) > -1 && this.setupDataUpdated) {
             this.setupDataUpdated = false;
             this.refreshAppSettings();
@@ -260,7 +260,7 @@ var layout = {
         });
     },
 
-    highlightMainMenu: function (currentModule) {
+    highlightMainMenu: function () {
     },
 
     initializeI18n: function () {

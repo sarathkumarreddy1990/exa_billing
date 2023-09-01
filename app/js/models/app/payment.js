@@ -20,7 +20,7 @@ define(['backbone'], function (Backbone) {
             payment_reason_id: null,
             notes: null
         },
-        initialize: function (models) {
+        initialize: function () {
         }
     });
 });

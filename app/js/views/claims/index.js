@@ -1390,6 +1390,11 @@ define(['jquery',
                     }
                 }
 
+                if (claim_data.can_ahs_pay_to_code === 'RECP') {
+                    $businessArrangement.prop('checked', false);
+                    $businessArrangement.prop('disabled', true);
+                } 
+
                 /* Claim section end */
                 /* Additional info start*/
 
@@ -4563,7 +4568,16 @@ define(['jquery',
                 }
             },
 
-            checkForExistingInsurance: function ( policy, provider, id ) {
+            /**
+             * Ensures that the user doesn't manually re-add an inactive insurance
+             *
+             * @param {string} policy
+             * @param {number} provider
+             * @param {number} id
+             * @param {string} coverage_level
+             * @returns {boolean}
+             */
+            checkForExistingInsurance: function ( policy, provider, id, coverage_level ) {
                 var insurances = this.allExistingInsurances;
                 if ( !Array.isArray(insurances) ) {
                     return false;
@@ -4571,9 +4585,40 @@ define(['jquery',
                 return insurances.some(function ( info ) {
                     var sameProvider = info.insurance_provider_id === ~~provider;
                     var samePolicy = info.policy_number === policy;
+                    var sameCoverageLevel = info.coverage_level === coverage_level;
                     var sameRecord = info.id === ~~id;
-                    return sameProvider && samePolicy && !sameRecord;
+                    return sameProvider && samePolicy && sameCoverageLevel && !sameRecord;
                 });
+            },
+
+            /**
+             * Validates insurance to ensure that the user didn't enter the same carrier and policy number for multiple 
+             * coverage levels (ie. entered the same policy for both primary and secondary coverage)
+             *
+             * @returns {boolean}
+             */
+            validateInsuranceDuplication: function () {
+                var primary_id = ~~this.priInsID;
+                var secondary_id = ~~this.secInsID;
+                var tertiary_id = ~~this.terInsID;
+                var primary_policy = ($("#txtPriPolicyNo").val() && $("#txtPriPolicyNo").val().trim()) || "";
+                var secondary_policy = ($("#txtSecPolicyNo").val() && $("#txtSecPolicyNo").val().trim()) || "";
+                var tertiary_policy = ($("#txtTerPolicyNo").val() && $("#txtTerPolicyNo").val().trim()) || "";
+                var insurance_dupe_check_array = [];
+
+                if (primary_id > 0) {
+                    insurance_dupe_check_array.push(primary_id + "-" + primary_policy);
+                }
+
+                if (secondary_id > 0) {
+                    insurance_dupe_check_array.push(secondary_id + "-" + secondary_policy);
+                }
+
+                if (tertiary_id > 0) {
+                    insurance_dupe_check_array.push(tertiary_id + "-" + tertiary_policy);
+                }
+
+                return _.isEqual(insurance_dupe_check_array, _.uniq(insurance_dupe_check_array));
             },
 
             validateClaimData: function () {
@@ -4769,7 +4814,7 @@ define(['jquery',
                         return false;
                     }
                     if ( txtPriPolicyNo && self.priInsID > 0 ) {
-                        var primaryExists = self.checkForExistingInsurance(txtPriPolicyNo, self.priInsID, self.priClaimInsID);
+                        var primaryExists = self.checkForExistingInsurance(txtPriPolicyNo, self.priInsID, self.priClaimInsID, "primary");
                         if ( primaryExists ) {
                             commonjs.showWarning('messages.warning.existsInsurance');
                             $('#txtPriPolicyNo').focus();
@@ -4798,7 +4843,7 @@ define(['jquery',
                             return false;
                         }
                         if ( txtSecPolicyNo && self.secInsID > 0 ) {
-                            var secondaryExists = self.checkForExistingInsurance(txtSecPolicyNo, self.secInsID, self.secClaimInsID);
+                            var secondaryExists = self.checkForExistingInsurance(txtSecPolicyNo, self.secInsID, self.secClaimInsID, "secondary");
                             if ( secondaryExists ) {
                                 commonjs.showWarning('messages.warning.existsInsurance');
                                 $('#txtSecPolicyNo').focus();
@@ -4829,7 +4874,7 @@ define(['jquery',
                             return false;
                         }
                         if ( txtTerPolicyNo && self.terInsID > 0 ) {
-                            var tertiaryExists = self.checkForExistingInsurance(txtTerPolicyNo, self.terInsID, self.terClaimInsID);
+                            var tertiaryExists = self.checkForExistingInsurance(txtTerPolicyNo, self.terInsID, self.terClaimInsID, "tertiary");
                             if ( tertiaryExists ) {
                                 commonjs.showWarning('messages.warning.existsInsurance');
                                 $('#txtTerPolicyNo').focus();
@@ -4838,6 +4883,11 @@ define(['jquery',
                         }
                         self.is_tertiary_available = true;
                     }
+                }
+
+                if (!self.validateInsuranceDuplication()) {
+                    commonjs.showWarning("messages.warning.order.existsDifferentCoverageLevel", "largewarning");
+                    return false;
                 }
 
                 if (self.priInsID && self.validatePatientAddress("primary")) {
@@ -5053,6 +5103,18 @@ define(['jquery',
 
             // Pay-to Code changed
             changePayToCode: function (val) {
+                var $businessArrangement = $('input[name="BusinessArrangement"]');
+                
+                if (val === 'RECP') {
+                    $businessArrangement.prop('checked', false);
+                    $businessArrangement.prop('disabled', true);
+                    self.can_ahs_business_arrangement = null;
+                    self.can_ahs_locum_arrangement = null;
+                } else if ($businessArrangement.prop("disabled")) {
+                    $businessArrangement.prop('disabled', false);
+                    var payToValue = this.getPayToValue();
+                    $businessArrangement.val([payToValue]);
+                }
                 (val === 'OTHR')
                     ? $('#divPayToDetails').show()
                     : $('#divPayToDetails').hide();

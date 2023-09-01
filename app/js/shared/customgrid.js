@@ -63,7 +63,8 @@ function customGrid ( datastore, gridID ) {
 
 
         var widHei = commonjs.getGridMeasures(options.disableautowidthresize, options.disableautoheightresize, options.width, options.height, options.offsetWidth, options.offsetHeight);
-        var width = widHei.width, height = widHei.height;
+        var width = widHei.width;
+        var height = widHei.height;
 
         //Added for adjusting Search, Paging size with Table Size
         if ( options.autoAdjustHeight )
@@ -545,7 +546,7 @@ function customGrid ( datastore, gridID ) {
         /*if ( !isScroll || typeof isScroll === 'function' ) {
             self.datastore.reset();
         }*/
-        $("#chkStudyHeader_"+self.options.filterid ).prop('checked',false);
+        $("#chkStudyHeader_"+self.options.filterid ).prop('checked', false);
         var nextIndex = self.datastore.length;
         var filterData = self.pager.get('FilterData') || [];
         var filterCol = self.pager.get('FilterCol') || [];
@@ -577,7 +578,7 @@ function customGrid ( datastore, gridID ) {
         };
 
         if(typeof self.options.setCustomData === 'function'){
-            _data.customArgs = Object.assign({}, customArgs , self.options.setCustomData());
+            _data.customArgs = Object.assign({}, customArgs, self.options.setCustomData());
         }
 
         // Added fromDate/toDate
@@ -690,7 +691,8 @@ function customGrid ( datastore, gridID ) {
                     return obj && (obj.split('~')[0] == elementID)
             });
             return paymentFilterValues[0].split('~')[1];
-        }else return '';
+        }
+        return '';
 
     };
 
@@ -906,13 +908,13 @@ function customGrid ( datastore, gridID ) {
         var reader = {
             rowNum: 5,
             repeatitems: false,
-            page: function ( obj ) {
+            page: function () {
                 return self.pager.get('PageNo');
             },
-            total: function ( obj ) {
+            total: function () {
                 return Math.ceil(self.pager.get('TotalRecords') / self.pager.get('PageSize'));
             },
-            records: function ( obj ) {
+            records: function () {
                 return self.pager.get('TotalRecords');
             }
         };
@@ -997,7 +999,7 @@ function customGrid ( datastore, gridID ) {
             'placement': 'right'
         });
 
-        $('.ui-jqgrid-hdiv').on('scroll', function ( e ) {
+        $('.ui-jqgrid-hdiv').on('scroll', function () {
             $('.ui-jqgrid-bdiv').scrollLeft($(this).scrollLeft())
         });
 
@@ -1022,13 +1024,13 @@ function customGrid ( datastore, gridID ) {
         var reader = {
             rowNum: 5,
             repeatitems: false,
-            page: function (obj) {
+            page: function () {
                 return self.pager.get('PageNo');
             },
-            total: function (obj) {
+            total: function () {
                 return Math.ceil(self.pager.get('TotalRecords') / self.pager.get('PageSize'));
             },
-            records: function (obj) {
+            records: function () {
                 return self.pager.get('TotalRecords');
             }
         };
@@ -1171,7 +1173,7 @@ function customGrid ( datastore, gridID ) {
                 customArgs: customArgs,
                 SearchFlag:filterObj.pager.get('searchFlag')
             },
-            success: function (data, textStatus, jqXHR) {
+            success: function (data) {
                 if (data && data.length) {
                     filterObj.pager.set({ "TotalRecords": data[0].total_records });
                     filterObj.setPagerInfos();

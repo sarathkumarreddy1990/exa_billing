@@ -1,4 +1,4 @@
-define(['backbone','models/setup/billing-codes'], function (Backbone,billingCodesModel) {
+define(['backbone', 'models/setup/billing-codes'], function (Backbone, billingCodesModel) {
 
     var billingCodesList = Backbone.Collection.extend({
         model: billingCodesModel,

@@ -1,4 +1,4 @@
-define(['backbone','models/setup/adjustment-codes'], function (Backbone,adjustmentCodesModel) {
+define(['backbone', 'models/setup/adjustment-codes'], function (Backbone, adjustmentCodesModel) {
 
     var AdjustmentCodesList = Backbone.Collection.extend({
         model: adjustmentCodesModel,

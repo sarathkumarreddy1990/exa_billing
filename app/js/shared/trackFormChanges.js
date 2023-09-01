@@ -12,11 +12,11 @@
         trackFormChanges: function(callback) {
             var self = this;
             self.setFormUnchanged();
-            
+
             $(":input", self).change(function () {
                 self.setFormChanged();
             });
-            
+
             $(":input", self).keyup(function () {
                 self.setFormChanged();
             });
@@ -25,9 +25,9 @@
                 if (self.isFormChanged()) {
                     return true;
                 }
-                else { 
-                    e = null;
-                }
+
+                e = null;
+
             });
 
             $(document).off('keydown')
@@ -39,13 +39,13 @@
             })
         },
         setFormChanged: function () {
-            this.data("formChanged", true); 
+            this.data("formChanged", true);
         },
         setFormUnchanged: function () {
-            this.data("formChanged", false); 
+            this.data("formChanged", false);
         },
-        isFormChanged: function () { 
-            return this.data("formChanged"); 
+        isFormChanged: function () {
+            return this.data("formChanged");
         }
     });
 }));

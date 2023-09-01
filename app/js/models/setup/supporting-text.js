@@ -4,7 +4,7 @@ define(['backbone'], function (Backbone) {
         defaults: {
             companyId: ""
         },
-        initialize: function (models) {
+        initialize: function () {
         }
     });
     return supportingTextModel;

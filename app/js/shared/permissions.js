@@ -1,3 +1,4 @@
+/* eslint-disable no-unused-vars */
 var permissions = {
 
     init: function () {
@@ -9,7 +10,7 @@ var permissions = {
             'CLIM', 'HSTY', 'ECLM', 'CLMI', 'MASO', 'CLVA', 'ERAI', 'PAYM', 'APAY', 'DPAY', 'DCLM', 'PCLM', 'PATR', 'TOSP', 'PRRA', 'CLFM', 'ECST', 'RCLM', 'QCLM', 'IAST', 'AUTO', 'SUBT', 'COLL', 'SCTC',
             'CENS', 'DELR'];
 
-        mappingObject = {
+        var mappingObject = {
             'ADJC': 'aAdjustmentCodes',
             'BICO': 'aBillingCodes',
             'BICL': 'aBillingClasses',
@@ -62,7 +63,7 @@ var permissions = {
             'ERAI': 'aEob',
             'PAYM': 'aPayments',
             'ECLM': ['anc_edit_claim', 'anc_split_claim', 'anc_add_followup', 'anc_patient_claim_log', 'anc_reset_followup',
-                , 'li_ul_change_billing_code', 'li_ul_change_billing_class', 'li_ul_change_payer_type'],
+                    'li_ul_change_billing_code', 'li_ul_change_billing_class', 'li_ul_change_payer_type'],
             'PATR': ['anc_view_documents', 'anc_view_reports'],
             'APAY': 'divPendingPay',
             'DPAY': 'btnPaymentDelete',
@@ -81,7 +82,7 @@ var permissions = {
             'DELR':'aDelayReasons'
         };
 
-        var tosPayments = (app.screens).indexOf('TOSP') > -1 && (app.screens).indexOf('PAYM') === -1 ? true : false ;
+        var tosPayments = !!((app.screens).indexOf('TOSP') > -1 && (app.screens).indexOf('PAYM') === -1) ;
 
         accessDeniedScreens = _.difference(billingScreenCodes, app.screens);
         if(tosPayments) {

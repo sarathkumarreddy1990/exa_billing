@@ -152,6 +152,7 @@ function (
                 self.hydrateData()
                     .writeFormValues()
                     .updateEligibilityStatus()
+                    .activateEligibility()
                     .updateCulture()
                     .setParentData("eligibility", eligibility_data);
             });
@@ -205,8 +206,8 @@ function (
                     return callback(data.result);
                 },
                 error: function (err) {
-                    commonjs.handleXhrError(err);
-                    return callback({});
+                    commonjs.hideLoading();
+                    return callback(err);
                 }
             });
         },
@@ -230,8 +231,8 @@ function (
                     return callback(data.result);
                 },
                 error: function (err) {
-                    commonjs.handleXhrError(err);
-                    return callback({});
+                    commonjs.hideLoading();
+                    return callback(err);
                 }
             });
         },
@@ -337,7 +338,7 @@ function (
                 },
                 error: function (err) {
                     commonjs.handleXhrError(err);
-                    return callback({});
+                    return callback(err);
                 }
             });
 
@@ -445,6 +446,7 @@ function (
 
                 this.fetchEligibility(function (eligibility_data) {
                     self.handleEligibilityData(eligibility_data);
+                    self.activateEligibility();
 
                     callback();
                 });
@@ -481,6 +483,8 @@ function (
                 .updateEligibilityStatus()
                 .updateCulture()
                 .setParentData("eligibility", eligibilityData);
+
+            return this;
         },
 
         /**
@@ -689,17 +693,28 @@ function (
          * Activates the Eligibility tab
          */
         activateEligibility: function () {
+            var self = this;
+
             this.loadEligibility(function () {
                 $("#btnReestimate").hide();
                 $("#btnReestimateWarning").hide();
                 $("#btnEstimationLetter").hide();
                 $("#btnGoodFaithLetter").hide();
+                $("#divImagineEligibility").hide();
+                $("#divImagineEligibilityError").hide();
+                $("#btnPrintEligibility").hide();
                 $("#divImagineEstimation").hide();
                 $("#divImagineEstimationError").hide();
 
-                $("#divImagineEligibility").show();
-                $("#btnRecheckEligibility").show();
-                $("#btnPrintEligibility").show();
+                if (self.eligibilityRequestError()) {
+                    $("#divImagineEligibilityError").show();
+                    $("#divImagineEligibilityError").text(self.eligibilityErrorMessage());
+                }
+                else {
+                    $("#divImagineEligibility").show();
+                    $("#btnRecheckEligibility").show();
+                    $("#btnPrintEligibility").show();
+                }
 
                 $(".clickImagineEstimation").removeClass("active");
                 $(".clickImagineEligibility").addClass("active");
@@ -718,24 +733,22 @@ function (
                 $("#divImagineEligibility").hide();
                 $("#btnRecheckEligibility").hide();
                 $("#btnPrintEligibility").hide();
+                $("#divImagineEstimation").hide();
+                $("#divImagineEligibilityError").hide();
+                $("#divImagineEstimationError").hide();
+                $("#btnReestimate").hide();
+                $("#btnReestimateWarning").hide();
 
                 if (self.estimationRequestError()) {
-                    $("#divImagineEstimation").hide();
                     $("#divImagineEstimationError").show();
-
-                    var message = self.estimationErrorMessage();
-                    $("#divImagineEstimationError span").text(message);
+                    $("#divImagineEstimationError").text(self.estimationErrorMessage());
                 }
                 else {
-                    $("#divImagineEstimationError").hide();
                     $("#divImagineEstimation").show();
                     $("#btnEstimationLetter").show();
                     $("#btnPrintEligibility").show();
                     $("#btnGoodFaithLetter").show();
                 }
-
-                $("#btnReestimate").hide();
-                $("#btnReestimateWarning").hide();
 
                 self.data.eligibility.isStale
                     ? $("#btnReestimateWarning").show()
@@ -1339,6 +1352,34 @@ function (
         },
 
         /**
+         * Returns the eligibility error message
+         *
+         * @returns {string}
+         */
+        eligibilityErrorMessage: function () {
+            var eligibility = this.data.eligibility || {};
+
+            return (
+                _.get(eligibility, "responseJSON.errorDesc") ||
+                i18n.get("messages.warning.patient.eligibilityCouldNotBePerformed")
+            );
+        },
+
+        /**
+         * Indicates if the eligibility request resulted in an error
+         *
+         * @returns {boolean}
+         */
+         eligibilityRequestError: function () {
+            var eligibility = this.data.eligibility || {};
+
+            return (
+                _.toUpper(eligibility.statusText) === "ERROR" ||
+                _.get(eligibility, "responseJSON.errorDesc")
+            );
+        },
+
+        /**
          * Returns an array of objects that tie together the DOM elements with the values to write in the Eligibility section
          *
          * @returns {object[]}
@@ -1373,17 +1414,14 @@ function (
         /**
          * Indicates if the estimation request resulted in an error
          *
-         * At the moment, the only way I can tell this is to see if there is a message property
-         * I will refine the function when I can get an actual error back from them
-         *
          * @returns {boolean}
          */
         estimationRequestError: function () {
             var estimation = this.data.estimation || {};
 
             return (
-                estimation.hasOwnProperty("message") ||
-                !_.includes([0, 200], ~~estimation.status) ||
+                _.toUpper(estimation.status) === "FAILED" ||
+                !!estimation.message ||
                 _.get(estimation, "responseJSON.errorDesc")
             );
         },
@@ -1507,6 +1545,8 @@ function (
                 facility_id: this.data.visit.facilityId,
                 study_ids: this.getStudyIds(),
                 appointment_type_ids: this.getAppointmentIds(),
+                balance_due: this.data.estimation.balanceDue,
+                procedure_estimates: this.data.estimation.procedureEstimates,
                 async: false,
                 save: false
             }

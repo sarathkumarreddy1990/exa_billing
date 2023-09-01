@@ -1,19 +1,9 @@
 
-define([ 'backbone','models/claims-workbench'], function ( Backbone,claimsModel) {
+define([ 'backbone', 'models/claims-workbench'], function ( Backbone, claimsModel) {
     return Backbone.Collection.extend({
         'model': claimsModel,
         'url': '/exa_modules/billing/claim_workbench',
-        'initialize': function ( models, options ) {
-            var self = this;
-
-//            function setupEvents () {
-//                self.off('request', setupEvents);
-//                if ( options && options.filterID ) {
-//                    self.on(_events(options.filterID));
-//                }
-//            }
-//
-//            this.on('request', setupEvents);
+        'initialize': function () {
         },
         'parse': function ( response ) {
             var rows = response;

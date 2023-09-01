@@ -7,7 +7,7 @@ define(['backbone'], function (Backbone) {
             processStatus: "",
             colorCode: ""
         },
-        initialize: function (models) {
+        initialize: function () {
         }
     });
     return statusColorCodesModel;

@@ -231,7 +231,9 @@ define(['jquery',
                 this.model.save({
                 }, {
                     success: function (model, response) {
-                        if(response) {
+                        if (response.status === 'EXISTS') {
+                            commonjs.showWarning('messages.warning.shared.alreadyexists');
+                        } else if (response) {
                             commonjs.showStatus('messages.status.savedSuccessfully');
                             location.href = "#setup/billing_codes/list";
                         }

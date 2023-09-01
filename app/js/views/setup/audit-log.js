@@ -202,7 +202,9 @@ define([
                         if (response.changes && response.changes.old_values && Object.keys(response.changes.old_values).length) {
                             $("#showDetailsRow").show();
                             for (element in response.changes.old_values) {
-                                if (element.toLowerCase() != 'id' && element.toLowerCase() != 'template_content') {
+                                if (element.toLowerCase() != 'id' &&
+                                    element.toLowerCase() != 'template_content' &&
+                                    (response.changes.old_values[element] || response.changes.new_values[element])) {
                                     var html = "<tr>" +
                                         "<td>" + element + "</td>" +
                                         "<td>" + response.changes.old_values[element] + "</td>" +

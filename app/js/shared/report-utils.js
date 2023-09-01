@@ -5,7 +5,6 @@ define([
     , 'sweetalert2'
 ],
     function ($, _, Backbone, swal2) {
-        var reportId = "";
         var UI = {
             getReportSetting: function (viewModel, report_id, code) {
                 var is_required = viewModel.reportId === 'collections';
@@ -19,7 +18,7 @@ define([
                         company_id: app.companyID,
                         is_required_company_settings: is_required
                     },
-                    success: function (data, response) {
+                    success: function (data) {
                         if (data[0].value !== undefined) {
                             viewModel[code] = data[0].value;
                             viewModel.country_alpha_3_code = data[0].country_alpha_3_code;
@@ -37,7 +36,7 @@ define([
                     url: '/exa_modules/billing/autoCompleteRouter/getStudyStatus',
                     type: 'GET',
                     async: false,
-                    success: function (data, response) {
+                    success: function (data) {
                         var statusList = data && data.length > 0 ? data : [];
                         var $ddlStudyStatus = $('#ddlStudyStatus');
 
@@ -195,7 +194,6 @@ define([
 
             // Insurance Auto Complete
             bindInsuranceAutocomplete: function (userMessage, btnAdd, ulList, radInsActiveFlag) {
-                var self = this;
                 $("#txtInsuranceName").select2({
                     ajax: {
                         url: "/exa_modules/billing/autoCompleteRouter/insurances",
@@ -227,7 +225,6 @@ define([
                     if (repo.loading) {
                         return repo.text;
                     }
-                    var insurance_info = commonjs.hstoreParse(repo.insurance_info);
                     var markup = "<table><tr>";
                     markup += "<td  data-id='" + repo.id + " ' title='" + repo.insurance_code + "(" + repo.insurance_name + ")'> <div>" + repo.insurance_code + "(" + repo.insurance_name +  + " " + repo.insurance_info.Address1 + " " + repo.insurance_info.Address2 + " " + repo.insurance_info.City + " " + repo.insurance_info.State +   ")" + "</div>";
 
@@ -265,7 +262,7 @@ define([
                 });
             },
 
-            bindInsuranceProviderAutocomplete: function (userMessage, btnAdd, ulList) {
+            bindInsuranceProviderAutocomplete: function () {
                 $("#txtInsuranceProviderName").select2({
                     ajax: {
                         url: "/exa_modules/billing/autoCompleteRouter/insurance_payer_types",
@@ -429,8 +426,7 @@ define([
 
             // Users Auto Complete
 
-            listUsersAutoComplete: function (userMessage, btnAdd, ulList) {
-                var self = this;
+            listUsersAutoComplete: function () {
                 $("#txtUsers").select2({
                     ajax: {
                         url: "/exa_modules/billing/autoCompleteRouter/getUsers",
@@ -492,8 +488,7 @@ define([
 
 
             },
-            listUsersRoleAutoComplete: function (userRoleMessage, btnAdd, ulList) {
-                var self = this;
+            listUsersRoleAutoComplete: function () {
                 $("#txtUsersRole").select2({
                     ajax: {
                         url: "/exa_modules/billing/autoCompleteRouter/getUserRoles",
@@ -559,7 +554,6 @@ define([
             // Common Click Events
             setEvents: function (fieldId, fieldName, ulList) {
                 $('#' + fieldId).unbind('click').click(function () {
-                    var uListIds = $('#' + ulList).data('id') || [];
 
                     if ($('#s2id_' + fieldName + '  > a.select2-default').length > 0) {
                         commonjs.showWarning('Please select one  to add');
@@ -582,9 +576,7 @@ define([
                 });
             },
 
-            bindPatient: function (fieldID, userMessage, btnAdd, ulList) {
-                var self = this;
-                var self = this;
+            bindPatient: function () {
                 $('#txtPatient a span').html('Select Patient');
                 $("#txtPatient").select2({
                     ajax: {
@@ -747,10 +739,12 @@ define([
                         return repo.display_description;
                     }
                     var markup1 = "<table><tr>";
-                    if (repo.display_code != '')
+                    if (repo.display_code != '') {
                         markup1 += "<td title='" + repo.display_code + "(" + repo.display_description + ")" + "'><div>" + repo.display_code + "(" + repo.display_description + ")" + "</div>";
-                    else
+                    }
+                    else {
                         markup += "<td title='" + repo.display_code + repo.display_description + "'><div>" + repo.display_code + repo.display_description + "</div>";
+                    }
                     markup1 += "</td></tr></table>"
                     return markup1;
                 }
@@ -784,9 +778,7 @@ define([
 
             // Adjustment Code Auto Complete
 
-            adjustmentCodeAutoComplete: function (adjustmentMsg, btnAdd, ulList) {
-                var self = this;
-
+            adjustmentCodeAutoComplete: function () {
                 $("#txtAdjustmentCode").select2({
                     ajax: {
                         url: "/exa_modules/billing/autoCompleteRouter/adjustment_code",
@@ -857,7 +849,7 @@ define([
                         isFrom: 'reportAutoComplete',
                         company_id: app.companyID,
                     },
-                    success: function (data, response) {
+                    success: function (data) {
                         var serviceFacilityList = (data && data.length) ? data : [];
                         var $ddlOrderingFacilityFilter = $('#ddlOrderingFacilityFilter');
 

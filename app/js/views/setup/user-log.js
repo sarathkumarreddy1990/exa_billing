@@ -40,7 +40,7 @@ define([
                     custompager: new Pager(),
                     emptyMessage: commonjs.geti18NString("messages.status.noRecordFound"),
                     colNames: ['', '', '', '', '', '',''],
-                    i18nNames: ['', '', 'setup.common.user', 'setup.log.loggedDate_Grid' ,'setup.userLog.screenName','setup.userLog.clientIP', 'setup.log.logSource'],
+                    i18nNames: ['', '', 'setup.common.user', 'setup.auditLog.loggedDate_Grid' ,'setup.userLog.screenName','setup.userLog.clientIP', 'setup.log.logSource'],
                     colModel: [
                         {
                             name: 'id',

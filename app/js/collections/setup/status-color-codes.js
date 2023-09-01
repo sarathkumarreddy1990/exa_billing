@@ -1,4 +1,4 @@
-define(['backbone','models/setup/status-color-codes'], function (Backbone,statusColorCodesModel) {
+define(['backbone', 'models/setup/status-color-codes'], function (Backbone, statusColorCodesModel) {
 
     var statusColorCodesList = Backbone.Collection.extend({
         model: statusColorCodesModel,
