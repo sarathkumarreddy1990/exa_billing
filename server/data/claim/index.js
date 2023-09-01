@@ -685,7 +685,6 @@ module.exports = {
     },
 
     save: async function (params) {
-
         let {
             claims
             , insurances
@@ -711,8 +710,12 @@ module.exports = {
                 jsonb_array_elements(${JSON.stringify(claims)})::jsonb,
                 (${JSON.stringify(insurances)})::jsonb,
                 (${JSON.stringify(claim_icds)})::jsonb,
-                (${JSON.stringify(auditDetails)})::jsonb,
-                (${JSON.stringify(countryCodeName)})::jsonb
+                (${JSON.stringify(auditDetails)})::jsonb`)
+            .append(!is_alberta_billing && !is_ohip_billing
+                ? SQL`,
+                (${JSON.stringify(countryCodeName)})::jsonb`
+                : ``)
+            .append(`
             ) as result`);
 
         if (!is_alberta_billing && !is_ohip_billing) {
