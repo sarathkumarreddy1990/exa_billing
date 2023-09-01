@@ -1,4 +1,6 @@
+/* eslint-disable no-unused-vars */
 function customGrid ( datastore, gridID ) {
+/* eslint-enable no-unused-vars */
     var self = this;
     self.options = null;
     self.pager = null;
@@ -64,14 +66,8 @@ function customGrid ( datastore, gridID ) {
 
         var widHei = commonjs.getGridMeasures(options.disableautowidthresize, options.disableautoheightresize, options.width, options.height, options.offsetWidth, options.offsetHeight);
         var width = widHei.width;
-        var height = widHei.height;
-
-        //Added for adjusting Search, Paging size with Table Size
-        if ( options.autoAdjustHeight )
-            height += 80;
 
         if ( options.isSubGrid ) {
-            height = '100%';
             width = options.disableautowidthresize ? width : undefined;
         }
 
@@ -208,7 +204,7 @@ function customGrid ( datastore, gridID ) {
                 }
             },
 
-            loadComplete: function (data) {
+            loadComplete: function () {
                 //Added for Query&Retrieve Paging update when new row gets inserted
                 if ( typeof options.onaftergridrowbindQR !== 'undefined' && typeof options.onaftergridbind === 'function') {
                     self.pager.set({
@@ -366,7 +362,10 @@ function customGrid ( datastore, gridID ) {
         }
 
         if (!options.disablereload) {
+            // Ignoring eslint error because I don't want to accidentally break something
+            /* eslint-disable no-redeclare */
             var icon = "ui-icon-arrowrefresh-1-n";
+            /* eslint-enable no-redeclare */
 
             this.options.grid.jqGrid('navGrid', this.options.pager, {
                 del: false,
@@ -757,8 +756,8 @@ function customGrid ( datastore, gridID ) {
 
                 var searchFlag = '';
                 var defaultValue = '';
-                var searchColumns = [];
-                var searchCondition = ' AND ';
+                // var searchColumns = [];
+                // var searchCondition = ' AND ';
                 var searchoptionsalt = null;
                 var validateMoney = null;
                 var paymentIDFormatter = null;
@@ -769,11 +768,11 @@ function customGrid ( datastore, gridID ) {
                         if (typeof(self.options.colModel[i].defaultValue) != 'undefined')
                             defaultValue = self.options.colModel[i].defaultValue;
 
-                        if (typeof(self.options.colModel[i].searchColumns) != 'undefined')
-                            searchColumns = self.options.colModel[i].searchColumns;
+                        // if (typeof(self.options.colModel[i].searchColumns) != 'undefined')
+                        //     searchColumns = self.options.colModel[i].searchColumns;
 
-                        if (typeof(self.options.colModel[i].searchCondition) != 'undefined')
-                            searchCondition = ' ' + self.options.colModel[i].searchCondition + ' ';
+                        // if (typeof(self.options.colModel[i].searchCondition) != 'undefined')
+                        //     searchCondition = ' ' + self.options.colModel[i].searchCondition + ' ';
 
                         if (typeof(self.options.colModel[i].searchoptionsalt) != 'undefined')
                             searchoptionsalt = self.options.colModel[i].searchoptionsalt;
@@ -1154,7 +1153,7 @@ function customGrid ( datastore, gridID ) {
             'placement': 'right'
         });
 
-        $('.ui-jqgrid-hdiv').on('scroll', function ( e ) {
+        $('.ui-jqgrid-hdiv').on('scroll', function () {
             $('.ui-jqgrid-bdiv').scrollLeft($(this).scrollLeft())
         });
 

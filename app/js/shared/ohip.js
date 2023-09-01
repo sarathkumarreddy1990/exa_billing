@@ -1,6 +1,4 @@
-
-
-define(['backbone', 'underscore'], function (Backbone, _) {
+define([], function () {
 
     return {
         services: {

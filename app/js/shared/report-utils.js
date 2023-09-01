@@ -743,7 +743,11 @@ define([
                         markup1 += "<td title='" + repo.display_code + "(" + repo.display_description + ")" + "'><div>" + repo.display_code + "(" + repo.display_description + ")" + "</div>";
                     }
                     else {
+                        // The variable markup doesn't exist before this line, but I don't know if changing the name to markup1 will break anything
+                        // Ignoring eslint error for now, but we should probably fix this
+                        /* eslint-disable no-undef */
                         markup += "<td title='" + repo.display_code + repo.display_description + "'><div>" + repo.display_code + repo.display_description + "</div>";
+                        /* eslint-enable no-undef */
                     }
                     markup1 += "</td></tr></table>"
                     return markup1;

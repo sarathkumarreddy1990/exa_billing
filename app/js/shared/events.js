@@ -166,7 +166,7 @@ define('grid-events', [ 'jquery', 'underscore', './formatter', './change-grid' ]
             var data = model.toJSON();
             applyChanges(filter, model.id, model, model.changed);
             // Move QC changes to top of list
-            if ( model.changed.hasOwnProperty('dicom_status') && filter.options.filterid === 'PS' && data.dicom_status !== 'MM' && data.dicom_status !== 'CX' ) {
+            if ( _.has(model, 'changed.dicom_status') && filter.options.filterid === 'PS' && data.dicom_status !== 'MM' && data.dicom_status !== 'CX' ) {
                 var $tblGrid = filter.customGridTable || $(filter.options.gridelementid);
                 var $row = $tblGrid.find('#' + model.id).detach();
                 var $tbody = $tblGrid.children('tbody');
