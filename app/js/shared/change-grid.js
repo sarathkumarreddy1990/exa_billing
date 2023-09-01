@@ -4,12 +4,12 @@ define('change-grid', [
     'text!templates/contactIcon.html'
 ], function (
     jQuery,
-    ordering_facility_template,
-    ordFac_contact_template
+    ordering_facility_html,
+    ordFac_contact_html
     ) {
     var $ = jQuery;
-    var ordering_facility_template = _.template(ordering_facility_template);
-    var ordFac_contact_template = _.template(ordFac_contact_template);
+    var ordering_facility_template = _.template(ordering_facility_html);
+    var ordFac_contact_template = _.template(ordFac_contact_html);
     var dateFormatter = function ( value, data ) {
         return commonjs.checkNotEmpty(value) ?
                commonjs.convertToFacilityTimeZone(data.facility_id, value).format('L LT z') :

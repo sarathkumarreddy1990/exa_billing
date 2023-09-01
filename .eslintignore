@@ -17,11 +17,10 @@ dbManager.js
 
 # temporarily ignore files and directories that are not yet ready for linting
 /app/js/routes/**
-/app/js/shared/**
-# lots of errors here, so saving it for later
-/app/js/shared/common.js
-/app/js/templates/**
 /app/js/views/**
 /app/js/workers/**
 /app/js/main.js
-/app/js/app.js
+
+# lots of errors here, so saving it for later
+/app/js/shared/common.js
+/app/js/shared/grid.js
