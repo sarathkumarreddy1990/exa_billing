@@ -849,8 +849,9 @@ define([
             },
 
             bindOfDetails: function (res) {
-                var self = this,
-payer_type, coverage_level;
+                var self = this;
+                var payer_type;
+                var coverage_level;
                 self.payer_id = res.id;
                 self.ordering_facility_id = res.id;
                 self.payerCode = res.ordering_facility_code;
@@ -860,8 +861,8 @@ payer_type, coverage_level;
             },
 
             bindProviderDetails: function (res) {
-                var self = this,
-payer_typ;
+                var self = this;
+                var payer_typ;
                 self.payer_id = res.id;
                 self.provider_id = res.id;
                 self.payerCode = res.provider_code;
