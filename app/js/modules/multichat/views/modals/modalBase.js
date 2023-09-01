@@ -66,10 +66,10 @@ define(['jquery'
 
                 while (prototype) {
                     for (propertyName in properties) {
-                        if (properties.hasOwnProperty(propertyName) && prototype.hasOwnProperty(propertyName)) {
+                        if (_.has(properties, propertyName) && _.has(prototype, propertyName)) {
                             prototypeValue = _.result(prototype, propertyName);
                             extendMethod = properties[propertyName];
-                            if (!this.hasOwnProperty(propertyName)) {
+                            if (!_.has(this, propertyName)) {
                                 this[propertyName] = prototypeValue;
                             } else if (_.isFunction(extendMethod)) {
                                 extendMethod.call(this, propertyName, prototypeValue);

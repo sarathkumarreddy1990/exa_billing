@@ -108,7 +108,7 @@ define(['jquery'
                                 shiftEnter: {
                                     key: 13,
                                     shiftKey: true,
-                                    handler: function(range, context) {
+                                    handler: function(range) {
                                         this.quill.insertText(range.index, '\n');
                                         return false;
                                     }
@@ -149,7 +149,7 @@ define(['jquery'
 
                 this.quill.root.addEventListener("drop", dropHandler);
 
-                this.quill.on('text-change', function (delta, oldDelta, source) {
+                this.quill.on('text-change', function () {
                     self._messageValidation();
                 });
 
@@ -226,7 +226,7 @@ define(['jquery'
 
 // ======= Rendering of the messages ============================
 
-            _isSeparatorRequired: function(prevMessage, curMessage, idx) {
+            _isSeparatorRequired: function(prevMessage, curMessage) {
                 if (prevMessage == null) {
                     return true;
                 }
@@ -254,7 +254,7 @@ define(['jquery'
                 return true;
             },
 
-            _isTimestampOnTopOfMessageRequired: function(prevMessage, curMessage, idx) {
+            _isTimestampOnTopOfMessageRequired: function(prevMessage, curMessage) {
                 var minutesInDay = 1440;
                 var minutesWithoutTimestamp = 10;
 
@@ -385,12 +385,12 @@ define(['jquery'
                 }
             },
 
-            onMessagesUpdate: function(messages, event) {
+            onMessagesUpdate: function(messages) {
                 /* possible event types: (event.changes): added/removed/merged */
                 this._renderAllMessages(messages);
             },
 
-            onLoadEarlier: function(event) {
+            onLoadEarlier: function() {
                 this.model.get('messages').fetchBackward();
             },
 

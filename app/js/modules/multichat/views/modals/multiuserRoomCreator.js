@@ -34,7 +34,7 @@ define(['jquery'
                 this.constructor.__super__.initialize.call(this, options);
             },
 
-            addRoom: function(data) {
+            addRoom: function() {
                 var self = this;
                 var roomOptions = {
                     roomType: $('#js_chat-new__type').val(),
