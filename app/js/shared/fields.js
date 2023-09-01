@@ -56,7 +56,9 @@ define([ 'backbone', 'immutable', 'moment', 'shared/utils' ], function ( Backbon
 
         //Assemble array to be returned
         var sortedCasCodes = [];
+        /* eslint-disable no-redeclare */
         for (var i = 0; i < combinedArr.length; i++) {
+        /* eslint-enable no-redeclare */
             var combInd = combinedArr[i];
             for (var j = 0; j < app.cas_reason_codes.length; j++) {
                 var casIndCode = app.cas_reason_codes[j].code;
@@ -77,15 +79,11 @@ define([ 'backbone', 'immutable', 'moment', 'shared/utils' ], function ( Backbon
         var deliveryStatusValue = ':All;Sent:Sent;Pending:Pending';
         var statLevelValue = {};
         var alt_status = {};
-        var Collection = Backbone.Collection.extend({
-            model: Backbone.Model.extend({})
-        });
 
         var priorityValue = commonjs.makeValue(commonjs.bindArray(app.priorities, false), ":All;");
         var modalityValue = commonjs.makeValue(_.sortBy(app.modalities, 'modality_code'), ":All;", "modality_code", "modality_code");
 
         // filter inactive and no show study facilities
-        var facilities = [];
         var facilityValue = commonjs.makeValue(commonjs.getCurrentUsersFacilitiesFromAppSettings(), ":All;", "id", "facility_name");
         var bodyPartValue = commonjs.makeValue(commonjs.bindArray(app.bodyParts, false), ":All;");
         var insProviderTypeValue = commonjs.makeValue(app.insurance_provider_payer_types, ":All;", "description", "description");
@@ -101,7 +99,6 @@ define([ 'backbone', 'immutable', 'moment', 'shared/utils' ], function ( Backbon
         var placeOfService = commonjs.makeValue(app.places_of_service, ":All;", "id", "description");
         var vehicles = commonjs.makeValue(app.vehicles, ":All;", "id", "vehicle_name");
         var gender = commonjs.makeValue(commonjs.bindArray(app.gender, false), ":All;");
-        var isNoneExist = false;
         var orderingFacilityTypes = commonjs.makeValue(app.ordering_facility_types, ":All;", "description", "description");
         var claimAction = ':All;corrected_claim:Corrected claim;new_claim:New claim';
         var renderingProvider = commonjs.makeValue(app.rendering_provider, ":All;", "full_name", "full_name");
@@ -111,7 +108,6 @@ define([ 'backbone', 'immutable', 'moment', 'shared/utils' ], function ( Backbon
 
         for ( var i = 0; i < studyFlagArray.length; i++ ) {
             if ( studyFlagArray[ i ].description.toUpperCase() == 'NONE' ) {
-                isNoneExist = true;
                 break;
             }
         }
@@ -170,10 +166,6 @@ define([ 'backbone', 'immutable', 'moment', 'shared/utils' ], function ( Backbon
             }
         ];
 
-        var studyFlagValue = commonjs.makeValue(studyFlagArray, !isNoneExist ?
-                                                       ":All;None:None;" :
-                                                       ":All;", "id", "description");
-
         var studyFlagFormatter = function (cellvalue, options, rowObject) {
             var flag_design = [];
 
@@ -181,7 +173,7 @@ define([ 'backbone', 'immutable', 'moment', 'shared/utils' ], function ( Backbon
                 var flagList = rowObject.study_flags;
 
                 if (flagList && flagList.length) {
-                    flagList.forEach(function (flagId, index) {
+                    flagList.forEach(function (flagId) {
                         var flagDetails = _.find(app.studyflag, { 'id': parseInt(flagId) }) || {};
 
                         flag_design.push("<div title='" + flagDetails.description + "' data_id='" + flagDetails.id + "' style='text-align: center;  max-width: 100px; width: 24%; float: left; margin: 1px; overflow: inherit; border-radius: 10px; background:" + flagDetails.color_code + ";' >" + flagDetails.description + "</div>");
@@ -256,7 +248,7 @@ define([ 'backbone', 'immutable', 'moment', 'shared/utils' ], function ( Backbon
             return commonjs.checkNotEmpty(cellvalue) ?
             commonjs.convertToFacilityTimeZone(rowObject.facility_id, cellvalue).format('L') : '';
         };
-        var queuseStatusFormatter = function (cellvalue, options, rowObject) {
+        var queuseStatusFormatter = function (cellvalue) {
             if (!cellvalue) return '-';
             return app.report_queue_status[_.findIndex(app.report_queue_status, {code: cellvalue})] && app.report_queue_status[_.findIndex(app.report_queue_status, {code: cellvalue})].description;
         };
@@ -563,7 +555,7 @@ define([ 'backbone', 'immutable', 'moment', 'shared/utils' ], function ( Backbon
                             }
 
                             cellvalue = cellvalue.replace(/(?:\n)/g, '<br />');
-                            var regex = /<br\s*[\/]?>/gi;
+                            var regex = /<br\s*[/]?>/gi;
                             return cellvalue.replace(regex, "\n");
                         }
                     }
@@ -1186,35 +1178,6 @@ define([ 'backbone', 'immutable', 'moment', 'shared/utils' ], function ( Backbon
                     "width": 100,
                     "formatter": function ( cellvalue, options, data ) {
                         return data.patient_age || "";
-
-
-                        var birthDate = moment(data.birth_date, 'YYYY-MM-DD');
-                        var studyDate = data.ordered_dt ? data.ordered_dt.split('T')[0] : data.study_created_dt;
-                        studyDate = moment(studyDate, 'YYYY-MM-DD');
-
-                        // don't display negative ages.. (birth date is after study created date)
-                        var diff = studyDate.diff(birthDate);
-                        if (diff < 0) {
-                            return 0;
-                        }
-
-                        var duration = moment.duration(diff);
-                        var age = {
-                            asDays: Math.floor(duration.asDays()),
-                            asMonths: Math.floor(duration.asMonths()),
-                            asYears: Math.floor(duration.asYears())
-                        };
-
-                        // patient age dicom standard ftp://dicom.nema.org/medical/DICOM/2013/output/chtml/part05/sect_6.2.html
-                        if (age.asDays < 60) {
-                            return age.asDays + 'D';
-                        }
-
-                        if (age.asMonths < 36) {
-                            return age.asMonths + 'M';
-                        }
-
-                        return age.asYears + 'Y';
                     },
                     "defaultValue": "",
                     "hidden": false
@@ -1348,7 +1311,7 @@ define([ 'backbone', 'immutable', 'moment', 'shared/utils' ], function ( Backbon
                         }
                         return '';
                     },
-                    "cellattr": function ( id, cellvalue, rowObject ) {
+                    "cellattr": function ( id, cellvalue ) {
                         return 'style="background:' + (app.stat_level[ cellvalue ] && app.stat_level[ cellvalue ].color || 'transparent') + ';"';
                     },
                     "searchoptions": {
@@ -1435,7 +1398,7 @@ define([ 'backbone', 'immutable', 'moment', 'shared/utils' ], function ( Backbon
                         }
                         return '';
                     },
-                    "cellattr": function ( rowID, val, rowObject ) {
+                    "cellattr": function ( rowID, val ) {
                         if ( val ) {
                             return 'style="text-overflow:ellipsis;"';
                         }
@@ -1736,9 +1699,12 @@ define([ 'backbone', 'immutable', 'moment', 'shared/utils' ], function ( Backbon
                 "i18n_name": "setup.userSettings.tat",
                 "field_info": {
                     "custom_name": "TAT",
+                    // Ignoring the eslint error because I don't want to accidentally break whatever is going on here
+                    /* eslint-disable no-constant-condition */
                     "name": false ? "studies.study_created_dt" :
                             false ? "studies.study_received_dt" :
                             "tat_level",
+                    /* eslint-enable no-constant-condition */
                     "width": 150,
                     "formatter": function ( cellvalue, options, rowObject ) {
                         return commonjs.getTatValue(rowObject.tat_level);
@@ -1763,9 +1729,12 @@ define([ 'backbone', 'immutable', 'moment', 'shared/utils' ], function ( Backbon
                 "i18n_name": "setup.userSettings.status",
                 "field_info": {
                     "custom_name": "Status",
+                    // Ignoring the eslint error because I don't want to accidentally break whatever is going on here
+                    /* eslint-disable no-constant-condition */
                     "name": false ? "dicom_status" :
                             false ? "order_status" :
                             "study_status",
+                    /* eslint-enable no-constant-condition */
                     "width": 150,
                     "formatter": function ( cellvalue, options, rowObject ) {
                         var statusDetail = getStatus(rowObject);
@@ -2042,7 +2011,8 @@ define([ 'backbone', 'immutable', 'moment', 'shared/utils' ], function ( Backbon
                         "value": verifiedValue,
                         "tempvalue": verifiedValue
                     },
-                    "customAction": function ( rowID, e, that ) {
+                    "customAction": function () {
+                        // TODO: should this be e.stopPropagation()?
                         event.stopPropagation();
                     }
                 },
@@ -2058,7 +2028,7 @@ define([ 'backbone', 'immutable', 'moment', 'shared/utils' ], function ( Backbon
                     "width": 250,
                     "sortable": false,
                     "search": false,
-                    "cellattr": function ( rowID, val, rowObject ) {
+                    "cellattr": function ( rowID, val ) {
                         if ( val ) {
                             return 'style="text-overflow:ellipsis;"';
                         }
