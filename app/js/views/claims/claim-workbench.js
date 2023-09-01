@@ -432,7 +432,7 @@ define(['jquery',
                         columns: ["current_illness_date", "claim_dt", "followup_date", "birth_date", 'submitted_dt', 'first_statement_dt', 'created_dt', 'updated_date_time']
                     }
                 ];
-                var columnsToBind = _.find(drpTabColumnSet,function (val) {
+                var columnsToBind = _.find(drpTabColumnSet, function (val) {
                     return val.forTab === tabtype;
                 }).columns;
                 var drpOptions = { locale: { format: "L" } };
@@ -570,7 +570,12 @@ define(['jquery',
                 var filterID = commonjs.currentStudyFilter;
                 var filter = commonjs.loadedStudyFilters.get(filterID);
 
-                var claimIds = [], invoiceNo = [], existingBillingMethod = '', existingClearingHouse = '', existingEdiTemplate = '', selectedPayerName = [];
+                var claimIds = [];
+                var invoiceNo = [];
+                var existingBillingMethod = '';
+                var existingClearingHouse = '';
+                var existingEdiTemplate = '';
+                var selectedPayerName = [];
 
                 var isCheckedAll = $('#chkStudyHeader_' + filterID).prop('checked');
                 var data = {};
@@ -701,18 +706,18 @@ define(['jquery',
                         if (existingBillingMethod !== billingMethod && billingMethodFormat != "special_form") {
                             commonjs.showWarning('messages.status.pleaseSelectClaimsWithSameTypeOfBillingMethod');
                             return false;
-                        } else {
-                            existingBillingMethod = billingMethod;
                         }
+                        existingBillingMethod = billingMethod;
+
 
                         var clearingHouse =  self.getGridCellData(filter, rowId, 'hidden_clearing_house');
                         if (existingClearingHouse === '') existingClearingHouse = clearingHouse;
                         if (app.country_alpha_3_code !== "can" && existingClearingHouse !== clearingHouse && billingMethod === 'electronic_billing') {
                             commonjs.showWarning('messages.status.pleaseSelectClaimsWithSameTypeOfClearingHouseClaims');
                             return false;
-                        } else {
-                            existingClearingHouse = clearingHouse;
                         }
+                        existingClearingHouse = clearingHouse;
+
 
                         var payerName = self.getGridCellData(filter, rowId, 'hidden_payer_name');
                         selectedPayerName.push(payerName)
@@ -732,10 +737,10 @@ define(['jquery',
                         if (insuranceProviders.length === gridElement.length) {
                             paperClaim.print('special_form', claimIds, false);
                             return;
-                        } else {
-                            commonjs.showWarning(gridElement.length === 1 ? 'messages.status.pleaseSelectClaimHavingInsurance' : 'messages.status.pleaseSelectClaimsHavingInsurance');
-                            return false;
                         }
+                        commonjs.showWarning(gridElement.length === 1 ? 'messages.status.pleaseSelectClaimHavingInsurance' : 'messages.status.pleaseSelectClaimsHavingInsurance');
+                        return false;
+
                     }
 
                     if (existingBillingMethod === 'paper_claim') {
@@ -767,13 +772,13 @@ define(['jquery',
                                 invoiceNo: invoiceNo[0]
                             });
                             return;
-                        } else {
-                            paperClaim.print('direct_invoice', claimIds, false, {
-                                sortBy: sortBy,
-                                invoiceNo: invoiceNo[0]
-                            });
-                            return;
                         }
+                        paperClaim.print('direct_invoice', claimIds, false, {
+                            sortBy: sortBy,
+                            invoiceNo: invoiceNo[0]
+                        });
+                        return;
+
                     }
 
                     if (existingBillingMethod === 'patient_payment') {
@@ -1658,7 +1663,7 @@ define(['jquery',
                                 $('#chkclaimsHeader_' + filterID).prop('checked', false);
                                 self.setGridPager(filterID, gridObj, false);
                                 self.setClaimBalanceAndFeeDetails(filterID, gridObj);
-                                self.bindDateRangeOnSearchBox(gridObj, 'claims','claim_dt');
+                                self.bindDateRangeOnSearchBox(gridObj, 'claims', 'claim_dt');
                                 self.afterGridBindclaims(model, gridObj);
                                 commonjs.nextRowID = 0;
                                 commonjs.previousRowID = 0;
@@ -1759,7 +1764,7 @@ define(['jquery',
                                 flag: 'home_claims',
                                 filter_id: filterID,
                                 isExceedsMaxTime: filterID !== 'OD' && filterID !== 'PS' && filterID !== 'SU' && filterID !== 'QR',
-                                showdeletedstudies: (app.showdeletedstudies) ? true : false,
+                                showdeletedstudies: !!(app.showdeletedstudies),
                                 statusCode: filterObj.options.customargs && filterObj.options.customargs.statusCode ? filterObj.options.customargs.statusCode : [],
                                 isDicomSearch: filterObj.options.isDicomSearch,
                                 providercontact_ids: app.providercontact_ids,
@@ -1882,13 +1887,13 @@ define(['jquery',
                     self.disablePageControls();
                 }
 
-                $('input:checkbox[name=showDicom]').prop('checked', filter.options.isDicomSearch ? true : false);
-                $('input:checkbox[name=showRis]').prop('checked', filter.options.isRisOrderSearch ? true : false);
-                $('#showPreOrder').prop('checked', filter.options.isAuthorizationSearch ? true : false);
-                $('#showLeftPreOrder').prop('checked', filter.options.isAuthorizationExpSearch ? true : false)
-                $('#hdnShowEncOnly').attr('data-showEncOnly', filter.options.showEncOnly == "true" || filter.options.showEncOnly == true ? true : false);
-                $('#showOnlyPhyOrders').prop('checked', filter.options.showOnlyPhyOrders ? true : false)
-                $('#showOnlyOFOrders').prop('checked', filter.options.showOnlyOFOrders ? true : false)
+                $('input:checkbox[name=showDicom]').prop('checked', !!filter.options.isDicomSearch);
+                $('input:checkbox[name=showRis]').prop('checked', !!filter.options.isRisOrderSearch);
+                $('#showPreOrder').prop('checked', !!filter.options.isAuthorizationSearch);
+                $('#showLeftPreOrder').prop('checked', !!filter.options.isAuthorizationExpSearch)
+                $('#hdnShowEncOnly').attr('data-showEncOnly', !!(filter.options.showEncOnly == "true" || filter.options.showEncOnly == true));
+                $('#showOnlyPhyOrders').prop('checked', !!filter.options.showOnlyPhyOrders)
+                $('#showOnlyOFOrders').prop('checked', !!filter.options.showOnlyOFOrders)
 
                 commonjs.hideLoading();
                 $('#showDicomStudies').attr('disabled', false);
@@ -1971,7 +1976,8 @@ define(['jquery',
                 var curSelection = $('.tab-pane.active .ui-jqgrid-bdiv table tr.customRowSelect');
 
                 $('#btnClaimsRefresh, #btnClaimRefreshAll').prop('disabled', true);
-                var self = this, dicomwhere = "";
+                var self = this;
+                var dicomwhere = "";
                 if (isFromDatepicker && isFromDatepicker.target) {
                     if (isFromDatepicker.target.id == 'showQCApplyFilter') {
                         $('#showQCClearFilter').prop('checked', false);
@@ -2501,9 +2507,9 @@ define(['jquery',
                                 retVal = retVal.length ? '<table class="table table-bordered"><tbody>' + retVal + '</tbody></table>' : '';
                                 return retVal;
 
-                              } else {
-                                return '';
                               }
+                                return '';
+
                             }
                         },
                     ],
@@ -2535,7 +2541,7 @@ define(['jquery',
                             pager:  options.pager,
                             options: { filterid: options.filterID }
                         });
-                        self.bindDateRangeOnSearchBox(gridObj, 'claims','updated_date_time');
+                        self.bindDateRangeOnSearchBox(gridObj, 'claims', 'updated_date_time');
                         commonjs.setFilter(commonjs.currentStudyFilter, gridObj);
                     }
                 });
@@ -3050,7 +3056,7 @@ define(['jquery',
             applyFileManagement: function (fileId, paymentId) {
 
                 var $applyBtn = $('#file'+ fileId);
-                $applyBtn.prop('disabled',true);
+                $applyBtn.prop('disabled', true);
 
                 $.ajax({
                     url: "/exa_modules/billing/ohip/applyRemittanceAdvice",
@@ -3096,7 +3102,8 @@ define(['jquery',
             },
             scrolleventStudies1: function (filterid, divId, studyStatus) {
                 var self = this;
-                var divid = "#divClaimGrid" + filterid, scrolldiv = "";
+                var divid = "#divClaimGrid" + filterid;
+                var scrolldiv = "";
                 if ($(divid).find("#gview_tblClaimGrid" + filterid)) {
                     scrolldiv = $(divid).find("#gview_tblClaimGrid" + filterid).find(".ui-jqgrid-bdiv");
                 }
@@ -3136,7 +3143,7 @@ define(['jquery',
                     }
 
                     selectedClaimIds.push(rowId);
-                };
+                }
 
                 if (!selectedClaimIds.length) {
                     commonjs.showWarning(commonjs.geti18NString("messages.warning.claims.selectClaimToValidate"));

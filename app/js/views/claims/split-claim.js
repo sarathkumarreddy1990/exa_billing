@@ -150,8 +150,7 @@ define([
             validateMinimumCharge: function (e) {
                 if ($(e.target).is('.icon-ic-minus'))
                     return true
-                else
-                    return $('#divAllCPTList section cpt').length > 1;
+                return $('#divAllCPTList section cpt').length > 1;
             },
 
             splitClaim: function () {
@@ -198,10 +197,10 @@ define([
                         selectedStudy.find('.icon-ic-plus').click();
                         return false;
                     }
-                    else {
-                        selectedStudy.find('.icon-ic-minus').click()
-                        return false;
-                    }
+
+                    selectedStudy.find('.icon-ic-minus').click()
+                    return false;
+
                 }
             },
 

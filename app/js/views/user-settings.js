@@ -145,7 +145,7 @@ define([
                     var i18nLabel = field_order[i].i18n_name;
                     var newLi = $('<li>');
                     var newCB = CreateCheckBox(value, id, i18nLabel);
-                    var defaultOptions = ['Claim Created Dt', 'Billing Method', 'Patient Name', 'Claim Date', 'Clearing House', 'Billing Provider','Patient','Study Date','Account#','Status','Accession#', 'Billed Status','Payer Type','Claim Status','Claim No'];
+                    var defaultOptions = ['Claim Created Dt', 'Billing Method', 'Patient Name', 'Claim Date', 'Clearing House', 'Billing Provider', 'Patient', 'Study Date', 'Account#', 'Status', 'Accession#', 'Billed Status', 'Payer Type', 'Claim Status', 'Claim No'];
                     if ( app.billingRegionCode === 'can_AB' ) {
                         defaultOptions.push('AHS Claim Num');
                     }
@@ -307,11 +307,11 @@ define([
                         var defaultColumn = billingDisplayFieldsFlag ? result_data.default_column : defaultDisplayField && defaultDisplayField.field_code;
                         $('#ddlBillingDefaultColumns').val(defaultColumn);
                         $('#ddlBillingSortOrder').val(result_data.default_column_order_by);
-                        self.loadPrinterTemplates('ddlPaperClaimFullForm','paper_claim_full', result_data.paper_claim_full);
-                        self.loadPrinterTemplates('ddlPaperClaimOriginalForm','paper_claim_original', result_data.paper_claim_original);
-                        self.loadPrinterTemplates('ddlDirectInvoice','direct_invoice', result_data.direct_invoice);
-                        self.loadPrinterTemplates('ddlPatientInvoice','patient_invoice', result_data.patient_invoice);
-                        self.loadPrinterTemplates('ddlSpecialForm','special_form', result_data.special_form);
+                        self.loadPrinterTemplates('ddlPaperClaimFullForm', 'paper_claim_full', result_data.paper_claim_full);
+                        self.loadPrinterTemplates('ddlPaperClaimOriginalForm', 'paper_claim_original', result_data.paper_claim_original);
+                        self.loadPrinterTemplates('ddlDirectInvoice', 'direct_invoice', result_data.direct_invoice);
+                        self.loadPrinterTemplates('ddlPatientInvoice', 'patient_invoice', result_data.patient_invoice);
+                        self.loadPrinterTemplates('ddlSpecialForm', 'special_form', result_data.special_form);
 
                     },
                     error: function (err, response) {
@@ -321,7 +321,7 @@ define([
                 });
             },
 
-            loadPrinterTemplates : function(elID, templateType,templateValue) {
+            loadPrinterTemplates : function(elID, templateType, templateValue) {
                 var element = $('#' + elID);
                 var printerTemplats = app.printer_templates.filter(function(template) {
                     return template.template_type == templateType && template.is_active;
@@ -329,7 +329,7 @@ define([
 
                 if(printerTemplats && printerTemplats.length > 0) {
                     for(var i = 0; i < printerTemplats.length; i++) {
-                        element.append($('<option/>',{value:printerTemplats[i].id}).html(printerTemplats[i].name));
+                        element.append($('<option/>', {value:printerTemplats[i].id}).html(printerTemplats[i].name));
                     }
                 }
 

@@ -192,9 +192,9 @@ define(
                         self.fromBodyPartInitSelection = false;
                         return res.description;
                     }
-                    else {
-                        return res && res.text;
-                    }
+
+                    return res && res.text;
+
                 }
 
                 $(containerID).on('change', function (a, b) {
@@ -257,9 +257,9 @@ define(
                         self.fromOrientationInitSelection = false;
                         return res.description;
                     }
-                    else {
-                        return res && res.text;
-                    }
+
+                    return res && res.text;
+
                 }
 
                 $(containerID).on('change', function (a, b) {
@@ -321,9 +321,9 @@ define(
                         self.fromNOIInitSelection = false;
                         return res.description;
                     }
-                    else {
-                        return res && res.text;
-                    }
+
+                    return res && res.text;
+
                 }
 
                 $(containerID).on('change', function (a, b) {

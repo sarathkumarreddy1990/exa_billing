@@ -105,7 +105,7 @@ define([
                 var rFormat = btnClicked ? btnClicked.attr('data-rformat') : null;
                 var openInNewTab = btnClicked ? btnClicked.attr('id') === 'btnViewReportNewTabCreditEncounter' : false;
                 this.viewModel.reportFormat = rFormat;
-                this.viewModel.openInNewTab = (openInNewTab && rFormat === 'html') ? true : false;
+                this.viewModel.openInNewTab = !!((openInNewTab && rFormat === 'html'));
                 if (this.hasValidViewModel()) {
                     var urlParams = this.getReportParams();
                     UI.generateReport(this.viewModel.reportId, this.viewModel.reportCategory, this.viewModel.reportFormat, urlParams);

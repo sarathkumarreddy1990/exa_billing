@@ -438,7 +438,7 @@ define([
                 var deleteMessage = commonjs.geti18NString("messages.status.clickHereToDelete");
                 $('#tblStudyFilterGrid').show();
                 $('#divStudyFilterForm').hide();
-                $(this.el).html(this.studyFiltersGridTemplate({grid_filters:app.grid_filter,screenName:this.opener}));
+                $(this.el).html(this.studyFiltersGridTemplate({grid_filters:app.grid_filter, screenName:this.opener}));
                 if (self.opener == 'claims')
                     $('#ddlStudyDefaultTab').val(app.default_claim_tab);
                 else
@@ -565,7 +565,7 @@ define([
                 $('#modal_div_container').append(self.template);
                 $('#modal_div_container').show();
                 if (this.opener == "studies"){
-                    $('#ddlDatePreformatted option:contains("last 30 days")').prop("selected",true);
+                    $('#ddlDatePreformatted option:contains("last 30 days")').prop("selected", true);
                     $('#divTab').show();
                     self.bindInsuranceGroupAutocomplete('#listStudyInsuranceProvider', {
                         ddlElement: '#txtStudyInsuranceProviderName',
@@ -573,10 +573,10 @@ define([
                     });
                 }
                 else {
-                    $('#ddlDatePreformatted option:contains("last 90 days")').prop("selected",true);
+                    $('#ddlDatePreformatted option:contains("last 90 days")').prop("selected", true);
                     $("#claimFilter").show();
                     $("#divDateTime>table").appendTo("#divClaimDateTime");
-                    $("#divClaimDateTime>table").css({'height':'125px','margin-left': '3%'});
+                    $("#divClaimDateTime>table").css({'height':'125px', 'margin-left': '3%'});
                     self.bindInsuranceGroupAutocomplete('#listClaimInsuranceProvider', {
                         ddlElement: '#txtClaimInsuranceProviderName',
                         btnAddElement: '#btnAddClaimInsuranceProvider'
@@ -771,7 +771,7 @@ define([
 
                         if (select2_claimReferringProvider.text() === '') {
                             return false;
-                        };
+                        }
 
                         $('.claimDate').show();
 
@@ -795,7 +795,7 @@ define([
 
                         if (select2_claimReadingProvider.text() === '') {
                             return false;
-                        };
+                        }
 
                         $('.claimDate').show();
 
@@ -849,10 +849,10 @@ define([
                             if (response) {
                                 $('#txtFilterName').val(response.filter_name);
                                 $('#txtFilterOrder').val(response.filter_order);
-                                $('#chkIsActive').prop('checked', response.is_active ? false : true);
-                                $('#chkIsGlobalFilter').prop('checked', response.is_global_filter ? true : false);
-                                $('#chkDisplayAsTab').prop('checked', response.display_as_tab ? true : false);
-                                $('#chkDisplayAsDDL').prop('checked', response.display_in_ddl ? true : false);
+                                $('#chkIsActive').prop('checked', !response.is_active);
+                                $('#chkIsGlobalFilter').prop('checked', !!response.is_global_filter);
+                                $('#chkDisplayAsTab').prop('checked', !!response.display_as_tab);
+                                $('#chkDisplayAsDDL').prop('checked', !!response.display_in_ddl);
 
                                 var dateJson = response.filter_info.date;
                                 if (dateJson) {
@@ -979,7 +979,7 @@ define([
                                         if (!(studyInfoJson.study_description.condition == 'Contains')) {
                                             $("input:radio[name=StudyDescription][value=" + studyInfoJson.study_description.condition.replace('Contains', '') + "]").prop("checked", true);
                                         }
-                                        $('#chkContainsStudyDescription').prop('checked', studyInfoJson.study_description.condition.indexOf('Contains') >= 0 ? true : false);
+                                        $('#chkContainsStudyDescription').prop('checked', studyInfoJson.study_description.condition.indexOf('Contains') >= 0);
                                         $.each(studyInfoJson.study_description.list, function (index, studyDescriptionData) {
                                             if ($('#ulListStudyDescriptions a[data-id="' + studyDescriptionData.text + '"]').length === 0)
                                                 $('#ulListStudyDescriptions').append('<li><span>' + studyDescriptionData.text + '</span><a class="remove" data-id="' + studyDescriptionData.text + '" id="' + studyDescriptionData.text + '"><span class="icon-ic-close"></span></a></li>')
@@ -2204,7 +2204,7 @@ define([
                     setupList('listModality', app.modalities, 'modality_code');
                     setupList('listBodyPart', app.bodyParts);
                     setupList('listStat', app.stat_level.slice(1), 'description', 'level');
-                    setupList('listFlag', app.studyflag,'description');
+                    setupList('listFlag', app.studyflag, 'description');
                     setupList('listStatus', statusCodes, 'status_desc', 'status_code');
                     setupList('listVehicle', app.vehicles, 'vehicle_name');
                     setupList('listFacility', facilities, 'facility_name');
@@ -2279,7 +2279,8 @@ define([
 
             /** Method for providers autocomplete */
             setProviderAutoComplete: function(provider_type) {
-                var self = this, _id;
+                var self = this;
+                var _id;
 
                 if (provider_type == 'RF') {
                     _id = 'ddlClaimReferringProvider';

@@ -105,7 +105,7 @@ define(['jquery',
                 var openInNewTab = btnClicked ? btnClicked.attr('id') === 'btnViewReportNewTabAgedArDetails' : false;
                 this.excelExtended = btnClicked ? btnClicked.attr('id') === 'btnExcelReportExtended' : false;
                 this.viewModel.reportFormat = rFormat;
-                this.viewModel.openInNewTab = (openInNewTab && rFormat === 'html') ? true : false;
+                this.viewModel.openInNewTab = !!((openInNewTab && rFormat === 'html'));
                 this.viewModel.insuranceIds = $('ul#ulListInsurance li').map(function () {
                     return this.id;
                 }).get();

@@ -65,7 +65,7 @@ define([
                         $('#divTemlateList').empty();
                         if (self.templateFlag == 'edi') {
                             if (data && data.length > 0) {
-                                $('#dropdownMenuButton').addClass('dropdown-toggle').prop('disabled',false);
+                                $('#dropdownMenuButton').addClass('dropdown-toggle').prop('disabled', false);
                                 $('#btnCreateNewTemplate,#btnDeleteTemplate,#dropdownMenuButton').show();
                                 self.templateLists = data;
                                 for (var i = 0; i < data.length; i++) {
@@ -82,7 +82,7 @@ define([
                                     });
                                 }
                                 var ediTemplate = self.getTemplateFromLocalStroage('EDITEMPLATE');
-                                if(ediTemplate && !self.templateExists(ediTemplate,self.templateLists)) {
+                                if(ediTemplate && !self.templateExists(ediTemplate, self.templateLists)) {
                                     ediTemplate = null;
                                 }
                                 self.getEDITemplate(ediTemplate ? ediTemplate :self.templateLists[0]);
@@ -94,7 +94,7 @@ define([
                                 }
                             }
                         } else {
-                            $('#dropdownMenuButton').prop('disabled',true).removeClass('dropdown-toggle btn-secondary').addClass('btn-primary');
+                            $('#dropdownMenuButton').prop('disabled', true).removeClass('dropdown-toggle btn-secondary').addClass('btn-primary');
                             $('#btnDeleteTemplate').hide();
                             if (data && data.length > 0) {
                                 self.getEDITemplate(data[0]);

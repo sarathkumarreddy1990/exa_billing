@@ -186,7 +186,7 @@ define([
                     'allFacilities': this.viewModel.allFacilities ? this.viewModel.allFacilities : '',
                     'billingProvider': this.selectedBillingProList ? this.selectedBillingProList : [],
                     'allBillingProvider': this.viewModel.allBillingProvider ? this.viewModel.allBillingProvider : '',
-                    'billingProFlag': this.viewModel.allBillingProvider == 'true' ? true : false,
+                    'billingProFlag': this.viewModel.allBillingProvider == 'true',
                     'openInNewTab': this.viewModel.openInNewTab
                 };
             }

@@ -837,7 +837,7 @@ define(['jquery',
                             /* Bind chargeLineItems events - started*/
                             if(self.screenCode.indexOf('DCLM') > -1) {
                                 $('span[id^="spDeleteCharge"]').removeClass('removecharge');
-                                $('span[id^="spDeleteCharge"]').css('color','#DCDCDC');
+                                $('span[id^="spDeleteCharge"]').css('color', '#DCDCDC');
                             }
                             self.assignLineItemsEvents();
                             self.assignModifierEvent();
@@ -1130,19 +1130,19 @@ define(['jquery',
 
             createCptCodesUI: function(rowIndex) {
                 $('#divChargeCpt_' + rowIndex)
-                    .append($('<div/>', { id: "divCptCode_" + rowIndex }).addClass('pointerCursor select-container').attr('data-type','cpt')
-                        .append($('<lable/>', { id: "lblCptCode_" + rowIndex }).addClass('cptcode cptIsExists select-container-label').attr('data-type','cpt').html("Select")
+                    .append($('<div/>', { id: "divCptCode_" + rowIndex }).addClass('pointerCursor select-container').attr('data-type', 'cpt')
+                        .append($('<lable/>', { id: "lblCptCode_" + rowIndex }).addClass('cptcode cptIsExists select-container-label').attr('data-type', 'cpt').html("Select")
                                 .mousemove(function(e){
                                     var msg = $(e.target).attr('data_code');
-                                    $(e.target).attr('title',msg);
+                                    $(e.target).attr('title', msg);
                                 })));
 
                 $('#divChargeCptDesc_' + rowIndex)
-                    .append($('<div/>', { id: "divCptDescription_" + rowIndex }).addClass('pointerCursor select-container').attr('data-type','cptdesc')
-                        .append($('<lable/>', { id: "lblCptDescription_" + rowIndex }).addClass('cptcode cptIsExists select-container-label').attr('data-type','cptdesc').html("Select")
+                    .append($('<div/>', { id: "divCptDescription_" + rowIndex }).addClass('pointerCursor select-container').attr('data-type', 'cptdesc')
+                        .append($('<lable/>', { id: "lblCptDescription_" + rowIndex }).addClass('cptcode cptIsExists select-container-label').attr('data-type', 'cptdesc').html("Select")
                                 .mousemove(function(e){
                                     var msg = $(e.target).attr('data_description');
-                                    $(e.target).attr('title',msg);
+                                    $(e.target).attr('title', msg);
                                 })));
             },
 
@@ -1393,7 +1393,7 @@ define(['jquery',
                 if (claim_data.can_ahs_pay_to_code === 'RECP') {
                     $businessArrangement.prop('checked', false);
                     $businessArrangement.prop('disabled', true);
-                } 
+                }
 
                 /* Claim section end */
                 /* Additional info start*/
@@ -1498,7 +1498,7 @@ define(['jquery',
                     self.bindEditClaimInsuranceDetails(claim_data);
                     var responsibleIndex = _.find(self.responsible_list, function (item) { return item.payer_type_name == claim_data.payer_type; });
                     $('#ddlClaimResponsible').val(responsibleIndex.payer_type);
-                    $('#ddlClaimResponsible').data('current-payer',claim_data.payer_type);
+                    $('#ddlClaimResponsible').data('current-payer', claim_data.payer_type);
                     $('#ddlClaimStatus').val(claim_data.claim_status_id || '');
                     $('#ddlFrequencyCode').val(claim_data.frequency || '')
                     $('#ddlSubmissionCode').val(claim_data.can_submission_code_id || '');
@@ -1510,9 +1510,9 @@ define(['jquery',
                     var responsibleIndex = _.find(self.responsible_list, function (item) {
                         if (app.isMobileBillingEnabled && claim_data.billing_type == 'facility') {
                             return item.payer_type == 'POF';
-                        } else {
-                            return item.payer_type == 'PIP_P';
                         }
+                        return item.payer_type == 'PIP_P';
+
                     });
                     if (responsibleIndex && responsibleIndex.payer_id && responsibleIndex.payer_type) {
                         $('#ddlClaimResponsible').val(responsibleIndex.payer_type);
@@ -1792,7 +1792,7 @@ define(['jquery',
                     self.showZipPlus($('#txtPriZipPlus'), $('#ddlPriCountry').val());
 
                     // Append dynamic address details for canadian config
-                    self.bindAddressInfo('Pri',claimData,'p');
+                    self.bindAddressInfo('Pri', claimData, 'p');
                     document.querySelector('#txtPriDOB').value = claimData.p_subscriber_dob ? moment(claimData.p_subscriber_dob).format('L') : '';
                     document.querySelector('#txtPriStartDate').value = claimData.p_valid_from_date ? moment(claimData.p_valid_from_date).format('L') : '';
                     document.querySelector('#txtPriExpDate').value = claimData.p_valid_to_date ? moment(claimData.p_valid_to_date).format('L') : '';
@@ -1811,8 +1811,8 @@ define(['jquery',
                     self.SecInsName = claimData.s_insurance_name;
                     $('#select2-ddlSecInsurance-container').html(claimData.s_insurance_name);
                     $('#chkSecAcptAsmt').prop('checked', claimData.s_assign_benefits_to_patient);
-                    $('#chkSecMedicarePayer').prop('checked', claimData.s_medicare_insurance_type_code ? true : false);
-                    $('#selectMedicalPayer').toggle(claimData.s_medicare_insurance_type_code ? true : false);
+                    $('#chkSecMedicarePayer').prop('checked', !!claimData.s_medicare_insurance_type_code);
+                    $('#selectMedicalPayer').toggle(!!claimData.s_medicare_insurance_type_code);
                     $('#selectMedicalPayer').val(claimData.s_medicare_insurance_type_code);
                     $('#lblSecInsPriAddr').html(claimData.s_address1);
                     var sec_csz = $.grep([claimData.s_city, claimData.s_state, claimData.s_zip], Boolean).join(", ");
@@ -1843,7 +1843,7 @@ define(['jquery',
                         $('#ddlSecState').val(claimData.s_subscriber_state);
                     }
 
-                    self.bindAddressInfo('Sec',claimData,'s');
+                    self.bindAddressInfo('Sec', claimData, 's');
                     document.querySelector('#txtSecDOB').value = claimData.s_subscriber_dob ? moment(claimData.s_subscriber_dob).format('L') : '';
                     document.querySelector('#txtSecStartDate').value = claimData.s_valid_from_date ? moment(claimData.s_valid_from_date).format('L') : '';
                     document.querySelector('#txtSecExpDate').value = claimData.s_valid_to_date ? moment(claimData.s_valid_to_date).format('L') : '';
@@ -1891,7 +1891,7 @@ define(['jquery',
                         $('#ddlTerState').val(claimData.t_subscriber_state);
                     }
 
-                    self.bindAddressInfo('Ter',claimData,'t');
+                    self.bindAddressInfo('Ter', claimData, 't');
                     document.querySelector('#txtTerDOB').value = claimData.t_subscriber_dob ? moment(claimData.t_subscriber_dob).format('L') : '';
                     document.querySelector('#txtTerStartDate').value = claimData.t_valid_from_date ? moment(claimData.t_valid_from_date).format('L') : '';
                     document.querySelector('#txtTerExpDate').value = claimData.t_valid_to_date ? moment(claimData.t_valid_to_date).format('L') : '';
@@ -1926,7 +1926,7 @@ define(['jquery',
                 self.cur_patient_dob = primaryStudyDetails.patient_dob ? moment.utc(primaryStudyDetails.patient_dob).format('L') : null;
                 self.pri_accession_no = primaryStudyDetails.accession_no || null;
                 self.cur_study_id = primaryStudyDetails.study_id || null;
-                self.isEdit = self.claim_Id ? true : false;
+                self.isEdit = !!self.claim_Id;
                 self.facilityId = primaryStudyDetails.facility_id;
                 if (options) {
                     options.study_id = primaryStudyDetails.study_id || null;
@@ -2283,7 +2283,7 @@ define(['jquery',
                                 /* Bind chargeLineItems events - started*/
                                 if(self.screenCode.indexOf('DCLM') > -1) {
                                     $('span[id^="spDeleteCharge"]').removeClass('removecharge');
-                                    $('span[id^="spDeleteCharge"]').css('color','#DCDCDC');
+                                    $('span[id^="spDeleteCharge"]').css('color', '#DCDCDC');
                                 }
 
                                 self.assignLineItemsEvents();
@@ -2463,7 +2463,7 @@ define(['jquery',
                     }else{
                         $('#ddlPointer' + m + '_' + index).val(data['pointer' + m]);
                         // ToDo:: Once modifiers dropdown added have to bind
-                        $('#txtModifier' + m + '_' + index).val(data['modifier' + m +'_id'] ? self.getModifierCode(data['modifier' + m +'_id']) : null).attr('data-id',data['modifier' + m +'_id']);
+                        $('#txtModifier' + m + '_' + index).val(data['modifier' + m +'_id'] ? self.getModifierCode(data['modifier' + m +'_id']) : null).attr('data-id', data['modifier' + m +'_id']);
                     }
 
                 }
@@ -2508,12 +2508,12 @@ define(['jquery',
             createCPTSelectionUI: function(rowIndex, type) {
                 if(type == 'cpt') {
                     $('#divChargeCpt_' + rowIndex)
-                    .append($('<div/>',{id:'divSelCptCode_' + rowIndex})
-                    .append($('<select/>',{id:'txtCptCode_' + rowIndex})));
+                    .append($('<div/>', {id:'divSelCptCode_' + rowIndex})
+                    .append($('<select/>', {id:'txtCptCode_' + rowIndex})));
                 } else {
                     $('#divChargeCptDesc_' + rowIndex)
-                    .append($('<div/>',{id:'divSelCptDescription_' + rowIndex})
-                    .append($('<select/>',{id:'txtCptDescription_' + rowIndex})));
+                    .append($('<div/>', {id:'divSelCptDescription_' + rowIndex})
+                    .append($('<select/>', {id:'txtCptDescription_' + rowIndex})));
                 }
             },
 
@@ -2540,11 +2540,11 @@ define(['jquery',
                     })
                     .on("change", function (e) {
                         var _isFrom = $(e.target).hasClass('diagCodes') ? 'P' : 'M';
-                        self.checkInputModifiersValues(e, _isFrom,null,'change');
+                        self.checkInputModifiersValues(e, _isFrom, null, 'change');
                     })
                     .on("blur", function (e) {
                         var _isFrom = $(e.target).hasClass('diagCodes') ? 'P' : 'M';
-                        self.checkInputModifiersValues(e, _isFrom, null,'blur');
+                        self.checkInputModifiersValues(e, _isFrom, null, 'blur');
                         var content = $(e.target).val();
                         if(_isFrom == 'M') {
                             var validContent = app.modifiers.filter(function(modifier) {
@@ -2553,7 +2553,7 @@ define(['jquery',
                             if(validContent && validContent.length > 0) {
                                 $(e.target).attr('data-id', validContent[0].id);
                             } else {
-                                $(e.target).attr('data-id',null);
+                                $(e.target).attr('data-id', null);
                             }
                         }
                     });
@@ -2594,7 +2594,8 @@ define(['jquery',
                         }
                     } else {
                         var count = $('ul.icdTagList li').length;
-                        var _pointers = [], iterator = 1;
+                        var _pointers = [];
+                        var iterator = 1;
                         jQuery.grep($('.diagCodes'), function (value) {
                             count = count ? count : self.icdCodeListLength;
                             var val = $(value).val() ? $(value).val() : 0;
@@ -2644,7 +2645,7 @@ define(['jquery',
 
                     var dataContent = $(e.target).val();
                     var modifierLevel = $(e.target).attr('data-type');
-                    modifierLevel = modifierLevel.replace('M','modifier');
+                    modifierLevel = modifierLevel.replace('M', 'modifier');
                     var existData = [];
                     if (dataContent != '') {
                         var existData = jQuery.grep(app.modifiers, function (value) {
@@ -2678,7 +2679,7 @@ define(['jquery',
 
             createModifierDropDown: function(e, existData) {
                 $('#divModifierList').remove();
-                $(e.target).parent().append($('<div/>' , {id:'divModifierList'}));
+                $(e.target).parent().append($('<div/>', {id:'divModifierList'}));
                 var divModifierList = $('#divModifierList');
                 divModifierList.empty();
                 var modifierEl = $('<div/>').addClass('dropdown-menu');
@@ -2687,7 +2688,7 @@ define(['jquery',
                      modifierEl
                         .append($('<div/>').addClass('dropdown-item').hover(function() {
                             $(this).css({'background-color':'#337ab7'});
-                        },function(){
+                        }, function(){
                             $(this).css({'background-color':'transparent'});
                         })
                         .mousedown(function(event) {
@@ -2701,7 +2702,7 @@ define(['jquery',
                 var top = $(e.target).offset().top + $(e.target).outerHeight();
                 var left = $(e.target).offset().left
                 divModifierList.css({'position':'relative', 'display':'block'});
-                modifierEl.css({'display':'block','z-index':'10001'});
+                modifierEl.css({'display':'block', 'z-index':'10001'});
             },
 
             assignLineItemsEvents: function () {
@@ -2869,12 +2870,15 @@ define(['jquery',
             },
 
             updateResponsibleList: function (payer_details, paymentDetails) {
-                var self = this, index, responsibleEle, selected_opt;
+                var self = this;
+                var index;
+                var responsibleEle;
+                var selected_opt;
                 var paymentPayerEle = $('#tBodyPayment tr').find("[id^=ddlPayerName]").filter(':input:enabled');
                 // Inner function used to create dynamic options;
                 function getOption (obj){
                     return $('<option/>').attr('value', obj.payer_type).text(obj.payer_name);
-                };
+                }
 
                 if (!paymentDetails) {
                     index = _.findIndex(self.responsible_list, function (item) { return item.payer_type == payer_details.payer_type; });
@@ -2959,7 +2963,7 @@ define(['jquery',
                         markup += "</td></tr></table>"
                         return markup;
                     }
-                    else {
+
                         var markup1 = "<table><tr class='inActiveRow'>";
                         if (repo.display_code != '')
                             markup1 += "<td title='" + repo.display_code + "(" + repo.display_description + ")" + "'><div>" + repo.display_code + "(" + repo.display_description + ")" + "</div>";
@@ -2967,10 +2971,10 @@ define(['jquery',
                             markup += "<td title='" + repo.display_code + repo.display_description + "'><div>" + repo.display_code + repo.display_description + "</div>";
                         markup1 += "</td></tr></table>"
                         return markup1;
-                    }
+
                 }
                 $('#' + id).select2('open');
-                $('#' + id).on('select2:selecting',function(e) {
+                $('#' + id).on('select2:selecting', function(e) {
                     var res = e.params.args.data;
                      if (res.id) {
                         var duration = (res.duration > 0) ? res.duration : 15;
@@ -2982,7 +2986,7 @@ define(['jquery',
                              self.chargeModel[rowIndex].cpt_id = res.id;
                          }
 
-                        if(self.isCptAlreadyExists(res.id,rowIndex)) {
+                        if(self.isCptAlreadyExists(res.id, rowIndex)) {
                             var msg = commonjs.geti18NString("messages.confirm.billing.duplicateCode")
                             if(confirm(msg)) {
                                 self.setCptValues(rowIndex, res, duration, units, fee, type);
@@ -2998,7 +3002,7 @@ define(['jquery',
                 });
             },
 
-            isCptAlreadyExists: function(cptID,rowID) {
+            isCptAlreadyExists: function(cptID, rowID) {
                 var isExists = false;
                  $('#tBodyCharge').find('tr').each(function (index, rowObject) {
                     var id = $(this).attr('data_row_id');
@@ -3059,7 +3063,8 @@ define(['jquery',
             },
 
             setProviderAutoComplete: function (provider_type) {
-                var self = this, _id;
+                var self = this;
+                var _id;
 
                 if (provider_type == 'PR') {
                     _id = 'ddlRenderingProvider';
@@ -3108,14 +3113,14 @@ define(['jquery',
                         markup1 += "</td></tr></table>";
                         return markup1;
                     }
-                    else {
+
                         var markup = "<table class='ref-result' style='width: 100%'><tr>";
                         markup += "<td><div><b>" + repo.full_name + "</b><b>" + '(' + repo.provider_code + ') ' + repo.npi_no + "</b></div>";
                         markup += "<div>" + (contactInfo.ADDR1 == undefined ? "" : contactInfo.ADDR1) + ", " + (contactInfo.ADDR2 == undefined ? "" : contactInfo.ADDR2) + "</div>";
                         markup += "<div>" + (contactInfo.CITY == undefined ? "" : contactInfo.CITY) + ", " + contactInfo.STATE + (contactInfo.ZIP == undefined ? "" : ", " + contactInfo.ZIP) + (contactInfo.MOBNO == undefined ? "" : ", " + contactInfo.MOBNO) + "</div>";
                         markup += "</td></tr></table>"
                         return markup;
-                    }
+
                 }
                 function formatRepoSelection(res) {
                     if (provider_type == 'PR') {
@@ -3775,7 +3780,9 @@ define(['jquery',
                 }
             },
             bindInsurance: function (element_id, res) {
-                var self = this, payer_type, coverage_level;
+                var self = this;
+                var payer_type;
+                var coverage_level;
                 switch (element_id) {
                     case 'ddlPriInsurance':
                         self.priInsID = res.id;
@@ -3893,7 +3900,8 @@ define(['jquery',
             },
 
             bindExistInsurance: function (result, coverageLevel) {
-                var self = this, flag;
+                var self = this;
+                var flag;
                 if (result) {
                     switch (coverageLevel) {
                         case 'primary':
@@ -4001,7 +4009,7 @@ define(['jquery',
                     this.bindCityStateZipTemplate(result, AddressInfoMap, flag);
 
                     if(result.coverage_level == "secondary" && result.medicare_insurance_type_code != null) {
-                        $('#chkSecMedicarePayer').prop('checked',true);
+                        $('#chkSecMedicarePayer').prop('checked', true);
                         $('#selectMedicalPayer').val(result.medicare_insurance_type_code).toggle(true);
                     }
                     setTimeout(function () {
@@ -4077,7 +4085,8 @@ define(['jquery',
 
             setClaimDetails: function () {
                 var self = this;
-                var claim_model = {}, billingMethod;
+                var claim_model = {};
+                var billingMethod;
                 claim_model.insurances = [];
                 var isUpdatePatientInfo = false;
                 var currentResponsible = _.find(self.responsible_list, function(d) { return d.payer_type == $('#ddlClaimResponsible').val(); });
@@ -4143,7 +4152,7 @@ define(['jquery',
                     medicare_insurance_type_code: null,
                     valid_from_date: $('#txtPriStartDate').val() != '' ? commonjs.getISODateString($('#txtPriStartDate').val()) : null,
                     valid_to_date: $('#txtPriExpDate').val() != '' ? commonjs.getISODateString($('#txtPriExpDate').val()) :null,
-                    is_deleted: self.priClaimInsID && self.priInsID == '' ? true : false,
+                    is_deleted: !!(self.priClaimInsID && self.priInsID == ''),
                     is_new: !self.priClaimInsID ? !(self.primaryPatientInsuranceId) : false,
                     is_update_patient_info: isUpdatePatientInfo
                 },
@@ -4173,7 +4182,7 @@ define(['jquery',
                     medicare_insurance_type_code: $('#selectMedicalPayer option:selected').val() != '' ? parseInt($('#selectMedicalPayer option:selected').val()) : null,
                     valid_from_date: $('#txtSecStartDate').val() != '' ? commonjs.getISODateString($('#txtSecStartDate').val()) : null,
                     valid_to_date: $('#txtSecExpDate').val() != '' ? commonjs.getISODateString($('#txtSecExpDate').val()) : null,
-                    is_deleted: self.secClaimInsID && self.secInsID == '' ? true : false,
+                    is_deleted: !!(self.secClaimInsID && self.secInsID == ''),
                     is_new: !self.secClaimInsID ? !(self.secondaryPatientInsuranceId) : false,
                     is_update_patient_info: false
                 },
@@ -4203,7 +4212,7 @@ define(['jquery',
                     medicare_insurance_type_code: null,
                     valid_from_date: $('#txtTerStartDate').val() != '' ? commonjs.getISODateString($('#txtTerStartDate').val()) : null,
                     valid_to_date: $('#txtTerExpDate').val() != '' ? commonjs.getISODateString($('#txtTerExpDate').val()) : null,
-                    is_deleted: self.terClaimInsID && self.terInsID == '' ? true : false,
+                    is_deleted: !!(self.terClaimInsID && self.terInsID == ''),
                     is_new: !self.terClaimInsID ? !(self.tertiaryPatientInsuranceId) : false,
                     is_update_patient_info: false
                 }
@@ -4429,7 +4438,9 @@ define(['jquery',
             },
 
             saveClaimDetails: function () {
-                var self = this, saveButton = $('#btnSaveClaim'), $claimProcess = $('.claimProcess');
+                var self = this;
+                var saveButton = $('#btnSaveClaim');
+                var $claimProcess = $('.claimProcess');
 
                 var currentFilter = commonjs.studyFilters.find(function (filter) {
                     return filter.filter_id == commonjs.currentStudyFilter;
@@ -4592,7 +4603,7 @@ define(['jquery',
             },
 
             /**
-             * Validates insurance to ensure that the user didn't enter the same carrier and policy number for multiple 
+             * Validates insurance to ensure that the user didn't enter the same carrier and policy number for multiple
              * coverage levels (ie. entered the same policy for both primary and secondary coverage)
              *
              * @returns {boolean}
@@ -4829,29 +4840,29 @@ define(['jquery',
                         commonjs.showWarning("messages.warning.claims.priMissingValidation");
                         return false;
                     }
-                    else {
 
-                        if (mandatory_fields.secondaryfields.indexOf('') > -1 || mandatory_fields.secondaryfields.indexOf(null) > -1) {
-                            commonjs.showWarning(mandatory_fields.secondaryfieldObjs[mandatory_fields.secondaryfields.indexOf('')].msg);
-                            mandatory_fields.secondaryfieldObjs[mandatory_fields.secondaryfields.indexOf('')].obj.focus();
-                            // commonjs.showWarning("messages.warning.shared.secInsValidation");
-                            return false;
-                        }
-                        if (!commonjs.validateFutureDate(commonjs.getISODateString($('#txtSecDOB').val()))) {
-                            $("#txtSecDOB").focus();
-                            commonjs.showWarning('messages.warning.shared.entervaliddob');
-                            return false;
-                        }
-                        if ( txtSecPolicyNo && self.secInsID > 0 ) {
-                            var secondaryExists = self.checkForExistingInsurance(txtSecPolicyNo, self.secInsID, self.secClaimInsID, "secondary");
-                            if ( secondaryExists ) {
-                                commonjs.showWarning('messages.warning.existsInsurance');
-                                $('#txtSecPolicyNo').focus();
-                                return false;
-                            }
-                        }
-                        self.is_secondary_available = true;
+
+                    if (mandatory_fields.secondaryfields.indexOf('') > -1 || mandatory_fields.secondaryfields.indexOf(null) > -1) {
+                        commonjs.showWarning(mandatory_fields.secondaryfieldObjs[mandatory_fields.secondaryfields.indexOf('')].msg);
+                        mandatory_fields.secondaryfieldObjs[mandatory_fields.secondaryfields.indexOf('')].obj.focus();
+                        // commonjs.showWarning("messages.warning.shared.secInsValidation");
+                        return false;
                     }
+                    if (!commonjs.validateFutureDate(commonjs.getISODateString($('#txtSecDOB').val()))) {
+                        $("#txtSecDOB").focus();
+                        commonjs.showWarning('messages.warning.shared.entervaliddob');
+                        return false;
+                    }
+                    if ( txtSecPolicyNo && self.secInsID > 0 ) {
+                        var secondaryExists = self.checkForExistingInsurance(txtSecPolicyNo, self.secInsID, self.secClaimInsID, "secondary");
+                        if ( secondaryExists ) {
+                            commonjs.showWarning('messages.warning.existsInsurance');
+                            $('#txtSecPolicyNo').focus();
+                            return false;
+                        }
+                    }
+                    self.is_secondary_available = true;
+
                 }
                 if (app.country_alpha_3_code !== 'can' && (self.terInsID || !mandatory_fields.tertiaryfields.every(checkEmpty))) {
                     if (!self.secInsID) {
@@ -4859,7 +4870,7 @@ define(['jquery',
                         commonjs.showWarning("messages.warning.claims.secMissingValidation");
                         return false;
                     }
-                    else {
+
 
                         if (mandatory_fields.tertiaryfields.indexOf('') > -1 || mandatory_fields.tertiaryfields.indexOf(null) > -1) {
 
@@ -4882,7 +4893,7 @@ define(['jquery',
                             }
                         }
                         self.is_tertiary_available = true;
-                    }
+
                 }
 
                 if (!self.validateInsuranceDuplication()) {
@@ -5022,11 +5033,9 @@ define(['jquery',
                 if (self.hcf.date() || self.hct.date()) {
                     if (!self.validateFromAndToDate(self.hcf, self.hct))
                         return false;
-                    else
-                        return true;
-                }
-                else
                     return true;
+                }
+                return true;
 
             },
 
@@ -5104,7 +5113,7 @@ define(['jquery',
             // Pay-to Code changed
             changePayToCode: function (val) {
                 var $businessArrangement = $('input[name="BusinessArrangement"]');
-                
+
                 if (val === 'RECP') {
                     $businessArrangement.prop('checked', false);
                     $businessArrangement.prop('disabled', true);
@@ -5196,14 +5205,16 @@ define(['jquery',
                 if (chkaddress1 == '' && chkaddress2 == '' && chkcity == '' && (chkstate == '' || chkstate == '0') && chkzipcode == '') {
                     return false;
                 }
-                else {
-                    return true;
-                }
+
+                return true;
+
             },
 
             resetInsurances: function (e) {
 
-                var self = this, flag, payer_type;
+                var self = this;
+                var flag;
+                var payer_type;
                 var id = e.target.id;
 
                 if (id == 'btnResetPriInsurance') {
@@ -5427,7 +5438,8 @@ define(['jquery',
             },
 
             processClaim: function (e) {
-                var self = this, currentRowID;
+                var self = this;
+                var currentRowID;
                 var $tblGrid = self.options.grid_id || null;
                 var parentGrid = $($tblGrid, parent.document);
                 self.isInitialLoaded = true;
@@ -5922,7 +5934,7 @@ define(['jquery',
                                 $studyDetails.append($list);
                                 $studyDetails.show();
 
-                                $studyDetails.append($('<button/>').attr({'type':'button','i18n': 'billing.fileInsurance.withStudy','id':'btnClaimWStudy'}).addClass('btn top-buffer processClaim mr-2').css('height','33px'));
+                                $studyDetails.append($('<button/>').attr({'type':'button', 'i18n': 'billing.fileInsurance.withStudy', 'id':'btnClaimWStudy'}).addClass('btn top-buffer processClaim mr-2').css('height', '33px'));
                                 $studyDetails.append('<button style="height:33px;" type="button" i18n="billing.fileInsurance.createWithoutStudy" class="btn top-buffer processClaim" id="btnClaimWOStudy"></button>');
                                 commonjs.updateCulture(app.currentCulture, commonjs.beautifyMe);
 
@@ -6317,8 +6329,7 @@ define(['jquery',
 
                 var _isCurrentResponsible = id == 'btnResetPriInsurance' && _currentPayerType == 'primary_insurance' ? true
                     : id == 'btnResetSecInsurance' && _currentPayerType == 'secondary_insurance' ? true
-                        : id == 'btnResetTerInsurance' && _currentPayerType == 'tertiary_insurance' ? true
-                            : false;
+                        : !!(id == 'btnResetTerInsurance' && _currentPayerType == 'tertiary_insurance');
                 var _payerType = id == 'btnResetPriInsurance' ? 'primary_insurance'
                     : id == 'btnResetSecInsurance' ? 'secondary_insurance'
                         : 'tertiary_insurance';
@@ -6506,7 +6517,7 @@ define(['jquery',
                     }
 
                     var _payerIndex = _.find(self.responsible_list, function (item) { return item.payer_type == $.trim($('#ddlPayerName_' + rowID).val()); });
-                        _payerIndex = _payerIndex || {};;
+                        _payerIndex = _payerIndex || {};
                     var dataParams = {
                         paymentID: paymentID,
                         isFromClaim: true,
@@ -6753,9 +6764,9 @@ define(['jquery',
                     var responsibleIndex = _.findIndex(self.responsible_list, function (item) {
                         if(obj.payer_info.payer_type_name === 'insurance' && ['primary_insurance', 'secondary_insurance', 'tertiary_insurance'].indexOf(item.payer_type_name) > -1){
                             return item.payer_id == obj.payer_info.payer_id;
-                        } else {
-                            return item.payer_id == obj.payer_info.payer_id && item.payer_type_name === obj.payer_info.payer_type_name;
                         }
+                            return item.payer_id == obj.payer_info.payer_id && item.payer_type_name === obj.payer_info.payer_type_name;
+
                     })
 
                     if (dtp) {
@@ -6803,7 +6814,7 @@ define(['jquery',
 
                 commonjs.updateCulture(app.currentCulture, commonjs.beautifyMe);
             },
-            bindCityStateZipTemplate:function(data,AddressInfoMap, flag){
+            bindCityStateZipTemplate:function(data, AddressInfoMap, flag){
                 address.bindCountrySelectToCityStateZip('#div' + flag + 'AddressInfo', data, AddressInfoMap);
             },
             checkHealthNumberEligiblity: function () {

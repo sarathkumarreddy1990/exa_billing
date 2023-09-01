@@ -129,7 +129,7 @@ define([
                 var rFormat = btnClicked ? btnClicked.attr('data-rformat') : null;
                 var openInNewTab = btnClicked ? btnClicked.attr('id') === 'btnViewReportNewTabClaimActivity' : false;
                 this.viewModel.reportFormat = rFormat;
-                this.viewModel.openInNewTab = (openInNewTab && rFormat === 'html') ? true : false;
+                this.viewModel.openInNewTab = !!((openInNewTab && rFormat === 'html'));
                 if (this.hasValidViewModel()) {
                     var urlParams = this.getReportParams();
                     UI.generateReport(this.viewModel.reportId, this.viewModel.reportCategory, this.viewModel.reportFormat, urlParams);
@@ -160,7 +160,7 @@ define([
                     'toDate': this.viewModel.dateTo.format('YYYY-MM-DD'),
                     'billingProvider': this.selectedBillingProList ? this.selectedBillingProList : [],
                     'allBillingProvider': this.viewModel.allBillingProvider ? this.viewModel.allBillingProvider : '',
-                    'billingProFlag': this.viewModel.allBillingProvider == 'true' ? true : false,
+                    'billingProFlag': this.viewModel.allBillingProvider == 'true',
                     'openInNewTab': this.viewModel.openInNewTab
                 }
                 return urlParams;
