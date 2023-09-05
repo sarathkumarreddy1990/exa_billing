@@ -1361,7 +1361,7 @@ var commonjs = {
 
         switch (err.status || response.status) {
             case 0:
-                commonjs.showError('messages.errors.notconnected');
+                commonjs.hideLoading();
                 break;
 
             case 404:
