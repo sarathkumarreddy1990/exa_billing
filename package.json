@@ -14,7 +14,7 @@
         "start-production": "node ./bin/www-cluster",
         "test": "mocha --recursive test/unit",
         "ci": "npm ci && npm ci --prefix ./app",
-        "prepare": "husky install"
+        "prepare": "cd .. && husky install template/.husky"
     },
     "dependencies": {
         "bluebird": "^3.5.5",
