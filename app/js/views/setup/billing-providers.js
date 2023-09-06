@@ -765,10 +765,11 @@ define(['jquery',
             },
 
             checkExist: function () {
-                var self = this, 
-id = [], 
-idarray = [];
+                var self = this;
+                var id = [];
+                var idarray = [];
                 var provider_id = (self.editProviderIDCodeData && self.editProviderIDCodeData.id) || '';
+
                 $.each($("#tblProviderIDCodesGrid tr"), function () {
                     if ($(this).hasClass('ui-widget-content'))
                         if (this.id != provider_id)
