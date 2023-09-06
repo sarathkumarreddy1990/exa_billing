@@ -78,8 +78,8 @@ define([
                     gridelementid: '#tblEOBFileList',
                     custompager: this.pager,
                     emptyMessage: commonjs.geti18NString("messages.status.noRecordFound"),
-                    colNames: ['', '', '', '', 'Id', 'Payment Id','File Name', 'Size', 'File Updated Date/Time', 'Status'],
-                    i18nNames: ['', '', '', '', 'shared.fields.id', 'shared.fields.paymentId','shared.fields.fileName', 'shared.fields.size', 'shared.fields.fileUpdatedDateTime', 'shared.fields.status'],
+                    colNames: ['', '', '', '', 'Id', 'Payment Id', 'File Name', 'Size', 'File Updated Date/Time', 'Status'],
+                    i18nNames: ['', '', '', '', 'shared.fields.id', 'shared.fields.paymentId', 'shared.fields.fileName', 'shared.fields.size', 'shared.fields.fileUpdatedDateTime', 'shared.fields.status'],
                     colModel: [
                         { name: 'file_store_id', hidden: true, searchFlag: '%', search: false },
                         {
@@ -160,7 +160,7 @@ define([
                             edittype: 'select', editoptions: { value: self.eobStatus },
                             cellattr: function (rowId, value, rowObject, colModel, arrData) {
                                 return 'style=text-transform: capitalize;'
-                            },formatter: function (cellvalue, options, rowObject) {
+                            }, formatter: function (cellvalue, options, rowObject) {
                                 return self.eobStatusFormatter(cellvalue, options, rowObject);
                             }
                         }
@@ -575,11 +575,11 @@ define([
                     fileUploadedObj.innerHTML = '';
                     fileStoreExist.innerHTML = '';
                     return false;
-                } else {
+                } 
                     this.pager.set({ "PageNo": 1 });
                     $('.ui-jqgrid-htable:visible').find('input, select').val('');
                     this.eobFilesTable.refreshAll();
-                }
+                
             },
 
             showEraPreview: function (fileName) {

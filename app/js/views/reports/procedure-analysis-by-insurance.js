@@ -31,7 +31,7 @@ function ($, _, Backbone, UI, MainTemplate) {
             allBillingProvider: false,
             cptCodeList: null,
             insuranceOption: null,
-            referringDocList: null ,
+            referringDocList: null,
             allRefProList: false,
             refProviderGroupList : null,
             payerTypeList: null
@@ -200,7 +200,7 @@ function ($, _, Backbone, UI, MainTemplate) {
             }).get();
 
             this.viewModel.reportFormat = rFormat;
-            this.viewModel.openInNewTab = (openInNewTab && rFormat === 'html') ? true : false;
+            this.viewModel.openInNewTab = !!((openInNewTab && rFormat === 'html'));
             if (this.hasValidViewModel()) {
                 var urlParams = this.getReportParams();
                 UI.generateReport(this.viewModel.reportId, this.viewModel.reportCategory, this.viewModel.reportFormat, urlParams);
@@ -460,7 +460,7 @@ function ($, _, Backbone, UI, MainTemplate) {
             var urlParams = {
                 'dateFormat': this.viewModel.dateFormat,
                 'country_alpha_3_code': this.viewModel.country_alpha_3_code,
-                'allFacilities': this.viewModel.allFacilities ? this.viewModel.allFacilities : 'false' ,
+                'allFacilities': this.viewModel.allFacilities ? this.viewModel.allFacilities : 'false',
                 'facilityIds': this.selectedFacilityList ? this.selectedFacilityList : [],
                 'fromDate': this.viewModel.dateFrom.format('YYYY-MM-DD'),
                 'toDate': this.viewModel.dateTo.format('YYYY-MM-DD'),
@@ -469,10 +469,10 @@ function ($, _, Backbone, UI, MainTemplate) {
                 'billingProvider': this.selectedBillingProList ? this.selectedBillingProList : [],
                 'allBillingProvider': this.viewModel.allBillingProvider ? this.viewModel.allBillingProvider : 'false',
                 'referringDocList': this.viewModel.referringDocList ? this.viewModel.referringDocList : [],
-                'refProviderGroupList': this.viewModel.refProviderGroupList ? this.viewModel.refProviderGroupList : [] ,
-                'payerTypeList': this.viewModel.payerTypeList || [] ,
-                'allRefProList': this.viewModel.allRefProList  ? true : false,
-                'refProviderFlag': $('#ddlProcedureBySelectBoxes').val() == 'refPro' ? true : false,
+                'refProviderGroupList': this.viewModel.refProviderGroupList ? this.viewModel.refProviderGroupList : [],
+                'payerTypeList': this.viewModel.payerTypeList || [],
+                'allRefProList': !!this.viewModel.allRefProList,
+                'refProviderFlag': $('#ddlProcedureBySelectBoxes').val() == 'refPro',
                 'openInNewTab': this.viewModel.openInNewTab
             }
             return urlParams;

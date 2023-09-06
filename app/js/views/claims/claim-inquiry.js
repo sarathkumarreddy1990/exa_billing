@@ -102,7 +102,7 @@ define([
 
                 this.rendered = true;
                 this.options = options || {};
-                this.editOff = options.editOff === "true" ? true : false;
+                this.editOff = options.editOff === "true";
                 var claimId = this.options.claim_id
                 var isFromClaimScreen = this.options.source && this.options.source === 'claims'
 
@@ -446,7 +446,7 @@ define([
                     datatype: 'local',
                     data: data != null ? data : [],
                     colNames: ['', 'Code', 'Description'],
-                    i18nNames: ['', 'billing.COB.code','billing.COB.description'],
+                    i18nNames: ['', 'billing.COB.code', 'billing.COB.description'],
                     colModel: [
                         { name: '', index: 'id', key: true, hidden: true },
                         { name: 'code', width: 20, search: false },
@@ -472,8 +472,8 @@ define([
                     gridelementid: '#tblPatientClaimsGrid',
                     custompager: this.claimsPager,
                     emptyMessage: commonjs.geti18NString("messages.status.noRecordFound"),
-                    colNames: ['', '', '', 'Claim Number', 'Study Date', 'Billing Fee', 'Total Adjustment','Total Insurance Payments', 'Total Patient Payments', 'Balance', 'Claim Status', 'Current responsibility'],
-                    i18nNames: ['', '', '', 'billing.fileInsurance.claimNo', 'billing.claims.studyDate', 'billing.COB.billingFee','billing.fileInsurance.totalAdjustment', 'billing.claims.totalInsurancePayments', 'billing.claims.totalPatientPayments', 'billing.claims.Balance', 'billing.claims.claimStatus', 'billing.claims.currentResponsibility'],
+                    colNames: ['', '', '', 'Claim Number', 'Study Date', 'Billing Fee', 'Total Adjustment', 'Total Insurance Payments', 'Total Patient Payments', 'Balance', 'Claim Status', 'Current responsibility'],
+                    i18nNames: ['', '', '', 'billing.fileInsurance.claimNo', 'billing.claims.studyDate', 'billing.COB.billingFee', 'billing.fileInsurance.totalAdjustment', 'billing.claims.totalInsurancePayments', 'billing.claims.totalPatientPayments', 'billing.claims.Balance', 'billing.claims.claimStatus', 'billing.claims.currentResponsibility'],
                     colModel: [
                         { name: '', index: 'claim_id', key: true, hidden: true, search: false },
                         { name: 'billing_provider_id', hidden: true, search: false },
@@ -624,7 +624,7 @@ define([
                 });
             },
 
-            showInvoiceGrid: function (claimID, patientId,payer_type) {
+            showInvoiceGrid: function (claimID, patientId, payer_type) {
                 var self = this;
                 $('#divInvoiceGrid').show();
                 var balanceSearchList = ':All; =0:= 0; >0:> 0; <0:< 0; !=0:!= 0';
@@ -634,11 +634,11 @@ define([
                     gridelementid: '#tblInvoiceGrid',
                     custompager: self.invoicePager,
                     emptyMessage: commonjs.geti18NString("messages.status.noRecordFound"),
-                    colNames: ['', '', 'Invoice No', 'Date', 'Total Billing Fee', 'Total Payments', 'Total Adjustment',  'Balance',''],
-                    i18nNames: ['', '', 'billing.fileInsurance.invoiceNo', 'billing.claims.Date', 'billing.COB.billingFee','billing.claims.totalPayments', 'billing.fileInsurance.totalAdjustment',  'billing.claims.Balance',''],
+                    colNames: ['', '', 'Invoice No', 'Date', 'Total Billing Fee', 'Total Payments', 'Total Adjustment',  'Balance', ''],
+                    i18nNames: ['', '', 'billing.fileInsurance.invoiceNo', 'billing.claims.Date', 'billing.COB.billingFee', 'billing.claims.totalPayments', 'billing.fileInsurance.totalAdjustment',  'billing.claims.Balance', ''],
                     colModel: [
                         { name: '', index: 'id', key: true, hidden: true, search: false },
-                        { name: 'claim_ids', hidden: true} ,
+                        { name: 'claim_ids', hidden: true},
                         { name: 'invoice_no', search: true, width: 100},
                         {
                             name: 'invoice_date', width: 200, searchFlag: 'date', formatter: function (cellvalue, options, rowObject) {
@@ -756,7 +756,7 @@ define([
 
             },
 
-            printInvoice: function(claimids , is_invoice_inquiry) {
+            printInvoice: function(claimids, is_invoice_inquiry) {
                 claimids =  claimids && claimids.split(',')
                 paperClaim.print( 'direct_invoice', claimids, is_invoice_inquiry);
             },
@@ -856,8 +856,8 @@ define([
                     gridelementid: '#tblCIClaimComments',
                     custompager: self.claimInquiryPager,
                     emptyMessage: commonjs.geti18NString("messages.status.noRecordFound"),
-                    colNames: ['','', '', '', '', 'Transaction date','Claim Date', 'code', 'comment', 'sequence_number', 'type', 'charge', 'payment', 'adjustment', 'Diag Ptr', 'payment.id', ''],
-                    i18nNames: ['', '', '', '', 'billing.payments.printOnStatements', 'billing.claims.transactionDate','billing.claims.claimDate', 'billing.COB.code', 'billing.payments.comment', 'shared.fields.sequenceNumbers', 'shared.fields.type',
+                    colNames: ['', '', '', '', '', 'Transaction date', 'Claim Date', 'code', 'comment', 'sequence_number', 'type', 'charge', 'payment', 'adjustment', 'Diag Ptr', 'payment.id', ''],
+                    i18nNames: ['', '', '', '', 'billing.payments.printOnStatements', 'billing.claims.transactionDate', 'billing.claims.claimDate', 'billing.COB.code', 'billing.payments.comment', 'shared.fields.sequenceNumbers', 'shared.fields.type',
                         'billing.payments.charge', 'billing.payments.payments', 'billing.fileInsurance.adjustments', 'billing.COB.diagptr', 'billing.payments.paymentID', ''
                     ],
                     colModel: [
@@ -873,8 +873,7 @@ define([
                             formatter: function (cellvalue, options, rowObject) {
                                 if (rowObject.code && rowObject.code != null && commentType.indexOf(rowObject.code) == -1 && !self.editOff)
                                     return "<i class='icon-ic-edit' i18nt='shared.buttons.edit'></i>"
-                                else
-                                    return "";
+                                return "";
                             }
                         },
                         {
@@ -889,8 +888,7 @@ define([
                             formatter: function (cellvalue, options, rowObject) {
                                 if (rowObject.code && commentType.indexOf(rowObject.code) == -1 && !self.editOff)
                                     return "<i class='icon-ic-delete' i18nt='shared.buttons.delete'></i>"
-                                else
-                                    return "";
+                                return "";
                             }
                         },
                         {
@@ -899,12 +897,10 @@ define([
                                 if (rowObject.code && rowObject.code != null && commentType.indexOf(rowObject.code) == -1) {
                                     if (rowObject.is_internal == true)
                                         return '<input type="checkbox" checked   class="chkPaymentReport" name="paymentReportChk"  id="' + rowObject.row_id + '" />'
-                                    else
-                                        return '<input type="checkbox"   class="chkPaymentReport" name="paymentReportChk"  id="' + rowObject.row_id + '" />'
+                                    return '<input type="checkbox"   class="chkPaymentReport" name="paymentReportChk"  id="' + rowObject.row_id + '" />'
 
                                 }
-                                else
-                                    return '';
+                                return '';
                             },
                             customAction: function (rowID, e) {
                             }
@@ -916,8 +912,7 @@ define([
                             cellattr: function (rowId, tv, rowdata) {
                                 if (rowdata && rowdata.code == 'manual')
                                     return ' colspan=8 title="' + rowdata.comments + '" style="white-space : nowrap ';
-                                else
-                                    return 'title="' + rowdata.comments + '"';
+                                return 'title="' + rowdata.comments + '"';
                             }
                         },
                         {
@@ -944,8 +939,7 @@ define([
                             formatter: function (cellvalue, options, rowObject) {
                                 if (rowObject.code && (rowObject.code == 'adjustment' || rowObject.payment == null || rowObject.code == null))
                                     return '';
-                                else
-                                    return rowObject.payment;
+                                return rowObject.payment;
                             },
                             cellattr: function (rowId, tv, rowdata) {
                                 if(rowdata && rowdata.code == 'manual')
@@ -956,8 +950,7 @@ define([
                             formatter: function(cellvalue, options, rowObject){
                                 if(rowObject.adjustment && rowObject.adjustment == '$0.00' || rowObject.adjustment == null)
                                     return '';
-                                else
-                                    return rowObject.adjustment
+                                return rowObject.adjustment
                             },
                             cellattr: function (rowId, tv, rowdata) {
                                 if(rowdata && rowdata.code == 'manual')
@@ -969,7 +962,7 @@ define([
                                 if (rowdata && rowdata.code == 'manual')
                                     return 'style="display:none;" ';
                             },
-                            hidden: (app.country_alpha_3_code === "can" && app.province_alpha_2_code !== 'ON' ) ? true : false
+                            hidden: !!((app.country_alpha_3_code === "can" && app.province_alpha_2_code !== 'ON' ))
                         },
                         {
                             name: 'payment_id', width: 30, search: false, sortable: false,
@@ -981,8 +974,7 @@ define([
                             formatter: function (cellvalue, options, rowObject) {
                                 if (rowObject.type && rowObject.code == 'charge')
                                 return "<i class='icon-ic-raw-transctipt' i18nt='shared.screens.setup.viewPayDetailsOfThisCharge'></i>"
-                                else
-                                    return rowObject.payment_id;
+                                return rowObject.payment_id;
                             },
                             cellattr: function (rowId, tv, rowdata) {
                                 if(rowdata && rowdata.code == 'manual')
@@ -999,8 +991,7 @@ define([
                             formatter: function (cellvalue, options, rowObject) {
                                 if (rowObject.type && rowObject.code == 'payment')
                                     return "<i class='fa fa-eye' i18nt='shared.screens.setup.viewPaymentDetails'></i>"
-                                else
-                                    return "";
+                                return "";
                             },
                             cellattr: function (rowId, tv, rowdata) {
                                 if(rowdata && rowdata.code == 'manual')
@@ -1407,7 +1398,7 @@ define([
                     'claimID': claimId,
                     'flag': "patient-activity-statement",
                     'patientId': patientId,
-                    'reportByFlag': reportBy ,
+                    'reportByFlag': reportBy,
                     'fromDate': reportBy ? '': fromDate,
                     'toDate': reportBy ? '': toDate,
                     'billingProId': selectedBillingProList.length ? selectedBillingProList : billingProviderIds,

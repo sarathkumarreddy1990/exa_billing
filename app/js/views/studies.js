@@ -330,7 +330,7 @@ define(['jquery',
                         columns: ["study_received_dt", "study_dt", "check_indate", "approved_dt", "mu_last_updated", "scheduled_dt", "status_last_changed_dt", "birth_date"]
                     }
                 ];
-                var columnsToBind = _.find(drpTabColumnSet,function (val) {
+                var columnsToBind = _.find(drpTabColumnSet, function (val) {
                     return val.forTab === tabtype;
                 }).columns;
                 var drpOptions = { locale: { format: "L" } };
@@ -951,7 +951,7 @@ define(['jquery',
                             var updateStudiesPager = function (model, gridObj) {
                                 $('#chkStudyHeader_' + filterID).prop('checked', false);
                                 self.setGridPager(filterID, gridObj, false);
-                                self.bindDateRangeOnSearchBox(gridObj, 'study' ,'study_dt');
+                                self.bindDateRangeOnSearchBox(gridObj, 'study', 'study_dt');
                                 self.afterGridBindStudy(model, gridObj);
                                 self.initializeStatusCodes(gridObj, 'study');
                                 commonjs.nextRowID = 0;
@@ -1038,7 +1038,7 @@ define(['jquery',
                                 flag: 'home_study',
                                 filter_id: filterID,
                                 isExceedsMaxTime: filterID !== 'OD' && filterID !== 'PS' && filterID !== 'SU' && filterID !== 'QR',
-                                showdeletedstudies: (app.showdeletedstudies) ? true : false,
+                                showdeletedstudies: !!(app.showdeletedstudies),
                                 statusCode: filterObj.options.customargs && filterObj.options.customargs.statusCode ? filterObj.options.customargs.statusCode : [],
                                 isDicomSearch: filterObj.options.isDicomSearch,
                                 providercontact_ids: app.providercontact_ids,
@@ -1115,13 +1115,13 @@ define(['jquery',
                     self.disablePageControls();
                 }
 
-                $('input:checkbox[name=showDicom]').prop('checked', filter.options.isDicomSearch ? true : false);
-                $('input:checkbox[name=showRis]').prop('checked', filter.options.isRisOrderSearch ? true : false);
-                $('#showPreOrder').prop('checked', filter.options.isAuthorizationSearch ? true : false);
-                $('#showLeftPreOrder').prop('checked', filter.options.isAuthorizationExpSearch ? true : false)
-                $('#hdnShowEncOnly').attr('data-showEncOnly', filter.options.showEncOnly == "true" || filter.options.showEncOnly == true ? true : false);
-                $('#showOnlyPhyOrders').prop('checked', filter.options.showOnlyPhyOrders ? true : false)
-                $('#showOnlyOFOrders').prop('checked', filter.options.showOnlyOFOrders ? true : false)
+                $('input:checkbox[name=showDicom]').prop('checked', !!filter.options.isDicomSearch);
+                $('input:checkbox[name=showRis]').prop('checked', !!filter.options.isRisOrderSearch);
+                $('#showPreOrder').prop('checked', !!filter.options.isAuthorizationSearch);
+                $('#showLeftPreOrder').prop('checked', !!filter.options.isAuthorizationExpSearch)
+                $('#hdnShowEncOnly').attr('data-showEncOnly', !!(filter.options.showEncOnly == "true" || filter.options.showEncOnly == true));
+                $('#showOnlyPhyOrders').prop('checked', !!filter.options.showOnlyPhyOrders)
+                $('#showOnlyOFOrders').prop('checked', !!filter.options.showOnlyOFOrders)
 
                 commonjs.hideLoading();
                 $('#showDicomStudies').attr('disabled', false);
@@ -1192,7 +1192,8 @@ define(['jquery',
                 var curSelection = $('.tab-pane.active .ui-jqgrid-bdiv table tr.customRowSelect');
 
                 $('#btnStudiesRefresh, #btnStudiesRefreshAll').prop('disabled', true);
-                var self = this, dicomwhere = "";
+                var self = this;
+                var dicomwhere = "";
                 if (isFromDatepicker && isFromDatepicker.target) {
                     if (isFromDatepicker.target.id == 'showQCApplyFilter') {
                         $('#showQCClearFilter').prop('checked', false);
@@ -1499,7 +1500,7 @@ define(['jquery',
             },
 
             /**
-             * calls while cancel the study flag search filter 
+             * calls while cancel the study flag search filter
              */
             cancelStudyFlagFilter: function () {
                 var self = this;
@@ -1670,8 +1671,8 @@ define(['jquery',
                 $('#chkStudyFlag, #chkAllStudyFlag').prop('checked', enabled);
             },
             scrolleventStudies1: function (filterid, divId, studyStatus) {
-                var self = this;
-                var divid = "#divGrid" + filterid, scrolldiv = "";
+                var divid = "#divGrid" + filterid;
+                var scrolldiv = "";
                 if ($(divid).find("#gview_tblGrid" + filterid)) {
                     scrolldiv = $(divid).find("#gview_tblGrid" + filterid).find(".ui-jqgrid-bdiv");
                 }
@@ -1726,7 +1727,7 @@ define(['jquery',
                 var study_status = $('#tblGrid' + commonjs.currentStudyFilter).closest("div.ui-jqgrid-view")
                     .children("div.ui-jqgrid-hdiv").find('#gs_study_status');
                 study_status.val('');
-                $('#divStatusSearch').find('input[type=checkbox]:checked').prop('checked',false)
+                $('#divStatusSearch').find('input[type=checkbox]:checked').prop('checked', false)
                 commonjs.setFilter(commonjs.currentStudyFilter, function (filter) {
                     filter.options.customargs.statusCode = [];
                     return filter;

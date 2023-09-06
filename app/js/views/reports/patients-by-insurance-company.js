@@ -218,7 +218,7 @@ define([
                     'toDate': this.viewModel && this.viewModel.dateTo && this.viewModel.dateTo.format('YYYY-MM-DD'),
                     'billingProvider': this.selectedBillingProList || [],
                     'allBillingProvider': this.viewModel.allBillingProvider || '',
-                    'billingProFlag': this.viewModel.allBillingProvider == 'true' ? true : false,
+                    'billingProFlag': this.viewModel.allBillingProvider == 'true',
                     'insuranceProviderIds': this.viewModel.insuranceOption || '',
                     'insuranceActive': $("#insuranceActive").is(':checked'),
                     'openInNewTab': this.viewModel.openInNewTab

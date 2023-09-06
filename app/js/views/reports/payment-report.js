@@ -333,7 +333,12 @@ define([
             },
 
             getReportParams: function () {
-                var usersArray = [], userNameArray = [], usersRoleArray = [], userRoleNameArray = [], adjustmentCodeArray = [], adjustmentCodeIds = [];
+                var usersArray = [];
+                var userNameArray = [];
+                var usersRoleArray = [];
+                var userRoleNameArray = [];
+                var adjustmentCodeArray = [];
+                var adjustmentCodeIds = [];
                 $('#ulListUsers li a').each(function () {
                     usersArray.push(~~$(this).attr('data-id'));
                     userNameArray.push($(this).closest('li').find('span').text());
@@ -365,7 +370,7 @@ define([
                     'toDate': this.viewModel.dateTo.format('YYYY-MM-DD'),
                     'billingProvider': this.selectedBillingProList || [],
                     'allBillingProvider': this.viewModel.allBillingProvider || '',
-                    'billingProFlag': this.viewModel.allBillingProvider == 'true' ? true : false,
+                    'billingProFlag': this.viewModel.allBillingProvider == 'true',
                     'summaryType': $('#ddlSummaryOption').val(),
                     'paymentStatus':$('#ddlPaymentOption').val(),
                     'insuranceIds': this.viewModel.insuranceIds,

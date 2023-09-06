@@ -24,7 +24,7 @@ define(['jquery',
             model: null,
             template: null,
             pagerData: null,
-            gridI18nText: ['','', '', '', 'billing.payments.orderingFacilityLocation', 'billing.payments.mrn','shared.fields.accessionNumber', 'billing.fileInsurance.patientNameGrid', 'report.reportFilter.dateOfService', 'home.sendStudies.studyDesc', 'shared.fields.censusType'],
+            gridI18nText: ['', '', '', '', 'billing.payments.orderingFacilityLocation', 'billing.payments.mrn', 'shared.fields.accessionNumber', 'billing.fileInsurance.patientNameGrid', 'report.reportFilter.dateOfService', 'home.sendStudies.studyDesc', 'shared.fields.censusType'],
             censusType: [
                 { value: '', text: 'shared.options.select' },
                 { value: 'global', text: 'shared.fields.global' },
@@ -176,14 +176,14 @@ define(['jquery',
                     gridelementid: '#tblGridCensus',
                     emptyMessage: commonjs.geti18NString("messages.status.noRecordFound"),
                     custompager: new Pager(),
-                    colNames: ['','','', '<input type="checkbox" id="chkAllCensus"  onclick="commonjs.checkMultipleCensus(event)" />', '', '','', '', '', '', ''],
+                    colNames: ['', '', '', '<input type="checkbox" id="chkAllCensus"  onclick="commonjs.checkMultipleCensus(event)" />', '', '', '', '', '', '', ''],
                     i18nNames: self.gridI18nText,
                     colModel: [
                         {
                             name: 'id', hidden: true,
-                        },{
+                        }, {
                             name: 'patient_id', hidden: true,
-                        },{
+                        }, {
                             name: 'order_id', hidden: true,
                         },
                         {

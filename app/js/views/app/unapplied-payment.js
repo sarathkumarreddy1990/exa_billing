@@ -71,8 +71,8 @@ function (
                         { name: 'payment_id', width: 100, search: false },
                         { name: 'display_id', width: 200, search: false  },
                         { name: 'payment_dt', width: 150, search: false, formatter: self.paymentDateFormatter },
-                        { name: 'accounting_date', width: 200, search: false , formatter: self.paymentAccountingDateFormatter },
-                        { name: 'payer_type', width: 200, search: false , formatter: self.payerTypeFormatter },
+                        { name: 'accounting_date', width: 200, search: false, formatter: self.paymentAccountingDateFormatter },
+                        { name: 'payer_type', width: 200, search: false, formatter: self.payerTypeFormatter },
                         { name: 'payer_name', width: 300 },
                         { name: 'amount', width: 150, search: false  },
                         { name: 'available_balance', width: 150, search: false  }

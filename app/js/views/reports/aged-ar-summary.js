@@ -108,7 +108,7 @@ define([
                 var openInNewTab = btnClicked ? btnClicked.attr('id') === 'btnViewReportNewTabAgedSummary' : false;
                 this.excelExtended = btnClicked ? btnClicked.attr('id') === 'btnExcelReportExtended' : false;
                 this.viewModel.reportFormat = rFormat;
-                this.viewModel.openInNewTab = (openInNewTab && rFormat === 'html') ? true : false;
+                this.viewModel.openInNewTab = !!((openInNewTab && rFormat === 'html'));
                 this.viewModel.insuranceIds = $('ul#ulListInsurance li').map(function () {
                     return this.id;
                 }).get();
@@ -263,7 +263,7 @@ define([
                     'fromDate': this.viewModel.fromDate.date().format('YYYY-MM-DD'),
                     'billingProvider': this.selectedBillingProList ||  [],
                     'allBillingProvider': this.viewModel.allBillingProvider || '',
-                     'billingProFlag': this.viewModel.allBillingProvider == 'true' ? true : false,
+                     'billingProFlag': this.viewModel.allBillingProvider == 'true',
                     'incPatDetail': $('#incPat').prop('checked'),
                     'excCreditBal': $('#excCreBal').prop('checked'),
                     'excelExtended': this.excelExtended ? this.excelExtended : '',

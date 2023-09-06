@@ -145,7 +145,7 @@ define
                 var rFormat = btnClicked ? btnClicked.attr('data-rformat') : null;
                 var openInNewTab = btnClicked ? btnClicked.attr('id') === 'btnViewReportNewTabCollections' : false;
                 self.viewModel.reportFormat = rFormat;
-                self.viewModel.openInNewTab = (openInNewTab && rFormat === 'html') ? true : false;
+                self.viewModel.openInNewTab = !!((openInNewTab && rFormat === 'html'));
 
                 if ($('#chkSentCollections').prop('checked')) {
                     if (confirm(commonjs.geti18NString("messages.status.areYouSureToSendClaimstoCollections"))) {
@@ -173,7 +173,7 @@ define
                     'toDate': this.viewModel.dateTo.format('YYYY-MM-DD'),
                     'billingProvider': this.selectedBillingProList || [],
                     'allBillingProvider': this.viewModel.allBillingProvider || '',
-                    'billingProFlag': this.viewModel.allBillingProvider == 'true' ? true : false,
+                    'billingProFlag': this.viewModel.allBillingProvider == 'true',
                     'claimsToCollections': this.viewModel.claimsToCollections,
                     'country_alpha_3_code': this.viewModel.country_alpha_3_code,
                     'openInNewTab': this.viewModel.openInNewTab

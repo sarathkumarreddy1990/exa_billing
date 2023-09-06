@@ -305,7 +305,7 @@ define([
 
                     'billingProvider': !isWorkedByAll && this.selectedBillingProList || [],
                     'allBillingProvider': this.viewModel.allBillingProvider ? this.viewModel.allBillingProvider : '',
-                    billingProFlag: this.viewModel.allBillingProvider == 'true' ? true : false,
+                    billingProFlag: this.viewModel.allBillingProvider == 'true',
 
                     'fromDate': ($('#chkServiceDateBill').prop('checked')) == true && this.viewModel.dateFrom ? this.viewModel.dateFrom.format('MM/DD/YYYY') : '',
                     'toDate': ($('#chkServiceDateBill').prop('checked')) == true && this.viewModel.dateTo ? this.viewModel.dateTo.format('MM/DD/YYYY') : '',

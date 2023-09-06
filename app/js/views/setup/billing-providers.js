@@ -592,7 +592,7 @@ define(['jquery',
                     },
                     emptyMessage: commonjs.geti18NString("messages.status.noRecordFound"),
                     colNames: ['', '', '', '', '', 'Insurance Name', 'Payer Assigned Provider ID', 'Legacy ID Qualifier', 'in_active'],
-                    i18nNames:['', '', '', '', '',  'setup.insuranceX12Mapping.insuranceName', 'setup.billingprovider.payerassignedproviderid' ,'setup.billingprovider.legacyidqualifier','shared.fields.inactive'],
+                    i18nNames:['', '', '', '', '',  'setup.insuranceX12Mapping.insuranceName', 'setup.billingprovider.payerassignedproviderid', 'setup.billingprovider.legacyidqualifier', 'shared.fields.inactive'],
                     colModel: [
                         { name: 'id', index: 'id', key: true, hidden: true, search: false },
                         { name: 'insurance_provider_id', hidden: true },
@@ -609,9 +609,9 @@ define(['jquery',
                                 return "<span class='icon-ic-delete' title='Delete this id code'></span>"
                             }
                         },
-                        { name: 'insurance_name', width: 300 ,  searchFlag: '%'},
-                        { name: 'payer_assigned_provider_id', width: 200 , searchFlag: '%' },
-                        { name: 'qualifier_desc', width: 300 , searchFlag: '%'},
+                        { name: 'insurance_name', width: 300,  searchFlag: '%'},
+                        { name: 'payer_assigned_provider_id', width: 200, searchFlag: '%' },
+                        { name: 'qualifier_desc', width: 300, searchFlag: '%'},
                         {
                             name: 'isActive',
                             hidden: true
@@ -765,7 +765,9 @@ define(['jquery',
             },
 
             checkExist: function () {
-                var self = this, id = [], idarray = [];
+                var self = this, 
+id = [], 
+idarray = [];
                 var provider_id = (self.editProviderIDCodeData && self.editProviderIDCodeData.id) || '';
                 $.each($("#tblProviderIDCodesGrid tr"), function () {
                     if ($(this).hasClass('ui-widget-content'))
@@ -780,15 +782,13 @@ define(['jquery',
                 if (self.editProviderIDCodeData) {
                     if ($.inArray(self.editProviderIDCodeData.insurance_provider_id, idarray) == -1)
                         return false;
-                    else
-                        return true;
+                    return true;
 
                 }
                 else if ($.inArray($('#ddlInsuranceProvider').val(), idarray) == -1) {
                     return false;
                 }
-                else
-                    return true;
+                return true;
             },
 
             saveMspCredentials: function () {

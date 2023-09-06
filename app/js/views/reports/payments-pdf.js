@@ -176,7 +176,8 @@ define([
                 this.viewModel.allBillingProvider = this.selectedBillingProList && this.selectedBillingProList.length === $("#ddlBillingProvider option").length;
             },
             getReportParams: function () {
-                var usersArray = [], userNameArray = [];
+                var usersArray = [];
+                var userNameArray = [];
                 $('#ulListUsers li a').each(function () {
                     usersArray.push(~~$(this).attr('data-id'));
                     userNameArray.push($(this).closest('li').find('span').text());
