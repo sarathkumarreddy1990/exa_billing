@@ -24,12 +24,12 @@ router.get('/total_amount', async function (req, res) {
 });
 
 router.post('/', async function (req, res) {
-    const data = await paymentsController.createOrUpdatePayment(req.body);
+    const data = await paymentsController.createPayment(req.body);
     httpHandler.sendRows(req, res, data);
 });
 
 router.put('/', async function (req, res) {
-    const data = await paymentsController.createOrUpdatePayment(req.body);
+    const data = await paymentsController.updatePayment(req.body);
     httpHandler.sendRows(req, res, data);
 });
 
@@ -82,7 +82,7 @@ router.post('/process_write_off_payments', async function (req, res) {
 
 router.post('/process_write_off_payments/:id', async function (req, res) {
     const data = await paymentsController.processWriteOffPaymentForClaim({
-        ...req.body, 
+        ...req.body,
         id: req.params.id
     });
     httpHandler.sendRows(req, res, data);
