@@ -127,6 +127,11 @@ module.exports = {
                             , color_code = ${colorCode}
                         WHERE
                             id = ${id} 
+                            AND  NOT EXISTS (
+                                SELECT 1
+                                FROM billing.billing_classes
+                                WHERE code = ${code} AND id <> ${id}
+                            )
                             RETURNING *,
                                 (
                                     SELECT row_to_json(old_row) 
@@ -135,7 +140,7 @@ module.exports = {
                                             WHERE  id = ${id}) old_row 
                                 ) old_values`;
 
-        return await queryWithAudit(sql, {
+        return await queryWithDuplicateCheck(sql, {
             ...params,
             logDescription: `Update: Billing Class(${code}) updated`
         });
