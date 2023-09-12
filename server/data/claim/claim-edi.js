@@ -225,161 +225,169 @@ module.exports = {
 
         let sql = SQL`
             SELECT
-            relationship_status.description as subscriber_relationship,
-            claims.id as claim_id,
-            insurance_name,
-            ins_coverage_level.coverage_level,
-            (SELECT (Row_to_json(header)) "header"
-
-                FROM (
-                        SELECT billing.edi_clearinghouses.id,
-                        et.name AS edi_template_name,
-                        communication_info->'securityInformationQualifier' as "authInfoQualifier",
-                        communication_info->'authorizationInformation' as "authInfo",
-                        communication_info->'securityInformationQualifier' as "securityInfoQualifier",
-                         communication_info->'securityInformation' as "securityInfo",
-                         communication_info->'interchangeSenderIdQualifier' as "interchangeSenderIDQualifier",
-                        communication_info->'interchangeSenderId' as "interchangeSenderID",
-                        communication_info->'interchangeReceiverIdQualifier' as "interchangeReceiverIDQualifier",
-                        communication_info->'interchangeReceiverId' as "interchangeReceiverID",
-                        communication_info->'interchangeControlStandardsIdentifier' as "interchangeCtrlStdIdentifier",
-                        communication_info->'implementationConventionRef' as "implementationConventionRef",
-                        nextval('billing.interchange_control_no_seq') as "interchangeCtrlNo",
-                        communication_info->'interchangeControlVersionNumber' as "interchangeCtrlVersionNo",
-                        (CASE communication_info->'acknowledgementRequested'
-                                            WHEN 'true' THEN '0'
-                                            WHEN 'false' THEN '1' END ) as "acqRequested",
-                        communication_info->'usageIndicator' as "usageIndicator",
-                        'HC' as "functionalIDCode",
-                        communication_info->'applicationSenderCode' as "applicationSenderCode",
-                        communication_info->'applicationReceiverCode' as "applicationReceiverCode",
-                        communication_info->'repetitionSeparator' as "repetitionSeparator",
-                        communication_info->'securityInformation' as "securityInformation",
-                        communication_info->'segmentTerminator' as "SEGMENT_TERMINATOR",
-                        communication_info->'elementDelimiter' as "ELEMENT_DELIMITER",
-                        communication_info->'segmentDelimiter' as "SUB_ELEMENT_DELIMITER",
-                        communication_info->'backupRootFolder' as "backupRootFolder",
-                        communication_info->'usageIndicator' as "usageIndicator",
-                        to_char(now(), 'YYYYMMDD')  as "fgDate",
-                        to_char(now(), 'HH24MI')  as "fgTime",
-                        claims.id as "groupControlNo",
-                        communication_info->'responsibleAgencyCode' as "responsibleAgencyCode",
-                        communication_info->'verRelIndIdCode' as "verReleaseIDCode",
-                        communication_info->'enable_ftp' as "enableFtp",
-                        communication_info->'ftp_host' as "ftpHostName",
-                        communication_info->'ftp_port' as "ftpPort",
-                        communication_info->'ftp_user_name' as "ftpUserName",
-                        communication_info->'ftp_password' as "ftpPassword",
-                        communication_info->'ftp_type' as "ftpType",
-                        communication_info->'ftp_sent_folder' as "ftpSentFolder",
-                        communication_info->'ftp_receive_folder' as "ftpReceiveFolder",
-                        communication_info->'ftp_identity_file' as "ftpIdentityFile",
-                        communication_info->'ftp_readyTimeout' AS "ftpReadyTimeout",
-                        '837' as "tsIDCode",
-                        '0001' as "tsControlNo",
-                        edi_clearinghouses.name as clearinghouses_name,
-                        edi_clearinghouses.code as clearinghouses_code,
-                        edi_clearinghouses.receiver_name as clearinghouses_receiver_name,
-                        edi_clearinghouses.receiver_id as clearinghouses_receiver_id,
-                        edi_clearinghouses.edi_file_ext AS edi_file_extension,
-                        communication_info->'sftp_edi_file_ext' AS sftp_edi_file_extension
-                                    FROM   billing.edi_clearinghouses
-                                    LEFT JOIN billing.edi_templates et ON et.id = billing.edi_clearinghouses.edi_template_id
-                                    WHERE  billing.edi_clearinghouses.id=insurance_provider_details.clearing_house_id)
-
-                    as header),
-                    (SELECT Json_agg(Row_to_json(data1)) "data"
-
-                                                FROM (
-
-                    WITH cte_billing_providers AS (
-                    SELECT (Row_to_json(billingProvider1)) "billingProvider"
-                        FROM (
-                        SELECT bp.id AS "billingProviderID",
-                            bp.taxonomy_code AS "taxonomyCode",
-                            UPPER(bp.name) AS "lastName",
-                            bp.npi_no AS "npiNo",
-                            bp.short_description AS "description",
-                            bp.address_line1 AS "addressLine1",
-                            bp.address_line2 AS "addressLine2",
-                            bp.city AS "city",
-                            bp.state AS "state",
-                            bp.zip_code AS "zipCode",
-                            bp.federal_tax_id AS "federalTaxID",
-                            bp.phone_number AS "phoneNo",
-                            bp.email AS "email",
-                            bp.fax_number AS "faxNumber",
-                            bp.zip_code_plus AS "zip_code_plus",
-                            UPPER(bp.contact_person_name) AS "contactName",
-                            bp_id_codes.qualifier_code AS "legacyID",
-                            bp_id_codes.payer_assigned_provider_id AS "payerAssignedProviderID"
-                        FROM billing.providers bp
-                        LEFT JOIN LATERAL (
-                            SELECT qualifier_code,
-                                payer_assigned_provider_id
-                            FROM billing.provider_id_code_qualifiers
-                            LEFT JOIN billing.provider_id_codes ON provider_id_code_qualifiers.id=provider_id_codes.qualifier_id
-                            WHERE provider_id_codes.billing_provider_id = bp.id
-                                AND provider_id_codes.insurance_provider_id = insurance_providers.id
-                        ) AS bp_id_codes ON TRUE
-                        WHERE bp.id =
-                            CASE
-                                WHEN bp_data.billing_provider_npi IS NOT NULL
-                                THEN bp_data.billing_provider_id
-                                ELSE claims.billing_provider_id
-                            END
-                    ) AS billingProvider1
-
-                    )
-
-                    , cte_pay_to_providers AS (
-
-                    SELECT (Row_to_json(billingProvider)) "payToProvider"
-                                                FROM   (
-                                                        SELECT id as "payToProviderID",
-                                                            UPPER(billing_providers.name) AS "lastName",
-                                                            UPPER(billing_providers.name) AS "firstName",
-                                                            npi_no as "npiNo",
-                                                            billing_providers.short_description as "description",
-                                                            pay_to_address_line1 as "addressLine1",
-                                                            pay_to_address_line2 as "addressLine2",
-                                                            pay_to_city as "city",
-                                                            pay_to_state as "state",
-                                                            pay_to_zip_code AS "zipCode",
-                                                            pay_to_zip_code_plus AS "zipCodePlus",
-                                                            federal_tax_id as "federalTaxID",
-                                                            pay_to_phone_number as "phoneNo",
-                                                            UPPER(contact_person_name) AS "contactName"
-                                                        FROM   billing.providers as billing_providers
-                                                        WHERE  billing_providers.id = claims.billing_provider_id) AS billingProvider
-                    )
-                    , cte_subscriber AS(
-                                                        SELECT Json_agg(Row_to_json(subscriber)) subscriber
-                                                        FROM  (
-                                                        SELECT
-                                                        (CASE ins_coverage_level.coverage_level
-                                                            WHEN 'primary' THEN 'P'
-                                                            WHEN 'secondary' THEN 'S'
-                                                            WHEN 'tertiary' THEN 'T' END) as "claimResponsibleParty",
-                                                        ( SELECT
-
-                                        (  CASE UPPER(description)
-                                            WHEN 'SELF' THEN '18'
-                                            WHEN 'FATHER' THEN '33'
-                                            WHEN 'MOTHER' THEN '32'
-                                            WHEN 'SIBLING' THEN '32'
-                                            WHEN 'GRANDPARENT' THEN '04'
-                                            WHEN 'GREAT GRANDPARENT' THEN '04'
-                                            WHEN 'UNKNOWN' THEN '21'
-                                            WHEN 'SPOUSE' THEN '01'
-                                            WHEN 'CHILD' THEN '19'
-                                            WHEN 'BROTHER' THEN '23'
-                                            WHEN 'SISTER' THEN '20'
-                                            WHEN 'OTHER RELATIONSHIP' THEN 'G8'
-                                            WHEN 'LIFE PARTNER' THEN '53'
-                                            WHEN 'EMPLOYEE' THEN '20'
-                                            WHEN 'ORGAN DONOR' THEN '39'
-                                            WHEN 'CADAVER DONOR' THEN '40'
+                relationship_status.description AS subscriber_relationship
+                , claims.id AS claim_id
+                , insurance_name
+                , ins_coverage_level.coverage_level
+                , ${isMobileBillingEnabled} AS is_mobile_billing_enabled
+                , (
+                    SELECT
+                        (row_to_json(header)) "header"
+                    FROM (
+                        SELECT
+                            billing.edi_clearinghouses.id
+                            , et.name AS edi_template_name
+                            , communication_info->'securityInformationQualifier' AS "authInfoQualifier"
+                            , communication_info->'authorizationInformation' AS "authInfo"
+                            , communication_info->'securityInformationQualifier' AS "securityInfoQualifier"
+                            , communication_info->'securityInformation' AS "securityInfo"
+                            , communication_info->'interchangeSenderIdQualifier' AS "interchangeSenderIDQualifier"
+                            , communication_info->'interchangeSenderId' AS "interchangeSenderID"
+                            , communication_info->'interchangeReceiverIdQualifier' AS "interchangeReceiverIDQualifier"
+                            , communication_info->'interchangeReceiverId' AS "interchangeReceiverID"
+                            , communication_info->'interchangeControlStandardsIdentifier' AS "interchangeCtrlStdIdentifier"
+                            , communication_info->'implementationConventionRef' AS "implementationConventionRef"
+                            , nextval('billing.interchange_control_no_seq') AS "interchangeCtrlNo"
+                            , communication_info->'interchangeControlVersionNumber' AS "interchangeCtrlVersionNo"
+                            , CASE communication_info->'acknowledgementRequested'
+                                WHEN 'true' THEN '0'
+                                WHEN 'false' THEN '1'
+                              END AS "acqRequested"
+                            , communication_info->'usageIndicator' AS "usageIndicator"
+                            , 'HC' AS "functionalIDCode"
+                            , communication_info->'applicationSenderCode' AS "applicationSenderCode"
+                            , communication_info->'applicationReceiverCode' AS "applicationReceiverCode"
+                            , communication_info->'repetitionSeparator' AS "repetitionSeparator"
+                            , communication_info->'securityInformation' AS "securityInformation"
+                            , communication_info->'segmentTerminator' AS "SEGMENT_TERMINATOR"
+                            , communication_info->'elementDelimiter' AS "ELEMENT_DELIMITER"
+                            , communication_info->'segmentDelimiter' AS "SUB_ELEMENT_DELIMITER"
+                            , communication_info->'backupRootFolder' AS "backupRootFolder"
+                            , communication_info->'usageIndicator' AS "usageIndicator"
+                            , to_char(now(), 'YYYYMMDD') AS "fgDate"
+                            , to_char(now(), 'HH24MI') AS "fgTime"
+                            , claims.id AS "groupControlNo"
+                            , communication_info->'responsibleAgencyCode' AS "responsibleAgencyCode"
+                            , communication_info->'verRelIndIdCode' AS "verReleaseIDCode"
+                            , communication_info->'enable_ftp' AS "enableFtp"
+                            , communication_info->'ftp_host' AS "ftpHostName"
+                            , communication_info->'ftp_port' AS "ftpPort"
+                            , communication_info->'ftp_user_name' AS "ftpUserName"
+                            , communication_info->'ftp_password' AS "ftpPassword"
+                            , communication_info->'ftp_type' AS "ftpType"
+                            , communication_info->'ftp_sent_folder' AS "ftpSentFolder"
+                            , communication_info->'ftp_receive_folder' AS "ftpReceiveFolder"
+                            , communication_info->'ftp_identity_file' AS "ftpIdentityFile"
+                            , communication_info->'ftp_readyTimeout' AS "ftpReadyTimeout"
+                            , '837' AS "tsIDCode"
+                            , '0001' AS "tsControlNo"
+                            , edi_clearinghouses.name AS clearinghouses_name
+                            , edi_clearinghouses.code AS clearinghouses_code
+                            , edi_clearinghouses.receiver_name AS clearinghouses_receiver_name
+                            , edi_clearinghouses.receiver_id AS clearinghouses_receiver_id
+                            , edi_clearinghouses.edi_file_ext AS edi_file_extension
+                            , communication_info->'sftp_edi_file_ext' AS sftp_edi_file_extension
+                        FROM billing.edi_clearinghouses
+                        LEFT JOIN billing.edi_templates et ON et.id = billing.edi_clearinghouses.edi_template_id
+                        WHERE billing.edi_clearinghouses.id = insurance_provider_details.clearing_house_id
+                    ) AS header
+                  )
+                , (
+                    SELECT
+                        json_agg(row_to_json(data1)) "data"
+                    FROM (
+                        WITH cte_billing_providers AS (
+                            SELECT
+                                (row_to_json(billingProvider1)) "billingProvider"
+                            FROM (
+                                SELECT
+                                    bp.id AS "billingProviderID"
+                                    , bp.taxonomy_code AS "taxonomyCode"
+                                    , UPPER(bp.name) AS "lastName"
+                                    , bp.npi_no AS "npiNo"
+                                    , bp.short_description AS "description"
+                                    , bp.address_line1 AS "addressLine1"
+                                    , bp.address_line2 AS "addressLine2"
+                                    , bp.city AS "city"
+                                    , bp.state AS "state"
+                                    , bp.zip_code AS "zipCode"
+                                    , bp.federal_tax_id AS "federalTaxID"
+                                    , bp.phone_number AS "phoneNo"
+                                    , bp.email AS "email"
+                                    , bp.fax_number AS "faxNumber"
+                                    , bp.zip_code_plus AS "zip_code_plus"
+                                    , UPPER(bp.contact_person_name) AS "contactName"
+                                    , bp_id_codes.qualifier_code AS "legacyID"
+                                    , bp_id_codes.payer_assigned_provider_id AS "payerAssignedProviderID"
+                                FROM billing.providers bp
+                                LEFT JOIN LATERAL (
+                                    SELECT
+                                        qualifier_code
+                                        , payer_assigned_provider_id
+                                    FROM billing.provider_id_code_qualifiers
+                                    LEFT JOIN billing.provider_id_codes ON provider_id_code_qualifiers.id = provider_id_codes.qualifier_id
+                                    WHERE provider_id_codes.billing_provider_id = bp.id
+                                        AND provider_id_codes.insurance_provider_id = insurance_providers.id
+                                ) AS bp_id_codes ON TRUE
+                                WHERE bp.id = CASE
+                                                WHEN 'QMI' = ${companyCode} AND bp_data.billing_provider_npi IS NOT NULL
+                                                THEN bp_data.billing_provider_id
+                                                ELSE claims.billing_provider_id
+                                            END
+                            ) AS billingProvider1
+                        )
+                        , cte_pay_to_providers AS (
+                            SELECT
+                                (row_to_json(billingProvider)) "payToProvider"
+                            FROM (
+                                SELECT
+                                    id AS "payToProviderID"
+                                    , UPPER(billing_providers.name) AS "lastName"
+                                    , UPPER(billing_providers.name) AS "firstName"
+                                    , npi_no AS "npiNo"
+                                    , billing_providers.short_description AS "description"
+                                    , pay_to_address_line1 AS "addressLine1"
+                                    , pay_to_address_line2 AS "addressLine2"
+                                    , pay_to_city AS "city"
+                                    , pay_to_state AS "state"
+                                    , pay_to_zip_code AS "zipCode"
+                                    , pay_to_zip_code_plus AS "zipCodePlus"
+                                    , federal_tax_id AS "federalTaxID"
+                                    , pay_to_phone_number AS "phoneNo"
+                                    , UPPER(contact_person_name) AS "contactName"
+                                FROM billing.providers AS billing_providers
+                                WHERE billing_providers.id = claims.billing_provider_id
+                            ) AS billingProvider
+                        )
+                        , cte_subscriber AS (
+                            SELECT
+                                json_agg(row_to_json(subscriber)) subscriber
+                            FROM (
+                                SELECT
+                                    CASE ins_coverage_level.coverage_level
+                                        WHEN 'primary' THEN 'P'
+                                        WHEN 'secondary' THEN 'S'
+                                        WHEN 'tertiary' THEN 'T'
+                                    END AS "claimResponsibleParty"
+                                    , (
+                                        SELECT
+                                            (CASE UPPER(description)
+                                                WHEN 'SELF' THEN '18'
+                                                WHEN 'FATHER' THEN '33'
+                                                WHEN 'MOTHER' THEN '32'
+                                                WHEN 'SIBLING' THEN '32'
+                                                WHEN 'GRANDPARENT' THEN '04'
+                                                WHEN 'GREAT GRANDPARENT' THEN '04'
+                                                WHEN 'UNKNOWN' THEN '21'
+                                                WHEN 'SPOUSE' THEN '01'
+                                                WHEN 'CHILD' THEN '19'
+                                                WHEN 'BROTHER' THEN '23'
+                                                WHEN 'SISTER' THEN '20'
+                                                WHEN 'OTHER RELATIONSHIP' THEN 'G8'
+                                                WHEN 'LIFE PARTNER' THEN '53'
+                                                WHEN 'EMPLOYEE' THEN '20'
+                                                WHEN 'ORGAN DONOR' THEN '39'
+                                                WHEN 'CADAVER DONOR' THEN '40'
                                             END)
                                         FROM  relationship_status WHERE  subscriber_relationship_id =relationship_status.id ) as  relationship,
 
