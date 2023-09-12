@@ -1226,10 +1226,10 @@ define(['jquery',
 
                 /* Claim section start*/
 
-                var renderingProviderFullName = claim_data.reading_phy_full_name || claim_data.fac_reading_phy_full_name;
-                var renderingProviderNpi = claim_data.reading_phy_full_name
-                        ? claim_data.rendering_prov_npi_no
-                        : claim_data.fac_rendering_prov_npi_no;
+                var renderingProviderFullName = claim_data.fac_reading_phy_full_name || claim_data.reading_phy_full_name;
+                var renderingProviderNpi = claim_data.fac_reading_phy_full_name
+                        ? claim_data.fac_rendering_prov_npi_no
+                        : claim_data.rendering_prov_npi_no;
 
                 if (renderingProviderFullName && renderingProviderNpi) {
                     renderingProviderFullName +=  ' ' + renderingProviderNpi;
@@ -1276,8 +1276,9 @@ define(['jquery',
                         : self.usermessage.selectStudyRefProvider;
                 }
 
-                self.ACSelect.readPhy.contact_id = claim_data.rendering_provider_contact_id || claim_data.fac_rendering_provider_contact_id || null;
+                self.ACSelect.readPhy.contact_id = claim_data.fac_rendering_provider_contact_id || claim_data.rendering_provider_contact_id || null;
                 self.facility_rendering_provider_contact_id = claim_data.fac_rendering_provider_contact_id || null;
+                self.study_rendering_provider_contact_id = claim_data.rendering_provider_contact_id || null;
                 self.ACSelect.skillCodes.ID = claim_data.can_ahs_skill_code_id || null;
 
                 if ((!claim_data.rendering_provider_contact_id || !claim_data.can_ahs_skill_code_id) && claim_data.fac_rendering_provider_contact_id ) {
@@ -4240,6 +4241,7 @@ define(['jquery',
                     delay_reason_id: delayReasonId != '' ? parseInt(delayReasonId) : null,
                     rendering_provider_contact_id: self.ACSelect && self.ACSelect.readPhy ? self.ACSelect.readPhy.contact_id : null,
                     facility_rendering_provider_contact_id: self.facility_rendering_provider_contact_id || null,
+                    study_rendering_provider_contact_id: self.study_rendering_provider_contact_id || null,
                     can_ahs_skill_code_id: can_ahs_skill_code_id || null,
                     referring_provider_contact_id: self.ACSelect && self.ACSelect.refPhy ? self.ACSelect.refPhy.contact_id : null,
                     ordering_facility_contact_id: self.ordering_facility_contact_id || null,
@@ -6078,8 +6080,9 @@ define(['jquery',
                 // Bind Patient Default details
                 var renderingProvider = patient_details.rendering_provider_full_name || self.usermessage.selectStudyReadPhysician;
                 var service_facility_name = patient_details.service_facility_name || self.usermessage.selectOrdFacility;
-                self.ACSelect.readPhy.contact_id = patient_details.rendering_provider_contact_id || patient_details.rendering_provider_contact_id || null;
+                self.ACSelect.readPhy.contact_id = patient_details.rendering_provider_contact_id || null;
                 self.facility_rendering_provider_contact_id = patient_details.rendering_provider_contact_id || null;
+                self.study_rendering_provider_contact_id = null;
                 self.ordering_facility_id = patient_details.service_facility_id || null;
                 self.ordering_facility_contact_id = patient_details.service_facility_contact_id || null;
                 self.ordering_facility_name = service_facility_name;

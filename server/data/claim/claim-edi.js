@@ -234,6 +234,7 @@ module.exports = {
                 , claims.id AS claim_id
                 , insurance_name
                 , ins_coverage_level.coverage_level
+                , ${isMobileBillingEnabled} AS is_mobile_billing_enabled
                 , (
                     SELECT
                         (row_to_json(header)) "header"
