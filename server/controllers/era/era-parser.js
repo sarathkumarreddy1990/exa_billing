@@ -157,8 +157,8 @@ module.exports = {
                                 const isInvalidAdjustment = obj.groupCode === 'PR' && ['1', '2', '3'].includes(reasonCode) // Suppress 'PR' CAS group codes with reason codes [1, 2, 3] for adjustment calculations.
                                     || (['2', '20', '3', '21'].includes(value.claimStatusCode)
                                         && (
-                                            (obj.groupCode === 'CO' && reasonCode === '45')
-                                            || (obj.groupCode === 'OA' && reasonCode === '23')
+                                            (obj.groupCode === 'CO' && ['45', '22', '23'].includes(reasonCode))
+                                            || (obj.groupCode === 'OA' && ['23', '209'].includes(reasonCode))
                                         )
                                     );
 
