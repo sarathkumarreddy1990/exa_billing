@@ -47,6 +47,7 @@ const api= {
     splitClaim: async (claim, charges, insurances, isMobileBillingEnabled) => {
         let claimsDetails = [];
         let { professional_modifier_id, technical_modifier_id } = (await data.getTechnicalAndProfessionalModifier()).pop();
+        const isSplitClaim = (claim.billing_type === 'split' || (claim.billing_type === 'global' && claim.is_split_claim_enabled));
 
         if (isMobileBillingEnabled && claim.billing_type !== 'facility') {
             let professionalClaimCharges = [];
@@ -87,7 +88,7 @@ const api= {
                 otherCharges.push(item);
             });
 
-            if (claim.billing_type === 'split' || (claim.billing_type === 'global' && claim.is_split_claim_enabled)) {
+            if (isSplitClaim) {
                 otherCharges.forEach(charge => {
                     let modifier_id = api.findModifier(charge);
                     let professionalCharge = {
@@ -158,6 +159,10 @@ const api= {
             if (professionalClaimCharges.length) {
                 claimsDetails.push({
                     ...claim,
+                    rendering_provider_contact_id: isSplitClaim
+                        ? claim.facility_rendering_provider_contact_id
+                        : claim.rendering_provider_contact_id,
+                    service_by_outside_lab: isSplitClaim || claim.service_by_outside_lab,
                     claim_charges: professionalClaimCharges
                 });
             }
