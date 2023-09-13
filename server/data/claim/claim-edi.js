@@ -1,5 +1,8 @@
 const { SQL, query } = require('../index');
 const { getClaimPatientInsurances } = require('../../shared/index');
+const config = require('../../config');
+
+const isMobileBillingEnabled = config.get(config.keys.enableMobileBilling);
 
 module.exports = {
 
