@@ -112,6 +112,7 @@ WITH claim_data AS (
         p.patient_info->'c1City' AS city,
         p.patient_info->'c1State' AS state,
         p.patient_info->'c1Zip' AS zip,
+        p.patient_info->'c1MobilePhone' AS mobile,
         commented_dt as enc_date,
         comments as description,
         pc.code,
@@ -251,6 +252,7 @@ WITH claim_data AS (
             city,
             state,
             zip,
+            mobile,
             enc_date,
             description,
             code,
@@ -456,8 +458,10 @@ WITH claim_data AS (
     , -1                   AS row_flag
     , -1                   AS sort_order
     , -1                   AS statement_flag
+    , 'PatientMobileNo'    AS patient_mobile_no
     , ''                   AS anything_else
     , ''                   AS charge_id
+
     UNION
 
     -- Billing Information
@@ -509,6 +513,7 @@ WITH claim_data AS (
     , 0
     , 0                              AS sort_order
     , 0
+    , null
     , null
     , null
     FROM all_detail_cte
@@ -622,6 +627,7 @@ WITH claim_data AS (
     , null
     , null
     , null
+    , null
     FROM sum_encounter_cte
     UNION
 
@@ -674,6 +680,7 @@ WITH claim_data AS (
     , 6
     , 99   AS sort_order
     , 0
+    , null
     , null
     , null
     FROM statement_cte
@@ -747,6 +754,7 @@ WITH claim_data AS (
     <%= rowFlag %>
     <%= encounterAmount %>
     <%= statementFlag %>
+    , patient_mobile_no
     , anything_else
     , null
     FROM all_cte
@@ -989,6 +997,7 @@ const api = {
               , 1
               , null
               , null
+              , null
               FROM sum_statement_credit_cte
               UNION
               `;
@@ -1043,6 +1052,7 @@ const api = {
               , 0
               , 0                              AS sort_order
               , 2
+              , mobile
               , null
               , null
               FROM all_detail_cte
@@ -1101,6 +1111,7 @@ const api = {
             , 1
             , null
             , null
+            , null
             FROM all_detail_cte
             `;
 
@@ -1156,6 +1167,7 @@ const api = {
             , 2
             , null
             , null
+            , null
             FROM statement_cte
             `;
             filters.CR = ``;
@@ -1165,6 +1177,7 @@ const api = {
             WHEN (row_flag = 2 AND payment < 0::MONEY) OR (row_flag = 3 AND adjustment < 0::MONEY) THEN 'DR'
             ELSE null
             END
+            , null
             `;
             filters.statmentAging  = `
                 COALESCE(statement_total_amount, 0::money) AS statement_total_amount,
@@ -1192,7 +1205,7 @@ const api = {
             filters.billingInfo = ``;
             filters.billingMsg = ``;
             filters.CR = `|| ' CR'`;
-            filters.anythingElse = `, null`;
+            filters.anythingElse = `, mobile\n, null`;
             filters.statmentAging = `
                     COALESCE(statement_total_amount::NUMERIC, 0) AS statement_total_amount,
                     COALESCE(current_amount::NUMERIC,0) AS current_amount,
