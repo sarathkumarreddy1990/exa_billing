@@ -1103,7 +1103,6 @@ module.exports = {
             WHERE claims.id= ANY(${claimIds})
         `);
 
-        console.log(sql.text, sql.values);
         return await query(sql);
     },
 };
