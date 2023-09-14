@@ -16,6 +16,11 @@ let studyRendProv;
 let facilityRendProv;
 let approvingProv;
 let claimRendProv;
+let isMobileBillingEnabled;
+let hasProfessionalModifier;
+let isSplitClaim;
+let isProfessionalClaimSplit;
+let isProfessionalClaimNotSplit;
 let isProfessionalClaim;
 let isInsuranceSplitEnabled;
 
@@ -745,11 +750,39 @@ function getAddress2Details(claimData) {
     return details;
 }
 
-function verifyProfessionalClaim(chargesData, billingType, isInsuranceSplit) {
-    const isProfessionalModifier = chargesData.some(charge => [charge.mod1, charge.mod2, charge.mod3, charge.mod4].includes('26'));
-    const isSplitClaim = ['split', 'split_p'].includes(billingType) || (billingType === 'global' && isInsuranceSplit);
+function getPhySign() {
 
-    return isProfessionalModifier && isSplitClaim;
+    let phyData = isMobileBillingEnabled
+        ? facilityRendProv
+        : facilityRendProv || approvingProv || studyRendProv || claimRendProv;
+
+    if (phyData) {
+        return `${getName(phyData, 34)}
+                NPI: ${phyData.NPINO || ''}`;
+    } else if (renderingProv) {
+        return `${getName(renderingProv, 34)}
+                NPI: ${renderingProv.NPINO || ''}`;
+    }
+
+    return '';
+}
+
+function getServiceFacilityData() {
+
+    if (isProfessionalClaimSplit) {
+        let phyData = approvingProv || studyRendProv || facilityRendProv;
+        phyData.fullName = getName(phyData);
+        serviceFacNPI = phyData && phyData.NPINO || "";
+
+        return getAddressDetails(phyData, 'zipPlus');
+    }
+
+    if (pos === '12') {
+        patientDet.fullName = "PRIVATE HOME";
+        return getAddressDetails(patientDet, 'zipPlus');
+    } else {
+        return getAddressDetails(serviceFac, 'zipPlus');
+    }
 }
 
 function getPhySign() {
@@ -806,7 +839,11 @@ function formatSingleClaim(claimData, servicelineList) {
     pos = claimDet && claimDet.POS || "";
     billType = claimDet && claimDet.billingType || "";
     isInsuranceSplitEnabled = subscriberDet && subscriberDet.isSplitClaimEnabled || false;
-    isProfessionalClaim = verifyProfessionalClaim(servicelineList, billType, isInsuranceSplitEnabled);
+    hasProfessionalModifier = servicelineList.some(charge => [charge.mod1, charge.mod2, charge.mod3, charge.mod4].includes('26'));
+    isSplitClaim = ['split', 'split_p'].includes(billType) || (billType === 'global' && isInsuranceSplitEnabled);
+    isMobileBillingEnabled = claimData.is_mobile_billing_enabled || false;
+    isProfessionalClaimSplit = hasProfessionalModifier && isSplitClaim;
+    isProfessionalClaimNotSplit = hasProfessionalModifier && !isSplitClaim;
 
     let claimNotes = getKeyTrimValue(claimDet, 'claimNotes', 65).split('\n').join(' ');
     let claimDate = claimDet && claimDet.claimDate;
@@ -1819,10 +1856,10 @@ function formatSingleClaim(claimData, servicelineList) {
                                 widths:[ 30, 35, 60, 45 ],
                                 body: [
                                     [
-                                        {image: getImage(claimDet.outSideLab || isProfessionalClaim), fit: [8, 8]},
-                                        {image: getImage(claimDet.outSideLab != null && !claimDet.outSideLab && !isProfessionalClaim), fit: [8, 8]},
-                                        { text: (claimDet.outSideLab || isProfessionalClaim) ? getDecimalNumericValue(claimDet.claimTotalCharge) : '' , alignment:"center"},
-                                        { text: (claimDet.outSideLab || isProfessionalClaim) ? getDecimalPointsValue(claimDet.claimTotalCharge) : '' , alignment:"center"}
+                                        {image: getImage(claimDet.outSideLab || isProfessionalClaimSplit), fit: [8, 8]},
+                                        {image: getImage(claimDet.outSideLab != null && !claimDet.outSideLab && !isProfessionalClaimSplit), fit: [8, 8]},
+                                        { text: (claimDet.outSideLab || isProfessionalClaimSplit) ? getDecimalNumericValue(claimDet.claimTotalCharge) : '' , alignment:"center"},
+                                        { text: (claimDet.outSideLab || isProfessionalClaimSplit) ? getDecimalPointsValue(claimDet.claimTotalCharge) : '' , alignment:"center"}
                                     ]
                                 ]
                             },layout: 'noBorders' , colSpan:3

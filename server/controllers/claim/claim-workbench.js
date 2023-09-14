@@ -199,11 +199,11 @@ module.exports = {
                 if (claimInfo) {
                     claimInfo.hasProfessionalModifier = (claimInfo.serviceLine || []).some(s => [s.mod1, s.mod2, s.mod3, s.mod4].includes('26'));
                     claimInfo.hasInsuranceSplitEnabled = obj?.data?.[0]?.subscriber?.[0].isSplitClaimEnabled;
-                    claimInfo.isProfessionalSplitClaim = claimInfo.hasProfessionalModifier
-                        && (
-                            ['split', 'split_p'].includes(claimInfo.billingType)
-                            || (claimInfo.billingType == 'global' && claimInfo.hasInsuranceSplitEnabled)
+                    claimInfo.isSplitClaim = ['split', 'split_p'].includes(claimInfo.billingType)
+                        || (claimInfo.billingType == 'global'
+                            && claimInfo.hasInsuranceSplitEnabled
                         );
+                    claimInfo.isProfessionalSplitClaim = claimInfo.hasProfessionalModifier && claimInfo.isSplitClaim;
                 }
 
                 obj.data[0].subscriber[0].claim[0] = claimInfo;
