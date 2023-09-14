@@ -634,48 +634,7 @@ module.exports = {
                                     LEFT JOIN providers AS app_provider ON app_provider.id = rpc.provider_id
                                     LEFT JOIN LATERAL (
                                         SELECT
-                                            st.approving_provider_id AS id
-                                        FROM
-                                            study_transcriptions st
-                                        WHERE
-                                            st.study_id = order_details.study_id
-                                            AND st.approving_provider_id IS NOT NULL
-                                        ORDER BY
-                                            st.approved_dt DESC
-                                        LIMIT 1
-                                    ) approving_provider ON order_details.study_status = 'APP'
-                                    WHERE
-                                        rpc.id = approving_provider.id
-                                )
-                            AS approvingProvider)
-                            ,(SELECT Json_agg(Row_to_json(referringProvider)) "referringProvider"
-                                    FROM
-                                        (SELECT
-                                            UPPER(last_name) AS "lastName",
-                                            UPPER(first_name) AS "firstName",
-                                            UPPER(middle_initial) AS "middileName",
-                                            UPPER(suffix) AS "suffix",
-                                            '' as "prefix",
-                                            provider_info->'TXC' as "taxonomyCode",
-                                            provider_info->'NPI' as "NPINO",
-                                            provider_info->'LicenseNo' as "licenseNo"
-                                            FROM provider_contacts
-                                            LEFT JOIN providers as ref_provider ON ref_provider.id=provider_contacts.provider_id
-                                            WHERE  provider_contacts.id=claims.referring_provider_contact_id)
-                                            as referringProvider)
-
-                                ,(SELECT Json_agg(Row_to_json(otherSubscriber)) "otherSubscriber"
-                                    FROM
-                                        (SELECT
-                                            UPPER(subscriber_firstname) AS "lastName",
-                                            UPPER(subscriber_firstname) AS "firstName",
-                                            (CASE ins_coverage_level.coverage_level
-                                                WHEN 'primary' THEN 'S'
-                                                WHEN 'secondary' THEN 'P'
-                                                WHEN 'tertiary' THEN 'P' END) as "otherClaimResponsibleParty",
-                                    ( SELECT
-
-                                        (  CASE UPPER(description)
+                                            (CASE UPPER(description)
                                                 WHEN 'SELF' THEN '18'
                                                 WHEN 'FATHER' THEN '33'
                                                 WHEN 'MOTHER' THEN '32'
@@ -692,350 +651,717 @@ module.exports = {
                                                 WHEN 'EMPLOYEE' THEN '20'
                                                 WHEN 'ORGAN DONOR' THEN '39'
                                                 WHEN 'CADAVER DONOR' THEN '40'
-                                        END)
-                                                FROM  relationship_status WHERE  subscriber_relationship_id =relationship_status.id ) as  relationship,
-
-                                            policy_number  as "policyNo",
-                                            patient_insurances.group_name as "groupName",
-                                            group_number as "groupNumber",
-                                            other_ins_details.claim_filing_indicator_code as "claimFilingCode",
-                    medicare_insurance_type_code as "insuranceTypeCode",
-                    UPPER(subscriber_firstname) AS "firstName",
-                    UPPER(subscriber_lastname) AS "lastName",
-                    UPPER(subscriber_middlename) AS "middleName",
-                    UPPER(subscriber_name_suffix) AS "suffix",
-                    '' as "prefix",
-                    subscriber_address_line1 as "addressLine1",
-                    subscriber_address_line2 as "addressLine2",
-                    subscriber_city as "city",
-                    subscriber_state as "state",
-                    subscriber_zipcode AS "zipCode",
-                    subscriber_zipcode_plus AS "zipCodePlus",
-                    subscriber_zipcode_plus AS "zipPlus",
-                    home_phone_number as "phoneNumber",
-                    assign_benefits_to_patient as "acceptAssignment",
-                    subscriber_dob::text as "dob",
-                    to_char(subscriber_dob, 'YYYYMMDD')  as "dobFormat",
-                    (CASE ins_coverage_level.coverage_level
-                        WHEN 'primary' THEN 'P'
-                        WHEN 'secondary' THEN 'S'
-                        WHEN 'tertiary' THEN 'T' END) as "claimResponsibleParty",
-                    (SELECT Json_agg(Row_to_json(payerpaidAmount)) "payerpaidAmount" FROM (
-                        SELECT primary_paid_total as "primaryPaidTotal"
-                        ,primary_adj_total as "primaryAdjTotal"
-                        ,secondary_paid_total as "secondaryPaidTotal"
-                        ,secondary_adj_total  as "secondaryAdjTotal"
-                        FROM  billing.get_payer_claim_payments(claims.id)  ) as payerpaidAmount)
-                    FROM   patient_insurances
-                    LEFT JOIN billing.insurance_provider_details  other_ins_details ON other_ins_details.insurance_provider_id = patient_insurances.insurance_provider_id
-                                    WHERE  patient_insurances.id =
-                        ( CASE COALESCE(${payerType}, payer_type)
-                        WHEN 'primary_insurance' THEN claim_ins.secondary_patient_insurance_id
-                        WHEN 'secondary_insurance' THEN claim_ins.primary_patient_insurance_id
-                        WHEN 'tertiary_insurance' THEN claim_ins.primary_patient_insurance_id
-                        END) )
-                    as otherSubscriber),
-                    (SELECT Json_agg(Row_to_json(OtherPayer)) "OtherPayer"
-                                    FROM
-                    (SELECT
-                    UPPER(insurance_name) AS "name",
-                    insurance_info->'PayerID' as "payerID",
-                    insurance_info->'Address1' as "addressLine1",
-                    insurance_info->'Address2' as "addressLine2",
-                    insurance_info->'City' as "city",
-                    insurance_info->'State' as "state",
-                    insurance_info->'ZipCode' AS "zipCode",
-                    insurance_info->'ZipPlus' AS "zipCodePlus",
-                    insurance_info->'PhoneNo' as "phoneNo",
-                    insurance_info->'ZipPlus' as "zipPlus",
-                    pippt.code as "providerTypeCode",
-                    pippt.description as "providerTypeDescription",
-                    ipd.claim_filing_indicator_code
-                    FROM   patient_insurances
-                                        inner join insurance_providers on insurance_providers.id=insurance_provider_id
-                                        LEFT JOIN public.insurance_provider_payer_types pippt ON pippt.id = insurance_providers.provider_payer_type_id
-                                        INNER JOIN billing.insurance_provider_details ipd ON ipd.insurance_provider_id = insurance_providers.id
-                                    WHERE  patient_insurances.id =
-                        ( CASE COALESCE(${payerType}, payer_type)
-                        WHEN 'primary_insurance' THEN claim_ins.secondary_patient_insurance_id
-                        WHEN 'secondary_insurance' THEN claim_ins.primary_patient_insurance_id
-                        WHEN 'tertiary_insurance' THEN claim_ins.primary_patient_insurance_id
-                        END) )
-                    as OtherPayer),
-
-                    (SELECT Json_agg(Row_to_json(serviceLine)) "serviceLine"
-                                    FROM
-                    (SELECT
-                    display_code as "examCpt",
-                    modifier1.code as "mod1",
-                    modifier2.code as "mod2",
-                    modifier3.code as "mod3",
-                    modifier4.code as "mod4",
-                    authorization_no as "authorizationNo",
-                    allowed_amount::numeric::text as "allowedAmount",
-                    (allowed_amount*charges.units)::numeric::text  as "totalAllowedAmount",
-                    charges.id as "chargeID",
-                    display_description as "studyDescription",
-                    ndc.package_code AS NDCCode,
-                    cn.unit_measure AS NDCUnit,
-                    cn.needle_gauge AS NDCMeasure,
-                    bill_fee::numeric::text as "billFee",
-                    (bill_fee*charges.units)::numeric::text  as "totalBillFee",
-                    charges.units as "unit",
-                    date(timezone(facilities.time_zone,charge_dt))::text as  "studyDt",
-                    to_char(date(timezone(facilities.time_zone,charge_dt)), 'YYYYMMDD') as "studyDate",
-                    pointer1 as "pointer1",
-                    pointer2 as "pointer2",
-                    pointer3 as "pointer3",
-                    pointer4 as "pointer4",
-                    pof.clia_number AS "cliaNumber",
-                    study_details.accession_no as "accessionNumber",
-                    study_details.body_part,
-                    (SELECT Json_agg(Row_to_json(lineAdjudication)) "lineAdjudication"
-                                    FROM
-                 (SELECT
-                    display_code as "cpt",
-                    to_char(max(payments.accounting_date), 'YYYYMMDD') as "accountingDt",
-                    charges.id as "chargeID",
-                    insurance_info->'PayerID' as "claimPayerID",
-                    (SELECT insurance_info->'PayerID' FROM    patient_insurances p_pi
-                    INNER JOIN  insurance_providers ON insurance_providers.id=insurance_provider_id
-                    WHERE p_pi.id = claim_ins.primary_patient_insurance_id) as "payerID",
-                    (CASE ins_coverage_level.coverage_level
-                        WHEN 'primary' THEN 'P'
-                        WHEN 'secondary' THEN 'S'
-                        WHEN 'tertiary' THEN 'T' END) as "claimResponsibleParty",
-                    modifier1.code as "modifier1",
-                    modifier2.code as "modifier2",
-                    modifier3.code as "modifier3",
-                    modifier4.code as "modifier4",
-                    COALESCE(sum(pa.amount) FILTER (WHERE pa.amount_type = 'payment'),0::money)::NUMERIC::text  AS "cptPaymentTotal",
-                    COALESCE(sum(pa.amount) FILTER (WHERE pa.amount_type = 'payment' AND payer_type='insurance'),0::money)::NUMERIC::text AS "paidAmount",
-                    COALESCE(sum(pa.amount) FILTER (WHERE pa.amount_type = 'payment' AND payer_type='ordering_provider'),0::money)::NUMERIC::text AS "cptPaymentProvider",
-                    COALESCE(sum(pa.amount) FILTER (WHERE pa.amount_type = 'payment' AND payer_type='ordering_facility'),0::money)::NUMERIC::text AS "cptPaymentOrderingFacility",
-                    COALESCE(sum(pa.amount) FILTER (WHERE pa.amount_type = 'adjustment' AND payer_type='ordering_provider'),0::money)::NUMERIC::text AS "cptAdjustmentProvider",
-                    COALESCE(sum(pa.amount) FILTER (WHERE pa.amount_type = 'adjustment' AND payer_type='ordering_facility'),0::money)::NUMERIC::text AS "cptAdjustmentOrderingFacility",
-                    charges.units as "unit"
-                    ,(SELECT Json_agg(Row_to_json(lineAdjustment)) "lineAdjustment"
-                                    FROM
-                    ( SELECT
-                        cas_group_codes.code as "adjustmentGroupCode" ,
-                        (SELECT JSON_agg(row_to_JSON(CAS)) as casList FROM
-                        (SELECT
-                                            cas_reason_codes.code as "reasonCode",
-                                            cas_payment_application_details.amount::numeric::text
-                                            FROM  billing.cas_payment_application_details
-                                            INNER JOIN billing.cas_group_codes gc
-                                                ON gc.id=cas_group_code_id
-                                            INNER JOIN billing.cas_reason_codes
-                                                ON cas_reason_codes.id=cas_reason_code_id
-                                            INNER JOIN billing.payment_applications
-                                                ON payment_applications.id=cas_payment_application_details.payment_application_id
-                                            INNER JOIN billing.payments ON  billing.payments.id=payment_applications.payment_id and payer_type='insurance' AND
-                                            payment_applications.charge_id = charges.id AND payment_applications.amount_type = 'adjustment'
-                                            WHERE cas_group_codes.code= gc.code
-                                            AND payments.insurance_provider_id NOT IN
-                                            (SELECT
-                                                insurance_provider_id
-                                            FROM public.patient_insurances
-                                            WHERE id = ANY(ARRAY[claim_ins.tertiary_patient_insurance_id,claim_ins.secondary_patient_insurance_id])
-                                            AND insurance_provider_id <> payments.insurance_provider_id)
-                                             ) AS CAS )
-                                            FROM  billing.cas_payment_application_details
-                                            INNER JOIN billing.cas_group_codes ON cas_group_codes.id = cas_group_code_id
-                                            INNER JOIN billing.payment_applications ON payment_applications.id = cas_payment_application_details.payment_application_id
-                                            INNER JOIN billing.payments ON billing.payments.id = payment_applications.payment_id
-                                                                        AND payer_type='insurance'
-                                                                        AND payment_applications.charge_id = charges.id
-                                                                        AND payment_applications.amount_type = 'adjustment'
-                                                                        GROUP BY cas_group_codes.code ) AS lineAdjustment)
-                                        FROM billing.payment_applications pa
-                                        INNER JOIN billing.payments ON billing.payments.id=pa.payment_id
-                                        WHERE charge_id = charges.id
-                                        AND payments.insurance_provider_id NOT IN
-                                        (SELECT insurance_provider_id
-                        FROM public.patient_insurances
-                        WHERE id = ANY(ARRAY[claim_ins.tertiary_patient_insurance_id,claim_ins.secondary_patient_insurance_id])
-                                        AND insurance_provider_id <> payments.insurance_provider_id)
-                                        ) AS lineAdjudication)
-                    FROM billing.charges
-                    INNER JOIN cpt_codes ON cpt_codes.id=cpt_id
-                    LEFT JOIN modifiers AS modifier1 ON modifier1.id=modifier1_id
-                    LEFT JOIN modifiers AS modifier2 ON modifier2.id=modifier2_id
-                    LEFT JOIN modifiers AS modifier3 ON modifier3.id=modifier3_id
-                    LEFT JOIN modifiers AS modifier4 ON modifier4.id=modifier4_id
-                    LEFT JOIN billing.charges_ndc AS cn ON cn.charge_id=charges.id
-                    LEFT JOIN national_drug_codes ndc ON ndc.id = cn.ndc_id
-                    LEFT JOIN LATERAL (
-                                        SELECT
-                                            s.accession_no,
-                                            s.body_part
-                                        FROM
-                                            public.studies s
-                                        INNER JOIN billing.charges_studies AS cs ON cs.study_id = s.id
-                                        WHERE
-                                            cs.charge_id = charges.id
-                                        ORDER BY s.id
-                                    ) AS study_details ON TRUE
-                    WHERE claim_id=claims.id AND NOT charges.is_excluded ORDER BY charges.id ASC)
-                    AS serviceLine)
-                    ) AS claim
-                    )
-                    ) AS subscriber)
-                    SELECT claims.id, insurance_providers.insurance_code AS insurance_provider_code, *
-                    FROM
-                        cte_billing_providers,cte_pay_to_providers,cte_subscriber
-                    )
-
-                    AS data1
-                    )
-
-                    FROM billing.claims
-                    INNER JOIN LATERAL billing.get_claim_payments(claims.id, true) bgcp ON TRUE
-                    INNER JOIN facilities ON facilities.id=claims.facility_id
-                    INNER JOIN patients ON patients.id=claims.patient_id
-                    LEFT JOIN billing.providers bprov ON bprov.id = claims.billing_provider_id
-                    LEFT JOIN billing.delay_reasons bdr ON bdr.id = claims.delay_reason_id `
-                )
-                sql.append(getClaimPatientInsurances('claims'))
-                .append(SQL`
-                    LEFT JOIN LATERAL (
-                        SELECT
-                            (CASE COALESCE(${payerType}, payer_type)
-                                WHEN 'primary_insurance' THEN 'primary'
-                                WHEN 'secondary_insurance' THEN 'secondary'
-                                WHEN 'tertiary_insurance' THEN 'tertiary'
-                            END) AS coverage_level
-                    ) AS ins_coverage_level ON TRUE
-                    LEFT JOIN patient_insurances pi ON pi.id = (
-                        CASE COALESCE(${payerType}, payer_type)
-                            WHEN 'primary_insurance' THEN claim_ins.primary_patient_insurance_id
-                            WHEN 'secondary_insurance' THEN claim_ins.secondary_patient_insurance_id
-                            WHEN 'tertiary_insurance' THEN claim_ins.tertiary_patient_insurance_id
-                        END
-                    )
-                    LEFT JOIN  insurance_providers ON insurance_providers.id=insurance_provider_id
-                    LEFT JOIN billing.insurance_provider_details ON insurance_provider_details.insurance_provider_id = insurance_providers.id
-                    LEFT JOIN relationship_status ON  subscriber_relationship_id =relationship_status.id
-                    LEFT JOIN public.insurance_provider_payer_types  ON insurance_provider_payer_types.id = insurance_providers.provider_payer_type_id
-                    LEFT JOIN public.ordering_facility_contacts pofc ON pofc.id = claims.ordering_facility_contact_id
-                    LEFT JOIN public.ordering_facilities pof ON pof.id = pofc.ordering_facility_id
-                    LEFT JOIN public.pos_map pmap ON pmap.id = pof.pos_map_id
-                    LEFT JOIN (
-                        SELECT
-                            ARRAY_AGG(cc.display_code)::TEXT[] AS cpt_array
-                            , bch.claim_id
-                            , ARRAY_AGG(studies.modality_code) AS mod_array
-                        FROM billing.charges bch
-                        INNER JOIN billing.charges_studies bcs ON bcs.charge_id = bch.id
-                        INNER JOIN public.cpt_codes cc ON cc.id = bch.cpt_id
-                        INNER JOIN (
-                            SELECT
-                                id
-                                , (SELECT modality_code FROM modalities WHERE modalities.id = s.modality_id)
-                            FROM public.studies s
-                        ) studies ON studies.id = bcs.study_id
-                        GROUP BY claim_id
-                    ) bp_charges ON bp_charges.claim_id = claims.id
-                    LEFT JOIN LATERAL (
-                        SELECT
-                            bpr_code[1] AS bpr_code
-                            , bpr_code[2] AS bpr_state
-                            , bpr_code[3] AS bpr_modality
-                            , bprov.npi_no AS billing_provider_npi
-                        FROM string_to_array(bprov.code, ' ') bpr_code
-                        WHERE
-                            bpr_code[3] = 'US' AND facilities.facility_info->'facility_state' = bpr_code[2]
-                            AND insurance_provider_details.claim_filing_indicator_code = 'MB'
-                            AND (ARRAY['93306', '93308'] && bp_charges.cpt_array)
-                    ) bpr_data ON TRUE
-                    LEFT JOIN LATERAL (
-                        SELECT
-                            MAX(ip.insurance_code) FILTER (WHERE coverage_level = 'primary' AND ipd.claim_filing_indicator_code = 'MB') AS pri_ins_code,
-                            MAX(ip.insurance_code) FILTER (WHERE coverage_level = 'secondary' AND ipd.claim_filing_indicator_code = 'MC') AS sec_ins_code
-                        FROM patient_insurances pi
-                        LEFT JOIN insurance_providers ip ON ip.id = pi.insurance_provider_id
-                        LEFT JOIN billing.insurance_provider_details ipd ON ipd.insurance_provider_id = ip.id
-                        WHERE pi.id IN (claim_ins.primary_patient_insurance_id, claim_ins.secondary_patient_insurance_id)
-                    ) ins_details ON TRUE
-                    LEFT JOIN LATERAL (
-                        SELECT
-                            bpr.id AS billing_provider_id
-                            , bpr.npi_no AS billing_provider_npi
-                            , bpr_fac.npi_no AS fac_billing_provider_npi
-                        FROM billing.providers bpr
-                        LEFT JOIN billing.facility_settings bfs ON bfs.facility_id = claims.facility_id
-                        LEFT JOIN billing.providers bpr_fac ON bpr_fac.id = bfs.default_provider_id
-                        WHERE
-                            CASE
-                                WHEN 'QMI' != ${companyCode}
-                                THEN bpr.id = claims.billing_provider_id
-                                ELSE
-                                    CASE
-                                        WHEN ins_coverage_level.coverage_level = 'primary'
-                                        THEN
-                                            CASE
-                                                WHEN bpr_data.billing_provider_npi IS NOT NULL
-                                                THEN bpr.id = claims.billing_provider_id
-                                                ELSE bpr.id = bfs.default_provider_id
-                                            END
+                                            END)
+                                        FROM relationship_status
+                                        WHERE subscriber_relationship_id = relationship_status.id
+                                      ) AS relationship
+                                    , policy_number AS "policyNo"
+                                    , pi.group_name AS "planName"
+                                    , group_number AS "groupNumber"
+                                    , CASE
                                         WHEN ins_coverage_level.coverage_level = 'secondary'
-                                        THEN
-                                            CASE
-                                                WHEN facilities.facility_code = 'QAZU' AND bprov.code = 'QMI AZ US'
-                                                    AND '370' = ins_details.pri_ins_code AND '368' = ins_details.sec_ins_code
-                                                THEN bpr.id = (SELECT id FROM billing.providers WHERE code = 'QMI AZ')
-                                                WHEN facilities.facility_code = 'QIDU' AND bprov.code = 'QMI ID US'
-                                                    AND '1435' = ins_details.pri_ins_code AND '1850' = ins_details.sec_ins_code
-                                                THEN bpr.id = (SELECT id FROM billing.providers WHERE code = 'QMI ID')
-                                                WHEN facilities.facility_code = 'QNVU' AND bprov.code = 'QMI NV US'
-                                                    AND '348' = ins_details.pri_ins_code AND '351' = ins_details.sec_ins_code
-                                                THEN bpr.id = (SELECT id FROM billing.providers WHERE code = 'QMI NV')
-                                                WHEN facilities.facility_code = 'QUTU' AND bprov.code = 'QMI UT US'
-                                                    AND '347' = ins_details.pri_ins_code AND '350' = ins_details.sec_ins_code
-                                                THEN bpr.id = (SELECT id FROM billing.providers WHERE code = 'QMI UT')
-                                                WHEN facilities.facility_code = 'QWAU' AND bprov.code = 'QMI WA US'
-                                                    AND '812' = ins_details.pri_ins_code AND '18392' = ins_details.sec_ins_code
-                                                THEN bpr.id = (SELECT id FROM billing.providers WHERE code = 'QMI WA')
-                                                ELSE bpr.id = claims.billing_provider_id
-                                            END
+                                        THEN pi.medicare_insurance_type_code
+                                        ELSE ''
+                                      END AS "insuranceTypeCode"
+                                    , insurance_provider_details.claim_filing_indicator_code AS "claimFilingCode"
+                                    , insurance_provider_details.is_name_required AS "isNameRequired"
+                                    , insurance_provider_details.is_signature_required AS "isSignatureRequired"
+                                    , insurance_provider_details.is_print_billing_provider_address AS "isPrintBillingProviderAddress"
+                                    , insurance_provider_details.is_split_claim_enabled AS "isSplitClaimEnabled"
+                                    , UPPER(subscriber_firstname) AS "firstName"
+                                    , UPPER(subscriber_lastname) AS "lastName"
+                                    , UPPER(subscriber_middlename) AS "middleName"
+                                    , UPPER(subscriber_name_suffix) AS "suffix"
+                                    , '' AS "prefix"
+                                    , subscriber_address_line1 AS "addressLine1"
+                                    , subscriber_address_line2 AS "addressLine2"
+                                    , subscriber_city AS "city"
+                                    , subscriber_state AS "state"
+                                    , subscriber_zipcode AS "zipCode"
+                                    , subscriber_zipcode_plus AS "zipCodePlus"
+                                    , home_phone_number AS "phoneNumber"
+                                    , assign_benefits_to_patient AS "acceptAssignment"
+                                    , subscriber_dob::TEXT AS "dob"
+                                    , to_char(subscriber_dob, 'YYYYMMDD') AS "dobFormat"
+                                    , CASE subscriber_gender
+                                        WHEN 'Male' THEN 'M'
+                                        WHEN 'Female' THEN 'F'
+                                        WHEN 'Unknown' THEN 'U'
+                                        WHEN 'Others' THEN 'O'
+                                        ELSE subscriber_gender
+                                      END AS gender
+                                    , (
+                                        SELECT
+                                            (row_to_json(payer)) payer
+                                        FROM (
+                                            SELECT
+                                                UPPER(insurance_name) AS "payerName"
+                                                , insurance_info->'PayerID' AS "payerID"
+                                                , insurance_info->'Address1' AS "insuranceprovideraddressline1"
+                                                , insurance_info->'Address2' AS "insuranceprovideraddressline2"
+                                                , insurance_info->'City' "payerCity"
+                                                , insurance_info->'State' "payerState"
+                                                , insurance_info->'ZipCode' "payerZIPCode"
+                                                , insurance_info->'PhoneNo' AS "phoneNo"
+                                                , insurance_info->'ZipPlus' AS "zipPlus"
+                                                , insurance_provider_payer_types.code AS "providerTypeCode"
+                                                , insurance_provider_payer_types.description AS "providerTypeDescription"
+                                        ) AS payer
+                                      )
+                                    , (
+                                        SELECT
+                                            json_agg(row_to_json(patient)) "patient"
+                                        FROM (
+                                            SELECT
+                                                patients.id AS patient_id
+                                                , UPPER(last_name) AS "lastName"
+                                                , UPPER(first_name) AS "firstName"
+                                                , UPPER(middle_name) AS "middleName"
+                                                , UPPER(suffix_name) AS "suffix"
+                                                , account_no AS "accountNumber"
+                                                , patient_info->'c1AddressLine1' AS "addressLine1"
+                                                , patient_info->'c1AddressLine2' AS "addressLine2"
+                                                , patient_info->'c1City' AS "city"
+                                                , patient_info->'c1State' AS "state"
+                                                , patient_info->'c1Zip' AS "zipCode"
+                                                , patient_info->'c1ZipPlus' AS "zipPlus"
+                                                , patient_info->'c1HomePhone' AS "homePhone"
+                                                , patient_info->'c1WorkPhone' AS "workPhone"
+                                                , patient_info->'licenseNo' AS "licenseNo"
+                                                , patient_info->'employerFax' AS "employer_fax"
+                                                , patient_info->'employerName' AS "employer_name"
+                                                , patient_info->'employerPhone' AS "employer_phone"
+                                                , patient_info->'employerAddress' AS "employer_address"
+                                                , concat( patient_info->'employerCity',' ', patient_info->'employerState',' ', patient_info->'employerZip' ) AS "employerAddressDet"
+                                                , get_issuer_details(patients.id, 'uli_phn') AS phn_details
+                                                , birth_date::TEXT AS dob
+                                                , date_part('year', age(date(timezone(facilities.time_zone,claim_dt)), birth_date)::interval) AS age
+                                                , to_char(birth_date, 'YYYYMMDD') AS "dobFormat"
+                                                , (
+                                                    CASE gender
+                                                        WHEN 'Male' THEN 'M'
+                                                        WHEN 'Female' THEN 'F'
+                                                        WHEN 'Unknown' THEN 'U'
+                                                        WHEN 'Others' THEN 'O'
+                                                        ELSE gender
+                                                    END
+                                                ) AS gender
+                                                , (
+                                                    SELECT
+                                                        CASE UPPER(description)
+                                                            WHEN 'SELF' THEN '18'
+                                                            WHEN 'FATHER' THEN '33'
+                                                            WHEN 'MOTHER' THEN '32'
+                                                            WHEN 'SIBLING' THEN '32'
+                                                            WHEN 'GRANDPARENT' THEN '04'
+                                                            WHEN 'GREAT GRANDPARENT' THEN '04'
+                                                            WHEN 'UNKNOWN' THEN '21'
+                                                            WHEN 'SPOUSE' THEN '01'
+                                                            WHEN 'CHILD' THEN '19'
+                                                            WHEN 'BROTHER' THEN '23'
+                                                            WHEN 'SISTER' THEN '20'
+                                                            WHEN 'OTHER RELATIONSHIP' THEN 'G8'
+                                                            WHEN 'LIFE PARTNER' THEN '53'
+                                                            WHEN 'EMPLOYEE' THEN '20'
+                                                            WHEN 'ORGAN DONOR' THEN '39'
+                                                            WHEN 'CADAVER DONOR' THEN '40'
+                                                        END
+                                                    FROM relationship_status
+                                                    WHERE subscriber_relationship_id = relationship_status.id
+                                                ) AS relationship
+                                        ) AS patient
+                                      )
+                                    , (
+                                        SELECT
+                                            json_agg(row_to_json(claim)) "claim"
+                                        FROM (
+                                            SELECT
+                                                claims.id AS "claimNumber"
+                                                , order_details.study_id IS NOT NULL AS "hasStudyReference"
+                                                , bdr.code AS "delayReasonCode"
+                                                , order_details.order_id AS "orderId"
+                                                , frequency AS "claimFrequencyCode"
+                                                , UPPER(facilities.facility_name) AS facility_name
+                                                , facilities.can_mb_wcb_number
+                                                , facilities.facility_info
+                                                , bgcp.charges_bill_fee_total::NUMERIC::TEXT AS "claimTotalCharge"
+                                                , bgcp.payment_insurance_total::NUMERIC::TEXT AS "claimPaymentInsurance"
+                                                , bgcp.payment_ordering_facility_total::NUMERIC::TEXT AS "claimPaymentOrderingFacility"
+                                                , bgcp.payment_ordering_provider_total::NUMERIC::TEXT AS "claimPaymentProvider"
+                                                , bgcp.adjustment_ordering_facility_total::NUMERIC::TEXT AS "claimAdjustmentOrderingFacility"
+                                                , bgcp.adjustment_ordering_provider_total::NUMERIC::TEXT AS "claimAdjustmentProvider"
+                                                , bgcp.payment_patient_total::NUMERIC::TEXT AS "claimPaymentPatient"
+                                                , bgcp.payments_applied_total::NUMERIC::TEXT AS "claimPaymentTotal"
+                                                , (
+                                                    SELECT
+                                                        pos.code
+                                                    FROM places_of_service pos
+                                                    WHERE pos.id = claims.place_of_service_id
+                                                  ) AS "POS"
+                                                , to_char(date(timezone(facilities.time_zone,claim_dt)), 'YYYYMMDD') AS "claimDate"
+                                                , date(timezone(facilities.time_zone,claim_dt))::TEXT AS "claimDt"
+                                                , is_employed AS "relatedCauseCode1"
+                                                , is_other_accident AS "relatedCauseCode2"
+                                                , is_auto_accident AS "relatedCauseCode3"
+                                                , accident_state AS "autoAccidentState"
+                                                , current_illness_date::date AS "illnessDate"
+                                                , service_by_outside_lab AS "outSideLab"
+                                                , account_no AS "accountNumber"
+                                                , claims.billing_type AS "billingType"
+                                                , (
+                                                    SELECT
+                                                        display_description
+                                                    FROM billing.charges
+                                                    INNER JOIN cpt_codes ON cpt_codes.id = cpt_id
+                                                    WHERE claims.id = charges.claim_id
+                                                        AND display_description ILIKE '%MAMMO%'
+                                                    LIMIT 1
+                                                  ) AS "mammoStudyDescription"
+                                                , to_char(current_illness_date, 'YYYYMMDD') AS "illnessDateFormat"
+                                                , authorization_no AS "authorizationNo"
+                                                , auth_no.service_line_auth_no AS "serviceLineAuthNo"
+                                                , original_reference AS "originalReference"
+                                                , patient_info->'c1State' AS "state"
+                                                , facility_info->'facility_mammoLicenseId' AS "mammoCertificationNO"
+                                                , claim_notes AS "claimNotes"
+                                                , same_illness_first_date::TEXT AS "sameIllnessFirstDate"
+                                                , to_char(same_illness_first_date, 'YYYYMMDD') AS "sameIllnessFirstDateFormat"
+                                                , unable_to_work_from_date::TEXT AS "unableToWorkFromDate"
+                                                , to_char(unable_to_work_from_date, 'YYYYMMDD') AS "unableToWorkFromDateFormat"
+                                                , unable_to_work_to_date::TEXT AS "unableToWorkToDate"
+                                                , to_char(unable_to_work_to_date, 'YYYYMMDD') AS "unableToWorkToDateFormat"
+                                                , hospitalization_from_date::TEXT AS "hospitailizationFromDate"
+                                                , to_char(hospitalization_to_date, 'YYYYMMDD') AS "hospitailizationFromDateFormat"
+                                                , hospitalization_to_date::TEXT AS "hospitailizationToDate"
+                                                , to_char(unable_to_work_to_date, 'YYYYMMDD') AS "hospitailizationToDateFormat"
+                                                , pof.state_license_number AS "stateLicenseNo"
+                                                , pof.clia_number AS "cliaNumber"
+                                                , pof.taxonomy_code AS "serviceFacilityTaxonomyCode"
+                                                , CASE ins_coverage_level.coverage_level
+                                                    WHEN 'primary' THEN 'P'
+                                                    WHEN 'secondary' THEN 'S'
+                                                    WHEN 'tertiary' THEN 'T'
+                                                  END AS "claimResponsibleParty"
+                                                , (
+                                                    SELECT
+                                                        jsonb_agg(row_to_json(payerpaidAmount)) "payerpaidAmount"
+                                                    FROM (
+                                                        SELECT
+                                                            primary_paid_total AS "primaryPaidTotal"
+                                                            , primary_adj_total AS "primaryAdjTotal"
+                                                            , secondary_paid_total AS "secondaryPaidTotal"
+                                                            , secondary_adj_total AS "secondaryAdjTotal"
+                                                        FROM billing.get_payer_claim_payments(claims.id)
+                                                    ) AS payerpaidAmount
+                                                  )
+                                                , (
+                                                    SELECT json_agg(row_to_json(icd)) "icd"
+                                                    FROM (
+                                                        SELECT
+                                                            icd_id
+                                                            , code
+                                                            , description
+                                                            , CASE code_type
+                                                                WHEN 'icd9' THEN '0'
+                                                                WHEN 'icd10' THEN '1'
+                                                              END AS code_type
+                                                        FROM billing.claim_icds ci
+                                                        INNER JOIN icd_codes ON icd_codes.id = ci.icd_id
+                                                        WHERE ci.claim_id = claims.id
+                                                        ORDER BY ci.id
+                                                    ) AS icd
+                                                  )
+                                                , bp_data.billing_provider_npi AS "billingProviderNPI"
+                                                , (
+                                                    SELECT
+                                                        jsonb_agg(rendering_provider_default) "renderingProviderDefault"
+                                                    FROM billing.get_claim_provider_data (
+                                                        claims.id
+                                                        , 'default'
+                                                        , order_details.study_id
+                                                    ) AS rendering_provider_default
+                                                    WHERE rendering_provider_default IS NOT NULL
+                                                  )
+                                                , (
+                                                    SELECT
+                                                        jsonb_agg(rendering_provider_claim) "renderingProviderClaim"
+                                                    FROM billing.get_claim_provider_data(
+                                                        claims.id
+                                                        , 'rendering_provider_claim'
+                                                        , order_details.study_id
+                                                    ) AS rendering_provider_claim
+                                                    WHERE rendering_provider_claim IS NOT NULL
+                                                  )
+                                                , (
+                                                    SELECT
+                                                        jsonb_agg(rendering_provider_facility) "renderingProviderFacility"
+                                                    FROM billing.get_claim_provider_data(
+                                                        claims.id
+                                                        , 'rendering_provider_facility'
+                                                        , order_details.study_id
+                                                    ) AS rendering_provider_facility
+                                                    WHERE rendering_provider_facility IS NOT NULL
+                                                  )
+                                                , (
+                                                    SELECT
+                                                        jsonb_agg(rendering_provider_study) AS "renderingProviderStudy"
+                                                    FROM billing.get_claim_provider_data(
+                                                        claims.id
+                                                        , 'rendering_provider_study'
+                                                        , order_details.study_id
+                                                    ) AS rendering_provider_study
+                                                    WHERE rendering_provider_study IS NOT NULL
+                                                  )
+                                                , (
+                                                    SELECT
+                                                        JSONB_AGG(servicefacility) "servicefacility"
+                                                    FROM (
+                                                        SELECT
+                                                            public.get_claim_service_facility_address(
+                                                                claims.id
+                                                                , CASE
+                                                                    WHEN ${companyCode} = 'QMI'
+                                                                    THEN pmap.more_info -> 'pos_dispatching_address'
+                                                                    ELSE claims.pos_map_code
+                                                                  END
+                                                                , claims.patient_id
+                                                            ) AS servicefacility
+                                                    ) AS servicefacility
+                                                  )
+                                                , (
+                                                    SELECT
+                                                        jsonb_agg(approving_provider) "approvingProvider"
+                                                    FROM billing.get_claim_provider_data(
+                                                        claims.id,
+                                                        'approving_provider',
+                                                        order_details.study_id
+                                                    ) AS approving_provider
+                                                    WHERE order_details.study_status = 'APP'
+                                                        AND approving_provider IS NOT NULL
+                                                  )
+                                                , (
+                                                    SELECT
+                                                        json_agg(referring_provider) "referringProvider"
+                                                    FROM billing.get_claim_provider_data(
+                                                        claims.id,
+                                                        'referring_provider',
+                                                        order_details.study_id
+                                                    ) AS referring_provider
+                                                    WHERE referring_provider IS NOT NULL
+                                                  )
+                                                , (
+                                                    SELECT
+                                                        json_agg(row_to_json(otherSubscriber)) "otherSubscriber"
+                                                    FROM (
+                                                        SELECT
+                                                            UPPER(subscriber_firstname) AS "lastName"
+                                                            , UPPER(subscriber_firstname) AS "firstName"
+                                                            , CASE ins_coverage_level.coverage_level
+                                                                WHEN 'primary' THEN 'S'
+                                                                WHEN 'secondary' THEN 'P'
+                                                                WHEN 'tertiary' THEN 'P'
+                                                              END AS "otherClaimResponsibleParty"
+                                                            , (
+                                                                SELECT
+                                                                    CASE UPPER(description)
+                                                                        WHEN 'SELF' THEN '18'
+                                                                        WHEN 'FATHER' THEN '33'
+                                                                        WHEN 'MOTHER' THEN '32'
+                                                                        WHEN 'SIBLING' THEN '32'
+                                                                        WHEN 'GRANDPARENT' THEN '04'
+                                                                        WHEN 'GREAT GRANDPARENT' THEN '04'
+                                                                        WHEN 'UNKNOWN' THEN '21'
+                                                                        WHEN 'SPOUSE' THEN '01'
+                                                                        WHEN 'CHILD' THEN '19'
+                                                                        WHEN 'BROTHER' THEN '23'
+                                                                        WHEN 'SISTER' THEN '20'
+                                                                        WHEN 'OTHER RELATIONSHIP' THEN 'G8'
+                                                                        WHEN 'LIFE PARTNER' THEN '53'
+                                                                        WHEN 'EMPLOYEE' THEN '20'
+                                                                        WHEN 'ORGAN DONOR' THEN '39'
+                                                                        WHEN 'CADAVER DONOR' THEN '40'
+                                                                    END
+                                                                FROM relationship_status
+                                                                WHERE subscriber_relationship_id = relationship_status.id
+                                                              ) AS relationship
+                                                            , policy_number AS "policyNo"
+                                                            , patient_insurances.group_name AS "groupName"
+                                                            , group_number AS "groupNumber"
+                                                            , other_ins_details.claim_filing_indicator_code AS "claimFilingCode"
+                                                            , medicare_insurance_type_code AS "insuranceTypeCode"
+                                                            , UPPER(subscriber_firstname) AS "firstName"
+                                                            , UPPER(subscriber_lastname) AS "lastName"
+                                                            , UPPER(subscriber_middlename) AS "middleName"
+                                                            , UPPER(subscriber_name_suffix) AS "suffix"
+                                                            , '' AS "prefix"
+                                                            , subscriber_address_line1 AS "addressLine1"
+                                                            , subscriber_address_line2 AS "addressLine2"
+                                                            , subscriber_city AS "city"
+                                                            , subscriber_state AS "state"
+                                                            , subscriber_zipcode AS "zipCode"
+                                                            , subscriber_zipcode_plus AS "zipCodePlus"
+                                                            , subscriber_zipcode_plus AS "zipPlus"
+                                                            , home_phone_number AS "phoneNumber"
+                                                            , assign_benefits_to_patient AS "acceptAssignment"
+                                                            , subscriber_dob::TEXT AS "dob"
+                                                            , to_char(subscriber_dob, 'YYYYMMDD') AS "dobFormat"
+                                                            , CASE ins_coverage_level.coverage_level
+                                                                WHEN 'primary' THEN 'P'
+                                                                WHEN 'secondary' THEN 'S'
+                                                                WHEN 'tertiary' THEN 'T'
+                                                              END AS "claimResponsibleParty"
+                                                            , (
+                                                                SELECT
+                                                                    json_agg(row_to_json(payerpaidAmount)) "payerpaidAmount"
+                                                                FROM (
+                                                                    SELECT
+                                                                        primary_paid_total AS "primaryPaidTotal"
+                                                                        , primary_adj_total AS "primaryAdjTotal"
+                                                                        , secondary_paid_total AS "secondaryPaidTotal"
+                                                                        , secondary_adj_total AS "secondaryAdjTotal"
+                                                                    FROM billing.get_payer_claim_payments(claims.id)
+                                                                ) AS payerpaidAmount
+                                                              )
+                                                        FROM patient_insurances
+                                                        LEFT JOIN billing.insurance_provider_details other_ins_details
+                                                            ON other_ins_details.insurance_provider_id = patient_insurances.insurance_provider_id
+                                                        WHERE patient_insurances.id =
+                                                            CASE COALESCE(${payerType}, payer_type)
+                                                                WHEN 'primary_insurance' THEN claim_ins.secondary_patient_insurance_id
+                                                                WHEN 'secondary_insurance' THEN claim_ins.primary_patient_insurance_id
+                                                                WHEN 'tertiary_insurance' THEN claim_ins.primary_patient_insurance_id
+                                                            END
+                                                    ) AS otherSubscriber
+                                                  )
+                                                , (
+                                                    SELECT
+                                                        json_agg(row_to_json(OtherPayer)) "OtherPayer"
+                                                    FROM (
+                                                        SELECT
+                                                            UPPER(insurance_name) AS "name"
+                                                            , insurance_info->'PayerID' AS "payerID"
+                                                            , insurance_info->'Address1' AS "addressLine1"
+                                                            , insurance_info->'Address2' AS "addressLine2"
+                                                            , insurance_info->'City' AS "city"
+                                                            , insurance_info->'State' AS "state"
+                                                            , insurance_info->'ZipCode' AS "zipCode"
+                                                            , insurance_info->'ZipPlus' AS "zipCodePlus"
+                                                            , insurance_info->'PhoneNo' AS "phoneNo"
+                                                            , insurance_info->'ZipPlus' AS "zipPlus"
+                                                            , pippt.code AS "providerTypeCode"
+                                                            , pippt.description AS "providerTypeDescription"
+                                                            , ipd.claim_filing_indicator_code
+                                                        FROM patient_insurances
+                                                        INNER JOIN insurance_providers ON insurance_providers.id = insurance_provider_id
+                                                        LEFT JOIN public.insurance_provider_payer_types pippt ON pippt.id = insurance_providers.provider_payer_type_id
+                                                        INNER JOIN billing.insurance_provider_details ipd ON ipd.insurance_provider_id = insurance_providers.id
+                                                        WHERE patient_insurances.id =
+                                                            CASE COALESCE(${payerType}, payer_type)
+                                                                WHEN 'primary_insurance' THEN claim_ins.secondary_patient_insurance_id
+                                                                WHEN 'secondary_insurance' THEN claim_ins.primary_patient_insurance_id
+                                                                WHEN 'tertiary_insurance' THEN claim_ins.primary_patient_insurance_id
+                                                            END
+                                                    ) AS OtherPayer
+                                                  )
+                                                , (
+                                                    SELECT
+                                                        json_agg(row_to_json(serviceLine)) "serviceLine"
+                                                    FROM (
+                                                        SELECT
+                                                            display_code AS "examCpt"
+                                                            , modifier1.code AS "mod1"
+                                                            , modifier2.code AS "mod2"
+                                                            , modifier3.code AS "mod3"
+                                                            , modifier4.code AS "mod4"
+                                                            , authorization_no AS "authorizationNo"
+                                                            , allowed_amount::NUMERIC::TEXT AS "allowedAmount"
+                                                            , (allowed_amount*charges.units)::NUMERIC::TEXT AS "totalAllowedAmount"
+                                                            , charges.id AS "chargeID"
+                                                            , display_description AS "studyDescription"
+                                                            , ndc.package_code AS NDCCode
+                                                            , cn.unit_measure AS NDCUnit
+                                                            , cn.needle_gauge AS NDCMeasure
+                                                            , bill_fee::NUMERIC::TEXT AS "billFee"
+                                                            , (bill_fee*charges.units)::NUMERIC::TEXT AS "totalBillFee"
+                                                            , charges.units AS "unit"
+                                                            , date(timezone(facilities.time_zone,charge_dt))::TEXT AS "studyDt"
+                                                            , to_char(date(timezone(facilities.time_zone,charge_dt)), 'YYYYMMDD') AS "studyDate"
+                                                            , pointer1 AS "pointer1"
+                                                            , pointer2 AS "pointer2"
+                                                            , pointer3 AS "pointer3"
+                                                            , pointer4 AS "pointer4"
+                                                            , pof.clia_number AS "cliaNumber"
+                                                            , study_details.accession_no AS "accessionNumber"
+                                                            , study_details.body_part
+                                                            , (
+                                                                SELECT
+                                                                    json_agg(row_to_json(lineAdjudication)) "lineAdjudication"
+                                                                FROM (
+                                                                    SELECT
+                                                                        display_code AS "cpt"
+                                                                        , to_char(max(payments.accounting_date), 'YYYYMMDD') AS "accountingDt"
+                                                                        , charges.id AS "chargeID"
+                                                                        , insurance_info->'PayerID' AS "claimPayerID"
+                                                                        , (
+                                                                            SELECT insurance_info->'PayerID'
+                                                                            FROM patient_insurances p_pi
+                                                                            INNER JOIN insurance_providers ON insurance_providers.id = insurance_provider_id
+                                                                            WHERE p_pi.id = claim_ins.primary_patient_insurance_id
+                                                                          ) AS "payerID"
+                                                                        , CASE ins_coverage_level.coverage_level
+                                                                            WHEN 'primary' THEN 'P'
+                                                                            WHEN 'secondary' THEN 'S'
+                                                                            WHEN 'tertiary' THEN 'T'
+                                                                          END AS "claimResponsibleParty"
+                                                                        , modifier1.code AS "modifier1"
+                                                                        , modifier2.code AS "modifier2"
+                                                                        , modifier3.code AS "modifier3"
+                                                                        , modifier4.code AS "modifier4"
+                                                                        , COALESCE(sum(pa.amount) FILTER (WHERE pa.amount_type = 'payment'),0::money)::NUMERIC::TEXT AS "cptPaymentTotal"
+                                                                        , COALESCE(sum(pa.amount) FILTER (WHERE pa.amount_type = 'payment' AND payer_type = 'insurance'),0::money)::NUMERIC::TEXT AS "paidAmount"
+                                                                        , COALESCE(sum(pa.amount) FILTER (WHERE pa.amount_type = 'payment' AND payer_type = 'ordering_provider'),0::money)::NUMERIC::TEXT AS "cptPaymentProvider"
+                                                                        , COALESCE(sum(pa.amount) FILTER (WHERE pa.amount_type = 'payment' AND payer_type = 'ordering_facility'),0::money)::NUMERIC::TEXT AS "cptPaymentOrderingFacility"
+                                                                        , COALESCE(sum(pa.amount) FILTER (WHERE pa.amount_type = 'adjustment' AND payer_type = 'ordering_provider'),0::money)::NUMERIC::TEXT AS "cptAdjustmentProvider"
+                                                                        , COALESCE(sum(pa.amount) FILTER (WHERE pa.amount_type = 'adjustment' AND payer_type = 'ordering_facility'),0::money)::NUMERIC::TEXT AS "cptAdjustmentOrderingFacility"
+                                                                        , charges.units AS "unit"
+                                                                        , (
+                                                                            SELECT
+                                                                                json_agg(row_to_json(lineAdjustment)) "lineAdjustment"
+                                                                            FROM (
+                                                                                SELECT
+                                                                                    cas_group_codes.code AS "adjustmentGroupCode"
+                                                                                    , (
+                                                                                        SELECT
+                                                                                            json_agg(row_to_json(CAS)) AS casList
+                                                                                        FROM (
+                                                                                            SELECT
+                                                                                                cas_reason_codes.code AS "reasonCode"
+                                                                                                , cas_payment_application_details.amount::NUMERIC::TEXT
+                                                                                            FROM billing.cas_payment_application_details
+                                                                                            INNER JOIN billing.cas_group_codes gc ON gc.id = cas_group_code_id
+                                                                                            INNER JOIN billing.cas_reason_codes ON cas_reason_codes.id = cas_reason_code_id
+                                                                                            INNER JOIN billing.payment_applications ON payment_applications.id = cas_payment_application_details.payment_application_id
+                                                                                            INNER JOIN billing.payments ON
+                                                                                                billing.payments.id = payment_applications.payment_id
+                                                                                                AND payer_type = 'insurance'
+                                                                                                AND payment_applications.charge_id = charges.id
+                                                                                                AND payment_applications.amount_type = 'adjustment'
+                                                                                            WHERE cas_group_codes.code = gc.code
+                                                                                            AND payments.insurance_provider_id NOT IN (
+                                                                                                SELECT
+                                                                                                    insurance_provider_id
+                                                                                                FROM public.patient_insurances
+                                                                                                WHERE id = ANY(ARRAY[claim_ins.tertiary_patient_insurance_id, claim_ins.secondary_patient_insurance_id])
+                                                                                                    AND insurance_provider_id <> payments.insurance_provider_id
+                                                                                            )
+                                                                                        ) AS CAS
+                                                                                      )
+                                                                                FROM billing.cas_payment_application_details
+                                                                                INNER JOIN billing.cas_group_codes ON cas_group_codes.id = cas_group_code_id
+                                                                                INNER JOIN billing.payment_applications ON payment_applications.id = cas_payment_application_details.payment_application_id
+                                                                                INNER JOIN billing.payments
+                                                                                    ON billing.payments.id = payment_applications.payment_id
+                                                                                        AND payer_type = 'insurance'
+                                                                                        AND payment_applications.charge_id = charges.id
+                                                                                        AND payment_applications.amount_type = 'adjustment'
+                                                                                GROUP BY cas_group_codes.code
+                                                                            ) AS lineAdjustment
+                                                                          )
+                                                                    FROM billing.payment_applications pa
+                                                                    INNER JOIN billing.payments ON billing.payments.id = pa.payment_id
+                                                                    WHERE charge_id = charges.id
+                                                                    AND payments.insurance_provider_id NOT IN (
+                                                                        SELECT insurance_provider_id
+                                                                        FROM public.patient_insurances
+                                                                        WHERE id = ANY(ARRAY[claim_ins.tertiary_patient_insurance_id, claim_ins.secondary_patient_insurance_id])
+                                                                        AND insurance_provider_id <> payments.insurance_provider_id)
+                                                                ) AS lineAdjudication
+                                                              )
+                                                        FROM billing.charges
+                                                        INNER JOIN cpt_codes ON cpt_codes.id = cpt_id
+                                                        LEFT JOIN modifiers AS modifier1 ON modifier1.id = modifier1_id
+                                                        LEFT JOIN modifiers AS modifier2 ON modifier2.id = modifier2_id
+                                                        LEFT JOIN modifiers AS modifier3 ON modifier3.id = modifier3_id
+                                                        LEFT JOIN modifiers AS modifier4 ON modifier4.id = modifier4_id
+                                                        LEFT JOIN billing.charges_ndc AS cn ON cn.charge_id = charges.id
+                                                        LEFT JOIN national_drug_codes ndc ON ndc.id = cn.ndc_id
+                                                        LEFT JOIN LATERAL (
+                                                            SELECT
+                                                                s.accession_no
+                                                                , s.body_part
+                                                            FROM public.studies s
+                                                            INNER JOIN billing.charges_studies AS cs ON cs.study_id = s.id
+                                                            WHERE cs.charge_id = charges.id
+                                                            ORDER BY s.id
+                                                        ) AS study_details ON TRUE
+                                                        WHERE claim_id = claims.id
+                                                        AND NOT charges.is_excluded
+                                                        ORDER BY charges.id ASC
+                                                    ) AS serviceLine
+                                                  )
+                                            ) AS claim
+                                      )
+                            ) AS subscriber
+                        )
+                        SELECT
+                            claims.id
+                            , insurance_providers.insurance_code AS insurance_provider_code\
+                            , *
+                        FROM
+                            cte_billing_providers
+                            , cte_pay_to_providers
+                            , cte_subscriber
+                    ) AS data1
+                )
+            FROM billing.claims
+            INNER JOIN LATERAL billing.get_claim_payments(claims.id, true) bgcp ON TRUE
+            INNER JOIN facilities ON facilities.id=claims.facility_id
+            INNER JOIN patients ON patients.id=claims.patient_id
+            LEFT JOIN billing.providers bprov ON bprov.id = claims.billing_provider_id
+            LEFT JOIN billing.delay_reasons bdr ON bdr.id = claims.delay_reason_id `
+        sql.append(getClaimPatientInsurances('claims'))
+            .append(SQL`
+            LEFT JOIN LATERAL (
+                SELECT
+                    CASE COALESCE(${payerType}, payer_type)
+                        WHEN 'primary_insurance' THEN 'primary'
+                        WHEN 'secondary_insurance' THEN 'secondary'
+                        WHEN 'tertiary_insurance' THEN 'tertiary'
+                        END AS coverage_level
+            ) AS ins_coverage_level ON TRUE
+            LEFT JOIN patient_insurances pi ON pi.id = (
+                CASE COALESCE(${payerType}, payer_type)
+                    WHEN 'primary_insurance' THEN claim_ins.primary_patient_insurance_id
+                    WHEN 'secondary_insurance' THEN claim_ins.secondary_patient_insurance_id
+                    WHEN 'tertiary_insurance' THEN claim_ins.tertiary_patient_insurance_id
+                END
+            )
+            LEFT JOIN insurance_providers ON insurance_providers.id = insurance_provider_id
+            LEFT JOIN billing.insurance_provider_details ON insurance_provider_details.insurance_provider_id = insurance_providers.id
+            LEFT JOIN relationship_status ON subscriber_relationship_id = relationship_status.id
+            LEFT JOIN public.insurance_provider_payer_types ON insurance_provider_payer_types.id = insurance_providers.provider_payer_type_id
+            LEFT JOIN public.ordering_facility_contacts pofc ON pofc.id = claims.ordering_facility_contact_id
+            LEFT JOIN public.ordering_facilities pof ON pof.id = pofc.ordering_facility_id
+            LEFT JOIN public.pos_map pmap ON pmap.id = pof.pos_map_id
+            LEFT JOIN (
+                SELECT
+                    ARRAY_AGG(cc.display_code)::TEXT[] AS cpt_array
+                    , bch.claim_id
+                    , ARRAY_AGG(studies.modality_code) AS mod_array
+                FROM billing.charges bch
+                INNER JOIN billing.charges_studies bcs ON bcs.charge_id = bch.id
+                INNER JOIN public.cpt_codes cc ON cc.id = bch.cpt_id
+                INNER JOIN (
+                    SELECT
+                        id
+                        , (SELECT modality_code FROM modalities WHERE modalities.id = s.modality_id)
+                    FROM public.studies s
+                ) studies ON studies.id = bcs.study_id
+                GROUP BY claim_id
+            ) bp_charges ON bp_charges.claim_id = claims.id
+            LEFT JOIN LATERAL (
+                SELECT
+                    bpr_code[1] AS bpr_code
+                    , bpr_code[2] AS bpr_state
+                    , bpr_code[3] AS bpr_modality
+                    , bprov.npi_no AS billing_provider_npi
+                FROM string_to_array(bprov.code, ' ') bpr_code
+                WHERE
+                    bpr_code[3] = 'US' AND facilities.facility_info->'facility_state' = bpr_code[2]
+                    AND insurance_provider_details.claim_filing_indicator_code = 'MB'
+                    AND (ARRAY['93306', '93308'] && bp_charges.cpt_array)
+            ) bpr_data ON TRUE
+            LEFT JOIN LATERAL (
+                SELECT
+                    MAX(ip.insurance_code) FILTER (WHERE coverage_level = 'primary' AND ipd.claim_filing_indicator_code = 'MB') AS pri_ins_code,
+                    MAX(ip.insurance_code) FILTER (WHERE coverage_level = 'secondary' AND ipd.claim_filing_indicator_code = 'MC') AS sec_ins_code
+                FROM patient_insurances pi
+                LEFT JOIN insurance_providers ip ON ip.id = pi.insurance_provider_id
+                LEFT JOIN billing.insurance_provider_details ipd ON ipd.insurance_provider_id = ip.id
+                WHERE
+                    pi.id IN (claim_ins.primary_patient_insurance_id, claim_ins.secondary_patient_insurance_id)
+            ) ins_details ON TRUE
+            LEFT JOIN LATERAL (
+                SELECT
+                    bpr.id AS billing_provider_id
+                    , bpr.npi_no AS billing_provider_npi
+                    , bpr_fac.npi_no AS fac_billing_provider_npi
+                FROM billing.providers bpr
+                LEFT JOIN billing.facility_settings bfs ON bfs.facility_id = claims.facility_id
+                LEFT JOIN billing.providers bpr_fac ON bpr_fac.id = bfs.default_provider_id
+                WHERE
+                    CASE
+                        WHEN 'QMI' != ${companyCode}
+                        THEN bpr.id = claims.billing_provider_id
+                        ELSE
+                            CASE
+                                WHEN ins_coverage_level.coverage_level = 'primary'
+                                THEN
+                                    CASE
+                                        WHEN bpr_data.billing_provider_npi IS NOT NULL
+                                        THEN bpr.id = claims.billing_provider_id
+                                        ELSE bpr.id = bfs.default_provider_id
+                                    END
+                                WHEN ins_coverage_level.coverage_level = 'secondary'
+                                THEN
+                                    CASE
+                                        WHEN facilities.facility_code = 'QAZU' AND bprov.code = 'QMI AZ US'
+                                            AND '370' = ins_details.pri_ins_code AND '368' = ins_details.sec_ins_code
+                                        THEN bpr.id = (SELECT id FROM billing.providers WHERE code = 'QMI AZ')
+                                        WHEN facilities.facility_code = 'QIDU' AND bprov.code = 'QMI ID US'
+                                            AND '1435' = ins_details.pri_ins_code AND '1850' = ins_details.sec_ins_code
+                                        THEN bpr.id = (SELECT id FROM billing.providers WHERE code = 'QMI ID')
+                                        WHEN facilities.facility_code = 'QNVU' AND bprov.code = 'QMI NV US'
+                                            AND '348' = ins_details.pri_ins_code AND '351' = ins_details.sec_ins_code
+                                        THEN bpr.id = (SELECT id FROM billing.providers WHERE code = 'QMI NV')
+                                        WHEN facilities.facility_code = 'QUTU' AND bprov.code = 'QMI UT US'
+                                            AND '347' = ins_details.pri_ins_code AND '350' = ins_details.sec_ins_code
+                                        THEN bpr.id = (SELECT id FROM billing.providers WHERE code = 'QMI UT')
+                                        WHEN facilities.facility_code = 'QWAU' AND bprov.code = 'QMI WA US'
+                                            AND '812' = ins_details.pri_ins_code AND '18392' = ins_details.sec_ins_code
+                                        THEN bpr.id = (SELECT id FROM billing.providers WHERE code = 'QMI WA')
                                         ELSE bpr.id = claims.billing_provider_id
                                     END
+                                ELSE bpr.id = claims.billing_provider_id
                             END
-                    ) bp_data ON TRUE
-                    LEFT JOIN LATERAL (
-                                                SELECT
-                                                    bch.authorization_no AS service_line_auth_no
-                                                FROM
-                                                    billing.charges bch
-                                                INNER JOIN cpt_codes
-                                                    ON cpt_codes.id = bch.cpt_id
-                                                WHERE
-                                                    bch.claim_id = claims.id
-                                                    AND NOT bch.is_excluded
-                                                    AND bch.authorization_no IS NOT NULL
-                                                ORDER BY
-                                                    bch.id ASC
-                                                LIMIT 1
-                                                ) AS auth_no ON TRUE
-                                            LEFT JOIN LATERAL (
-                                                SELECT
-                                                    s.order_id
-                                                    , s.id AS study_id
-                                                    , s.study_status AS study_status
-                                                    , o.order_info->'pos_type_code' AS pos
-                                                FROM
-                                                    public.studies s
-                                                INNER JOIN billing.charges_studies AS cs ON cs.study_id = s.id
-                                                INNER JOIN billing.charges AS c on c.id = cs.charge_id
-                                                INNER JOIN public.orders o ON o.id = s.order_id
-                                                WHERE
-                                                    c.claim_id = claims.id
-                                                ORDER BY s.order_id
-                                                LIMIT 1
-                                                ) AS order_details ON TRUE
-                                                WHERE claims.id= ANY(${claimIds})
-                            `);
+                    END
+            ) bp_data ON TRUE
+            LEFT JOIN LATERAL (
+                SELECT
+                    bch.authorization_no AS service_line_auth_no
+                FROM
+                    billing.charges bch
+                INNER JOIN cpt_codes
+                    ON cpt_codes.id = bch.cpt_id
+                WHERE
+                    bch.claim_id = claims.id
+                    AND NOT bch.is_excluded
+                    AND bch.authorization_no IS NOT NULL
+                ORDER BY
+                    bch.id ASC
+                LIMIT 1
+            ) AS auth_no ON TRUE
+            LEFT JOIN LATERAL (
+                SELECT
+                    s.order_id
+                    , s.id AS study_id
+                    , s.reading_physician_id
+                    , s.study_status AS study_status
+                    , o.order_info->'pos_type_code' AS pos
+                FROM
+                    public.studies s
+                INNER JOIN billing.charges_studies AS cs ON cs.study_id = s.id
+                INNER JOIN billing.charges AS c on c.id = cs.charge_id
+                INNER JOIN public.orders o ON o.id = s.order_id
+                WHERE
+                    c.claim_id = claims.id
+                ORDER BY s.order_id
+                LIMIT 1
+            ) AS order_details ON TRUE
+            WHERE claims.id= ANY(${claimIds})
+        `);
+
+        console.log(sql.text, sql.values);
         return await query(sql);
     },
 };

@@ -124,7 +124,7 @@ function getTableContents(claimData, servicelineList) {
                 ) : ' '
             );
             let claimFilingCode = claimData.subscriber[0].claimFilingCode || '';
-            let licenseNo = claimData.subscriber[0].claim[0].renderingProvider?.[0].licenseNo || '';
+            let licenseNo = claimData.subscriber[0].claim[0].renderingProviderDefault?.[0].licenseNo || '';
             let wcCodeQualifier = licenseNo && claimFilingCode.toString().toUpperCase() === 'WC';
 
             cptRows.push([
@@ -178,8 +178,8 @@ function getTableContents(claimData, servicelineList) {
                     },
                     { text: servicelineList[i].unit ? servicelineList[i].unit.toString().substring(0, 5) : ''  , margin: [0, -3, 0, 0]}, {}, {},
                     {
-                        text: claimData.subscriber[0].claim[0].renderingProvider && claimData.subscriber[0].claim[0].renderingProvider[0].NPINO ?
-                            getSubstring(claimData.subscriber[0].claim[0].renderingProvider[0].NPINO, 12) : '' , margin: [0, -3, 0, 0]
+                        text: claimData.subscriber[0].claim[0].renderingProviderDefault && claimData.subscriber[0].claim[0].renderingProviderDefault[0].NPINO ?
+                            getSubstring(claimData.subscriber[0].claim[0].renderingProviderDefault[0].NPINO, 12) : '' , margin: [0, -3, 0, 0]
                     }
                 ]
             );
@@ -401,6 +401,45 @@ function getServiceFacilityData() {
     }
 }
 
+function getPhySign() {
+
+    let phyData = {};
+
+    if (isProfessionalClaim) {
+        phyData = facilityRendProv;
+    } else {
+        phyData = approvingProv || studyRendProv || facilityRendProv;
+    }
+
+    if (phyData) {
+        return `${getSubstring(getName(phyData), 34)}
+                NPI: ${phyData.NPINO || ''}`;
+    } else if (renderingProv) {
+        return `${getSubstring(getName(renderingProv), 34)}
+                NPI: ${renderingProv.NPINO || ''}`;
+    }
+
+    return '';
+}
+
+function getServiceFacilityData() {
+
+    if (isProfessionalClaim) {
+        let phyData = approvingProv || studyRendProv || facilityRendProv;
+        phyData.fullName = getName(phyData);
+        serviceFacNPI = phyData && phyData.NPINO || "";
+
+        return getAddressDetails(phyData, 'zipPlus');
+    }
+
+    if (pos === '12') {
+        patientDet.fullName = "PRIVATE HOME";
+        return getAddressDetails(patientDet, 'zipPlus');
+    } else {
+        return getAddressDetails(serviceFac, 'zipPlus');
+    }
+}
+
 function formatRedForm(claimData, servicelineList, pageBrk) {
     cpt = getTableContents(claimData, servicelineList);
     HeaderDets = getHeaderDetails(claimData);
@@ -409,7 +448,11 @@ function formatRedForm(claimData, servicelineList, pageBrk) {
     patientDet = subscriberDet && subscriberDet.patient && subscriberDet.patient[0] || "";
     claimDet = subscriberDet && subscriberDet.claim && subscriberDet.claim[0] || "";
     serviceFac =  claimDet && claimDet.servicefacility && claimDet.servicefacility[0] || "";
-    renderingProv = claimDet && claimDet.renderingProvider && claimDet.renderingProvider[0] || "";
+    renderingProv = claimDet && claimDet.renderingProviderDefault && claimDet.renderingProviderDefault[0] || "";
+    studyRendProv = claimDet && claimDet.renderingProviderStudy && claimDet.renderingProviderStudy[0] || "";
+    claimRendProv = claimDet && claimDet.renderingProviderClaim && claimDet.renderingProviderClaim[0] || "";
+    facilityRendProv = claimDet && claimDet.renderingProviderFacility && claimDet.renderingProviderFacility[0] || "";
+    approvingProv = claimDet && claimDet.approvingProvider && claimDet.approvingProvider[0] || "";
     serviceFacNPI = serviceFac && serviceFac.NPINO || "";
     pos = claimDet && claimDet.POS || "";
     billType = claimDet && claimDet.billingType || "";
@@ -421,20 +464,9 @@ function formatRedForm(claimData, servicelineList, pageBrk) {
     isProfessionalClaimNotSplit = hasProfessionalModifier && !isSplitClaim;
 
     let claimNotes = getSubstring(claimDet.claimNotes, 65).split('\n').join(' ');
-    let isInsuranceSplitEnabled = subscriberDet && subscriberDet.isSplitClaimEnabled || false;
-    let isProfessionalClaim = professionalClaim(servicelineList, billType, isInsuranceSplitEnabled);
     let isAutoAccident = claimData.subscriber[0].claim[0]?.relatedCauseCode3;
 
-    if (pos === "12") {
-        patientDet.fullName = "PRIVATE HOME" ;
-        serviceFacDet = getAddressDetails(patientDet, 'zipPlus');
-    } else if (isProfessionalClaim) {
-        renderingProv.fullName = renderingProv.lastName+', '+renderingProv.firstName;
-        serviceFacDet = getAddressDetails(renderingProv, 'zipPlus');
-        serviceFacNPI = renderingProv && renderingProv.NPINO || "";
-    } else {
-        serviceFacDet = getAddressDetails(serviceFac, 'zipPlus');
-    }
+    serviceFacDet = getServiceFacilityData();
 
     if(!claimData.subscriber[0].isPrintBillingProviderAddress) {
 	    BillingProDet = getAddressDetails(claimData.payToProvider, 'zipCodePlus');
@@ -1012,11 +1044,7 @@ function formatRedForm(claimData, servicelineList, pageBrk) {
                         {}, {}
                     ],
                     [
-                        { text:
-                            ( renderingProv
-                                ? getSubstring(getName(renderingProv), 34)
-                                : ''
-                            ), colSpan: 3, margin: [-10, 17, 0, 0]
+                        { text: (getPhySign() || ''), colSpan: 3, margin: [-10, 17, 0, 0]
                         }, {}, {},
                         { text: serviceFacDet, colSpan: 4, margin: [-6, 0, 0, 0] },
                         {}, {}, {},
