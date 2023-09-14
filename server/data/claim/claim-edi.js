@@ -1218,7 +1218,7 @@ module.exports = {
             INNER JOIN facilities ON facilities.id=claims.facility_id
             INNER JOIN patients ON patients.id=claims.patient_id
             LEFT JOIN billing.providers bprov ON bprov.id = claims.billing_provider_id
-            LEFT JOIN billing.delay_reasons bdr ON bdr.id = claims.delay_reason_id `
+            LEFT JOIN billing.delay_reasons bdr ON bdr.id = claims.delay_reason_id `)
         sql.append(getClaimPatientInsurances('claims'))
             .append(SQL`
             LEFT JOIN LATERAL (
@@ -1361,7 +1361,6 @@ module.exports = {
             WHERE claims.id= ANY(${claimIds})
         `);
 
-        console.log(sql.text, sql.values);
         return await query(sql);
     },
 };
