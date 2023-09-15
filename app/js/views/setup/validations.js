@@ -132,14 +132,14 @@ function (
 
         /**
          * Writes all of the HTML and event binding under one of the tabs (electronic, Invoice or Patient)
-         * 
+         *
          * @param {string} tab   Name of the tab to write
          * @param {object} data  Save data to write
          */
         writeTabContents: function (tab, data) {
             var $tab_area = this.getTabAreaEl(tab);
 
-            for (group_key in data) {
+            for (var group_key in data) {
                 var group_data = data[group_key];
                 if (!group_data.length) { continue; }
 
@@ -178,14 +178,14 @@ function (
         // --------------------------------------------------------------------------------
 
         /**
-         * Sets the "enabled" property to true in the structure object based on what's in the save data 
+         * Sets the "enabled" property to true in the structure object based on what's in the save data
          *    Field will show if ...
          *       1. No "show" property is specified in the item's structure
          *       2. Show property is an empty array
          *       3. One of the array elements exactly matches the country code
          *       4. One of the array elements exactly matches the Billing Region Code (i.e. country_province)
          *       5. One of the array elements contains "not_" but no element matches "not_country" or "not_billingRegionCode"
-         * 
+         *
          * @param {object} structure  Field structure
          * @param {object} save_data  Save data.  Contains only enabled fields
          */
@@ -277,7 +277,7 @@ function (
 
         /**
          * Retrieves the dom element for a tab
-         * 
+         *
          * @param {string} tab  Data attribute to identify the desired tab
          */
         getTabEl: function (tab) {
@@ -286,7 +286,7 @@ function (
 
         /**
          * Retrieves the dom element for a tab content area
-         * 
+         *
          * @param {string} tab  Data attribute to identify the desired tab
          */
         getTabAreaEl: function (tab) {
@@ -295,7 +295,7 @@ function (
 
         /**
          * Retrieves the dom element for an group within a tab
-         * 
+         *
          * @param {string} tab    Data attribute to identify the desired tab
          * @param {string} group  Data attribute to identify the desired group within said tab
          */
@@ -305,7 +305,7 @@ function (
 
         /**
          * Retrieves the dom element for the items within a group within a tab
-         * 
+         *
          * @param {string} tab    Data attribute to identify the desired tab
          * @param {string} group  Data attribute to identify the desired group within said tab
          */
@@ -315,7 +315,7 @@ function (
 
         /**
          * Retrieves all of the checkboxes within a tab within a group
-         * 
+         *
          * @param {string} tab    Data attribute to identify the desired tab
          * @param {string} group  Data attribute to identify the desired group within said tab
          */
@@ -325,7 +325,7 @@ function (
 
         /**
          * Retrieves all of the checkboxes within a tab
-         * 
+         *
          * @param {string} tab    Data attribute to identify the desired tab
          */
         getAllTabItems: function (tab) {
@@ -358,7 +358,7 @@ function (
          * Checks or unchecks a group's "select all" checkbox based on whether all of the items are checked or not
          *    Check group box if all items checked
          *    Uncheck group box if at least one item is not checked
-         * 
+         *
          * @param {string} tab    Data attribute to identify the desired tab
          * @param {string} group  Data attribute to identify the desired group within said tab
          */
@@ -390,11 +390,11 @@ function (
 
         /**
          * Event binding for the group checkboxes
-         * 
-         * @param {jQuery} $group  DOM element 
+         *
+         * @param {jQuery} $group  DOM element
          */
         bindGroupEl: function ($group) {
-            $group.find("input").click(function (e) {
+            $group.find("input").click(function () {
                 var $chk_group = $(this);
                 var $chk_items = $chk_group.closest(".validation_group").find(".validation_item");
                 var checked = $chk_group.prop("checked");
@@ -408,13 +408,13 @@ function (
 
         /**
          * Event binding for the validation items
-         * 
-         * @param {jQuery} $item  DOM element 
+         *
+         * @param {jQuery} $item  DOM element
          */
         bindItemEl: function ($item) {
             var self = this;
 
-            $item.find("input").click(function (e) {
+            $item.find("input").click(function () {
                 var $chk_item = $(this);
                 var tab = $chk_item.closest(".validateInfoSpace").data("tab");
                 var group = $chk_item.closest(".validation_group").data("group");

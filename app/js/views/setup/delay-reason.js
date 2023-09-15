@@ -70,7 +70,7 @@ define(['jquery',
                             search: false,
                             className: 'icon-ic-edit',
                             route: '#setup/delay_reason/edit/',
-                            formatter: function (e, model, data) {
+                            formatter: function () {
                                 return "<i class='icon-ic-edit' i18nt='shared.buttons.edit'></i>"
                             }
                         },
@@ -83,7 +83,7 @@ define(['jquery',
                                     self.model.set({ "id": rowID });
                                     self.model.destroy({
                                         data: $.param({code: gridData.code, description:gridData.description}),
-                                        success: function (model, response) {
+                                        success: function () {
                                             commonjs.showStatus("messages.status.deletedSuccessfully");
                                             self.delayReasonTable.refresh();
                                         },
@@ -99,7 +99,7 @@ define(['jquery',
                         },
                         {
                             name: 'is_active', width: 10, stype: 'select', searchoptions: { value: self.activeFilter },
-                            formatter: function (cellvalue, options, rowObject) {
+                            formatter: function (cellvalue) {
                                 var r = "<div style='text-align: center; color: red;'><span class='fa fa-times'></span></div>"
                                 if (cellvalue == true) {
                                     r = "<div style='text-align: center;'><span class='fa fa-check'></span></div>"
@@ -114,7 +114,7 @@ define(['jquery',
                     datastore: self.delayReasonList,
                     container: self.el,
                     customizeSort: true,
-                    offsetHeight: 01,
+                    offsetHeight: 1,
                     sortname: "id",
                     sortorder: "desc",
                     dblClickActionIndex: 1,
@@ -168,7 +168,7 @@ define(['jquery',
                                 if (data) {
                                     $('#txtCode').val(data.code || '');
                                     $('#txtDescription').val(data.description || '');
-                                    $('#chkActive').prop('checked', data.inactivated_dt ? true : false);
+                                    $('#chkActive').prop('checked', !!data.inactivated_dt);
 
                                     if (data.is_system_code) {
                                         $('#txtCode').prop('disabled', data.is_system_code);

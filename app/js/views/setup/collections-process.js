@@ -81,7 +81,7 @@ define([
                         userId: app.userID,
                         companyId: app.companyID
                     },
-                    success: function (data, response) {
+                    success: function (data) {
                         if (data && data.length) {
                             self.isExists = true;
                             var result = data[0];
@@ -110,7 +110,7 @@ define([
                             $acrLastPaymentDays.prop('disabled', !result.acr_claim_status_last_payment_days);
 
                             // Claim Balance - adjustment_info
-                            isChecked = result.acr_write_off_debit_adjustment_code_id && result.acr_write_off_credit_adjustment_code_id
+                            var isChecked = result.acr_write_off_debit_adjustment_code_id && result.acr_write_off_credit_adjustment_code_id
                             $('#chkWriteOffBalance').prop('checked', isChecked);
                             $('.adj-code-content').prop('hidden', !isChecked);
 
@@ -369,7 +369,7 @@ define([
                         url: "/exa_modules/billing/setup/collections_process",
                         type: requestType,
                         data: requestData,
-                        success: function (data, response) {
+                        success: function (data) {
                             if (data && data.length) {
                                 if (requestType === 'DELETE') {
                                     self.isExists = false;

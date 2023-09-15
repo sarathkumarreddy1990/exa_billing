@@ -23,7 +23,6 @@ define([
             isCleared: false,
 
             initialize: function (options) {
-                var self = this;
                 this.options = options;
                 this.model = new UserLogModel();
                 this.pager = new Pager();
@@ -39,8 +38,8 @@ define([
                     gridelementid: '#tblUserLogGrid',
                     custompager: new Pager(),
                     emptyMessage: commonjs.geti18NString("messages.status.noRecordFound"),
-                    colNames: ['', '', '', '', '', '',''],
-                    i18nNames: ['', '', 'setup.common.user', 'setup.auditLog.loggedDate_Grid' ,'setup.userLog.screenName','setup.userLog.clientIP', 'setup.log.logSource'],
+                    colNames: ['', '', '', '', '', '', ''],
+                    i18nNames: ['', '', 'setup.common.user', 'setup.auditLog.loggedDate_Grid', 'setup.userLog.screenName', 'setup.userLog.clientIP', 'setup.log.logSource'],
                     colModel: [
                         {
                             name: 'id',
@@ -55,7 +54,7 @@ define([
                             sortable: false,
                             search: false,
                             className: 'icon-ic-reports',
-                            formatter: function (e, model, data) {
+                            formatter: function () {
                                 return "<i class='icon-ic-reports' i18nt='messages.status.clickHereToViewThisLog'></i>";
                             },
                             cellattr: function () {
@@ -72,7 +71,7 @@ define([
                         {
                             name: 'logged_in_dt',
                             width: 180,
-                            formatter: function(e,model,rowObject) {
+                            formatter: function(e, model, rowObject) {
                                 return self.dateFormatter(rowObject.logged_in_dt);
                             }
                         },
@@ -96,7 +95,7 @@ define([
                     datastore: self.userLogList,
                     container: self.el,
                     customizeSort: true,
-                    offsetHeight: 01,
+                    offsetHeight: 1,
                     sortname: "id",
                     sortorder: "desc",
                     sortable: {
@@ -134,7 +133,7 @@ define([
 
             },
 
-            showGrid: function (id) {
+            showGrid: function () {
                 this.render();
             },
 
@@ -177,7 +176,7 @@ define([
                         colElement.val(fromDate.format("L") + " - " + toDate.format("L"));
                     }
 
-                    var drp = commonjs.bindDateRangePicker(colElement, drpOptions, "past", function (start, end, format) {
+                    commonjs.bindDateRangePicker(colElement, drpOptions, "past", function (start, end) {
                         if (start && end) {
                             currentFilter.startDate = start.format('L');
                             currentFilter.endDate = end.format('L');
@@ -190,7 +189,7 @@ define([
                             });
                         }
                     });
-                    colElement.on("apply.daterangepicker", function (obj) {
+                    colElement.on("apply.daterangepicker", function () {
                         gridObj.refresh();
                     });
                     colElement.on("cancel.daterangepicker", function () {
@@ -212,7 +211,7 @@ define([
                             'i18nHeader': 'setup.log.logDetails',
                             'width': '50%',
                             'height': '60%',
-                            'needShrink': true ,
+                            'needShrink': true,
                             'html':self.userLogDetailsTemplate
                         });
                         var clientInfo = commonjs.hstoreParse(response.detailed_info);

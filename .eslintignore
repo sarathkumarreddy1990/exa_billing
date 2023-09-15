@@ -19,7 +19,6 @@ dbManager.js
 /app/js/routes/**
 /app/js/views/app/**
 /app/js/views/reports/**
-/app/js/views/setup/**
 /app/js/workers/**
 /app/js/main.js
 

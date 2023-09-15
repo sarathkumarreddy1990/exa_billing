@@ -34,7 +34,6 @@ define(['jquery',
                 'change #ddlClaimBillingMethod': 'showHouse'
              },
             initialize: function (options) {
-                var self = this;
                 this.options = options;
                 this.model = new InsuranceX12MappingModel();
                 this.insuranceX12MappingList = new InsuranceX12MappingCollections();
@@ -94,7 +93,7 @@ define(['jquery',
                     gridelementid: '#tblInsuranceX12MappingGrid',
                     custompager: new Pager(),
                     emptyMessage: commonjs.geti18NString("messages.status.noRecordFound"),
-                    colNames: ['','','','','','',''],
+                    colNames: ['', '', '', '', '', '', ''],
                     i18nNames: ['', '', 'setup.insuranceX12Mapping.insuranceName', 'setup.insuranceX12Mapping.insuranceCode', 'billing.fileInsurance.billingmethod', 'setup.insuranceX12Mapping.claimClearingHouse', 'billing.fileInsurance.ediCode'],
                     colModel: [
                         {
@@ -111,7 +110,7 @@ define(['jquery',
                             search: false,
                             className:'icon-ic-edit',
                             route: '#setup/insurance_x12_mapping/edit/',
-                            formatter: function(e, model, data) {
+                            formatter: function() {
                                 return "<i class='icon-ic-edit' i18nt='shared.buttons.edit'></i>"
                             }
                         },
@@ -161,7 +160,7 @@ define(['jquery',
                     datastore: self.insuranceX12MappingList,
                     container:self.el,
                     customizeSort: true,
-                    offsetHeight: 01,
+                    offsetHeight: 1,
                     sortname: "id",
                     sortorder: "desc",
                     sortable: {
@@ -190,7 +189,6 @@ define(['jquery',
             },
 
             showForm: function (id) {
-                var self = this;
                 this.renderForm(id);
             },
 
@@ -309,7 +307,7 @@ define(['jquery',
                 var billingMethod = $('#ddlClaimBillingMethod').val();
                 var isElectronicBilling = billingMethod === 'electronic_billing';
 
-                if (app.billingRegionCode === 'can_AB' && (['AHS','WCB'].indexOf(this.model.get('insurance_code')) === -1)  && isElectronicBilling) {
+                if (app.billingRegionCode === 'can_AB' && (['AHS', 'WCB'].indexOf(this.model.get('insurance_code')) === -1)  && isElectronicBilling) {
                     return commonjs.showWarning('messages.warning.claims.electronicBillingOnlyAHSWCB');
                 }
 
@@ -360,7 +358,7 @@ define(['jquery',
                 return colvalue
             },
 
-            showHouse: function (e) {
+            showHouse: function () {
                 var method = $('#ddlClaimBillingMethod').val();
                 if (method == 'electronic_billing') {
                     $('#clearingHouse').show();

@@ -46,7 +46,6 @@ define(['jquery',
                 'click #btnSaveMspCredentials': 'saveMspCredentials'
             },
             initialize: function (options) {
-                var self = this;
                 this.options = options;
                 this.model = new BillingProvidersModel();
                 this.idCodeModel = new ProviderIDCodeModel();
@@ -83,7 +82,7 @@ define(['jquery',
                             search: false,
                             className: 'icon-ic-edit',
                             route: '#setup/billing_providers/edit/',
-                            formatter: function (e, model, data) {
+                            formatter: function () {
                                 return "<i class='icon-ic-edit' i18nt='shared.buttons.edit'></i>"
                             }
                         },
@@ -96,7 +95,7 @@ define(['jquery',
                                     self.model.set({ "id": rowID });
                                     self.model.destroy({
                                         data: $.param({code: gridData.code, description:gridData.name}),
-                                        success: function (model, response) {
+                                        success: function () {
                                             commonjs.showStatus("messages.status.deletedSuccessfully");
                                             self.billingProvidersTable.refresh();
                                         },
@@ -106,7 +105,7 @@ define(['jquery',
                                     });
                                 }
                             },
-                            formatter: function (e, model, data) {
+                            formatter: function () {
                                 return "<i class='icon-ic-delete' i18nt='messages.status.clickHereToDelete'></i>"
                             }
                         },
@@ -180,7 +179,6 @@ define(['jquery',
             },
 
             showForm: function (id) {
-                var self = this;
                 this.renderForm(id);
             },
 
@@ -244,7 +242,6 @@ define(['jquery',
                         success: function (model, response) {
                             if (response && response.length > 0) {
                                 var data = response[0];
-                                var communication_info = data.communication_info;
                                 self.editedBillingProvider = data;
                                 if (data) {
                                     Address.loadCityStateZipTemplate('#divAddressInfo', data, AddressInfoMap);
@@ -531,7 +528,6 @@ define(['jquery',
             },
 
             bindInsuranceAutocomplete: function (element_id) {
-                var self = this;
                 $("#" + element_id).select2({
                     ajax: {
                         url: "/exa_modules/billing/autoCompleteRouter/insurances",
@@ -688,7 +684,7 @@ define(['jquery',
                         id : rowData.id,
                         provider_id : self.model.id
                     },
-                    success: function (model, response) {
+                    success: function () {
                         $('#tblProviderIDCodesGrid').jqGrid('delRowData', rowID);
                         self.clearIDCodesForm();
                         self.bindProviderIDCodes();
@@ -738,12 +734,12 @@ define(['jquery',
                     url: '/exa_modules/billing/setup/provider_id_codes',
                     type: type,
                     data: data,
-                    success: function (model, response) {
+                    success: function () {
                         commonjs.showStatus('messages.status.savedSuccessfully');
                         self.clearIDCodesForm();
                         self.bindProviderIDCodes();
                     },
-                    error: function (model, response) {
+                    error: function () {
 
                     }
                 });
@@ -824,7 +820,7 @@ define(['jquery',
                             mspUserName: mspUserName,
                             mspPassword: mspPassword
                         },
-                        success: function (model, response) {
+                        success: function (model) {
                             if (model.length) {
                                 commonjs.showStatus('messages.status.savedSuccessfully');
                             }

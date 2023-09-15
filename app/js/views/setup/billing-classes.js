@@ -31,7 +31,6 @@ define(['jquery',
             pager: null,
             events: { },
             initialize: function (options) {
-                var self = this;
                 this.options = options;
                 this.model = new BillingClassesModel();
                 this.pager = new Pager();
@@ -49,7 +48,7 @@ define(['jquery',
                     gridelementid: '#tblBillingClassesGrid',
                     custompager: new Pager(),
                     emptyMessage: commonjs.geti18NString("messages.status.noRecordFound"),
-                    colNames: ['','','','','', '',''],
+                    colNames: ['', '', '', '', '', '', ''],
                     i18nNames: ['', '', '', 'setup.common.code', 'setup.common.description', 'in_active', 'setup.statusColorCode.colorCode'],
                     colModel: [
                         {
@@ -66,7 +65,7 @@ define(['jquery',
                             search: false,
                             className:'icon-ic-edit',
                             route: '#setup/billing_classes/edit/',
-                            formatter: function(e, model, data) {
+                            formatter: function() {
                                 return "<i class='icon-ic-edit' i18nt='shared.buttons.edit'></i>"
                             }
                         },
@@ -79,7 +78,7 @@ define(['jquery',
                                     self.model.set({ "id": rowID });
                                     self.model.destroy({
                                         data: $.param({ id: self.model.id, code: gridData.code, description: gridData.description }),
-                                        success: function (model, response) {
+                                        success: function () {
                                             commonjs.showStatus("messages.status.deletedSuccessfully");
                                             self.billingClassesTable.refresh();
                                         },
@@ -89,7 +88,7 @@ define(['jquery',
                                     });
                                 }
                             },
-                            formatter: function(e, model, data) {
+                            formatter: function() {
                                 return "<i class='icon-ic-delete' i18nt='messages.status.clickHereToDelete'></i>"
                             }
                         },
@@ -106,7 +105,7 @@ define(['jquery',
                         {
                             name: 'color_code',
                             search: false,
-                            cellattr: function (rowId, tv, rawObject) {
+                            cellattr: function (rowId, tv) {
                                 return 'style="background-color:' + tv + '"';
                             }
                         }
@@ -120,7 +119,7 @@ define(['jquery',
                     datastore: self.billingClassesList,
                     container:self.el,
                     customizeSort: true,
-                    offsetHeight: 01,
+                    offsetHeight: 1,
                     sortname: "id",
                     sortorder: "desc",
                     sortable: {
@@ -153,7 +152,6 @@ define(['jquery',
             },
 
             showForm: function (id) {
-                var self = this;
                 this.renderForm(id);
             },
 
@@ -170,7 +168,7 @@ define(['jquery',
                                 if (data) {
                                     $('#txtCode').val(data.code || '');
                                     $('#txtDescription').val(data.description || '');
-                                    $('#chkActive').prop('checked', data.inactivated_dt ? true : false);
+                                    $('#chkActive').prop('checked', !!data.inactivated_dt);
                                     $('#billingClassColor').val(data.color_code || '');
                                 }
                             }

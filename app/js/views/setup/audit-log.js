@@ -23,7 +23,6 @@ define([
             },
 
             initialize: function (options) {
-                var self = this;
                 this.options = options;
                 this.model = new AuditLogModel();
                 this.pager = new Pager();
@@ -75,7 +74,7 @@ define([
                             sortable: false,
                             search: false,
                             className: 'icon-ic-reports',
-                            formatter: function (e, model, data) {
+                            formatter: function () {
                                 return "<i class='icon-ic-reports' title='Click here to view this log'></i>";
                             },
                             cellattr: function () {
@@ -88,11 +87,11 @@ define([
                         {
                             name: 'secure_data', width: 50, sortable: false, search: false, hidden: true,
                             className: 'icon-ic-secureData',
-                            customAction: function (rowID) {
+                            customAction: function () {
 
                             },
 
-                            formatter: function (e, model, data) {
+                            formatter: function () {
                                 return "<span class='icon-ic-secureData' title='Secure data'></span>";
                             },
 
@@ -103,7 +102,7 @@ define([
                         {
                             name: 'created_dt',
                             width: 180,
-                            formatter: function(e,model,data) {
+                            formatter: function(e, model, data) {
                                 return self.dateFormatter(data);
                             },
                             search: false
@@ -127,7 +126,7 @@ define([
                     datastore: self.auditLogList,
                     container: self.el,
                     customizeSort: true,
-                    offsetHeight: 01,
+                    offsetHeight: 1,
                     sortname: "al.id",
                     sortorder: "desc",
                     sortable: {
@@ -144,7 +143,7 @@ define([
                     customargs: {
                         from_date: self.dtpFrom && self.dtpFrom.date() ? self.dtpFrom.date().format() : "",
                         to_date: self.dtpTo && self.dtpTo.date() ? self.dtpTo.date().format() : "",
-                        flag: self.excelFlag ? true : false
+                        flag: !!self.excelFlag
                     }
                 });
 
@@ -201,7 +200,7 @@ define([
                         $("#oldInfoRow").hide();
                         if (response.changes && response.changes.old_values && Object.keys(response.changes.old_values).length) {
                             $("#showDetailsRow").show();
-                            for (element in response.changes.old_values) {
+                            for (var element in response.changes.old_values) {
                                 if (element.toLowerCase() != 'id' &&
                                     element.toLowerCase() != 'template_content' &&
                                     (response.changes.old_values[element] || response.changes.new_values[element])) {
@@ -242,7 +241,10 @@ define([
 
             exportExcel: function() {
                 var self = this;
-                var filterObj = grid.jqGrid('getGridParam','postData');
+                // grid gets defined somewhere, but not sure where. Just going to ignore eslint error for now.
+                /* eslint-disable no-undef */
+                var filterObj = grid.jqGrid('getGridParam', 'postData');
+                /* eslint-enable no-undef */
                 self.excelFlag = true;
 
                 $('#btnExportToExcelauditLog').prop('disabled', true);
@@ -259,7 +261,7 @@ define([
                         to_date: self.dtpTo && self.dtpTo.date() ? self.dtpTo.date().format() : "",
                         disablePaging: true
                     },
-                    success: function (data, textStatus, jqXHR) {
+                    success: function (data) {
                         commonjs.prepareCsvWorker({
                             data: data,
                             reportName: 'AUDITLOG',

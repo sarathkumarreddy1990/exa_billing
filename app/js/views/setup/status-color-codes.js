@@ -33,18 +33,17 @@ define(['jquery',
                 {
                     code: 'billed',
                     description: 'Billed'
-                }, 
+                },
                 {
                     code: 'unbilled',
                     description: 'UnBilled'
                 }
             ],
             pager: null,
-            events: { 
+            events: {
                 'change #ddlProcessType' : 'changeProcessType'
             },
             initialize: function (options) {
-                var self = this;
                 this.options = options;
                 this.model = new StatusColorCodesModel();
                 this.statusColorCodesList = new StatusColorCodesCollections();
@@ -65,7 +64,7 @@ define(['jquery',
                     gridelementid: '#tblStatusColorCodesGrid',
                     custompager: new Pager(),
                     emptyMessage: commonjs.geti18NString("messages.status.noRecordFound"),
-                    colNames: ['','','','','',''],
+                    colNames: ['', '', '', '', '', ''],
                     i18nNames: ['', '', '', 'setup.statusColorCode.processType', 'setup.statusColorCode.processStatus', 'setup.statusColorCode.colorCode' ],
                     colModel: [
                         {
@@ -82,7 +81,7 @@ define(['jquery',
                             search: false,
                             className:'icon-ic-edit',
                             route: '#setup/status_color_codes/edit/',
-                            formatter: function(e, model, data) {
+                            formatter: function() {
                                 return "<i class='icon-ic-edit' i18nt='shared.buttons.edit'></i>"
                             }
                         },
@@ -95,7 +94,7 @@ define(['jquery',
                                     self.model.set({ "id": rowID });
                                     self.model.destroy({
                                         data: $.param({processType: gridData.process_type, processStatus:gridData.process_status}),
-                                        success: function (model, response) {
+                                        success: function () {
                                             commonjs.showStatus("messages.status.deletedSuccessfully");
                                             self.statusColorCodesTable.refresh();
                                         },
@@ -105,7 +104,7 @@ define(['jquery',
                                     });
                                 }
                             },
-                            formatter: function(e, model, data) {
+                            formatter: function() {
                                 return "<i class='icon-ic-delete' i18nt='messages.status.clickHereToDelete'></i>"
                             }
                         },
@@ -127,18 +126,18 @@ define(['jquery',
                         {
                             name: 'color_code',
                             search: false,
-                            cellattr: function (rowId, tv, rawObject) {
+                            cellattr: function (rowId, tv) {
                                 return 'style="background-color:' + tv + '"';
                             }
                         }
                     ],
-                    afterInsertRow: function (row_id, rData) {
+                    afterInsertRow: function (row_id) {
                         commonjs.changeColumnValue('#tblStatusColorCodesGrid', row_id, 'color_code', "");
                     },
                     datastore: self.statusColorCodesList,
                     container:self.el,
                     customizeSort: true,
-                    offsetHeight: 01,
+                    offsetHeight: 1,
                     sortname: "id",
                     sortorder: "desc",
                     sortable: {
@@ -172,7 +171,6 @@ define(['jquery',
             },
 
             showForm: function (id) {
-                var self = this;
                 this.renderForm(id);
             },
 
@@ -261,11 +259,11 @@ define(['jquery',
                 var elPaymentStatus = $('#ddlProcessStatus');
                 elPaymentStatus.empty();
                 for(var i = 0; i < paymentStatusList.length; i++) {
-                    $('<option/>',{value:paymentStatusList[i].code ? paymentStatusList[i].code :paymentStatusList[i].description}).html(paymentStatusList[i].description).appendTo(elPaymentStatus);
+                    $('<option/>', {value:paymentStatusList[i].code ? paymentStatusList[i].code :paymentStatusList[i].description}).html(paymentStatusList[i].description).appendTo(elPaymentStatus);
                 }
             },
 
-            changeProcessType : function(e) {
+            changeProcessType : function() {
                 var processType = $('#ddlProcessType').val();
                 if (processType === 'claim') {
                     this.loadProcessStatus(this.claimStatus);

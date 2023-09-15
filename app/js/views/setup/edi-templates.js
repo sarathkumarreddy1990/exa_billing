@@ -25,19 +25,16 @@ define([
             },
 
             initialize: function (options) {
-                var self = this;
                 this.options = options;
                 $('#divPageHeaderButtons').empty();
                 $('#data_container').height(window.innerHeight - (20 + $('.navbar').outerHeight() + $('#divPageHeaderButtons').outerHeight() + 20))
             },
 
-            showForm: function (id) {
-                var self = this;
+            showForm: function () {
                 this.renderForm();
             },
 
             renderForm: function () {
-                var self = this;
                 $(this.el).html(this.ediTemplates());
                 var editor = ace.edit("editor");
                 editor.setTheme();
@@ -58,10 +55,10 @@ define([
                 $.ajax({
                     url: '/exa_modules/billing/setup/x12/' + this.templateFlag,
                     type: 'GET',
-                    success: function (data, response) {
+                    success: function (data) {
                         if (!self.checkEditorIsOn())
                             return;
-                            
+
                         $('#divTemlateList').empty();
                         if (self.templateFlag == 'edi') {
                             if (data && data.length > 0) {
@@ -257,7 +254,7 @@ define([
                 $.ajax({
                     url: '/exa_modules/billing/setup/x12/' + this.templateFlag + '/' + templateName,
                     type: 'POST',
-                    success: function (data, response) {
+                    success: function () {
                         commonjs.showStatus("Successfully Saved");
                         self.cancel();
                         self.getAllEDITemplates();
@@ -273,7 +270,7 @@ define([
                 $.ajax({
                     url: '/exa_modules/billing/setup/x12/' + this.templateFlag + '/' + templateName,
                     type: 'DELETE',
-                    success: function (data, response) {
+                    success: function (data) {
                         if(data.err){
                             if(data.err.indexOf("edi_clearinghouses_edi_template_id_fk") > -1) {
                                 return commonjs.showError('Dependent records found');
@@ -304,7 +301,7 @@ define([
             checkEditorIsOn: function () {
                 return $('#editor').length;
             },
-               
+
             saveDefinitionData: function () {
                 var templateName = $('#dropdownMenuButton').html();
                 var editor = ace.edit('editor');
@@ -324,7 +321,7 @@ define([
                         }),
                         contentType : "application/json",
                         dataType : "json",
-                        success: function (data, response) {
+                        success: function () {
                             commonjs.showStatus("UpdatedSuccessfully");
                         },
                         error: function (err) {
