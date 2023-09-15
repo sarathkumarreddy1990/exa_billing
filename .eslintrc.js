@@ -38,6 +38,9 @@ module.exports = {
         "get": true,
         "moment": true,
         "base64": true,
+        "tinymce": true,
+        "fastdom": true,
+
 
         // jqgrid vars defined in commonjs
         "jq_isWidthResize": true,
@@ -49,6 +52,9 @@ module.exports = {
 
         // other commonjs vars
         "$window": true,
+        "homeOpentab": true,
+        "$document": true,
+        "CreateCheckBox": true,
 
     }
 };
