@@ -19,7 +19,7 @@ define(
             fromNOIInitSelection: true,
             fromOrientationInitSelection: true,
 
-            initialize: function (options) {
+            initialize: function () {
                 this.body_parts_autocomplete_list = app.bodyPartsList.map(function (body_part) {
                     return $.extend(false, {}, { id: body_part.code }, body_part);
                 });
@@ -34,7 +34,7 @@ define(
                 commonjs.updateCulture(app.current_culture, commonjs.beautifyMe);
             },
 
-            initAutoCompleteList: function(rowIndex, injury_details) {
+            initAutoCompleteList: function(rowIndex) {
                 var self = this;
                 self.initBodyPartAutocomplete(('#txtBodyPart_' + rowIndex), {
                     data_row_id: rowIndex
@@ -197,7 +197,7 @@ define(
 
                 }
 
-                $(containerID).on('change', function (a, b) {
+                $(containerID).on('change', function () {
                     var index = self.injuryDetails.findIndex(function (i) { return i.data_row_id == data_row_id });
                     self.duplicateInjuryValidation(index, data_row_id);
                 });
@@ -262,7 +262,7 @@ define(
 
                 }
 
-                $(containerID).on('change', function (a, b) {
+                $(containerID).on('change', function () {
                     var index = self.injuryDetails.findIndex(function (i) { return i.data_row_id == data_row_id });
                     self.duplicateInjuryValidation(index, data_row_id);
                 });
@@ -326,7 +326,7 @@ define(
 
                 }
 
-                $(containerID).on('change', function (a, b) {
+                $(containerID).on('change', function () {
                     var index = self.injuryDetails.findIndex(function (i) { return i.data_row_id == data_row_id });
                     self.duplicateInjuryValidation(index, data_row_id);
                 });

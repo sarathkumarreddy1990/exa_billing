@@ -72,7 +72,7 @@ define(['jquery',
                     'assignedTo': followUPUserID ? followUPUserID : app.userID,
                     'followUpDetails': JSON.stringify(followUpDetails)
                 },
-                success: function (data, response) {
+                success: function () {
                     commonjs.showStatus('messages.status.savedSuccessfully');
                     commonjs.hideDialog();
                     $('#btnClaimsRefresh').trigger('click');
@@ -85,8 +85,6 @@ define(['jquery',
         },
 
         setUserAutoComplete: function () {
-            var self = this;
-
             $("#txtFollowupUsers").select2({
                 ajax: {
                     url: "/exa_modules/billing/autoCompleteRouter/getUsers",
@@ -150,7 +148,7 @@ define(['jquery',
                     'followUpDetails': '',
                     'claimFollowupData': claimFollowupData
                 },
-                success: function (data, response) {
+                success: function () {
                     commonjs.showStatus('billing.fileInsurance.followupCanceledSuccessfully');
                     $('#btnClaimsRefresh').trigger('click');
                 },

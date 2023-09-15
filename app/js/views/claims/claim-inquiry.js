@@ -177,11 +177,6 @@ define([
 
             },
 
-            clearFaxInfo: function () {
-                $('#txtFaxReceiverName').val('');
-                $('#txtFaxReceiverNumber').val('');
-            },
-
             claimInquiryDetails: function (claimID, fromTogglePreNext, isFromClaimScreen) {
                 var self = this;
                 self.claim_id = claimID;
@@ -192,7 +187,7 @@ define([
                     data: {
                         'claim_id': self.claim_id
                     },
-                    success: function (data, response) {
+                    success: function (data) {
 
                         if (!isFromClaimScreen) {
                             $('#headerbtn').hide(); //to hide the prevoius/next button in claim inquiry when  from payments section
@@ -234,7 +229,7 @@ define([
                                 $('#lblCIRefund').text(payment_data[0].refund_amount && payment_data[0].refund_amount != 'undefined' ? payment_data[0].refund_amount : '$0.00')
                             }
 
-                            $('#btnPatientClaims').off().click(function (e) {
+                            $('#btnPatientClaims').off().click(function () {
                                 self.patientInquiryForm(self.claim_id, patient_details[0].patient_id, patient_details[0].patient_name, self.options.grid_id, true, true);
                             });
 
@@ -339,7 +334,7 @@ define([
                     i18nNames.push('billing.COB.paperClaimOriginal', 'billing.COB.paperClaimFull', 'billing.COB.specialForm');
                     colModel.push({
                         name: 'paper_claim_original', search: false,
-                        customAction: function (rowID) {
+                        customAction: function () {
                         },
                         formatter: function (cellvalue, options, rowObject) {
                             return "<input type='button' style='line-height: 1;' class='btn btn-paper-claim-original btn-primary' value='Paper Claim' data-payer-type=" + rowObject.payer_type + " i18n='shared.buttons.paperclaimOrg' id='spnPaperClaim_" + rowObject.id + "'>"
@@ -347,7 +342,7 @@ define([
                     },
                     {
                         name: 'paper_claim_full', search: false, width: '200px',
-                        customAction: function (rowID) {
+                        customAction: function () {
                         },
                         formatter: function (cellvalue, options, rowObject) {
                             return "<input type='button' style='line-height: 1;' class='btn btn-paper-claim-fax btn-primary' value='Paper Claim' data-payer-type=" + rowObject.payer_type + " i18n='shared.buttons.fax' id='spnPaperClaim_" + rowObject.id + "'>" +
@@ -356,7 +351,7 @@ define([
                     },
                     {
                         name: 'special_form', search: false,
-                        customAction: function (rowID) {
+                        customAction: function () {
                         },
                         formatter: function (cellvalue, options, rowObject) {
                             return "<input type='button' style='line-height: 1;' class='btn btn-special_form btn-primary' value='Special Form' data-payer-type=" + rowObject.payer_type + " i18n='shared.buttons.specialForm' id='spnSpecialForm_" + rowObject.id + "'>"
@@ -377,7 +372,6 @@ define([
 
                     beforeSelectRow: function (rowid, e) {
                         var target = e.target || e.srcElement;
-                        var cellIndex = (target).parentNode.cellIndex;
                         var payerType = $(target).attr('data-payer-type');
 
                         if (target.className.indexOf('btn-paper-claim-original') > -1) {
@@ -402,7 +396,7 @@ define([
                             ];
                             faxUrl = '/exa_modules/billing/claim_workbench/paper_claim_fax?' + faxUrl.join('&');
 
-                            $('#btnClaimFaxSend').off().click(function (e) {
+                            $('#btnClaimFaxSend').off().click(function () {
                                 var faxReceiverName = $('#txtFaxReceiverName').val();
                                 var faxReceiverNumber = $('#txtFaxReceiverNumber').val();
 
@@ -431,7 +425,7 @@ define([
                                 });
                             });
 
-                            $('#btnClaimFaxCancel').off().click(function (e) {
+                            $('#btnClaimFaxCancel').off().click(function () {
                                 self.clearFaxInfo();
                             });
                         }
@@ -538,7 +532,7 @@ define([
                     },
                     pager: '#gridPager_PatientClaim',
                     onaftergridbind: self.afterGridBind,
-                    beforeSelectRow: function (rowID, e, options) {
+                    beforeSelectRow: function (rowID, e) {
                         var rowObj = $(e.currentTarget).find('#' + rowID);
                         $('#chkClaims' + '_' + rowID).prop('checked', rowObj.hasClass('customRowSelect'));
                     },
@@ -581,7 +575,7 @@ define([
                         colElement.val(fromDate.format("L") + " - " + toDate.format("L"));
                     }
 
-                    var drp = commonjs.bindDateRangePicker(colElement, drpOptions, "past", function (start, end, format) {
+                    commonjs.bindDateRangePicker(colElement, drpOptions, "past", function (start, end) {
                         if (start && end) {
                             currentFilter.startDate = start.format('L');
                             currentFilter.endDate = end.format('L');
@@ -594,7 +588,7 @@ define([
                             });
                         }
                     });
-                    colElement.on("apply.daterangepicker", function (obj) {
+                    colElement.on("apply.daterangepicker", function () {
                         gridObj.refresh();
                     });
                     colElement.on("cancel.daterangepicker", function () {
@@ -666,13 +660,13 @@ define([
                         },
                         {
                             name: 'edit', width: 50, sortable: false, search: false,
-                            formatter: function (cellvalue, options, rowObject) {
+                            formatter: function () {
                                 return '<span class="icon-ic-print spnInvoicePrint" title="Print Claim" id="spnInvoicePrint" style="font-size: 15px; cursor:pointer;"></span>'
                             },
                             cellattr: function () {
                                 return "style='text-align: center;text-decoration: underline;'";
                             },
-                            customAction: function (rowID, e) {
+                            customAction: function (rowID) {
                                 var gridData = $('#tblInvoiceGrid').jqGrid('getRowData', rowID);
                                 var is_invoice_inquiry = true
                                 self.printInvoice(gridData.claim_ids, is_invoice_inquiry);
@@ -726,7 +720,7 @@ define([
                         claimID: claimID,
                         payerType: payer_type
                     },
-                    success: function (data, response) {
+                    success: function (data) {
                         if(data && data.length){
                             $('#tdPtCurrent').text(data[0].current_balance || '$0.00')
                             $('#tdPtAge30').text(data[0].to30 || '$0.00')
@@ -822,29 +816,27 @@ define([
                     '';
             },
 
-            afterGridBind: function (model, gridObj) {
-                var self = this;
-
-                    var age_summary = model && model[0] && model[0].get('age_summary');
-                    $('#tdInsCurrent').html(age_summary && age_summary.insurance_age_0_30 || '$0.00');
-                    $('#tdInsAge30').html(age_summary && age_summary.insurance_age_31_60 || '$0.00');
-                    $('#tdInsAge60').html(age_summary && age_summary.insurance_age_61_90 || '$0.00');
-                    $('#tdInsAge90').html(age_summary && age_summary.insurance_age_91_120 || '$0.00');
-                    $('#tdInsAge120').html(age_summary && age_summary.insurance_age_121 || '$0.00');
-                    $('#tdInsAgeTotal').html(age_summary && age_summary.insurance_total || '$0.00');
-                    $('#tdPtCurrent').html(age_summary && age_summary.patient_age_0_30 || '$0.00');
-                    $('#tdPtAge30').html(age_summary && age_summary.patient_age_31_60 || '$0.00');
-                    $('#tdPtAge60').html(age_summary && age_summary.patient_age_61_90 || '$0.00');
-                    $('#tdPtAge90').html(age_summary && age_summary.patient_age_91_120 || '$0.00');
-                    $('#tdPtAge120').html(age_summary && age_summary.patient_age_121 || '$0.00');
-                    $('#tdPtAgeTotal').html(age_summary && age_summary.patient_total || '$0.00');
-                    $('#tdCurrent').html(age_summary && age_summary.total_age_30 || '$0.00');
-                    $('#tdAge30').html(age_summary && age_summary && age_summary.total_age_31_60 || '$0.00');
-                    $('#tdAge60').html(age_summary && age_summary.total_age_61_90 || '$0.00');
-                    $('#tdAge90').html(age_summary && age_summary.total_age_91_120 || '$0.00');
-                    $('#tdAge120').html(age_summary && age_summary.total_age_121 || '$0.00');
-                    $('#tdAgeTotal').html(age_summary && age_summary.total_balance || '$0.00');
-                    $('#spUnapplied').html(age_summary && age_summary.total_unapplied || '$0.00');
+            afterGridBind: function (model) {
+                var age_summary = model && model[0] && model[0].get('age_summary');
+                $('#tdInsCurrent').html(age_summary && age_summary.insurance_age_0_30 || '$0.00');
+                $('#tdInsAge30').html(age_summary && age_summary.insurance_age_31_60 || '$0.00');
+                $('#tdInsAge60').html(age_summary && age_summary.insurance_age_61_90 || '$0.00');
+                $('#tdInsAge90').html(age_summary && age_summary.insurance_age_91_120 || '$0.00');
+                $('#tdInsAge120').html(age_summary && age_summary.insurance_age_121 || '$0.00');
+                $('#tdInsAgeTotal').html(age_summary && age_summary.insurance_total || '$0.00');
+                $('#tdPtCurrent').html(age_summary && age_summary.patient_age_0_30 || '$0.00');
+                $('#tdPtAge30').html(age_summary && age_summary.patient_age_31_60 || '$0.00');
+                $('#tdPtAge60').html(age_summary && age_summary.patient_age_61_90 || '$0.00');
+                $('#tdPtAge90').html(age_summary && age_summary.patient_age_91_120 || '$0.00');
+                $('#tdPtAge120').html(age_summary && age_summary.patient_age_121 || '$0.00');
+                $('#tdPtAgeTotal').html(age_summary && age_summary.patient_total || '$0.00');
+                $('#tdCurrent').html(age_summary && age_summary.total_age_30 || '$0.00');
+                $('#tdAge30').html(age_summary && age_summary && age_summary.total_age_31_60 || '$0.00');
+                $('#tdAge60').html(age_summary && age_summary.total_age_61_90 || '$0.00');
+                $('#tdAge90').html(age_summary && age_summary.total_age_91_120 || '$0.00');
+                $('#tdAge120').html(age_summary && age_summary.total_age_121 || '$0.00');
+                $('#tdAgeTotal').html(age_summary && age_summary.total_balance || '$0.00');
+                $('#spUnapplied').html(age_summary && age_summary.total_unapplied || '$0.00');
             },
 
             showClaimCommentsGrid: function () {
@@ -902,7 +894,7 @@ define([
                                 }
                                 return '';
                             },
-                            customAction: function (rowID, e) {
+                            customAction: function () {
                             }
                         },
                         { name: 'commented_dt', width: 40, search: false, sortable: false, formatter: self.commentDateFormatter },
@@ -1031,7 +1023,7 @@ define([
                     data: {
                         'claim_id': self.claim_id
                     },
-                    success: function (data, response) {
+                    success: function (data) {
                         data = data[0];
                         if (data) {
                             self.previousFollowUpDate = (commonjs.checkNotEmpty(data.followup_date)) ? moment(data.followup_date).format('L') : '';
@@ -1090,7 +1082,7 @@ define([
                     data: {
                         'id': commentId
                     },
-                    success: function (data, response) {
+                    success: function () {
                         commonjs.showStatus("messages.status.commentDeleted");
                         self.showClaimCommentsGrid();
                     },
@@ -1108,7 +1100,7 @@ define([
                     data: {
                         'commentId': commentId
                     },
-                    success: function (data, response) {
+                    success: function (data) {
                         if (data) {
                             self.showCommentPopup('edit', data[0].comments, commentId, data[0].alert_screens);
                         }
@@ -1156,7 +1148,7 @@ define([
                     url: '/exa_modules/billing/claims/claim_inquiry/claim_comment',
                     type: reqType,
                     data: commentsData,
-                    success: function (data, response) {
+                    success: function () {
                         commonjs.showStatus("messages.status.recordSaved");
                         commonjs.hideNestedDialog();
                         self.showClaimCommentsGrid();
@@ -1193,7 +1185,7 @@ define([
                         'assignedTo': app.userID,
                         'notes': notes
                     },
-                    success: function (data, response) {
+                    success: function () {
                         commonjs.showStatus("messages.status.recordSaved");
                         $('#txtCIBillingComment').prop('readonly', true);
 
@@ -1308,7 +1300,7 @@ define([
                     reportURL = reportURL.replace(/^[.]{2}/, '');
                     $('#divFaxRecipient').show();
 
-                    $('#btnSendFax').off().click(function (e) {
+                    $('#btnSendFax').off().click(function () {
                         var faxRecipientName = $('#txtOtherFaxName').val();
                         var faxRecipientNumber = $('#txtOtherFaxNumber').val();
 
@@ -1331,7 +1323,7 @@ define([
                         $('#divFaxRecipient').hide();
                     });
 
-                    $('#btnFaxCancel').off().click(function (e) {
+                    $('#btnFaxCancel').off().click(function () {
                         $('#divFaxRecipient').hide();
                     });
                 });
@@ -1446,7 +1438,7 @@ define([
                         study_id: patientActivityParams.study_id,
                         order_id: patientActivityParams.order_id
                     },
-                    success: function (data, response) {
+                    success: function () {
                         if (cb)
                             cb();
                         commonjs.showStatus("messages.status.reportFaxedSuccessfully");
@@ -1522,7 +1514,7 @@ define([
                     data: {
                         'charge_id': charge_id
                     },
-                    success: function (data, response) {
+                    success: function (data) {
                         $("#tBodyCIPayment").empty();
                         $('#tBodyCASRef').empty();
                         $('.addtionalCas').remove();
@@ -1564,7 +1556,7 @@ define([
                         'payment_id': pay_id,
                         'pay_application_id': application_id
                     },
-                    success: function (data, response) {
+                    success: function (data) {
                         $("#tBodyCIPayment").empty();
                         $('#tBodyCASRef').empty();
                         $('.addtionalCas').remove();
@@ -1692,7 +1684,7 @@ define([
                 }
             },
 
-            setMoneyMask: function (obj1, obj2) {
+            setMoneyMask: function () {
                 $("#gs_invoice_bill_fee").addClass('floatbox');
                 $("#gs_invoice_payment").addClass('floatbox');
                 $("#gs_invoice_adjustment").addClass('floatbox');

@@ -51,7 +51,7 @@ function (
          *
          * @param {object} e
          */
-        handleClickCheckEligibility: function (e) {
+        handleClickCheckEligibility: function () {
             this.loadInsuranceEligibility();
         },
         /* #endregion */
@@ -258,7 +258,7 @@ function (
                     commonjs.hideLoading();
                     return callback(result);
                 },
-                error: function (request, status, error) {
+                error: function (request) {
                     commonjs.handleXhrError(request);
                     return callback({});
                 }
@@ -434,8 +434,6 @@ function (
          */
         fetchServiceTypes: function (callback) {
             callback = commonjs.ensureCallback(callback);
-
-            var self = this;
             commonjs.showLoading();
 
             $.ajax({
@@ -607,10 +605,11 @@ function (
          */
         openReport: function (response) {
             var data = _.get(response, "result[0]");
+            var insurance_data;
 
             // BC
             if (app.billingRegionCode === "can_BC") {
-                var insurance_data = {};  // Not sure what data format will be
+                insurance_data = {};  // Not sure what data format will be
 
                 if (_.isEmpty(insurance_data)) {
                     commonjs.showWarning("messages.status.healthCardValidationHistoryNotFound");
@@ -623,7 +622,7 @@ function (
             // OHIP
             if (app.billingRegionCode === "can_ON") {
                 var res = data.eligibility_response;
-                var insurance_data = (
+                insurance_data = (
                     _.get(res, "results[0]") ||
                     _.get(res, "faults[0]")  ||
                     _.get(res, "err[0]")     ||
@@ -1533,6 +1532,7 @@ function (
             eligibilityInfo.summaryDeductable.outOfNetwork.remaining1 = ((self.chkVar(InsuranceData, 'summary', 'out_of_pocket', 'individual', 'out_of_network', 'remaining', 'currency') && InsuranceData.summary.out_of_pocket.individual.out_of_network.remaining.currency == 'USD' ? '$' : '')) + (self.chkVar(InsuranceData, 'summary', 'out_of_pocket', 'individual', 'out_of_network', 'remaining', 'amount') ? InsuranceData.summary.out_of_pocket.individual.out_of_network.remaining.amount : '-');
 
             eligibilityInfo.coInsuranceData = [];
+
             if (self.chkVar(InsuranceData, 'coverage', 'coinsurance') && InsuranceData.coverage.coinsurance.length > 0 && self.chkVar(InsuranceData, 'service_type_codes') && InsuranceData.service_type_codes.length > 0) {
                 for (var k = 0; k < InsuranceData.service_type_codes.length; k++) {
                     for (var j = 0; j < InsuranceData.coverage.coinsurance.length; j++) {
@@ -1552,6 +1552,7 @@ function (
             }
 
             eligibilityInfo.copayData = [];
+            /* eslint-disable no-redeclare */
             if (self.chkVar(InsuranceData, 'coverage', 'copay') && InsuranceData.coverage.copay.length > 0 && self.chkVar(InsuranceData, 'service_type_codes') && InsuranceData.service_type_codes.length > 0) {
                 for (var k = 0; k < InsuranceData.service_type_codes.length; k++) {
                     for (var j = 0; j < InsuranceData.coverage.copay.length; j++) {
@@ -1571,6 +1572,7 @@ function (
                     }
                 }
             }
+            /* eslint-enable no-redeclare */
 
             eligibilityInfo.requestDetails = {};
             eligibilityInfo.requestDetails.subscriberId = self.chkVar(InsuranceData, 'subscriber', 'id') ? InsuranceData.subscriber.id : '-';
@@ -1600,6 +1602,7 @@ function (
 
             eligibilityInfo.pharmacyData = [];
             if (self.chkVar(InsuranceData, 'pharmacy', 'copay') && InsuranceData.pharmacy.copay.length > 0) {
+                /* eslint-disable no-redeclare */
                 for (var j = 0; j < InsuranceData.pharmacy.copay.length; j++) {
                     eligibilityInfo.pharmacyData.push({
                         "copayment": (InsuranceData.pharmacy.copay[j].copayment !== undefined && InsuranceData.pharmacy.copay[j].copayment.currency !== undefined ? (InsuranceData.pharmacy.copay[j].copayment.currency === 'USD' ? '$' : '') : '') + (InsuranceData.pharmacy.copay[j].copayment !== undefined && InsuranceData.pharmacy.copay[j].copayment.amount !== undefined ? InsuranceData.pharmacy.copay[j].copayment.amount : '-'),
@@ -1607,10 +1610,12 @@ function (
                         "notes": InsuranceData.pharmacy.copay[j].notes !== undefined ? InsuranceData.pharmacy.copay[j].notes : '-'
                     })
                 }
+                /* eslint-enable no-redeclare */
             }
 
             eligibilityInfo.limitationsData = [];
             if (self.chkVar(InsuranceData, 'coverage', 'limitations') && InsuranceData.coverage.limitations.length > 0 && self.chkVar(InsuranceData, 'service_type_codes') && InsuranceData.service_type_codes.length > 0) {
+                /* eslint-disable no-redeclare */
                 for (var k = 0; k < InsuranceData.service_type_codes.length; k++) {
                     for (var j = 0; j < InsuranceData.coverage.limitations.length; j++) {
                         var idx = _.indexOf(InsuranceData.coverage.limitations[j].service_type_codes, InsuranceData.service_type_codes[k]);
@@ -1624,6 +1629,7 @@ function (
                         }
                     }
                 }
+                /* eslint-enable no-redeclare */
             }
 
             eligibilityInfo.diclaimerData = [];

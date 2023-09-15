@@ -44,7 +44,7 @@ define([
                     data: {
                         'claim_id': claim_id
                     },
-                    success: function (data, response) {
+                    success: function (data) {
                         if (data && data[0]) {
                             data = data[0];
 
@@ -99,7 +99,7 @@ define([
                     data: {
                         'claim_id': self.claim_id
                     },
-                    success: function (data, response) {
+                    success: function (data) {
                         if (data && data[0]) {
                             var CPTList = self.cptListTemplate({ charges: data[0].claim_details });
                             $('#divSelectedCPTList').empty();
@@ -122,10 +122,9 @@ define([
                 $('.icon-ic-plus').on('click', function (e) {
                     if (e && e.target) {
                         if (self.validateMinimumCharge(e)) {
-                            var el = $(e.target || e.srcElement).closest('section');
                             $(this)
                                 .removeClass('icon-ic-plus')
-                                .addClass('icon-ic-minus').on('click', function (e) {
+                                .addClass('icon-ic-minus').on('click', function () {
                                     $(this)
                                         .removeClass('icon-ic-minus')
                                         .addClass('icon-ic-plus')
@@ -172,7 +171,7 @@ define([
                                 cpt_ids: _cpt_ids.join(','),
                                 claim_id: self.claim_id
                             },
-                            success: function (data, response) {
+                            success: function () {
                                 commonjs.showStatus('messages.status.claimHasBeenSplitSuccessfully');
                                 self.reloadChargeList();
                                 $('#btnCreateClaim').removeAttr('disabled');

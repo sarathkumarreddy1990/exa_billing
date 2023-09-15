@@ -55,6 +55,5 @@ module.exports = {
         "homeOpentab": true,
         "$document": true,
         "CreateCheckBox": true,
-
     }
 };
