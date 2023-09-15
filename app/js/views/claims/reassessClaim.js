@@ -36,7 +36,7 @@ define(['jquery',
         bindEvents: function (data) {
             var self = this;
 
-            $("#btnAddSupportingText").off().click(function (e) {
+            $("#btnAddSupportingText").off().click(function () {
                 self.insertSupportingText();
             })
 

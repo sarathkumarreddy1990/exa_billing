@@ -61,7 +61,6 @@ define(['jquery',
             paymentRowTemplate: _.template(paymentRowTemplate),
             patientChargesTemplate: _.template(patientChargesTemplate),
             patientClaimTemplate: _.template(patientClaimTemplate),
-            updateResponsibleList: [],
             chargeModel: [],
             providerSkillCodesCount:0,
             claimICDLists: [],
@@ -240,31 +239,26 @@ define(['jquery',
                             pointers: [true, true, true, false],
                             modifiers: [true, true, true, false]
                         }
-                        break;
                     case 'can_BC':
                         return {
                             pointers: [true, true, true, false],
                             modifiers: [true, true, true, true]
                         }
-                        break;
                     case 'can_MB':
                         return {
                             pointers: [true, false, false, false],
                             modifiers: [true, true, true, true]
                         }
-                        break;
                     case 'can_ON':
                         return {
                             pointers: [true, true, true, true],
                             modifiers: [false, false, false, false]
                         }
-                        break;
                     default:
                         return {
                             pointers: [true, true, true, true],
                             modifiers: [true, true, true, true]
                         }
-                        break;
                 }
             },
             render: function (isFrom) {
@@ -665,12 +659,16 @@ define(['jquery',
                 switch (this.injuryDetailsView.injuryDetails.length) {
                     case 0:
                         levels.push('primary');
+                        break;
                     case 1:
                         levels.push('secondary');
+                        break;
                     case 2:
                         levels.push('tertiary');
+                        break;
                     case 3:
                         levels.push('quaternary');
+                        break;
                     case 4:
                         levels.push('quinary');
                         break;
@@ -731,7 +729,7 @@ define(['jquery',
                         id: claim_Id,
                         patient_id: options.patient_id
                     },
-                    success: function (model, response) {
+                    success: function (model) {
 
                         if (model && model.length > 0) {
                             var claimDetails = model[0];
@@ -891,7 +889,7 @@ define(['jquery',
                             self.claimICDLists = [];
                             $('#ulSelectedDiagCodes').empty();
                             $('#hdnDiagCodes').val('');
-                            claimDetails.claim_icd_data.forEach(function (obj, index) {
+                            claimDetails.claim_icd_data.forEach(function (obj) {
                                 self.ICDID = obj.icd_id;
                                 self.icd_code = obj.code;
                                 self.icd_description = obj.description
@@ -1510,9 +1508,10 @@ define(['jquery',
 
                 /* ResponsibleList End*/
                 /* Common Details Edit & Claim creation */
+                var responsibleIndex;
                 if (self.isEdit) {
                     self.bindEditClaimInsuranceDetails(claim_data);
-                    var responsibleIndex = _.find(self.responsible_list, function (item) { return item.payer_type_name == claim_data.payer_type; });
+                    responsibleIndex = _.find(self.responsible_list, function (item) { return item.payer_type_name == claim_data.payer_type; });
                     $('#ddlClaimResponsible').val(responsibleIndex.payer_type);
                     $('#ddlClaimResponsible').data('current-payer', claim_data.payer_type);
                     $('#ddlClaimStatus').val(claim_data.claim_status_id || '');
@@ -1523,7 +1522,7 @@ define(['jquery',
                     $('#txtClaimCreatedDt').val(claim_data.created_dt ? self.convertToTimeZone(claim_data.facility_id, claim_data.created_dt).format('L') : '');
                     self.displayClaimStatusByProvider(claim_data.p_insurance_code);
                 } else {
-                    var responsibleIndex = _.find(self.responsible_list, function (item) {
+                    responsibleIndex = _.find(self.responsible_list, function (item) {
                         if (app.isMobileBillingEnabled && claim_data.billing_type == 'facility') {
                             return item.payer_type == 'POF';
                         }
@@ -1728,7 +1727,7 @@ define(['jquery',
                 }
             },
 
-            onChangeServiceLocation: function (e) {
+            onChangeServiceLocation: function () {
                 var posMap = $("#ddlServiceFacilityLocation option:selected").val();
 
                 if (posMap === 'OFP' && this.hasMatchingOrderingFacility()) {
@@ -2048,7 +2047,7 @@ define(['jquery',
                     self.addChargeLine(e);
                 });
 
-                $("#btnAddDiagCode").off().click(function (e) {
+                $("#btnAddDiagCode").off().click(function () {
                     self.addDiagCodes(true);
                 });
 
@@ -2069,11 +2068,11 @@ define(['jquery',
                     self.changeRelationalShip(e);
                 });
 
-                $(".closePopup").off().click(function (e) {
+                $(".closePopup").off().click(function () {
                     $('#site_modal_div_container').empty().hide();
                 });
 
-                $("#chkSecMedicarePayer").off().change(function (e) {
+                $("#chkSecMedicarePayer").off().change(function () {
                     $('#selectMedicalPayer').toggle($('#chkSecMedicarePayer').is(':checked')).val('');
                 });
 
@@ -2081,15 +2080,15 @@ define(['jquery',
                    self.insuranceUpdate(e);
                 });
 
-                $("#btnValidateClaim").off().click(function (e) {
+                $("#btnValidateClaim").off().click(function () {
                     self.validateClaim();
                 });
 
-                $("#btPatientDocuemnt").off().click(function (e) {
+                $("#btPatientDocuemnt").off().click(function () {
                    commonjs.openDocumentsAndReports(self.options);
                 });
 
-                $("#btnPatientNotes").off().click(function (e) {
+                $("#btnPatientNotes").off().click(function () {
                     commonjs.openNotes(self.options);
                 });
 
@@ -2101,7 +2100,7 @@ define(['jquery',
                     }
                 });
 
-                $("#siteModal .modal-header button, #siteModal .modal-footer button").off().click(function (e) {
+                $("#siteModal .modal-header button, #siteModal .modal-footer button").off().click(function () {
                     if (app.billingRegionCode === "can_AB" && commonjs.hasWCBUnsavedChanges && !self.enableConfirmAlert) {
                         $(this).removeAttr('data-dismiss');
                         self.openUnSavedChangesModal('close', $(this));
@@ -2154,11 +2153,11 @@ define(['jquery',
                     self.blurPayToUli(val);
                 });
 
-                $("#btnAddSupportingText").off().click(function (e) {
+                $("#btnAddSupportingText").off().click(function () {
                     self.insertSupportingText();
                 });
 
-                $('#ddlServiceFacilityLocation').off().change(function (e) {
+                $('#ddlServiceFacilityLocation').off().change(function () {
                     self.onChangeServiceLocation();
                 });
 
@@ -2171,7 +2170,7 @@ define(['jquery',
                     type: 'warning',
                     titleText: i18n.get('messages.confirm.unsavedWCBChanges'),
                     showCancelButton: true,
-                    onOpen: function (e) {
+                    onOpen: function () {
                         $('.swal2-checkbox').addClass('d-none');
                     }
                 }).then(function (res) {
@@ -2210,7 +2209,7 @@ define(['jquery',
                             isMobileBillingEnabled: app.isMobileBillingEnabled,
                             billingRegionCode: app.billingRegionCode,
                         },
-                        success: function (model, response) {
+                        success: function (model) {
                             self.claimICDLists =[];
                             if (model && model.length > 0) {
                                 $('#tBodyCharge').empty();
@@ -2339,7 +2338,7 @@ define(['jquery',
 
             },
 
-            updateNotes: function (e) {
+            updateNotes: function () {
                 $('#btnSaveClaimNotes').prop('disabled', true);
                 $('.claimProcess').prop('disabled', true);
 
@@ -2371,10 +2370,13 @@ define(['jquery',
                 e.stopImmediatePropagation();
                 var self = this;
                 var _targetId = $(e.target || e.srcElement).attr('id');
+                var index;
+                var rowData;
+                var _rowObj;
                 if (_targetId == "createNewCharge") {
-                    var index = $('#tBodyCharge tr:last').attr('data_row_id') ? $('#tBodyCharge tr:last').attr('data_row_id') : -1;
-                    var rowData = _.find(self.chargeModel, { 'data_row_id': parseInt(index) });
-                    var _rowObj = {
+                    index = $('#tBodyCharge tr:last').attr('data_row_id') ? $('#tBodyCharge tr:last').attr('data_row_id') : -1;
+                    rowData = _.find(self.chargeModel, { 'data_row_id': parseInt(index) });
+                    _rowObj = {
                         id: null,
                         claim_id: self.claim_Id || null,
                         ref_charge_id: null,
@@ -2386,10 +2388,9 @@ define(['jquery',
                     }
                 } else {
                     var rowObj = $(e.target || e.srcElement).closest('tr');
-                    var accession_no = $.trim(rowObj.find('.charges__accession-num').text())
-                    var index = rowObj.length > 0 ? $('#tBodyCharge tr:last').attr('data_row_id') : 0;
-                    var rowData = _.find(self.chargeModel, { 'data_row_id': parseInt(rowObj.attr('data_row_id')) });
-                    var _rowObj = {
+                    index = rowObj.length > 0 ? $('#tBodyCharge tr:last').attr('data_row_id') : 0;
+                    rowData = _.find(self.chargeModel, { 'data_row_id': parseInt(rowObj.attr('data_row_id')) });
+                    _rowObj = {
                         id: null,
                         claim_id: rowData.claim_id ? rowData.claim_id : null,
                         ref_charge_id: null,
@@ -2465,17 +2466,11 @@ define(['jquery',
 
                 // modifiers dropdown
                 for (var m = 1; m <= 4; m++) {
-
-                    var arr = jQuery.grep(app.modifiers, function (n, i) {
-                        return (n['modifier' + m] == true || n['modifier' + m] == 'true');
-                    });
-
                     // bind default pointer from line items
                     if (isDefault) {
                         var _pointer = data.icd_pointers && data.icd_pointers[m - 1] ? data.icd_pointers[m - 1] : '';
                         $('#ddlPointer' + m + '_' + index).val(_pointer);
                         $('#txtModifier' + m + '_' + index).val(data['m' + m] ? self.getModifierCode(data['m' + m]) : "").attr('data-id', data['m' + m]);
-                        //self.bindModifiersData('ddlModifier' + m + '_' + index, arr);
                     }else{
                         $('#ddlPointer' + m + '_' + index).val(data['pointer' + m]);
                         // ToDo:: Once modifiers dropdown added have to bind
@@ -2589,11 +2584,15 @@ define(['jquery',
 
             checkInputModifiersValues: function (e, isFrom, isEdit, evType) {
                 var self = this;
+
+                var dataContent;
+                var modifierLevel;
+                var existData;
                 if (isFrom == 'P') { // Diagnostic Pointer
 
                     if (isEdit) { // for edit purpose Billing flag
-                        var dataContent = $(e.target).val();
-                        var modifierLevel = $(e.target).attr('data-type');
+                        dataContent = $(e.target).val();
+                        modifierLevel = $(e.target).attr('data-type');
                         if (dataContent != '') {
                             if (dataContent <= self.icdCodeList.length && dataContent != 0) {
                                 $(e.target).css('border-color', '')
@@ -2659,12 +2658,12 @@ define(['jquery',
                 }
                 else if (isFrom == 'M') { // Modifiers
 
-                    var dataContent = $(e.target).val();
-                    var modifierLevel = $(e.target).attr('data-type');
+                    dataContent = $(e.target).val();
+                    modifierLevel = $(e.target).attr('data-type');
                     modifierLevel = modifierLevel.replace('M', 'modifier');
-                    var existData = [];
+                    existData = [];
                     if (dataContent != '') {
-                        var existData = jQuery.grep(app.modifiers, function (value) {
+                        existData = jQuery.grep(app.modifiers, function (value) {
                             return (value.code.toLowerCase().indexOf(dataContent.toLowerCase()) > -1 && (value[modifierLevel] == true || value[modifierLevel] == 'true'));
                         });
 
@@ -2707,16 +2706,14 @@ define(['jquery',
                         }, function(){
                             $(this).css({'background-color':'transparent'});
                         })
-                        .mousedown(function(event) {
+                        .mousedown(function() {
                             $(e.target).val($(this).html());
                             $('#divModifierList').remove();
                         })
                         .html(existData[i].code));
                 }
                 $(e.target).css('border-color', '')
-                $(e.target).removeClass('invalidModifier')
-                var top = $(e.target).offset().top + $(e.target).outerHeight();
-                var left = $(e.target).offset().left
+                $(e.target).removeClass('invalidModifier');
                 divModifierList.css({'position':'relative', 'display':'block'});
                 modifierEl.css({'display':'block', 'z-index':'10001'});
             },
@@ -2751,7 +2748,7 @@ define(['jquery',
                             data: {
                                 charge_id: rowData.id,
                             },
-                            success: function (data, response) {
+                            success: function (data) {
                                 var msg = commonjs.geti18NString("messages.confirm.billing.deletionConfirmation")
                                 if (confirm(msg)) {
                                     if (rowData.payment_exists && data.rows[0].is_payment_available != 0 ) {
@@ -2810,7 +2807,6 @@ define(['jquery',
             },
 
             removeChargeFromDB: function(chargeId, callback){
-                var self = this;
 
                 $.ajax({
                     type: 'PUT',
@@ -2820,7 +2816,7 @@ define(['jquery',
                         type: 'charge',
                         screenName: 'claims'
                     },
-                    success: function (model, response) {
+                    success: function (model) {
                         if(model && model.rowCount){
                             var _status = model.rows && model.rows.length && model.rows[0].purge_claim_or_charge ? model.rows[0].purge_claim_or_charge : false
                             callback({
@@ -2872,8 +2868,8 @@ define(['jquery',
                     total_allowed = total_allowed + parseFloat(thisTotalAllowed);
                 });
 
-                var patient_paid = parseFloat($('#spPatientPaid').text());
-                var others_paid = parseFloat($('#spOthersPaid').text());
+                patient_paid = parseFloat($('#spPatientPaid').text());
+                others_paid = parseFloat($('#spOthersPaid').text());
                 var refund_amount = parseFloat($('#spRefund').text());
                 var adjustment_amount = parseFloat($('#spAdjustment').text());
                 var balance = total_bill_fee - (patient_paid + others_paid + adjustment_amount + refund_amount);
@@ -3020,7 +3016,7 @@ define(['jquery',
 
             isCptAlreadyExists: function(cptID, rowID) {
                 var isExists = false;
-                 $('#tBodyCharge').find('tr').each(function (index, rowObject) {
+                 $('#tBodyCharge').find('tr').each(function () {
                     var id = $(this).attr('data_row_id');
                     var cpt_code_id = $('#lblCptCode_' + id).attr('data_id');
                     if(rowID != id && cpt_code_id == cptID) {
@@ -3046,7 +3042,7 @@ define(['jquery',
                 $("#ddlSkillCodes").attr('value', '');
             },
 
-            setCptValues: function (rowIndex, res, duration, units, fee, type) {
+            setCptValues: function (rowIndex, res, duration, units, fee) {
                 $('#chargeType_' + rowIndex).text(res.charge_type);
                 $('#lblCptCode_' + rowIndex)
                     .html(res.display_code)
@@ -3176,7 +3172,7 @@ define(['jquery',
                         data: {
                             reading_physician_id: self.ACSelect.readPhy.contact_id
                         },
-                        success: function (data, response) {
+                        success: function (data) {
                             var skillCodes = data && data.result || [];
                             self.providerSkillCodesCount = skillCodes.length;
                             self.ACSelect.skillCodes.ID = null;
@@ -3314,7 +3310,7 @@ define(['jquery',
                     data: {
                         icd9Code: self.icd9Code
                     },
-                    success: function (model, response) {
+                    success: function (model) {
 
                         // Before getting pokitdok response, showDialog closed means no need to open pokitdok response dialog
                         if (commonjs.hasModalClosed()) {
@@ -3349,8 +3345,8 @@ define(['jquery',
                                 self.saveIcd10Codes()
                             })
                         } else if (model && model.result && model.result.data && model.result.data.errors && model.result.data.errors.validation && model.result.data.errors.validation.code && model.result.data.errors.validation.code.length) {
-                            var errorMsg = model.result.data.errors.validation.code[0];
-                            commonjs.showError(errorMsg)
+                            var validationErrorMessage = model.result.data.errors.validation.code[0];
+                            commonjs.showError(validationErrorMessage);
                         } else if (model && model.result && model.result.data && model.result.data.errors && model.result.data.errors && model.result.data.errors.query) {
                             var errorMsg = model.result.data.errors.query;
                             commonjs.showError(errorMsg)
@@ -3380,7 +3376,7 @@ define(['jquery',
                             code_type: 'icd10',
                             is_active: true
                         },
-                        success: function (model, response) {
+                        success: function (model) {
                             var result = model && model[0] ? model[0] : {};
                             self.ICDID = result.id
                             self.icd_code = result.code ? result.code : $(selected_element).data('code');
@@ -3514,7 +3510,6 @@ define(['jquery',
 
             // Remove deleted pointer references and decrement all of the higher numbered pointers so that they continue to match up correctly
             removeAdjustPointers: function (removePointer) {
-                var self = this;
                 if (isNaN(removePointer) === true) return false;
 
                 $("#tBodyCharge").find("tr").each(function (i1, row) {
@@ -3530,8 +3525,7 @@ define(['jquery',
             },
 
             sortDigCodes: function () {
-                var self = this;
-                $('ul.icdTagList li span.orderNo').each(function (index, obj) {
+                $('ul.icdTagList li span.orderNo').each(function (index) {
                     $(this).text(index + 1 + ')');
                 });
             },
@@ -3611,7 +3605,6 @@ define(['jquery',
             },
 
             bindExistingInsurance: function (array, insurance_id) {
-                var self = this;
                 var existingInsElement = $('#' + insurance_id);
                 existingInsElement.empty();
                 existingInsElement.append("<option value=''>SELECT</option>");
@@ -3767,7 +3760,7 @@ define(['jquery',
                     return res.insurance_name;
                 }
                 var $select2Container = $("#" +'select2-'+element_id+'-container');
-                $("#" + element_id).on('select2:open', function (event) {
+                $("#" + element_id).on('select2:open', function () {
                     commonjs.getPlaceHolderForSearch();
                     if ($select2Container && $select2Container.text())
                         $("#" + element_id).data('select2').dropdown.$search.val($select2Container.text());
@@ -3882,7 +3875,6 @@ define(['jquery',
             },
 
             updateInsAddress: function (level, res) {
-                var self = this;
                 var insuranceInfo = res.insurance_info || null;
                 var csz = insuranceInfo.City + (commonjs.checkNotEmpty(insuranceInfo.State) ? ',' + insuranceInfo.State : "") + (commonjs.checkNotEmpty(insuranceInfo.ZipCode) ? ',' + insuranceInfo.ZipCode : "");
 
@@ -3899,7 +3891,6 @@ define(['jquery',
                 var patientInsID = $('#' + id + ' option:selected').val();
 
                 if (patientInsID > 0) {
-                    var self = this;
                     this.patInsModel.set({ id: patientInsID });
                     this.patInsModel.fetch({
                         data: $.param({ id: this.patInsModel.id }),
@@ -4089,7 +4080,7 @@ define(['jquery',
 
                 return false;
             },
-            getSkillCodeId: function(currentPayer_type) {
+            getSkillCodeId: function() {
                 var can_ahs_skill_code_id = null;
 
                 if (app.billingRegionCode === 'can_AB') {
@@ -4366,7 +4357,7 @@ define(['jquery',
 
                 /*Setting claim charge details*/
                 claim_model.charges = [];
-                $('#tBodyCharge').find('tr').each(function (index, rowObject) {
+                $('#tBodyCharge').find('tr').each(function (index) {
                     var id = $(this).attr('data_row_id');
                     var cpt_code_id = $('#lblCptCode_' + id).attr('data_id');
                     var rowData = _.find(self.chargeModel, { 'data_row_id': parseInt(id) });
@@ -5345,7 +5336,7 @@ define(['jquery',
                         country: app.country_alpha_3_code,
                         billingRegionCode: app.billingRegionCode
                     },
-                    success: function(data, response){
+                    success: function(data){
                         $("#btnValidateClaim").prop("disabled", false);
                         if (data) {
                             commonjs.hideLoading();
@@ -5426,7 +5417,7 @@ define(['jquery',
                         patient_id: id,
                         current_date: moment(self.studyDate, 'L').format('YYYY-MM-DD')
                     },
-                    success: function (data, response) {
+                    success: function (data) {
                         var chargeRow;
                         // Bind Study date of the current claim for the patient
                         $('#patientStudyDate').text(self.studyDate || '');
@@ -5558,8 +5549,6 @@ define(['jquery',
             },
 
             bindTabMenuEvents: function () {
-                var self = this;
-
                 var tab_menu_link = $('ul#tab_menu li a');
                 var tab_menu_item = $('ul#tab_menu li');
                 var $root = $('#modal_div_container');
@@ -5589,7 +5578,7 @@ define(['jquery',
                 $('#modal_div_container').scrollTop(0);
             },
 
-            applySearch: _.debounce(function (e) {
+            applySearch: _.debounce(function () {
                 var $divPatientSearchResults = $('#divPatientSearchResults');
                 var isNotEmpty = false;
                 var canSearch = true;
@@ -5717,7 +5706,7 @@ define(['jquery',
                             sortField: (commonjs.checkNotEmpty(this.patientsPager.get("sortField"))) ? this.patientsPager.get("sortField") : 'patients.id',
                             company_id: app.companyID
                         },
-                        success: function (data, textStatus, jqXHR) {
+                        success: function (data) {
                             if (data) {
                                 self.patientTotalRecords = (data && data.length > 0) ? data[0].total_records : 0;
                                 self.lastId = (data && data.length > 0) ? data[0].lastid : 0;
@@ -5899,7 +5888,7 @@ define(['jquery',
                         $('#patient-search-result').removeClass('col-5').addClass('col-2');
                     }
 
-                    $list = $('<ul class="studyList"></ul>');
+                    var $list = $('<ul class="studyList"></ul>');
                     jQuery.ajax({
                         url: "/exa_modules/billing/claims/claim/studiesby_patient_id",
                         type: "GET",
@@ -5956,7 +5945,7 @@ define(['jquery',
                                 $studyDetails.append('<button style="height:33px;" type="button" i18n="billing.fileInsurance.createWithoutStudy" class="btn top-buffer processClaim" id="btnClaimWOStudy"></button>');
                                 commonjs.updateCulture(app.currentCulture, commonjs.beautifyMe);
 
-                                $('.processStudy').click(function (e) {
+                                $('.processStudy').click(function () {
                                     var $checkedInputs = $studyDetails.find('input').filter('[name=chkStudy]:checked');
                                     $('#btnClaimWOStudy').prop('disabled', $checkedInputs.length || false);
                                 });
@@ -6191,7 +6180,6 @@ define(['jquery',
 
                 // Bind Patient Default details
                 var renderingProvider = patient_details.rendering_provider_full_name || self.usermessage.selectStudyReadPhysician;
-                var service_facility_name = patient_details.service_facility_name || self.usermessage.selectOrdFacility;
                 self.ACSelect.readPhy.contact_id = patient_details.rendering_provider_contact_id || null;
                 self.facility_rendering_provider_contact_id = patient_details.rendering_provider_contact_id || null;
                 self.study_rendering_provider_contact_id = null;
@@ -6273,7 +6261,7 @@ define(['jquery',
                 $.trim(terSelf) == 'self' ? $('#showTerSelf').hide() : $('#showTerSelf').show() ;
             },
 
-            setPriRelationShipSelf: function(e) {
+            setPriRelationShipSelf: function() {
                 if($('#chkPriSelf').is(":checked")) {
                     var selfValue = $('#ddlPriRelationShip option').filter(function () {
                         return this.text.toLowerCase() == 'self';
@@ -6289,7 +6277,7 @@ define(['jquery',
 
             },
 
-            setSecRelationShipSelf: function(e) {
+            setSecRelationShipSelf: function() {
                 if($('#chkSecSelf').is(":checked")) {
                     var selfValue = $('#ddlSecRelationShip option').filter(function () {
                         return this.text.toLowerCase() == 'self';
@@ -6304,7 +6292,7 @@ define(['jquery',
                 }
             },
 
-            setTerRelationShipSelf: function(e) {
+            setTerRelationShipSelf: function() {
                 if($('#chkTerSelf').is(":checked")) {
                     var selfValue = $('#ddlTerRelationShip option').filter(function () {
                         return this.text.toLowerCase() == 'self';
@@ -6725,7 +6713,7 @@ define(['jquery',
                 return true;
             },
 
-            addPaymentLine: function (e) {
+            addPaymentLine: function () {
                 var self = this;
                 var index = $('#tBodyPayment').find('tr').length === 0 ? 1 : $('#tBodyPayment').find('tr').length + 1;
                 var facilityTimeZoneObj = commonjs.getFacilityCurrentDateTime(self.facilityId)
@@ -7000,7 +6988,7 @@ define(['jquery',
                 self.findRelevantTemplates();
             },
 
-            insuranceEligibilityBC: function (e) {
+            insuranceEligibilityBC: function () {
                 var self = this;
 
                 if ($('#txtPriPolicyNo').val().length == 0 && self.priInsCode != '' && 'msp' != self.priInsCode.toLowerCase()) {
@@ -7053,7 +7041,7 @@ define(['jquery',
                             });
                         }
                     },
-                    error: function (request, status, error) {
+                    error: function (request) {
                         commonjs.handleXhrError(request);
                     }
                 });
@@ -7082,7 +7070,6 @@ define(['jquery',
 
             renderClaimPage: function (claimList, isTotalRecordNeeded) {
                 var self = this;
-                var prevClaimNo;
 
                 if (!isTotalRecordNeeded) {
                     self.patientClaimsPager.set({ "chargeTotalRecords": self.chargeTotalRecords });
@@ -7328,7 +7315,7 @@ define(['jquery',
                         var issuerType = patientAltAccNo.issuer_id
                             ? this.getIssuerType(parseInt(patientAltAccNo.issuer_id) - 1)
                             : patientAltAccNo.issuer_id;
-                        defaultPatientAltAccNo = issuerType + ', ' + patientAltAccNo.alt_account_no;
+                        var defaultPatientAltAccNo = issuerType + ', ' + patientAltAccNo.alt_account_no;
                         this.ACSelect.patientAltAccNo.issuer_id = patientAltAccNo.issuer_id;
                         this.ACSelect.patientAltAccNo.alt_account_no = patientAltAccNo.alt_account_no;
                         return defaultPatientAltAccNo;

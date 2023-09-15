@@ -18,7 +18,6 @@ dbManager.js
 # temporarily ignore files and directories that are not yet ready for linting
 /app/js/routes/**
 /app/js/views/app/**
-/app/js/views/claims/**
 /app/js/views/reports/**
 /app/js/views/setup/**
 /app/js/workers/**

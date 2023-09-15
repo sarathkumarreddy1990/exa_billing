@@ -70,39 +70,39 @@ function (
             }
         },
 
-        handleClickLetter: function (e) {
+        handleClickLetter: function () {
             this.openLetter();
         },
 
-        handleClickPrint: function (e) {
+        handleClickPrint: function () {
             this.print();
         },
 
-        handleClickReestimate: function (e) {
+        handleClickReestimate: function () {
             this.reestimate(this.handleEstimationData.bind(this));
         },
 
-        handleClickRecheckEligibility: function (e) {
+        handleClickRecheckEligibility: function () {
             this.recheckEligibility(this.handleEligibilityData.bind(this));
         },
 
-        handleClickTabEligibility: function (e) {
+        handleClickTabEligibility: function () {
             this.activateEligibility();
         },
 
-        handleClickTabEstimation: function (e) {
+        handleClickTabEstimation: function () {
             this.activateEstimation();
         },
 
-        handleClickToggleHeader: function (e) {
+        handleClickToggleHeader: function () {
             this.toggleHeader();
         },
 
-        handleClickUpdateSelected: function (e) {
+        handleClickUpdateSelected: function () {
             this.updateSelected();
         },
 
-        handleClickGoodFaithLetter: function (e) {
+        handleClickGoodFaithLetter: function () {
             this.createGoodFaithEstimateLetter();
         },
         /* #endregion */
@@ -397,7 +397,7 @@ function (
                 type: "warning",
                 title: i18n.get("patient.patientInsurance.eligibility.staleEstimationWarning"),
                 html:  i18n.get("patient.patientInsurance.eligibility.staleEstimationWarningBody"),
-                onOpen: function (e) {
+                onOpen: function () {
                     // in billing display css is globally applied to label tag
                     $('.swal2-checkbox').addClass('dispaly-none-important');
                 }
@@ -554,11 +554,11 @@ function (
                 $("#btnLetterEmail").prop("disabled", false);
             }
 
-            $("#btnLetterPrint").off('click').click(function (e) {
+            $("#btnLetterPrint").off('click').click(function () {
                 self.printLetter();
             });
 
-            $("#btnLetterEmail").off('click').click(function (e) {
+            $("#btnLetterEmail").off('click').click(function () {
                 self.sendEstimationLetter();
             });
 
@@ -600,7 +600,7 @@ function (
                     delivery_address: $('#txtPatientEmail').val(),
                     delivery_data: translated_html,
                 },
-                success: function (response) {
+                success: function () {
                     commonjs.showStatus("messages.status.patientEstimationLetter");
                 },
                 error: function (err, response) {
@@ -856,7 +856,7 @@ function (
         /**
          * Writes the eligibility status icon to the form
          */
-        writeFormValuesEligibilityStatus: function (is_eligible) {
+        writeFormValuesEligibilityStatus: function () {
             $("#iPatientEligibilityStatus")
                 .removeClass()
                 .addClass("fa fa-2x")
@@ -1061,7 +1061,7 @@ function (
             $("#divEstimationStudies").html(html);
 
             // Bind on-click event for all study checkboxes
-            $("INPUT[id^='chkStudy']").off("click").click(function (e) {
+            $("INPUT[id^='chkStudy']").off("click").click(function () {
                 $("#btnUpdateSelected").show();
             });
 
@@ -1334,7 +1334,7 @@ function (
          * @returns {number[]}
          */
         allStudyIds: function () {
-            return $("INPUT[id^='chkStudy']").map(function (el) {
+            return $("INPUT[id^='chkStudy']").map(function () {
                 return this.value;
             }).toArray();
         },
@@ -1717,7 +1717,7 @@ function (
          * @returns {number[]}
          */
         selectedStudyIds: function () {
-            return $("INPUT[id^='chkStudy']:checked").map(function (el) {
+            return $("INPUT[id^='chkStudy']:checked").map(function () {
                 return this.value;
             }).toArray();
         },

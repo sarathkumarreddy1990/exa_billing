@@ -74,126 +74,6 @@ define(['jquery',
             'gridFilter': false
         });
 
-        var defaultFilterInfo = {
-            "date": {
-                "condition": null,
-                "preformatted": "Yesterday",
-                "durationValue": "",
-                "duration": "Hour(s)",
-                "fromTime": null,
-                "toTime": null,
-                "fromDate": null,
-                "fromDateTime": null,
-                "toDate": null,
-                "toDateTime": null,
-                "isStudyDate": false,
-                "dateType": "claim_dt"
-            },
-            "patientInformation": {
-                "patientName": [],
-                "patientID": []
-            },
-            "studyInformation": {
-                "institution": {
-                    "list": []
-                },
-                "modality": {
-                    "list": []
-                },
-                "modality_room_id": {
-                    "list": []
-                },
-                "facility": {
-                    "list": []
-                },
-                "status": {
-                    "last_changed_by_me": false,
-                    "list": []
-                },
-                "vehicle": {
-                    "list": []
-                },
-                "bodyPart": {
-                    "list": []
-                },
-                "studyID": {
-                    "value": ""
-                },
-                "accession": {
-                    "value": ""
-                },
-                "stat": {
-                    "list": []
-                },
-                "flag": {
-                    "list": []
-                },
-                "study_description": {
-                    "condition": "",
-                    "list": []
-                },
-                "ordering_facility": {
-                    "list": []
-                },
-                "attorney": []
-            },
-            "physician": {
-                "readPhy": [],
-                "refPhy": [],
-                "imageDelivery": {
-                    "condition": "",
-                    "list": []
-                }
-            },
-            "insurance": {
-                "insProv": []
-            },
-            "options": {
-                "statOverride": false,
-                "showDicomStudies": false,
-                "showRisOrders": false,
-                "showAssignedStudies": false,
-                "includeDeleted": null,
-                "showEncOnly": false,
-                "disableRightClick": false,
-                isClaimGrid: true
-            }
-        };
-
-        var mergeFilters = function (filterIndexSet, overrides) {
-            var firstIndex = filterIndexSet.first();
-            var firstFilter = commonjs.studyFilters.get(firstIndex);
-            var dateFilters = [
-                {
-                    'name': '-REMOVE DATE CONDITION-',
-                    'date': Object.assign({}, defaultFilterInfo.date)
-                }
-            ];
-
-            var newFilter = {
-                'assigned_groups': [],
-                'assigned_users': [],
-                'back_color': '',
-                'display_as_tab': true,
-                'display_in_ddl': true,
-                'filter_info': firstFilter.filter_info,
-                'filter_name': firstFilter.filter_name.trim(),
-                'filter_order': 0,
-                'fore_color': '',
-                'id': null,
-                'is_private_filter': true,
-                'super_user': app.userInfo.user_type === 'SU',
-                'user_id': app.userID,
-                'joined_filters': firstFilter.joined_filters
-            };
-
-            if (firstFilter.filter_info.date.condition) {
-                dateFilters.push({
-                    'name': firstFilter.filter_name,
-                    'date': firstFilter.filter_info.date
-                });
-            }
-        };
         var navState = {
             'leftPosition': 0,
             'isMeasuring': false,
@@ -213,7 +93,7 @@ define(['jquery',
             method: 'POST',
             type: 'POST',
 
-            parse: function(response, options) {
+            parse: function(response) {
                 return _.reduce(response.results, function(data, result) {
                     if (result.data) {
                         return data.concat(result.data);
@@ -351,7 +231,6 @@ define(['jquery',
                 $("#btnStudiesRefreshAll, .createNewClaim, #btnStudiesRefresh, #btnbatchClaim, #diveHomeIndex, #divclaimsFooter").hide();
                 $('#divPageLoading').show();
 
-                isDefaultTab = false;
                 self.claimsFilters = new ClaimFiltersCollection();
                 self.claimsFilters.fetch({
                     data: {},
@@ -468,7 +347,7 @@ define(['jquery',
                         colElement.val(fromDate.format("L") + " - " + toDate.format("L"));
                     }
 
-                    var drp = commonjs.bindDateRangePicker(colElement, drpOptions, rangeSetName, function (start, end, format) {
+                    commonjs.bindDateRangePicker(colElement, drpOptions, rangeSetName, function (start, end) {
                         if (start && end) {
                             currentFilter.dateString = start.format('LL') + ' - ' + end.format('LL');
                             currentFilter.startDate = start.format('L');
@@ -484,7 +363,7 @@ define(['jquery',
 
                     });
                     // additional events that will trigger refreshes
-                    colElement.on("apply.daterangepicker", function (ev, drp) {
+                    colElement.on("apply.daterangepicker", function () {
                         self.refreshClaims(true);
                     });
                     colElement.on("cancel.daterangepicker", function () {
@@ -494,30 +373,9 @@ define(['jquery',
                     commonjs.isMaskValidate();
                 }); // end _.each
             },
-            clearAllSelectedRows: function () {
-                var filterID = commonjs.currentStudyFilter;
-                var filter = commonjs.loadedStudyFilters.get(filterID);
-                ( filter.customGridTable || $(document.getElementById(filter.options.gridelementid)) ).find('input:checkbox').each(function () {
-                    this.checked = false;
-                    $(this).closest('tr').removeClass('customRowSelect');
-                });
-                $('#chkStudyHeader_' + filterID).prop('checked', false);
-                commonjs.setFilter(filterID, filter);
-            },
-            selectAllRows: function () {
-                var filterID = commonjs.currentStudyFilter;
-                var filter = commonjs.loadedStudyFilters.get(filterID);
-                ( filter.customGridTable || $(document.getElementById(filter.options.gridelementid)) ).find('input:checkbox').each(function () {
-                    this.checked = true;
-                    $(this).closest('tr').addClass('customRowSelect');
-                });
-                $('#chkStudyHeader_' + filterID).prop('checked', true);
-                commonjs.setFilter(filterID, filter);
-            },
             createClaims: function (e, isFromReclaim) {
                 var self = this;
                 var billingMethodFormat = '';
-                var isCanada = app.country_alpha_3_code === 'can';
                 var filterID = commonjs.currentStudyFilter;
                 var filter = commonjs.loadedStudyFilters.get(filterID);
                 var existingRenderingProvider = null;
@@ -567,14 +425,13 @@ define(['jquery',
                     }
                 }
 
-                var filterID = commonjs.currentStudyFilter;
-                var filter = commonjs.loadedStudyFilters.get(filterID);
+                filterID = commonjs.currentStudyFilter;
+                filter = commonjs.loadedStudyFilters.get(filterID);
 
                 var claimIds = [];
                 var invoiceNo = [];
                 var existingBillingMethod = '';
                 var existingClearingHouse = '';
-                var existingEdiTemplate = '';
                 var selectedPayerName = [];
 
                 var isCheckedAll = $('#chkStudyHeader_' + filterID).prop('checked');
@@ -614,6 +471,7 @@ define(['jquery',
                     var insuranceProviders = [];
                     var insuranceProviderCodes = [];
 
+                    /* eslint-disable no-redeclare */
                     for (var i = 0; i < gridElement.length; i++) {
                         var rowId = gridElement[i].parentNode.parentNode.id;
                         var claimStatus = self.getGridCellData(filter, rowId, 'hidden_claim_status_code');
@@ -726,6 +584,7 @@ define(['jquery',
                         invoiceNo.push(invoice_no);
                         claimIds.push(rowId);
                     }
+                    /* eslint-enable no-redeclare */
 
                     data = {
                         claimIds: claimIds.toString(),
@@ -801,7 +660,7 @@ define(['jquery',
                     url: url,
                     type: "POST",
                     data: data,
-                    success: function (data, textStatus, jqXHR) {
+                    success: function (data) {
                         commonjs.hideLoading();
                         isWCBBilling = isWCBBilling || (data && data.isWCBBilling);
 
@@ -832,8 +691,8 @@ define(['jquery',
 
             selectAllClaim: function (filter, filterID, targetType) {
                 var self = this;
-                filterData = JSON.stringify(filter.pager.get('FilterData'));
-                filterCol = JSON.stringify(filter.pager.get('FilterCol'));
+                var filterData = JSON.stringify(filter.pager.get('FilterData'));
+                var filterCol = JSON.stringify(filter.pager.get('FilterCol'));
 
                 var isDatePickerClear = filterCol.indexOf('claim_dt') === -1;
 
@@ -860,7 +719,7 @@ define(['jquery',
                         },
                         userId: app.userID
                     },
-                    success: function (data, textStatus, jqXHR) {
+                    success: function (data) {
                         commonjs.hideLoading();
                         if (isCanada) {
                             self.ohipResponse(data);
@@ -1120,7 +979,7 @@ define(['jquery',
                     data: {
                         claimIDs: claimIds
                     },
-                    success: function(data, response){
+                    success: function(data){
                         if (data) {
                             commonjs.hideLoading();
 
@@ -1133,7 +992,7 @@ define(['jquery',
                                     var ele = (e.target.id).split('_');
                                     printerClaimids = [];
 
-                                    _.each(ele, function (claimid, index) {
+                                    _.each(ele, function (claimid) {
                                         if (claimid != 'spnInvoicePrint') {
                                             printerClaimids.push(parseInt(claimid));
                                         }
@@ -1163,7 +1022,6 @@ define(['jquery',
                 var $claimsTabs = $divTabsContainer.find('#claimsTabs');
                 var $ulTabCollection = $(document.getElementById('ulTabCollection'));
                 var $dataContainer = $(document.getElementById('data_container_home'));
-                var $divTabsContainer = $(document.getElementById('divTabsContainer'));
                 var $divFiltersContainer = $(document.getElementById('divFiltersContainer'));
                 var $divFilterRangeHTML = $(document.getElementById('divFilterRange')).find('span').html();
                 var $divPager = $(document.getElementById('divPager'));
@@ -1177,14 +1035,9 @@ define(['jquery',
 
                 var setupElements = function () {
 
-                    var finishSetup = function (navState) {
-                        var diff;
+                    var finishSetup = function () {
                         var cookie = (commonjs.getCookieOptions(5) || '').split(/__/);
                         var id = cookie[ 0 ];
-
-                        if (cookie.length > 1) {
-                            diff = moment().diff(moment(Number(cookie[ 1 ])), 'minutes');
-                        }
 
                         var $claimsTabsItems = $claimsTabs.children('li');
                         var $claimsTabTarget = $claimsTabsItems.eq(0);
@@ -1225,21 +1078,6 @@ define(['jquery',
                                 e.preventDefault();
                                 e.stopPropagation();
 
-                                var currentQueue = navState.getState('mergeQueue');
-                                var currentSet = currentQueue.get('filterIndexSet');
-
-                                var filterIndex = commonjs.claimsFilters.findIndex(function (filter) {
-                                    return filter.filter_id == dataContainerValue;
-                                });
-
-                                var updatedIndexSet;
-                                if (!currentSet.has(filterIndex)) {
-                                    updatedIndexSet = currentSet.add(filterIndex);
-                                }
-                                else {
-                                    updatedIndexSet = currentSet.remove(filterIndex);
-                                }
-
                                 return false;
                             }
 
@@ -1266,27 +1104,10 @@ define(['jquery',
                             var $claimsTabsItems = $claimsTabs.children('li');
                             var $claimsTabsLinks = $claimsTabsItems.children('a');
                             var $ulTabItems = $ulTabCollection.children('li');
-                            var $ulTab = $ulTabItems.filter('[data-container="' + dataContainerValue + '"]');
-                            var $ulLink = $ulTab.children('a');
 
                             if ($tab.hasClass('can-merge') && navState.getState('isMerging') === true) {
                                 e.preventDefault();
                                 e.stopPropagation();
-
-                                var currentQueue = navState.getState('mergeQueue');
-                                var currentSet = currentQueue.get('filterIndexSet');
-
-                                var filterIndex = commonjs.studyFilters.findIndex(function (filter) {
-                                    return filter.filter_id == dataContainerValue;
-                                });
-
-                                var updatedIndexSet;
-                                if (!currentSet.has(filterIndex)) {
-                                    updatedIndexSet = currentSet.add(filterIndex);
-                                }
-                                else {
-                                    updatedIndexSet = currentSet.remove(filterIndex);
-                                }
 
                                 return false;
                             }
@@ -1379,12 +1200,6 @@ define(['jquery',
                                 if (navState.getState('isScrolling') === true) {
                                     return;
                                 }
-
-                                // get the width of the UL to fix an IE rendering bug
-                                var ulWidth = 0;
-                                $claimsTabs.children('li').each(function () {
-                                    ulWidth += $(this).outerWidth();
-                                });
 
                                 var visible = $divTabsContainer.width();
                                 // var currPos = $claimsTabs.position().left;
@@ -1516,20 +1331,7 @@ define(['jquery',
                 };
 
                 var filterTabInit = function (filters, callback) {
-                    var showdeleted = !app.showdeletedstudies ?
-                        ' ' :
-                        ' studies.deleted_dt is null ';
                     $divFiltersContainer.hide();
-
-                    var processOptions = function (info) {
-                        return {
-                            isDicomSearch: isDicomSearch,
-                            isRisOrderSearch: isRisOrderSearch,
-                            showEncOnly: showEncOnly,
-                            dicomwhere: dicomwhere,
-                            isClaimGrid: true
-                        };
-                    };
 
                     var processFilters = function (arrays, data) {
                         var id = data.filter_id;
@@ -1618,7 +1420,7 @@ define(['jquery',
 
                 return filterTabInit(filters, setTabStudies);
             },
-            setTabContents: function (filterID, isPrior, isDicomSearch, isRisOrderSearch, showEncOnly) {
+            setTabContents: function (filterID) {
                 var self = this;
                 self.datePickerCleared = false // to bind the date by default(three months) -- EXA-11340
 
@@ -1692,7 +1494,7 @@ define(['jquery',
                             });
                             table.renderStudy();
 
-                            $('#btnValidateExport').off().click(function (e) {
+                            $('#btnValidateExport').off().click(function () {
                                 var filterData = '';
                                 var filterCol = '';
                                 $('#btnValidateExport').css('display', 'none');
@@ -1732,7 +1534,7 @@ define(['jquery',
                // commonjs.toggleGridlistColumns();
             },
 
-            afterGridBindclaims: function (dataset, gridObj) {
+            afterGridBindclaims: function () {
                 $('.ui-jqgrid-bdiv').scrollLeft(commonjs.scrollLeft);
             },
 
@@ -1744,7 +1546,7 @@ define(['jquery',
                 $("input[name='daterangepicker_end']").val(obj.endDate);
             },
 
-            setGridPager: function (filterID, filterObj, isPending) {
+            setGridPager: function (filterID, filterObj) {
                 var self = this;
                 filterObj.options.filterid = filterID;
 
@@ -1785,7 +1587,7 @@ define(['jquery',
                             }
 
                         },
-                        success: function (data, textStatus, jqXHR) {
+                        success: function (data) {
                             if (data && data.length) {
                                 filterObj.pager.set({
                                     "TotalRecords": data[0].total_records
@@ -1833,7 +1635,7 @@ define(['jquery',
                                 isDatePickerClear: self.datePickerCleared
                             }
                         },
-                        success: function (data, textStatus, jqXHR) {
+                        success: function (data) {
                             if (data && data.length) {
 
                                 filterObj.pager.set({
@@ -1977,7 +1779,6 @@ define(['jquery',
 
                 $('#btnClaimsRefresh, #btnClaimRefreshAll').prop('disabled', true);
                 var self = this;
-                var dicomwhere = "";
                 if (isFromDatepicker && isFromDatepicker.target) {
                     if (isFromDatepicker.target.id == 'showQCApplyFilter') {
                         $('#showQCClearFilter').prop('checked', false);
@@ -2099,7 +1900,7 @@ define(['jquery',
                         url: "/qc/reprocess_conflicts",
                         type: "PUT",
                         data: {},
-                        success: function (resp, textStatus, jqXHR) {
+                        success: function () {
                             commonjs.hideLoading();
                             self.refreshClaims(true);
                         },
@@ -2154,7 +1955,7 @@ define(['jquery',
                     data: {
                         gridName: 'claims'
                     },
-                    success: function (resp, textStatus, jqXHR) {
+                    success: function (resp) {
                         commonjs.hideLoading();
                         resp = resp && (resp.length >=1) && resp[1].rows && resp[1].rows[0] ? resp[1].rows[0] : {};
                         if (resp) {
@@ -2200,8 +2001,6 @@ define(['jquery',
                     success: function (model, response) {
                         if (commonjs.isValidResponse(response)) {
                             if (response) {
-                                var result = response;
-                                var fore_color = (result.fore_color) ? result.fore_color : 'black';
                                 var currentstudyTabID = '#studyTabs a[href="#divClaimGridContainer' + filterID + '"]';
                                 var $currentStudyTab = $(currentstudyTabID);
                                 var currentTabBorderColor = $currentStudyTab.css('border-top-color');
@@ -2238,7 +2037,6 @@ define(['jquery',
             },
 
             toggleTabContents: function (filterID) {
-                var _self = this;
                 var filters = ["Follow_up_queue", "Files"];
                 commonjs.processPostRender({screen: 'Claim Workbench'});
                 var btnValidateOrder = $("#btnValidateOrder");
@@ -2380,7 +2178,7 @@ define(['jquery',
                             formatter: function (cellvalue, options, rowObject) {
                                 return (rowObject.error_data && JSON.parse(rowObject.error_data).length) && "<i class='icon-ic-raw-transctipt' i18nt='billing.fileInsurance.errorMsg'></i>" || '';
                             },
-                            customAction: function (rowID, e) {
+                            customAction: function (rowID) {
                                 var gridData = $(options.tableElementId).jqGrid('getRowData', rowID);
                                 var errorContent = '<div style="width:100%;height:100%" id="divError"><textarea style="width:100%;height:100%" id="txtAreaErrorData">' + JSON.stringify(gridData.error_data, undefined, 4) + '</textarea></div>';
 
@@ -2403,7 +2201,6 @@ define(['jquery',
                             width: 200,
                             stype: 'select',
                             formatter: self.fileTypeFormatter,
-                            stype: 'select',
                             "searchoptions": {
                                 "value": file_type,
                                 "tempvalue": file_type
@@ -2413,7 +2210,7 @@ define(['jquery',
                             name: 'updated_date_time',
                             search: true,
                             width: 175,
-                            formatter: function (value, model, data) {
+                            formatter: function (value) {
                                 return commonjs.checkNotEmpty(value) ? commonjs.getFormattedUtcDate(value) : '';
                             }
                         },
@@ -2422,7 +2219,6 @@ define(['jquery',
                             width: 215,
                             stype: 'select',
                             formatter: self.currentStatusFormatter,
-                            stype: 'select',
                             "searchoptions": {
                                 "value": current_status,
                                 "tempvalue": current_status
@@ -2438,7 +2234,7 @@ define(['jquery',
                                     ? '<i class="fa fa-check" style="color: green" aria-hidden="true"></i>'
                                     : '<i class="fa fa-times" style="color: red" aria-hidden="true"></i>';
                             },
-                            customAction: function (rowID, e) {
+                            customAction: function () {
                                 return false;
                             }
                         },
@@ -2452,7 +2248,7 @@ define(['jquery',
                                     ? '<i class="fa fa-check" style="color: green" aria-hidden="true"></i>'
                                     : '<i class="fa fa-times" style="color: red" aria-hidden="true"></i>';
                             },
-                            customAction: function (rowID, e) {
+                            customAction: function () {
                                 return false;
                             }
                         },
@@ -2604,15 +2400,13 @@ define(['jquery',
                         return i18n.get('billing.claims.submissionC568');
                     case 'can_ab_wcb_c570':
                         return i18n.get('billing.claims.submissionC570');
-                    case 'can_ab_wcb_ra':
-                        return i18n.get('billing.claims.paymentWCB');
                     case 'can_ohip_h':
                     default:
                         return i18n.get('billing.claims.submission');
                 }
             },
 
-            showHCVConformanceTesting: function (e) {
+            showHCVConformanceTesting: function () {
                 var self = this;
 
                 if (this.edtListResults)
@@ -2667,7 +2461,7 @@ define(['jquery',
 
             },
 
-            showEDTConformanceTesting: function (e) {
+            showEDTConformanceTesting: function () {
                 var self = this;
 
                 if (this.edtListResults)
@@ -2965,9 +2759,9 @@ define(['jquery',
                 this.edtListResults.fetch({
                     data: listParams,
                     type: 'POST',
-                    success: function(models, response, options) {
+                    success: function(models, response) {
                         if (response.error) {
-                            commonjs.showError(err);
+                            commonjs.showError(response.error);
                         }
                         // $("#tr-no-records").remove();
                         self.renderEBSNestedDialog('Results', self.ebsResultsTemplate({
@@ -2978,7 +2772,7 @@ define(['jquery',
                             }, [])
                         }));
                         $("#tblConformanceTesting").find(".ui-widget-content.jqgrow").remove();
-                        $ohipPageNo = $('#ohipPageNo');
+                        var $ohipPageNo = $('#ohipPageNo');
                         $ohipPageNo.empty();
                         for (var pageNo = 1; pageNo<=response.results[0].resultSize; pageNo++) {
                             $ohipPageNo.append($('<option />', {
@@ -3065,7 +2859,7 @@ define(['jquery',
                         edi_files_id: fileId,
                         payment_id : paymentId && paymentId.length && paymentId[0] || null
                     },
-                    success: function (data, textStatus, jqXHR) {
+                    success: function (data) {
                         if(data.status === 'ERROR') {
                             commonjs.handleXhrError(data.err, null);
                         }
@@ -3100,14 +2894,13 @@ define(['jquery',
                 $('#chkStudyHeader_' + filterID).prop('checked', true);
                 commonjs.setFilter(filterID, filter);
             },
-            scrolleventStudies1: function (filterid, divId, studyStatus) {
-                var self = this;
+            scrolleventStudies1: function (filterid, divId) {
                 var divid = "#divClaimGrid" + filterid;
                 var scrolldiv = "";
                 if ($(divid).find("#gview_tblClaimGrid" + filterid)) {
                     scrolldiv = $(divid).find("#gview_tblClaimGrid" + filterid).find(".ui-jqgrid-bdiv");
                 }
-                scrolldiv.scroll(function (e) {
+                scrolldiv.scroll(function () {
                     $("#gs_study_status").focusout();
                     $("#" + divId).hide();
                 });
@@ -3158,7 +2951,7 @@ define(['jquery',
                         country: app.country_alpha_3_code,
                         billingRegionCode:app.billingRegionCode
                     },
-                    success: function (data, response) {
+                    success: function (data) {
                         $("#btnValidateOrder").prop("disabled", false);
                         if (data) {
                             commonjs.hideLoading();
@@ -3276,7 +3069,7 @@ define(['jquery',
                             country: app.country_alpha_3_code,
                             billingRegionCode: app.billingRegionCode
                         },
-                        success: function (data, response) {
+                        success: function (data) {
 
                             if (data) {
                                 var invalidClaimData = data.invalidClaim_data;
@@ -3292,7 +3085,7 @@ define(['jquery',
                             }
                             commonjs.hideLoading();
                         },
-                        error: function (err, response) {
+                        error: function () {
                             commonjs.hideLoading();
                         }
                     });
