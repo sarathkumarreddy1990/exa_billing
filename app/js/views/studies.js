@@ -34,125 +34,6 @@ define(['jquery',
             'gridFilter': false
         });
 
-        var defaultFilterInfo = {
-            "date": {
-                "condition": null,
-                "preformatted": "Yesterday",
-                "durationValue": "",
-                "duration": "Hour(s)",
-                "fromTime": null,
-                "toTime": null,
-                "fromDate": null,
-                "fromDateTime": null,
-                "toDate": null,
-                "toDateTime": null,
-                "isStudyDate": false,
-                "dateType": "study_dt"
-            },
-            "patientInformation": {
-                "patientName": [],
-                "patientID": []
-            },
-            "studyInformation": {
-                "institution": {
-                    "list": []
-                },
-                "modality": {
-                    "list": []
-                },
-                "modality_room_id": {
-                    "list": []
-                },
-                "facility": {
-                    "list": []
-                },
-                "status": {
-                    "last_changed_by_me": false,
-                    "list": []
-                },
-                "vehicle": {
-                    "list": []
-                },
-                "bodyPart": {
-                    "list": []
-                },
-                "studyID": {
-                    "value": ""
-                },
-                "accession": {
-                    "value": ""
-                },
-                "stat": {
-                    "list": []
-                },
-                "flag": {
-                    "list": []
-                },
-                "study_description": {
-                    "condition": "",
-                    "list": []
-                },
-                "ordering_facility": {
-                    "list": []
-                },
-                "attorney": []
-            },
-            "physician": {
-                "readPhy": [],
-                "refPhy": [],
-                "imageDelivery": {
-                    "condition": "",
-                    "list": []
-                }
-            },
-            "insurance": {
-                "insProv": []
-            },
-            "options": {
-                "statOverride": false,
-                "showDicomStudies": false,
-                "showRisOrders": false,
-                "showAssignedStudies": false,
-                "includeDeleted": null,
-                "showEncOnly": false,
-                "disableRightClick": false
-            }
-        };
-
-        var mergeFilters = function (filterIndexSet, overrides) {
-            var firstIndex = filterIndexSet.first();
-            var firstFilter = commonjs.studyFilters.get(firstIndex);
-            var dateFilters = [
-                {
-                    'name': '-REMOVE DATE CONDITION-',
-                    'date': Object.assign({}, defaultFilterInfo.date)
-                }
-            ];
-
-            var newFilter = {
-                'assigned_groups': [],
-                'assigned_users': [],
-                'back_color': '',
-                'display_as_tab': true,
-                'display_in_ddl': true,
-                'filter_info': firstFilter.filter_info,
-                'filter_name': firstFilter.filter_name.trim(),
-                'filter_order': 0,
-                'fore_color': '',
-                'id': null,
-                'is_private_filter': true,
-                'super_user': app.userInfo.user_type === 'SU',
-                'user_id': app.userID,
-                'joined_filters': firstFilter.joined_filters
-            };
-
-            if (firstFilter.filter_info.date.condition) {
-                dateFilters.push({
-                    'name': firstFilter.filter_name,
-                    'date': firstFilter.filter_info.date
-                });
-            }
-        };
         var navState = {
             'leftPosition': 0,
             'isMeasuring': false,
@@ -281,7 +162,6 @@ define(['jquery',
                 }
                 commonjs.showLoading('Loading filters..');
                 self.userSettings = commonjs.hstoreParse(app.userInfo.user_settings);
-                isDefaultTab = false;
                 self.studyFilters = new StudyFiltersCollection();
                 self.studyFilters.fetch({
                     data: {},
@@ -369,7 +249,7 @@ define(['jquery',
                         colElement.val(fromDate.format("L") + " - " + toDate.format("L"));
                     }
 
-                    var drp = commonjs.bindDateRangePicker(colElement, drpOptions, rangeSetName, function (start, end, format) {
+                    commonjs.bindDateRangePicker(colElement, drpOptions, rangeSetName, function (start, end) {
                         if (start && end) {
                             currentFilter.dateString = start.format('LL') + ' - ' + end.format('LL');
                             currentFilter.startDate = start.format('L');
@@ -385,7 +265,7 @@ define(['jquery',
 
                     });
                     // additional events that will trigger refreshes
-                    colElement.on("apply.daterangepicker", function (ev, drp) {
+                    colElement.on("apply.daterangepicker", function () {
                         self.refreshStudies(true);
                     });
                     colElement.on("cancel.daterangepicker", function () {
@@ -422,7 +302,6 @@ define(['jquery',
                 var $studyTabs = $divTabsContainer.find('#studyTabs');
                 var $ulTabCollection = $(document.getElementById('ulTabCollection'));
                 var $dataContainer = $(document.getElementById('data_container_home'));
-                var $divTabsContainer = $(document.getElementById('divTabsContainer'));
                 var $divFiltersContainer = $(document.getElementById('divFiltersContainer'));
                 var $lblShowPrior = $(document.getElementById('lblShowPrior'));
                 var $divFilterRangeHTML = $(document.getElementById('divFilterRange')).find('span').html();
@@ -437,14 +316,9 @@ define(['jquery',
 
                 var setupElements = function () {
 
-                    var finishSetup = function (navState) {
-                        var diff;
+                    var finishSetup = function () {
                         var cookie = (commonjs.getCookieOptions(5) || '').split(/__/);
                         var id = cookie[ 0 ];
-
-                        if (cookie.length > 1) {
-                            diff = moment().diff(moment(Number(cookie[ 1 ])), 'minutes');
-                        }
 
                         var $studyTabsItems = $studyTabs.children('li');
                         var $studyTabTarget = $studyTabsItems.eq(0);
@@ -485,21 +359,6 @@ define(['jquery',
                                 e.preventDefault();
                                 e.stopPropagation();
 
-                                var currentQueue = navState.getState('mergeQueue');
-                                var currentSet = currentQueue.get('filterIndexSet');
-
-                                var filterIndex = commonjs.studyFilters.findIndex(function (filter) {
-                                    return filter.filter_id == dataContainerValue;
-                                });
-
-                                var updatedIndexSet;
-                                if (!currentSet.has(filterIndex)) {
-                                    updatedIndexSet = currentSet.add(filterIndex);
-                                }
-                                else {
-                                    updatedIndexSet = currentSet.remove(filterIndex);
-                                }
-
                                 return false;
                             }
 
@@ -526,27 +385,10 @@ define(['jquery',
                             var $studyTabsItems = $studyTabs.children('li');
                             var $studyTabsLinks = $studyTabsItems.children('a');
                             var $ulTabItems = $ulTabCollection.children('li');
-                            var $ulTab = $ulTabItems.filter('[data-container="' + dataContainerValue + '"]');
-                            var $ulLink = $ulTab.children('a');
 
                             if ($tab.hasClass('can-merge') && navState.getState('isMerging') === true) {
                                 e.preventDefault();
                                 e.stopPropagation();
-
-                                var currentQueue = navState.getState('mergeQueue');
-                                var currentSet = currentQueue.get('filterIndexSet');
-
-                                var filterIndex = commonjs.studyFilters.findIndex(function (filter) {
-                                    return filter.filter_id == dataContainerValue;
-                                });
-
-                                var updatedIndexSet;
-                                if (!currentSet.has(filterIndex)) {
-                                    updatedIndexSet = currentSet.add(filterIndex);
-                                }
-                                else {
-                                    updatedIndexSet = currentSet.remove(filterIndex);
-                                }
 
                                 return false;
                             }
@@ -650,12 +492,6 @@ define(['jquery',
                                 if (navState.getState('isScrolling') === true) {
                                     return;
                                 }
-
-                                // get the width of the UL to fix an IE rendering bug
-                                var ulWidth = 0;
-                                $studyTabs.children('li').each(function () {
-                                    ulWidth += $(this).outerWidth();
-                                });
 
                                 var visible = $divTabsContainer.width();
                                 // var currPos = $studyTabs.position().left;
@@ -787,9 +623,6 @@ define(['jquery',
                 };
 
                 var filterTabInit = function (filters, callback) {
-                    var showdeleted = !app.showdeletedstudies ?
-                        ' ' :
-                        ' studies.deleted_dt is null ';
                     $divFiltersContainer.hide();
                     $lblShowPrior.hide();
 
@@ -926,7 +759,7 @@ define(['jquery',
 
                 return filterTabInit(filters, setTabStudies);
             },
-            setTabContents: function (filterID, isPrior, isDicomSearch, isRisOrderSearch, showEncOnly) {
+            setTabContents: function (filterID) {
                 var self = this;
                 self.datePickerCleared = false // to bind the date by default(three months) -- EXA-11340
                 if (filterID) {
@@ -979,7 +812,7 @@ define(['jquery',
                             });
                             table.renderStudy();
 
-                            $("#btnbatchClaim").off().click(function (e) {
+                            $("#btnbatchClaim").off().click(function () {
                                 table.batchClaim();
                             });
 
@@ -1006,7 +839,7 @@ define(['jquery',
                 //commonjs.toggleGridlistColumns();
             },
 
-            afterGridBindStudy: function (dataset, gridObj) {
+            afterGridBindStudy: function () {
                 $('.ui-jqgrid-bdiv').scrollLeft(commonjs.scrollLeft);
             },
 
@@ -1018,7 +851,7 @@ define(['jquery',
                 $("input[name='daterangepicker_end']").val(obj.endDate);
             },
 
-            setGridPager: function (filterID, filterObj, isPending) {
+            setGridPager: function (filterID, filterObj) {
                 var self = this;
                 filterObj.options.filterid = filterID;
 
@@ -1059,7 +892,7 @@ define(['jquery',
                             }
 
                         },
-                        success: function (data, textStatus, jqXHR) {
+                        success: function (data) {
                             if (data&&data.length) {
                                 filterObj.pager.set({
                                     "TotalRecords": data[0].total_records
@@ -1193,7 +1026,6 @@ define(['jquery',
 
                 $('#btnStudiesRefresh, #btnStudiesRefreshAll').prop('disabled', true);
                 var self = this;
-                var dicomwhere = "";
                 if (isFromDatepicker && isFromDatepicker.target) {
                     if (isFromDatepicker.target.id == 'showQCApplyFilter') {
                         $('#showQCClearFilter').prop('checked', false);
@@ -1217,16 +1049,6 @@ define(['jquery',
                     }
                 }
                 self.disablePageControls();
-                if ($('input:checkbox[name=showDicom]').prop('checked')) {
-                    dicomwhere = " AND (dicom_status='CO' OR dicom_status='IP')"
-                }
-                else if ($('input:checkbox[name=showRis]').prop('checked')) {
-                    dicomwhere = " AND ( dicom_status='NA' OR dicom_status='' OR dicom_status IS NULL )"
-                }
-
-                if ($('input:checkbox[name=showRis]').prop('checked') && $('input:checkbox[name=showDicom]').prop('checked')) {
-                    dicomwhere = " AND (dicom_status='CO' OR dicom_status='IP' OR  dicom_status='NA' OR dicom_status='' OR dicom_status IS NULL )"
-                }
 
                 // Reset Interval, Auto Refresh the grid every 60 seconds
                 // clearInterval(self.autoRefreshTimer);
@@ -1321,7 +1143,7 @@ define(['jquery',
                         url: "/qc/reprocess_conflicts",
                         type: "PUT",
                         data: {},
-                        success: function (resp, textStatus, jqXHR) {
+                        success: function () {
                             commonjs.hideLoading();
                             self.refreshStudies(true);
                         },
@@ -1374,7 +1196,7 @@ define(['jquery',
                     data: {
                         gridName: 'studies'
                     },
-                    success: function (resp, textStatus, jqXHR) {
+                    success: function (resp) {
                         resp = resp && (resp.length >=1) && resp[1].rows && resp[1].rows[0] ? resp[1].rows[0] : {};
                         if (resp) {
                             app.study_user_settings = Object.assign({}, app.study_user_settings, resp);
@@ -1416,8 +1238,6 @@ define(['jquery',
                     success: function (model, response) {
                         if (commonjs.isValidResponse(response)) {
                             if (response) {
-                                var result = response;
-                                var fore_color = (result.fore_color) ? result.fore_color : 'black';
                                 var currentstudyTabID = '#studyTabs a[href="#divGridContainer' + filterID + '"]';
                                 var $currentStudyTab = $(currentstudyTabID);
                                 var currentTabBorderColor = $currentStudyTab.css('border-top-color');
@@ -1453,8 +1273,7 @@ define(['jquery',
                 });
             },
 
-            toggleTabContents: function (index) {
-                var _self = this;
+            toggleTabContents: function () {
                 commonjs.processPostRender({screen: 'Studies'});
                 $('#divPageLoading').hide();
                 $('#diveHomeIndex').show();
@@ -1513,7 +1332,7 @@ define(['jquery',
                         type: 'warning',
                         titleText: i18n.get('messages.confirm.worklist.clearFilterAreYouSure'),
                         showCancelButton: true,
-                        onOpen: function (e) {
+                        onOpen: function () {
                             // in billing display css is globally applied to label tag
                             $('.swal2-checkbox').addClass('dispaly-none-important');
                         }
@@ -1539,7 +1358,7 @@ define(['jquery',
                 var $studyFlag = self.selectStudyFlagGridColumn();
                 var flagId = [];
                 var flagDesc = [];
-                $(divID + " .status:checked").each(function (index, obj) {
+                $(divID + " .status:checked").each(function () {
                     flagId.push($(this).attr('data-id'));
                     flagDesc.push($(this).attr('data-value'));
                 });
@@ -1594,7 +1413,7 @@ define(['jquery',
                 });
             },
 
-            initializeStatusCodes: function (gridObj, tabtype) {
+            initializeStatusCodes: function (gridObj) {
                 var self = this;
                 $('.statusMenu').hide();
                 $('#divStatusSearch').find('input[type=checkbox]:checked').removeAttr('checked');
@@ -1670,13 +1489,13 @@ define(['jquery',
                 var enabled = $('#divStudyFlag .status').length == $('#divStudyFlag .status:checked').length;
                 $('#chkStudyFlag, #chkAllStudyFlag').prop('checked', enabled);
             },
-            scrolleventStudies1: function (filterid, divId, studyStatus) {
+            scrolleventStudies1: function (filterid, divId) {
                 var divid = "#divGrid" + filterid;
                 var scrolldiv = "";
                 if ($(divid).find("#gview_tblGrid" + filterid)) {
                     scrolldiv = $(divid).find("#gview_tblGrid" + filterid).find(".ui-jqgrid-bdiv");
                 }
-                scrolldiv.scroll(function (e) {
+                scrolldiv.scroll(function () {
                     $("#gs_study_status").focusout();
                     $("#" + divId).hide();
                 });
@@ -1696,16 +1515,17 @@ define(['jquery',
                     divID = "#divEncStatusSearch";
                 }
 
-                $(divID + " .status:checked").each(function (index, obj) {
+                $(divID + " .status:checked").each(function () {
                     if ($(".status:checked").length == 1) {
                         study_status.val($(this).attr('data-value'));
                     }
                     else {
+                        var status;
                         if (commonjs.checkNotEmpty(study_status.val())) {
-                            var status = study_status.val() + ',' + $(this).attr('data-value');
+                            status = study_status.val() + ',' + $(this).attr('data-value');
                         }
                         else {
-                            var status = $(this).attr('data-value');
+                            status = $(this).attr('data-value');
                         }
                         study_status.val(status);
                     }
@@ -1736,7 +1556,6 @@ define(['jquery',
                 self.refreshStudies();
             },
             chooseStatusForFilter: function (e) {
-                var self = this;
                 var checkBoxContainerID = '';
                 switch ($(e.target || e.srcElement).attr('id')) {
                     case 'chkAllStatus':

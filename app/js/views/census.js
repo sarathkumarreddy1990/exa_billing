@@ -122,7 +122,7 @@ define(['jquery',
                 }
             },
 
-            dateFormatter: function (value, data) {
+            dateFormatter: function (value) {
                 return commonjs.checkNotEmpty(value)
                     ? commonjs.convertToFacilityTimeZone(app.default_facility_id, value).format('L LT z')
                     : '';
@@ -197,7 +197,7 @@ define(['jquery',
                                 return '<input type="checkbox" name="chkCensus" class="chkCensus" id="chkCensus_' + rowObject.id + '"/>'
 
                             },
-                            customAction: function (rowID, event) {
+                            customAction: function (rowID) {
                                 var checkboxID = $("#chkCensus_" + rowID);
                                 if (!checkboxID.is(':checked')) {
                                     $('#chkAllCensus').prop('checked', false);
@@ -220,9 +220,10 @@ define(['jquery',
                             name: 'study_description', search: true,
                         },
                         {
-                            name: 'censusType', editable: true, sortable: false,
-                            align: 'center',
+                            name: 'censusType',
                             editable: true,
+                            sortable: false,
+                            align: 'center',
                             cellEdit: true,
                             search: false,
                             formatter: function (cellvalue, option, rowObject) {
@@ -382,7 +383,7 @@ define(['jquery',
                 var selectStudies = [];
                 var isInvalidCensusType = false;
                 var checkedStudies = $("input:checkbox[name=chkCensus]:checked");
-                var $btnCreateClaim = $('#btnCreateClaim');                
+                var $btnCreateClaim = $('#btnCreateClaim');
 
                 if(!checkedStudies || !checkedStudies.length){
                     return commonjs.showWarning('messages.warning.oneStudyRequired');
@@ -439,7 +440,6 @@ define(['jquery',
 
             //Bind the date range filter
             bindDateRangeOnSearchBox: function (gridObj) {
-                var self = this;
                 var columnsToBind = ['study_dt'];
                 var drpOptions = {
                     locale: {
@@ -452,7 +452,7 @@ define(['jquery',
                     var colSelector = '#gs_' + col;
                     var colElement = $(colSelector);
 
-                    var drp = commonjs.bindDateRangePicker(colElement, drpOptions, "past", function (start, end, format) {
+                    commonjs.bindDateRangePicker(colElement, drpOptions, "past", function (start, end) {
                         if (start && end) {
                             currentFilter.startDate = start.format('L');
                             currentFilter.endDate = end.format('L');
@@ -465,7 +465,7 @@ define(['jquery',
                             });
                         }
                     });
-                    colElement.on("apply.daterangepicker", function (obj) {
+                    colElement.on("apply.daterangepicker", function () {
                         gridObj.refresh();
                     });
                     colElement.on("cancel.daterangepicker", function () {
@@ -502,7 +502,7 @@ define(['jquery',
                     url: '/exa_modules/billing/census',
                     type: 'GET',
                     data: params,
-                    success: function (data, response) {
+                    success: function (data) {
                         commonjs.prepareCsvWorker({
                             data: data,
                             reportName: 'CENSUS',

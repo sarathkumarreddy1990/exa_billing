@@ -17,7 +17,6 @@ define([
         return Backbone.View.extend({
             template: _.template(userSettingsTemplate),
             events: {
-                "click #mySettings": "showForm",
                 "click #close_settings": "closePopup"
             },
 
@@ -29,7 +28,7 @@ define([
 
             render: function () {
                 var self = this;
-                userID = app.userID;
+                var userID = app.userID;
                 this.$el.html(self.template({
                     country_alpha_3_code: app.country_alpha_3_code,
                     province_alpha_2_code: app.province_alpha_2_code,
@@ -49,7 +48,7 @@ define([
                 $("#ulSortList").css('height', height);
                 this.bindSettingColumns(userID);
                 $(".simple_with_animation").sortable();
-                $('#save_settings').unbind().click(function (e) {
+                $('#save_settings').unbind().click(function () {
                     $('#save_settings').attr('disabled', true);
                     self.saveUserSettingsBilling(userID);
                     commonjs.hideDialog();
@@ -105,7 +104,7 @@ define([
                 });
                 this.model.save({},
                     {
-                        success: function (model, response) {
+                        success: function () {
 
                             $('#save_settings').prop('disabled', false);
                             if (self.gridFilterName == 'studies'){
@@ -135,8 +134,6 @@ define([
             },
 
             ulListBinding: function (field_order, listID, checkedGridFields) {
-                var $ol = $('#' + listID),
-                    $li, $label, $checkbox;
                 var checkedFieldLength = this.checkedFields.length;
                 $('#' + listID).empty();
                 for (var i = 0; i < field_order.length; i++) {
@@ -175,26 +172,14 @@ define([
                 commonjs.processPostRender();
             },
 
-            showForm: function () {
-                var self = this;
-                userID = app.userID;
-                $('#modal_div_container').empty();
-                $('#modal_div_container').append(template);
-                $('#modal_div_container').show();
-                this.bindSettingColumns(userID);
-                $('#close_settings').unbind().click(function (e) {
-                    $('#modal_div_container').hide();
-                });
-            },
-
-            bindSettingColumns: function (userID) {
+            bindSettingColumns: function () {
                 var self = this;
                 $.ajax({
                     url: '/exa_modules/billing/user_settings',
                     data: {
                         gridName: self.gridFilterName
                     },
-                    success: function (data, response) {
+                    success: function (data) {
                         if(data.error){
                             $('#divForm_Mysettings').hide();
                             $('#divAccess').show();
@@ -237,10 +222,6 @@ define([
                         var result_data = data && data.length && data[1] && data[1].rows && data[1].rows.length ? data[1].rows[0] : {};
                         self.checkedBillingDisplayFields = result_data.field_order || [] ;
                         self.checkedFields = self.checkedBillingDisplayFields ? self.checkedBillingDisplayFields : [];
-                        var gridFieldArray = [],
-                            field_order = [];
-                        var sortColumn, sortOrder;
-                        var displayField = [];
                         var billingDisplayFieldsFlag = false;
 
                         for (var i = 0; i < self.checkedBillingDisplayFields.length; i++) {
@@ -264,7 +245,7 @@ define([
                         var gridNames = displayFields.map(function (field) {
                             return field.id;
                         });
-                        var remainingFields = $.grep(self.billingDisplayFields, function (obj) {
+                        $.grep(self.billingDisplayFields, function (obj) {
                             if ($.inArray(obj.id, gridNames) == -1) {
                                 displayFields.push({
                                     field_name: obj.field_name,
@@ -289,7 +270,9 @@ define([
                             return data.field_info && data.field_info.sortable === false ? data.field_code : null
                         });
 
+                        /* eslint-disable no-redeclare */
                         for (var i = 0; i < self.billingDisplayFields.length; i++) {
+                        /* eslint-enable no-redeclare */
                             var field = self.billingDisplayFields[i];
 
                             if (nonSortColumn.indexOf(field.field_code) === -1) {
@@ -314,7 +297,7 @@ define([
                         self.loadPrinterTemplates('ddlSpecialForm', 'special_form', result_data.special_form);
 
                     },
-                    error: function (err, response) {
+                    error: function (err) {
                         if (err)
                             commonjs.showError('Error to Fetch the information...')
                     }
