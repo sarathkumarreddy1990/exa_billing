@@ -18,7 +18,7 @@ define([
             ],
 
             _isRouteValidForChat: function (routeToCheck) {
-                self = this;
+                var self = this;
                 return _.some(this.routesWithChat, function(routeWithChat){
                     return self.startsWith(routeToCheck, routeWithChat);
                 })
@@ -26,7 +26,7 @@ define([
             startsWith: function (str, starts, position) {
                 str = toString(str);
                 starts = '' + starts;
-                position = position == null ? 0 : Math.min(abs(position), str.length);
+                position = position == null ? 0 : Math.min(Math.abs(position), str.length);
                 return str.lastIndexOf(starts, position) === position;
             },
 

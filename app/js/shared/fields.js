@@ -1875,7 +1875,7 @@ define([ 'backbone', 'immutable', 'moment', 'shared/utils' ], function ( Backbon
                             });
                             var auth_status = _.intersection(priority, statuses);  // priority array needs to be the first parameter for this to work
 
-                            return _.capitalize(auth_status[0]) || "None";
+                            return commonjs.geti18NString("setup.studyFilters." + (auth_status[0] || "none"));
                         }
                         return "";
                     }

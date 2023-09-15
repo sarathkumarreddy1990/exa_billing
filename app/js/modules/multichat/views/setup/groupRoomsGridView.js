@@ -19,7 +19,7 @@ define(['jquery'
             pager: null,
             template: _.template(GroupRoomGrid),
 
-            initialize: function ( options ) {
+            initialize: function () {
                 _.extend(this, ErrorHandler);
                 this.chatRooms = new GroupRoomCollection();
                 this.pager = new GroupRoomPager();
@@ -39,7 +39,7 @@ define(['jquery'
                     stickysearch:true,
                     emptyMessage: 'No Record found',
                     colNames: ['', '', '', '', '', ''],
-                    i18nNames: ['', '', '', 'chat.setup.fields.title','chat.setup.fields.users_count', 'chat.setup.fields.visibility_list_items_count'],
+                    i18nNames: ['', '', '', 'chat.setup.fields.title', 'chat.setup.fields.users_count', 'chat.setup.fields.visibility_list_items_count'],
                     colModel: [
                         { name: 'id', index: 'id', key: true, hidden: true},
                         {
@@ -155,12 +155,12 @@ define(['jquery'
                     delay: 500,
                     URL: url,
                     autocomplete: 'on',
-                    data: function (term, page) {
+                    data: function (term) {
                         return {
                             name_substring: term,
                         };
                     },
-                    results: function (data, page) {
+                    results: function (data) {
                        return {results: data.result.users}
                     },
                     formatID: function (obj) {

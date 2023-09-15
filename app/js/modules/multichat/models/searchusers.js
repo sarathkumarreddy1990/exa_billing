@@ -26,8 +26,7 @@ define([
                 this.url = '/chat/users/search?' + $.param({ name_substring: options.searchString, room_type: options.roomType });
             },
 
-            parse: function (response, options) {
-                var self = this;
+            parse: function (response) {
                 if (response.status == 'ok' && 'result' in response && 'users' in response.result && Array.isArray(response.result.users)) {
                     return _.map(response.result.users, function (userResponse) {
                         return new SearchUserModel(userResponse);

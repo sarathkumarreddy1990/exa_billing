@@ -1,4 +1,4 @@
-image: node:16.16.0
+image: node:18.17.1
 clone:
   depth: full # SonarCloud scanner needs the full history to assign issues properly
 definitions:
@@ -18,7 +18,7 @@ definitions:
           - docker
         script:
           #- echo "running SonarQube analysis. project [$BITBUCKET_PROJECT_KEY], repo [$BITBUCKET_REPO_SLUG]..."
-          - pipe: sonarsource/sonarcloud-scan:1.4.0
+          - pipe: sonarsource/sonarcloud-scan:2.0.0
             variables:
               SONAR_TOKEN: $KMHA_SONARCLOUD_TOKEN
               EXTRA_ARGS: "-Dsonar.organization=kmha -Dsonar.projectKey=$BITBUCKET_REPO_SLUG -Dsonar.sources=. -Dsonar.javascript.node.maxspace=4096 -Dsonar.inclusions=sonar.inclusions=app/**/*.js,bin/**/*,lib/**/*.js,logger/**/*.js,modules/**/*.js,server/**/*.js -Dsonar.exclusions=**/node_modules/**,test/**/*"

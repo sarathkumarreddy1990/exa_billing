@@ -1,15 +1,13 @@
 define([
         'jquery'
         , 'underscore'
-        , 'backbone'
     ],
     function (
         $
         , _
-        , Backbone
     ) {
         var ExaLinks = {
-            
+
             _extractionRegexp: /{exalink}(.*?){\/exalink}/g,
 
 
@@ -61,14 +59,14 @@ define([
                     return i18n.get('chat.errors.invalidExalink');
                 }
             },
-            
+
             renderExalinks: function (content){
                 var self = this;
                 return content.replace(this._extractionRegexp, function(match, payload){
                     return self._renderExalink(JSON.parse(payload));
                 });
             },
-            
+
 // =========== Quill-related stuff ===============
 
             registerExalinkBlot: function(quill){
@@ -83,7 +81,7 @@ define([
                 //Blots are really objects. But as long as we should stick to ES5,
                 //we need to do the stuff below to "immitate" blot object
 
-  
+
                 ExalinkBlot.prototype = Object.create(InlineEmbed.prototype);
                 // Copy static functions
                 $.extend(ExalinkBlot, Object.create(InlineEmbed));
@@ -110,8 +108,8 @@ define([
 
                 quill.register(ExalinkBlot);
             }
-            
-    
+
+
         };
         return ExaLinks;
     }

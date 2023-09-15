@@ -18,7 +18,6 @@ module.exports = {
     getLineItemsDetails: async function (params) {
 
         const studyIds = params.study_ids.split(',').map(Number);
-        const isOHIPBilling = params.billingRegionCode === 'can_ON';
 
         const firstStudyId = studyIds.length > 0 ? studyIds[0] : null;
 
@@ -396,18 +395,12 @@ module.exports = {
                                                 )
                                                 LEFT JOIN provider_contacts pc ON pc.id = (
                                                     CASE
-                                                        WHEN NOT ${isOHIPBilling}
-                                                        THEN
-                                                            CASE
-                                                                WHEN NULLIF(facilities.facility_info->'rendering_provider_id','') IS NOT NULL
-                                                                THEN (facilities.facility_info->'rendering_provider_id')::INTEGER
-                                                                WHEN s.study_status = 'APP'
-                                                                THEN st.approving_provider_id
-                                                                ELSE
-                                                                    s.reading_physician_id
-                                                            END
-                                                        ELSE
-                                                            s.reading_physician_id
+                                                        WHEN st.approving_provider_id IS NOT NULL
+                                                        THEN st.approving_provider_id
+                                                        WHEN s.reading_physician_id IS NOT NULL
+                                                        THEN s.reading_physician_id
+                                                        WHEN NULLIF(facilities.facility_info->'rendering_provider_id', '') IS NOT NULL
+                                                        THEN (facilities.facility_info->'rendering_provider_id')::INTEGER
                                                     END
                                                 )
                                                 LEFT JOIN providers p ON p.id = pc.provider_id
@@ -762,6 +755,7 @@ module.exports = {
                     , c.created_by
                     , c.billing_method
                     , c.billing_notes
+                    , c.billing_type AS claim_billing_type
                     , c.claim_dt::text
                     , c.created_dt::text
                     , c.current_illness_date::text
@@ -862,6 +856,7 @@ module.exports = {
                     , ipp.insurance_name AS p_insurance_name
                     , ipp.insurance_code AS p_insurance_code
                     , (SELECT billing_method as p_billing_method FROM billing.insurance_provider_details WHERE insurance_provider_id = ipp.id)
+                    , (SELECT is_split_claim_enabled AS is_split_claim_enabled FROM billing.insurance_provider_details WHERE insurance_provider_id = ipp.id)
                     , cpi.insurance_provider_id AS p_insurance_provider_id
                     , cpi.subscriber_zipcode AS p_subscriber_zipcode
                     , cpi.subscriber_zipcode_plus AS p_subscriber_zipcode_plus

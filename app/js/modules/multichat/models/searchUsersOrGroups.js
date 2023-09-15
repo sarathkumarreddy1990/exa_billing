@@ -22,7 +22,7 @@ define([
                 this.url = '/chat/search?' + $.param({ name_substring: options.searchString, room_type: options.roomType });
             },
 
-            parse: function (response, options) {
+            parse: function (response) {
                 var self = this;
                 if (response.status == 'ok' && 'result' in response && 'users' in response.result && Array.isArray(response.result.users)) {
                     self.attributes.users = new Users.UsersCollection(response.result.users);

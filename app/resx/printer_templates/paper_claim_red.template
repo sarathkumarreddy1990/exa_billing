@@ -13,6 +13,17 @@ let serviceFac;
 let patientDet;
 let billType;
 let serviceFacNPI;
+let studyRendProv;
+let facilityRendProv;
+let approvingProv;
+let claimRendProv;
+let isMobileBillingEnabled;
+let hasProfessionalModifier;
+let isSplitClaim;
+let isProfessionalClaimSplit;
+let isProfessionalClaimNotSplit;
+let isProfessionalClaim;
+let isInsuranceSplitEnabled;
 
 function getTick(data, code, fromOthers) {
     if (fromOthers && data && data.subscriber && data.subscriber[0].claimFilingCode !== 'MB' && data.subscriber[0].claimFilingCode !== 'MC' &&
@@ -113,7 +124,7 @@ function getTableContents(claimData, servicelineList) {
                 ) : ' '
             );
             let claimFilingCode = claimData.subscriber[0].claimFilingCode || '';
-            let licenseNo = claimData.subscriber[0].claim[0].renderingProvider?.[0].licenseNo || '';
+            let licenseNo = claimData.subscriber[0].claim[0].renderingProviderDefault?.[0].licenseNo || '';
             let wcCodeQualifier = licenseNo && claimFilingCode.toString().toUpperCase() === 'WC';
 
             cptRows.push([
@@ -167,8 +178,8 @@ function getTableContents(claimData, servicelineList) {
                     },
                     { text: servicelineList[i].unit ? servicelineList[i].unit.toString().substring(0, 5) : ''  , margin: [0, -3, 0, 0]}, {}, {},
                     {
-                        text: claimData.subscriber[0].claim[0].renderingProvider && claimData.subscriber[0].claim[0].renderingProvider[0].NPINO ?
-                            getSubstring(claimData.subscriber[0].claim[0].renderingProvider[0].NPINO, 12) : '' , margin: [0, -3, 0, 0]
+                        text: claimData.subscriber[0].claim[0].renderingProviderDefault && claimData.subscriber[0].claim[0].renderingProviderDefault[0].NPINO ?
+                            getSubstring(claimData.subscriber[0].claim[0].renderingProviderDefault[0].NPINO, 12) : '' , margin: [0, -3, 0, 0]
                     }
                 ]
             );
@@ -355,11 +366,78 @@ function getAddress2Details(claimData) {
     return details;
 }
 
-function professionalClaim(chargesData, billingType, isInsuranceSplit) {
-    const isProfessionalModifier = chargesData.some(charge => [charge.mod1, charge.mod2, charge.mod3, charge.mod4].includes('26'));
-    const isSplitClaim = ['split', 'split_p'].includes(billingType) || (billingType === 'global' && isInsuranceSplit);
+function getPhySign() {
 
-    return isProfessionalModifier && isSplitClaim;
+    let phyData = isMobileBillingEnabled
+        ? facilityRendProv
+        : facilityRendProv || approvingProv || studyRendProv || claimRendProv;
+
+    if (phyData) {
+        return `${getSubstring(getName(phyData), 34)}
+                NPI: ${phyData.NPINO || ''}`;
+    } else if (renderingProv) {
+        return `${getSubstring(getName(renderingProv), 34)}
+                NPI: ${renderingProv.NPINO || ''}`;
+    }
+
+    return '';
+}
+
+function getServiceFacilityData() {
+
+    if (isProfessionalClaimSplit) {
+        let phyData = approvingProv || studyRendProv || facilityRendProv;
+        phyData.fullName = getName(phyData);
+        serviceFacNPI = phyData && phyData.NPINO || "";
+
+        return getAddressDetails(phyData, 'zipPlus');
+    }
+
+    if (pos === '12') {
+        patientDet.fullName = "PRIVATE HOME";
+        return getAddressDetails(patientDet, 'zipPlus');
+    } else {
+        return getAddressDetails(serviceFac, 'zipPlus');
+    }
+}
+
+function getPhySign() {
+
+    let phyData = {};
+
+    if (isProfessionalClaim) {
+        phyData = facilityRendProv;
+    } else {
+        phyData = approvingProv || studyRendProv || facilityRendProv;
+    }
+
+    if (phyData) {
+        return `${getSubstring(getName(phyData), 34)}
+                NPI: ${phyData.NPINO || ''}`;
+    } else if (renderingProv) {
+        return `${getSubstring(getName(renderingProv), 34)}
+                NPI: ${renderingProv.NPINO || ''}`;
+    }
+
+    return '';
+}
+
+function getServiceFacilityData() {
+
+    if (isProfessionalClaim) {
+        let phyData = approvingProv || studyRendProv || facilityRendProv;
+        phyData.fullName = getName(phyData);
+        serviceFacNPI = phyData && phyData.NPINO || "";
+
+        return getAddressDetails(phyData, 'zipPlus');
+    }
+
+    if (pos === '12') {
+        patientDet.fullName = "PRIVATE HOME";
+        return getAddressDetails(patientDet, 'zipPlus');
+    } else {
+        return getAddressDetails(serviceFac, 'zipPlus');
+    }
 }
 
 function formatRedForm(claimData, servicelineList, pageBrk) {
@@ -370,25 +448,25 @@ function formatRedForm(claimData, servicelineList, pageBrk) {
     patientDet = subscriberDet && subscriberDet.patient && subscriberDet.patient[0] || "";
     claimDet = subscriberDet && subscriberDet.claim && subscriberDet.claim[0] || "";
     serviceFac =  claimDet && claimDet.servicefacility && claimDet.servicefacility[0] || "";
-    renderingProv = claimDet && claimDet.renderingProvider && claimDet.renderingProvider[0] || "";
+    renderingProv = claimDet && claimDet.renderingProviderDefault && claimDet.renderingProviderDefault[0] || "";
+    studyRendProv = claimDet && claimDet.renderingProviderStudy && claimDet.renderingProviderStudy[0] || "";
+    claimRendProv = claimDet && claimDet.renderingProviderClaim && claimDet.renderingProviderClaim[0] || "";
+    facilityRendProv = claimDet && claimDet.renderingProviderFacility && claimDet.renderingProviderFacility[0] || "";
+    approvingProv = claimDet && claimDet.approvingProvider && claimDet.approvingProvider[0] || "";
     serviceFacNPI = serviceFac && serviceFac.NPINO || "";
     pos = claimDet && claimDet.POS || "";
     billType = claimDet && claimDet.billingType || "";
+    isInsuranceSplitEnabled = subscriberDet && subscriberDet.isSplitClaimEnabled || false;
+    hasProfessionalModifier = servicelineList.some(charge => [charge.mod1, charge.mod2, charge.mod3, charge.mod4].includes('26'));
+    isSplitClaim = ['split', 'split_p'].includes(billType) || (billType === 'global' && isInsuranceSplitEnabled);
+    isMobileBillingEnabled = claimData.is_mobile_billing_enabled || false;
+    isProfessionalClaimSplit = hasProfessionalModifier && isSplitClaim;
+    isProfessionalClaimNotSplit = hasProfessionalModifier && !isSplitClaim;
+
     let claimNotes = getSubstring(claimDet.claimNotes, 65).split('\n').join(' ');
-    let isInsuranceSplitEnabled = subscriberDet && subscriberDet.isSplitClaimEnabled || false;
-    let isProfessionalClaim = professionalClaim(servicelineList, billType, isInsuranceSplitEnabled);
     let isAutoAccident = claimData.subscriber[0].claim[0]?.relatedCauseCode3;
 
-    if (pos === "12") {
-        patientDet.fullName = "PRIVATE HOME" ;
-        serviceFacDet = getAddressDetails(patientDet, 'zipPlus');
-    } else if (isProfessionalClaim) {
-        renderingProv.fullName = renderingProv.lastName+', '+renderingProv.firstName;
-        serviceFacDet = getAddressDetails(renderingProv, 'zipPlus');
-        serviceFacNPI = renderingProv && renderingProv.NPINO || "";
-    } else {
-        serviceFacDet = getAddressDetails(serviceFac, 'zipPlus');
-    }
+    serviceFacDet = getServiceFacilityData();
 
     if(!claimData.subscriber[0].isPrintBillingProviderAddress) {
 	    BillingProDet = getAddressDetails(claimData.payToProvider, 'zipCodePlus');
@@ -811,17 +889,17 @@ function formatRedForm(claimData, servicelineList, pageBrk) {
                         },
                         {}, {}, {}, {}, {}, {}, {}, {},
                         {
-                            text: (claimDet.outSideLab || isProfessionalClaim) ? '√' : ' ', alignment: 'center', margin:[-3,0,0,0]
+                            text: (claimDet.outSideLab || isProfessionalClaimSplit) ? '√' : ' ', alignment: 'center', margin:[-3,0,0,0]
                         }, {},
                         {
                             text:
-                                (claimDet.outSideLab != null && !claimDet.outSideLab && !isProfessionalClaim
+                                (claimDet.outSideLab != null && !claimDet.outSideLab && !isProfessionalClaimSplit
                                     ? '√'
                                     : ' '
                                 ), alignment: 'center', margin:[-12,0,0,0]
                         },
-                        { text: isProfessionalClaim ? getDecimalNumericValue(claimDet.claimTotalCharge) : '' , colSpan: 3, alignment: 'right' }, {}, {},
-                        { text: isProfessionalClaim ? getDecimalPointsValue(claimDet.claimTotalCharge) : '' , alignment: 'center', colSpan: 2 }, {}
+                        { text: (claimDet.outSideLab || isProfessionalClaimSplit) ? getDecimalNumericValue(claimDet.claimTotalCharge) : '' , colSpan: 3, alignment: 'right' }, {}, {},
+                        { text: (claimDet.outSideLab || isProfessionalClaimSplit) ? getDecimalPointsValue(claimDet.claimTotalCharge) : '' , alignment: 'center', colSpan: 2 }, {}
                     ],
                 ],
 
@@ -966,11 +1044,7 @@ function formatRedForm(claimData, servicelineList, pageBrk) {
                         {}, {}
                     ],
                     [
-                        { text:
-                            ( renderingProv
-                                ? getSubstring(getName(renderingProv), 34)
-                                : ''
-                            ), colSpan: 3, margin: [-10, 17, 0, 0]
+                        { text: (getPhySign() || ''), colSpan: 3, margin: [-10, 17, 0, 0]
                         }, {}, {},
                         { text: serviceFacDet, colSpan: 4, margin: [-6, 0, 0, 0] },
                         {}, {}, {},

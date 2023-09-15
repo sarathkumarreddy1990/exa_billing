@@ -1,10 +1,8 @@
 define([
         'jquery'
-        , 'underscore'
     ],
     function (
         $
-        , _
     ) {
         var Utils = {
 

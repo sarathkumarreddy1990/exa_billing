@@ -16,7 +16,7 @@ define([
                 chat_status: null,
                 possessive: null      // expected to exist only for me
             },
-            initialize: function (attributes, options) {
+            initialize: function () {
                 _.extend(this, ErrorHandler);
             },
 
@@ -32,10 +32,10 @@ define([
                             self.set('chat_status', response.result.chat_status);
                         } else {
                             self.set('chat_status', current_status);
-                            self.handleRequestError(err);
+                            self.handleRequestError();
                         }
                     },
-                    error: function (err, response) {
+                    error: function (err) {
                         self.set('chat_status', current_status);
                         self.handleRequestError(err);
                     }
@@ -63,14 +63,12 @@ define([
                 if (name.match(/\b\w/g)) {
                     return name.match(/\b\w/g).join('');
                 }
-                else {
-                    if (name.match(/\S/g)) {
-                        return name.match(/\S/g)[0];
-                    }
-                    else {
-                        return "";
-                    }
+
+                if (name.match(/\S/g)) {
+                    return name.match(/\S/g)[0];
                 }
+
+                return "";
             },
         });
 
@@ -78,7 +76,7 @@ define([
 
             model: UserModel,
 
-            initialize: function (attributes) {
+            initialize: function () {
                 _.extend(this, ErrorHandler);
             },
 
@@ -96,7 +94,7 @@ define([
                                 cb(null, { user: userModel });
                             }
                             else {
-                                self.handleRequestError(err);
+                                self.handleRequestError();
                                 cb(response);
                             }
                         }

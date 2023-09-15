@@ -118,7 +118,7 @@ define([
                             });
                             self._mergeResponse(room);
                         } else {
-                            self.handleRequestError(err);
+                            self.handleRequestError();
                         }
                         if (typeof cb === 'function') {
                             cb(response)
@@ -147,7 +147,7 @@ define([
                                 self.trigger(Triggers.REMOVE_ROOM_USER, userId)
                             }
                         } else {
-                            self.handleRequestError(err);
+                            self.handleRequestError();
                         }
                     },
                     function (err) {
@@ -165,7 +165,7 @@ define([
                         if (response.status == 'ok' && 'result' in response && 'room' in response.result) {
                             self._mergeResponse(response.result.room);
                         } else {
-                            self.handleRequestError(err);
+                            self.handleRequestError();
                         }
                     },
                     error: function (err) {
@@ -194,7 +194,7 @@ define([
                         if (response.status == 'ok' && 'result' in response) {
                             self.set('groups', response.result);
                         } else {
-                            self.handleRequestError(err);
+                            self.handleRequestError();
                         }
                         if (typeof cb === 'function') {
                             cb(response)
@@ -218,7 +218,7 @@ define([
                         if (response.status == 'ok' && 'result' in response) {
                             self.set('groups', response.result.groups);
                         } else {
-                            self.handleRequestError(err);
+                            self.handleRequestError();
                         }
                         if (typeof cb === 'function') {
                             cb(response)
@@ -261,7 +261,9 @@ define([
         };
 
         BaseRoomModel.addUsers = function (room, users, type, room_title, cb) {
-            var self = this, room_id = room.id || 0, data = {
+            var self = this;
+            var room_id = room.id || 0;
+            var data = {
                 users: [],
             };
             if (room_id === 0) {
@@ -390,7 +392,7 @@ define([
                 var lastMessage = _.last(this.get('messages'));
                 if (lastMessage) {
                     last_message_id = lastMessage.id;
-                };
+                }
                 var q_id = Date.now() + this._usersCache.getMe().get('id') + this.get('id');
                 if (this._q) {
                     if (this._q.content == content) q_id = this._q.q_id;
@@ -432,7 +434,7 @@ define([
                 $.ajax({
                     url: '/chat/users/' + self._usersCache.getMe().get('id') + '/favorites/' + self.get('id'),
                     type: "PUT",
-                    success: function (data) {
+                    success: function () {
                         self.get('possessive').is_favorite = true;
                         self.trigger('change:possessive.is_favorite');
                         self.trigger('change:possessive');
@@ -447,7 +449,7 @@ define([
                 $.ajax({
                     url: '/chat/users/' + self._usersCache.getMe().get('id') + '/favorites/' + self.get('id'),
                     type: "DELETE",
-                    success: function (data) {
+                    success: function () {
                         self.get('possessive').is_favorite = false;
                         self.trigger('change:possessive.is_favorite');
                         self.trigger('change:possessive');
@@ -469,7 +471,7 @@ define([
                             self._mergeResponse(response.result.room);
                             self.setUnreadCount(response.result.room.possessive.unread_count);
                         } else {
-                            self.handleRequestError(err);
+                            self.handleRequestError();
                         }
                     },
                     error: function (err) {
@@ -541,7 +543,7 @@ define([
                                      self.set('visibilityUsers', response.result.users);
                                  }
                                  else {
-                                     self.handleRequestError(err);
+                                     self.handleRequestError();
                                  }
                              }
                          },

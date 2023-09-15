@@ -65,7 +65,7 @@ define(['jquery'
 
             _isOpenedCallback: function (roomModel) {
                 var roomView = this.getOpenedRoomView(roomModel.get('id'));
-                return roomView ? true : false;
+                return !!roomView;
             },
 
             setFocusOnRoomView: function(room){

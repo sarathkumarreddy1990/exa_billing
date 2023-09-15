@@ -12,8 +12,12 @@ module.exports = {
         return params && params.id ? data.getPayment(params) : data.getPayments(params);
     },
 
-    createOrUpdatePayment: function (params) {
-        return data.createOrUpdatePayment(params);
+    createPayment: function (params) {
+        return data.createPayment(params);
+    },
+
+    updatePayment: function (params) {
+        return data.updatePayment(params);
     },
 
     getStudyCpt: function (params) {

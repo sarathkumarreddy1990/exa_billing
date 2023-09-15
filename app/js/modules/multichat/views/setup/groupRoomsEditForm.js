@@ -25,7 +25,7 @@ define(['jquery'
                 'click #btnClearChatGroupRooms': 'resetForm'
             },
 
-            initialize: function (options) {
+            initialize: function () {
                 _.extend(this, ErrorHandler);
                 this.rooms = new Rooms.RoomsCollection(null, {usersCache: app.chat.chatModel._usersCache});
                 commonjs.initializeScreen({
@@ -210,13 +210,13 @@ define(['jquery'
                     inputLength: 3,
                     delay: 500,
                     URL: "/chat/users/search",
-                    data: function (term, page) {
+                    data: function (term) {
                         return {
                             name_substring: term,
                             userGroups: true,
                         };
                     },
-                    results: function (data, page) {
+                    results: function (data) {
                         return {results: data.result.users}
                     },
                     formatID: function (obj) {
@@ -233,16 +233,16 @@ define(['jquery'
                     }
                 });
 
-                $('#' + id).on('select2-removed', function (event) {
+                $('#' + id).on('select2-removed', function () {
                     $buttonId.data('userIdAdded', null);
                     $buttonId.data('userNameAdded', null);
                     $('#s2id_' + id + ' a span').html(self.usermessage.selectUser);
                 });
 
                 // it's called 'selection' for commonjs.resetAutocompleteMultiSelection
-                $ulId.on('click', 'a.remove', function (e) {
-                    var idsList = $ulId.data('selection') || [],
-                        idRemoved = $(this).attr('data-id');
+                $ulId.on('click', 'a.remove', function () {
+                    var idsList = $ulId.data('selection') || [];
+                    var idRemoved = $(this).attr('data-id');
                     idsList = _.without(idsList, ~~idRemoved);
                     $ulId.data('selection', idsList);
                     $(this).closest('li').remove();
@@ -272,12 +272,12 @@ define(['jquery'
                 }
             },
 
-            addUser: function (userId, userName, ulId) {
-                var ulId = $('#' + ulId);
-                var userIdsList = ulId.data('selection') || [],
-                    userNamesList = ulId.data('userNames') || [],
-                    userIdAdded = userId,
-                    userNameAdded = userName;
+            addUser: function (userId, userName, _ulId) {
+                var ulId = $('#' + _ulId);
+                var userIdsList = ulId.data('selection') || [];
+                var userNamesList = ulId.data('userNames') || [];
+                var userIdAdded = userId;
+                var userNameAdded = userName;
 
                 // Check to see if User already exists in the box
                 if (_.includes(userIdsList, userIdAdded)) {

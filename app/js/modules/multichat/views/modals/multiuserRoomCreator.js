@@ -34,13 +34,13 @@ define(['jquery'
                 this.constructor.__super__.initialize.call(this, options);
             },
 
-            addRoom: function(data) {
+            addRoom: function() {
                 var self = this;
                 var roomOptions = {
                     roomType: $('#js_chat-new__type').val(),
                     title: $('#js_chat-new__title').val()
                 };
-                this.chatModel.get('rooms').createRoom(roomOptions , function(roomId){
+                this.chatModel.get('rooms').createRoom(roomOptions, function(roomId){
                     self.close({roomId: roomId})
                 });
 
