@@ -1,4 +1,5 @@
 const { SQL, query } = require('../index');
+const countryData = require('../../../app/resx/countries.json');
 
 module.exports = {
 
@@ -71,7 +72,7 @@ module.exports = {
 
     getDataById: async (params) => {
         const { id } = params;
-
+        const countryCodeName = countryData.map(({alpha_3_code, display_name}) => ({alpha_3_code, display_name}));
         const sql = SQL`SELECT
                               al.company_id
                             , CASE WHEN LENGTH(TRIM(u.last_name)) > 0
@@ -85,7 +86,11 @@ module.exports = {
                             , al.module_name
                             , al.description
                             , p.full_name
-                            , al.changes
+                            , billing.get_audit_changes(
+                                al.changes->'old_values',
+                                al.changes->'new_values',
+                                (${JSON.stringify(countryCodeName)})::jsonb
+                            ) AS changes
                         FROM billing.audit_log al
                         INNER JOIN public.users u ON u.id = al.created_by
                         LEFT JOIN public.patients p ON p.id = CASE WHEN entity_name = 'claims' THEN al.entity_key ELSE null END

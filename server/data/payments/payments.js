@@ -448,97 +448,62 @@ module.exports = {
                         WHERE id = ${paymentId}
                     )
                 RETURNING
-                    *
+                    id,
+                    company_id,
+                    amount,
+                    jsonb_build_object(
+                        'old_values', jsonb_build_object(
+                                'payer_type', '',
+                                'facility_id', '',
+                                'Accounting Date', '',
+                                'Amount', '',
+                                'mode', ''
+                            ) ||
+                            billing.get_key_value_audit_jsonb('ordering_facility_id', ordering_facility_id::TEXT, '', TRUE) ||
+                            billing.get_key_value_audit_jsonb('insurance_provider_id', insurance_provider_id::TEXT, '', TRUE) ||
+                            billing.get_key_value_audit_jsonb('payment_reason_id', payment_reason_id::TEXT, '', TRUE) ||
+                            billing.get_key_value_audit_jsonb('provider_contact_id', provider_contact_id::TEXT, '', TRUE) ||
+                            billing.get_key_value_audit_jsonb('patient_id', patient_id::TEXT, '', TRUE) ||
+                            billing.get_key_value_audit_jsonb('Invoice no', invoice_no::TEXT, '', TRUE) ||
+                            billing.get_key_value_audit_jsonb('Reference payment ID', alternate_payment_id::TEXT, '', TRUE) ||
+                            billing.get_key_value_audit_jsonb('Check/card number', card_number, '', TRUE) ||
+                            billing.get_key_value_audit_jsonb('Card name', card_name, '', TRUE) ||
+                            billing.get_key_value_audit_jsonb('Notes', notes, '', TRUE),
+
+                        'new_values', jsonb_build_object(
+                                'payer_type', payer_type,
+                                'facility_id', facility_id,
+                                'Accounting Date', accounting_date::TEXT,
+                                'Amount', amount::TEXT,
+                                'mode', mode
+                            ) ||
+                            billing.get_key_value_audit_jsonb('ordering_facility_id', ordering_facility_id::TEXT, '', FALSE) ||
+                            billing.get_key_value_audit_jsonb('insurance_provider_id', insurance_provider_id::TEXT, '', FALSE) ||
+                            billing.get_key_value_audit_jsonb('provider_contact_id', provider_contact_id::TEXT, '', FALSE) ||
+                            billing.get_key_value_audit_jsonb('payment_reason_id', payment_reason_id::TEXT, '', FALSE) ||
+                            billing.get_key_value_audit_jsonb('patient_id', patient_id::TEXT, '', FALSE) ||
+                            billing.get_key_value_audit_jsonb('Invoice no', invoice_no::TEXT, '', FALSE) ||
+                            billing.get_key_value_audit_jsonb('Reference payment ID', alternate_payment_id::TEXT, '', FALSE) ||
+                            billing.get_key_value_audit_jsonb('Check/card number', card_number, '', FALSE) ||
+                            billing.get_key_value_audit_jsonb('Card name', card_name, '', FALSE) ||
+                            billing.get_key_value_audit_jsonb('Notes', notes, '', FALSE)
+                    ) AS detailed_info
             )
 
             SELECT
                 billing.create_audit(
-                    ip.company_id,
+                    company_id,
                     ${screenName},
-                    ip.id,
+                    id,
                     ${screenName},
                     ${moduleName},
-                    'Payment ' || ip.id || ' created for the amount of ' || ip.amount,
+                    'Payment ' || id || ' created for the amount of ' || amount,
                     ${clientIp},
-                    jsonb_build_object(
-                        'old_values', jsonb_build_object(
-                                'Payer', '',
-                                'Facility', '',
-                                'Accounting Date', '',
-                                'Amount', '',
-                                'Mode', ''
-                            ) ||
-                            billing.get_key_value_audit_jsonb('Ordering Facility', new_of.name || ' (' || new_of.code || ')', '', TRUE) ||
-                            billing.get_key_value_audit_jsonb('Insurance Provider', new_ip.insurance_name || ' (' || new_ip.insurance_code || ')', '', TRUE) ||
-                            billing.get_key_value_audit_jsonb('Provider', new_pc.provider_name_code_address, '', TRUE) ||
-                            billing.get_key_value_audit_jsonb('Payment reason', new_pr.description, '', TRUE) ||
-                            billing.get_key_value_audit_jsonb('Patient', new_p.full_name_account_no, '', TRUE) ||
-                            billing.get_key_value_audit_jsonb('Invoice no', ip.invoice_no::TEXT, '', TRUE) ||
-                            billing.get_key_value_audit_jsonb('Reference payment ID', ip.alternate_payment_id::TEXT, '', TRUE) ||
-                            billing.get_key_value_audit_jsonb('Check/card number', ip.card_number, '', TRUE) ||
-                            billing.get_key_value_audit_jsonb('Card name', ip.card_name, '', TRUE) ||
-                            billing.get_key_value_audit_jsonb('Notes', ip.notes, '', TRUE),
-
-                        'new_values', jsonb_build_object(
-                                'Payer', initcap(replace(ip.payer_type, '_', ' ')),
-                                'Facility', new_f.facility_name,
-                                'Accounting Date', ip.accounting_date::TEXT,
-                                'Amount', ip.amount::TEXT,
-                                'Mode', CASE ip.mode
-                                            WHEN 'eft' THEN
-                                                upper(ip.mode)
-                                            ELSE
-                                                initcap(ip.mode)
-                                        END
-                            ) ||
-                            billing.get_key_value_audit_jsonb('Ordering Facility', new_of.name || ' (' || new_of.code || ')', '', FALSE) ||
-                            billing.get_key_value_audit_jsonb('Insurance Provider', new_ip.insurance_name || ' (' || new_ip.insurance_code || ')', '', FALSE) ||
-                            billing.get_key_value_audit_jsonb('Provider', new_pc.provider_name_code_address, '', FALSE) ||
-                            billing.get_key_value_audit_jsonb('Payment reason', new_pr.description, '', FALSE) ||
-                            billing.get_key_value_audit_jsonb('Patient', new_p.full_name_account_no, '', FALSE) ||
-                            billing.get_key_value_audit_jsonb('Invoice no', ip.invoice_no::TEXT, '', FALSE) ||
-                            billing.get_key_value_audit_jsonb('Reference payment ID', ip.alternate_payment_id::TEXT, '', FALSE) ||
-                            billing.get_key_value_audit_jsonb('Check/card number', ip.card_number, '', FALSE) ||
-                            billing.get_key_value_audit_jsonb('Card name', ip.card_name, '', FALSE) ||
-                            billing.get_key_value_audit_jsonb('Notes', ip.notes, '', FALSE)
-                    ),
+                    detailed_info,
                     ${user_id}
                 ) AS id
-            FROM insert_payment AS ip
-            LEFT JOIN facilities AS new_f ON new_f.id = ip.facility_id
-            LEFT JOIN ordering_facilities AS new_of ON new_of.id = ip.ordering_facility_id
-            LEFT JOIN insurance_providers AS new_ip ON new_ip.id = ip.insurance_provider_id
-            LEFT JOIN LATERAL (
-                WITH provider_contact_address_cte AS (
-                    SELECT
-                        provider_id,
-                        unnest(array[
-                            contact_info->'ADDR1',
-                            contact_info->'ADDR2',
-                            contact_info->'CITY',
-                            contact_info->'STATE',
-                            contact_info->'ZIP',
-                            contact_info->'MOBNO'
-                        ]) AS addr
-                    FROM provider_contacts
-                    WHERE id = ip.provider_contact_id
-                )
-
-                SELECT
-                    get_full_name(p.last_name, p.first_name) || ' (' || p.provider_code || ') (' ||
-                    string_agg(nullif(pc.addr,''), ',') || ')' AS provider_name_code_address
-                FROM provider_contact_address_cte AS pc
-                JOIN providers AS p ON p.id = pc.provider_id
-                GROUP BY p.last_name, p.first_name, p.provider_code
-            ) AS new_pc ON TRUE
-            LEFT JOIN billing.payment_reasons AS new_pr ON new_pr.id = ip.payment_reason_id
-            LEFT JOIN LATERAL (
-                SELECT
-                    get_full_name(last_name, first_name) || ' (Account# ' || TRIM(COALESCE(account_no,'')) || ')' AS full_name_account_no
-                FROM patients
-                WHERE id = ip.patient_id
-            ) AS new_p ON TRUE
-            WHERE ip.id IS NOT NULL
+            FROM insert_payment
+            WHERE id IS NOT NULL
         `;
 
         return await query(sql);
@@ -603,152 +568,56 @@ module.exports = {
                     new_values.id,
                     new_values.company_id,
                     new_values.amount,
-                    initcap(replace(new_values.payer_type, '_', ' ')) AS new_payer_type,
-                    initcap(replace(old_values.payer_type, '_', ' ')) AS old_payer_type,
-                    new_values.facility_id AS new_facility_id,
-                    old_values.facility_id AS old_facility_id,
-                    new_values.patient_id AS new_patient_id,
-                    old_values.patient_id AS old_patient_id,
-                    new_values.insurance_provider_id AS new_insurance_provider_id,
-                    old_values.insurance_provider_id AS old_insurance_provider_id,
-                    new_values.ordering_facility_id AS new_ordering_facility_id,
-                    old_values.ordering_facility_id AS old_ordering_facility_id,
-                    new_values.provider_contact_id AS new_provider_contact_id,
-                    old_values.provider_contact_id AS old_provider_contact_id,
-                    new_values.payment_reason_id AS new_payment_reason_id,
-                    old_values.payment_reason_id AS old_payment_reason_id,
-                    CASE new_values.mode
-                        WHEN 'eft' THEN
-                            upper(new_values.mode)
-                        ELSE
-                            initcap(new_values.mode)
-                    END AS new_mode,
-                    CASE old_values.mode
-                        WHEN 'eft' THEN
-                            upper(old_values.mode)
-                        ELSE
-                            initcap(old_values.mode)
-                    END AS old_mode,
-                    billing.get_key_value_audit_jsonb('Amount', new_values.amount::TEXT, old_values.amount::TEXT, TRUE) ||
-                    billing.get_key_value_audit_jsonb('Accounting date', new_values.accounting_date::TEXT, old_values.accounting_date::TEXT, TRUE) ||
-                    billing.get_key_value_audit_jsonb('Invoice no', new_values.invoice_no::TEXT, old_values.invoice_no::TEXT, TRUE) ||
-                    billing.get_key_value_audit_jsonb('Reference payment ID', new_values.alternate_payment_id::TEXT, old_values.alternate_payment_id::TEXT, TRUE) ||
-                    billing.get_key_value_audit_jsonb('Check/card number', new_values.card_number, old_values.card_number, TRUE) ||
-                    billing.get_key_value_audit_jsonb('Card name', new_values.card_name, old_values.card_name, TRUE) ||
-                    billing.get_key_value_audit_jsonb('Notes', new_values.notes, old_values.notes, TRUE)
-                        AS old_values,
-
-                    billing.get_key_value_audit_jsonb('Amount', new_values.amount::TEXT, old_values.amount::TEXT, FALSE) ||
-                    billing.get_key_value_audit_jsonb('Accounting date', new_values.accounting_date::TEXT, old_values.accounting_date::TEXT, FALSE) ||
-                    billing.get_key_value_audit_jsonb('Invoice no', new_values.invoice_no::TEXT, old_values.invoice_no::TEXT, FALSE) ||
-                    billing.get_key_value_audit_jsonb('Reference payment ID', new_values.alternate_payment_id::TEXT, old_values.alternate_payment_id::TEXT, FALSE) ||
-                    billing.get_key_value_audit_jsonb('Check/card number', new_values.card_number, old_values.card_number, FALSE) ||
-                    billing.get_key_value_audit_jsonb('Card name', new_values.card_name, old_values.card_name, FALSE) ||
-                    billing.get_key_value_audit_jsonb('Notes', new_values.notes, old_values.notes, FALSE)
-                        AS new_values
+                    jsonb_build_object(
+                        'old_values',
+                            billing.get_key_value_audit_jsonb('payer_type', new_values.payer_type, old_values.payer_type, TRUE) ||
+                            billing.get_key_value_audit_jsonb('facility_id', new_values.facility_id::TEXT, old_values.facility_id::TEXT, TRUE) ||
+                            billing.get_key_value_audit_jsonb('Accounting Date', new_values.accounting_date::TEXT, old_values.accounting_date::TEXT, TRUE) ||
+                            billing.get_key_value_audit_jsonb('Amount', new_values.amount::TEXT, old_values.amount::TEXT, TRUE) ||
+                            billing.get_key_value_audit_jsonb('mode', new_values.mode, old_values.mode, TRUE) ||
+                            billing.get_key_value_audit_jsonb('ordering_facility_id', new_values.ordering_facility_id::TEXT, old_values.ordering_facility_id::TEXT, TRUE) ||
+                            billing.get_key_value_audit_jsonb('insurance_provider_id', new_values.insurance_provider_id::TEXT, old_values.insurance_provider_id::TEXT, TRUE) ||
+                            billing.get_key_value_audit_jsonb('payment_reason_id', new_values.payment_reason_id::TEXT, old_values.payment_reason_id::TEXT, TRUE) ||
+                            billing.get_key_value_audit_jsonb('provider_contact_id', new_values.provider_contact_id::TEXT, old_values.provider_contact_id::TEXT, TRUE) ||
+                            billing.get_key_value_audit_jsonb('patient_id', new_values.patient_id::TEXT, old_values.patient_id::TEXT, TRUE) ||
+                            billing.get_key_value_audit_jsonb('Invoice no', new_values.invoice_no::TEXT, old_values.invoice_no::TEXT, TRUE) ||
+                            billing.get_key_value_audit_jsonb('Reference payment ID', new_values.alternate_payment_id::TEXT, old_values.alternate_payment_id::TEXT, TRUE) ||
+                            billing.get_key_value_audit_jsonb('Check/card number', new_values.card_number, old_values.card_number, TRUE) ||
+                            billing.get_key_value_audit_jsonb('Card name', new_values.card_name, old_values.card_name, TRUE) ||
+                            billing.get_key_value_audit_jsonb('Notes', new_values.notes, old_values.notes, TRUE),
+                        'new_values',
+                            billing.get_key_value_audit_jsonb('payer_type', new_values.payer_type, old_values.payer_type, FALSE) ||
+                            billing.get_key_value_audit_jsonb('facility_id', new_values.facility_id::TEXT, old_values.facility_id::TEXT, FALSE) ||
+                            billing.get_key_value_audit_jsonb('Accounting Date', new_values.accounting_date::TEXT, old_values.accounting_date::TEXT, FALSE) ||
+                            billing.get_key_value_audit_jsonb('Amount', new_values.amount::TEXT, old_values.amount::TEXT, FALSE) ||
+                            billing.get_key_value_audit_jsonb('mode', new_values.mode, old_values.mode, FALSE) ||
+                            billing.get_key_value_audit_jsonb('ordering_facility_id', new_values.ordering_facility_id::TEXT, old_values.ordering_facility_id::TEXT, FALSE) ||
+                            billing.get_key_value_audit_jsonb('insurance_provider_id', new_values.insurance_provider_id::TEXT, old_values.insurance_provider_id::TEXT, FALSE) ||
+                            billing.get_key_value_audit_jsonb('payment_reason_id', new_values.payment_reason_id::TEXT, old_values.payment_reason_id::TEXT, FALSE) ||
+                            billing.get_key_value_audit_jsonb('provider_contact_id', new_values.provider_contact_id::TEXT, old_values.provider_contact_id::TEXT, FALSE) ||
+                            billing.get_key_value_audit_jsonb('patient_id', new_values.patient_id::TEXT, old_values.patient_id::TEXT, FALSE) ||
+                            billing.get_key_value_audit_jsonb('Invoice no', new_values.invoice_no::TEXT, old_values.invoice_no::TEXT, FALSE) ||
+                            billing.get_key_value_audit_jsonb('Reference payment ID', new_values.alternate_payment_id::TEXT, old_values.alternate_payment_id::TEXT, FALSE) ||
+                            billing.get_key_value_audit_jsonb('Check/card number', new_values.card_number, old_values.card_number, FALSE) ||
+                            billing.get_key_value_audit_jsonb('Card name', new_values.card_name, old_values.card_name, FALSE) ||
+                            billing.get_key_value_audit_jsonb('Notes', new_values.notes, old_values.notes, FALSE)
+                    ) AS detailed_info
             )
 
             SELECT
                 billing.create_audit(
-                    up.company_id,
+                    company_id,
                     ${screenName},
-                    up.id,
+                    id,
                     ${screenName},
                     ${moduleName},
-                    'Payment ' || up.id || ' updated for the amount of ' || up.amount,
+                    'Payment ' || id || ' updated for the amount of ' || amount,
                     ${clientIp},
-                    jsonb_build_object(
-                        'old_values',
-                            up.old_values ||
-                            billing.get_key_value_audit_jsonb('Payer', up.new_payer_type, up.old_payer_type, TRUE) ||
-                            billing.get_key_value_audit_jsonb('Facility', new_f.facility_name, old_f.facility_name, TRUE) ||
-                            billing.get_key_value_audit_jsonb('Ordering Facility', new_of.name || ' (' || new_of.code || ')', old_of.name || ' (' || old_of.code || ')', TRUE) ||
-                            billing.get_key_value_audit_jsonb('Insurance Provider', new_ip.insurance_name || ' (' || new_ip.insurance_code || ')', old_ip.insurance_name || ' (' || old_ip.insurance_code || ')', TRUE) ||
-                            billing.get_key_value_audit_jsonb('Provider', new_pc.provider_name_code_address, old_pc.provider_name_code_address, TRUE) ||
-                            billing.get_key_value_audit_jsonb('Payment reason', new_pr.description, old_pr.description, TRUE) ||
-                            billing.get_key_value_audit_jsonb('Mode', up.new_mode, up.old_mode, TRUE) ||
-                            billing.get_key_value_audit_jsonb('Patient', new_p.full_name_account_no, old_p.full_name_account_no, TRUE),
-                        'new_values',
-                            up.new_values ||
-                            billing.get_key_value_audit_jsonb('Payer', up.new_payer_type, up.old_payer_type, FALSE) ||
-                            billing.get_key_value_audit_jsonb('Facility', new_f.facility_name, old_f.facility_name, FALSE) ||
-                            billing.get_key_value_audit_jsonb('Ordering Facility', new_of.name || ' (' || new_of.code || ')', old_of.name || ' (' || old_of.code || ')', FALSE) ||
-                            billing.get_key_value_audit_jsonb('Insurance Provider', new_ip.insurance_name || ' (' || new_ip.insurance_code || ')', old_ip.insurance_name || ' (' || old_ip.insurance_code || ')', FALSE) ||
-                            billing.get_key_value_audit_jsonb('Provider', new_pc.provider_name_code_address, old_pc.provider_name_code_address, FALSE) ||
-                            billing.get_key_value_audit_jsonb('Payment reason', new_pr.description, old_pr.description, FALSE) ||
-                            billing.get_key_value_audit_jsonb('Mode', up.new_mode, up.old_mode, FALSE) ||
-                            billing.get_key_value_audit_jsonb('Patient', new_p.full_name_account_no, old_p.full_name_account_no, FALSE)
-                    ),
+                    detailed_info,
                     ${user_id}
                 ) AS id
-            FROM update_payment AS up
-            LEFT JOIN facilities AS new_f ON new_f.id = up.new_facility_id
-            LEFT JOIN facilities AS old_f ON old_f.id = up.old_facility_id
-            LEFT JOIN ordering_facilities AS new_of ON new_of.id = up.new_ordering_facility_id
-            LEFT JOIN ordering_facilities AS old_of ON old_of.id = up.old_ordering_facility_id
-            LEFT JOIN insurance_providers AS new_ip ON new_ip.id = up.new_insurance_provider_id
-            LEFT JOIN insurance_providers AS old_ip ON old_ip.id = up.old_insurance_provider_id
-            LEFT JOIN LATERAL (
-                WITH provider_contact_address_cte AS (
-                    SELECT
-                        provider_id,
-                        unnest(array[
-                            contact_info->'ADDR1',
-                            contact_info->'ADDR2',
-                            contact_info->'CITY',
-                            contact_info->'STATE',
-                            contact_info->'ZIP',
-                            contact_info->'MOBNO'
-                        ]) AS addr
-                    FROM provider_contacts
-                    WHERE id = up.new_provider_contact_id
-                )
-
-                SELECT
-                    get_full_name(p.last_name, p.first_name) || ' (' || p.provider_code || ') (' ||
-                    string_agg(nullif(pc.addr,''), ',') || ')' AS provider_name_code_address
-                FROM provider_contact_address_cte AS pc
-                JOIN providers AS p ON p.id = pc.provider_id
-                GROUP BY p.last_name, p.first_name, p.provider_code
-            ) AS new_pc ON TRUE
-            LEFT JOIN LATERAL (
-                WITH provider_contact_address_cte AS (
-                    SELECT
-                        provider_id,
-                        unnest(array[
-                            contact_info->'ADDR1',
-                            contact_info->'ADDR2',
-                            contact_info->'CITY',
-                            contact_info->'STATE',
-                            contact_info->'ZIP',
-                            contact_info->'MOBNO'
-                        ]) AS addr
-                    FROM provider_contacts
-                    WHERE id = up.old_provider_contact_id
-                )
-
-                SELECT
-                    get_full_name(p.last_name, p.first_name) || ' (' || p.provider_code || ') (' ||
-                    string_agg(nullif(pc.addr,''), ',') || ')' AS provider_name_code_address
-                FROM provider_contact_address_cte AS pc
-                JOIN providers AS p ON p.id = pc.provider_id
-                GROUP BY p.last_name, p.first_name, p.provider_code
-            ) AS old_pc ON TRUE
-            LEFT JOIN billing.payment_reasons AS new_pr ON new_pr.id = up.new_payment_reason_id
-            LEFT JOIN billing.payment_reasons AS old_pr ON old_pr.id = up.old_payment_reason_id
-            LEFT JOIN LATERAL (
-                SELECT
-                    get_full_name(last_name, first_name) || ' (Account# ' || TRIM(COALESCE(account_no,'')) || ')' AS full_name_account_no
-                FROM patients
-                WHERE id = up.new_patient_id
-            ) AS new_p ON TRUE
-            LEFT JOIN LATERAL (
-                SELECT
-                    get_full_name(last_name, first_name) || ' (Account# ' || TRIM(COALESCE(account_no,'')) || ')' AS full_name_account_no
-                FROM patients
-                WHERE id = up.old_patient_id
-            ) AS old_p ON TRUE
-            WHERE up.id IS NOT NULL
+            FROM update_payment
+            WHERE id IS NOT NULL
         `;
 
         return await query(sql);
