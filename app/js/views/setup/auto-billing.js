@@ -8,8 +8,7 @@ define(['jquery',
     'text!templates/setup/auto-billing-form.html',
     'collections/setup/auto-billing',
     'models/setup/auto-billing',
-    'models/pager',
-    'ace/ace',
+    'models/pager'
 ],
     function ($,
         Immutable,
@@ -21,8 +20,7 @@ define(['jquery',
         AutoBillingForm,
         AutoBillingCollections,
         AutoBillingModel,
-        Pager,
-        ace
+        Pager
     ) {
 
 
@@ -252,7 +250,7 @@ define(['jquery',
                             search: false,
                             className: 'icon-ic-edit',
                             route: '#setup/auto_billing/edit/',
-                            formatter: function (e, model, data) {
+                            formatter: function () {
                                 return "<i class='icon-ic-edit' i18nt='shared.buttons.edit'></i>"
                             }
                         },
@@ -261,11 +259,11 @@ define(['jquery',
                             className: 'icon-ic-delete',
                             customAction: function (rowID) {
                                 if (confirm(confirmDelete)) {
-                                    var gridData = $('#tblAutoBillingGrid').jqGrid('getRowData', rowID);
+                                    $('#tblAutoBillingGrid').jqGrid('getRowData', rowID);
                                     self.autoBillingModel.set({ "id": rowID });
                                     self.autoBillingModel.destroy({
 
-                                        success: function (model, response) {
+                                        success: function () {
                                             commonjs.showStatus("messages.status.deletedSuccessfully");
                                             self.autobillingRulesTable.refresh();
                                         },
@@ -275,7 +273,7 @@ define(['jquery',
                                     });
                                 }
                             },
-                            formatter: function (e, model, data) {
+                            formatter: function () {
                                 return "<i class='icon-ic-delete' i18nt='messages.status.clickHereToDelete'></i>"
                             }
                         },
@@ -327,7 +325,7 @@ define(['jquery',
                     datastore: self.autoBillingList,
                     container: self.el,
                     customizeSort: true,
-                    offsetHeight: 01,
+                    offsetHeight: 1,
                     sortname: "id",
                     sortorder: "desc",
                     sortable: {
@@ -366,7 +364,6 @@ define(['jquery',
             },
 
             showForm: function (id) {
-                var self = this;
                 this.renderForm(id);
             },
 
@@ -383,7 +380,6 @@ define(['jquery',
                 });
 
                 // ***************** BEGIN Studies SECTION *********************
-                var $ddlAutoBillingStudyStatuses = $('#ddlAutoBillingStudyStatuses');
                 var $listAutoBillingStudyStatuses = $('#listAutoBillingStudyStatuses');
                 $('#btnAddAutoBillingStudyStatus').off().click(function () {
                     setAutoBillingValues($listAutoBillingStudyStatuses, self.pendingAutoBillingStudyStatus);
@@ -394,7 +390,6 @@ define(['jquery',
                 // ******************* END Studies SECTION *********************
 
                 // *************** BEGIN Facilities SECTION *********************
-                var $ddlAutoBillingFacility = $('#ddlAutoBillingFacility');
                 var $listAutoBillingFacilities = $('#listAutoBillingFacilities');
                 $('#btnAddAutoBillingFacility').off().click(function() {
                     setAutoBillingValues($listAutoBillingFacilities, self.pendingAutoBillingFacility);
@@ -405,7 +400,6 @@ define(['jquery',
                 // **************** END Facilities SECTION *********************
 
                 // *************** BEGIN Ordering Facilities SECTION *********************
-                var $ddlAutoBillingOrderingFacility = $('#ddlAutoBillingOrderingFacility');
                 var $listAutoBillingOrderingFacilities = $('#listAutoBillingOrderingFacilities');
                 $('#btnAddAutoBillingOrderingFacility').off().click(function () {
                     setAutoBillingValues($listAutoBillingOrderingFacilities, self.pendingAutoBillingOrderingFacility);
@@ -417,7 +411,6 @@ define(['jquery',
 
 
                 // ************** BEGIN Modalities SECTION *********************
-                var $ddlAutoBillingModality = $('#ddlAutoBillingModality');
                 var $listAutoBillingModalities = $('#listAutoBillingModalities');
                 $('#btnAddAutoBillingModality').off().click(function () {
                     setAutoBillingValues($listAutoBillingModalities, self.pendingAutoBillingModality);
@@ -537,7 +530,6 @@ define(['jquery',
 
                 var self = this;
                 var facilities = options.facilities;
-                var ordering_facilities = options.ordering_facilities;
                 var modalities = options.modalities;
 
                 $('#ddlAutoBillingStudyStatuses').select2({

@@ -34,7 +34,6 @@ define(['jquery',
             },
 
             initialize: function (options) {
-                var self = this;
                 this.options = options;
                 this.model = new AdjustmentCodesModel();
                 this.pager = new Pager();
@@ -69,7 +68,7 @@ define(['jquery',
                             search: false,
                             className: 'icon-ic-edit',
                             route: '#setup/adjustment_codes/edit/',
-                            formatter: function (e, model, data) {
+                            formatter: function () {
                                 return "<i class='icon-ic-edit' i18nt='shared.buttons.edit'></i>"
                             }
                         },
@@ -82,7 +81,7 @@ define(['jquery',
                                     self.model.set({ "id": rowID });
                                     self.model.destroy({
                                         data: $.param({code: gridData.code, description:gridData.description}),
-                                        success: function (model, response) {
+                                        success: function () {
                                             commonjs.showStatus("messages.status.deletedSuccessfully");
                                             self.adjustmentCodesTable.refresh();
                                         },
@@ -92,7 +91,7 @@ define(['jquery',
                                     });
                                 }
                             },
-                            formatter: function (e, model, data) {
+                            formatter: function () {
                                 return "<i class='icon-ic-delete' i18nt='messages.status.clickHereToDelete'></i>"
                             }
                         },
@@ -132,7 +131,7 @@ define(['jquery',
                     datastore: self.adjustmentCodesList,
                     container: self.el,
                     customizeSort: true,
-                    offsetHeight: 01,
+                    offsetHeight: 1,
                     sortname: "id",
                     sortorder: "desc",
                     sortable: {
@@ -164,7 +163,6 @@ define(['jquery',
             },
 
             showForm: function (id) {
-                var self = this;
                 this.renderForm(id);
             },
 
@@ -258,7 +256,6 @@ define(['jquery',
             },
 
             entryTypeFormatter: function (cellvalue, options, rowObject) {
-                var self = this;
                 var colName = "";
                 if (rowObject.accounting_entry_type != null) {
                     switch (rowObject.accounting_entry_type) {

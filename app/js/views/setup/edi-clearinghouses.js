@@ -37,7 +37,6 @@ define(['jquery',
             },
 
             initialize: function (options) {
-                var self = this;
                 this.options = options;
                 this.model = new EDIClearingHousesModel();
                 this.pager = new Pager();
@@ -72,7 +71,7 @@ define(['jquery',
                             search: false,
                             className: 'icon-ic-edit',
                             route: '#setup/edi_clearinghouses/edit/',
-                            formatter: function (e, model, data) {
+                            formatter: function () {
                                 return "<i class='icon-ic-edit' i18nt='shared.buttons.edit'></i>"
                             }
                         },
@@ -85,7 +84,7 @@ define(['jquery',
                                     self.model.set({ "id": rowID });
                                     self.model.destroy({
                                         data: $.param({name: gridData.name, receiverName:gridData.receiver_name}),
-                                        success: function (model, response) {
+                                        success: function () {
                                             self.ediClearingHousesTable.refreshAll();
                                             commonjs.showStatus("messages.status.deletedSuccessfully");
                                         },
@@ -95,7 +94,7 @@ define(['jquery',
                                     });
                                 }
                             },
-                            formatter: function (e, model, data) {
+                            formatter: function () {
                                 return "<i class='icon-ic-delete' i18nt='messages.status.clickHereToDelete'></i>"
                             }
                         },
@@ -121,7 +120,7 @@ define(['jquery',
                     datastore: self.ediClearingHousesList,
                     container: self.el,
                     customizeSort: true,
-                    offsetHeight: 01,
+                    offsetHeight: 1,
                     sortname: "ech.id",
                     sortorder: "desc",
                     sortable: {
@@ -153,7 +152,6 @@ define(['jquery',
             },
 
             showForm: function (id) {
-                var self = this;
                 this.renderForm(id);
             },
 
@@ -176,7 +174,7 @@ define(['jquery',
                                     $('#txtEdiTemplateName').val(data.edi_template_name ? data.edi_template_name : '0');
                                     $('#ediExtension').val(data.edi_file_ext || '');
                                     $('#eraExtension').val(data.era_file_ext || '');
-                                    $('#chkIsActive').prop('checked', data.inactivated_dt ? true : false);
+                                    $('#chkIsActive').prop('checked', !!data.inactivated_dt);
                                     $('#txtAuthInfo').val(info.authorizationInformation ? info.authorizationInformation : '');
                                     $('#txtAuthInfoQualifier').val(info.authorizationInformationQualifier ? info.authorizationInformationQualifier : '');
                                     $('#txtSecurityInfo').val(info.securityInformation ? info.securityInformation : '');
@@ -191,7 +189,7 @@ define(['jquery',
                                     $('#txtElementDelimiter').val(info.elementDelimiter ? info.elementDelimiter : '');
                                     $('#txtSubElementDelimiter').val(info.segmentDelimiter ? info.segmentDelimiter : '');
                                     $('#txtSegmentTerminator').val(info.segmentTerminator ? info.segmentTerminator : '');
-                                    $('#chkAckReq').prop('checked', info.acknowledgementRequested ? true : false);
+                                    $('#chkAckReq').prop('checked', !!info.acknowledgementRequested);
                                     $('input[value=' + info.usageIndicator + ']').prop('checked', true);
                                     $('#txtAppSenderCode').val(info.applicationSenderCode ? info.applicationSenderCode : '');
                                     $('#txtResAgencyCode').val(info.responsibleAgencyCode ? info.responsibleAgencyCode : '');
@@ -200,7 +198,7 @@ define(['jquery',
                                     $('#txtImplConventionReference').val(info.implementationConventionRef ? info.implementationConventionRef : '');
                                     $('#txtRequestUrl').val(info.requestURL ? info.requestURL : '');
                                     $('#txtBackupRootFolder').val(info.backupRootFolder ? info.backupRootFolder : '');
-                                    $('#chkEnableB2B').prop('checked', info.isB2bEnabled ? true : false);
+                                    $('#chkEnableB2B').prop('checked', !!info.isB2bEnabled);
                                     $('#ddlXmlTemplateSyntax').val(info.xmlSyntaxTag ? info.xmlSyntaxTag : "");
                                     if (info.xmlSyntaxTag != '1' && info.xmlSyntaxTag != '') {
                                         $('.xmlTemplateSyntaxAuth').show();
@@ -390,7 +388,7 @@ define(['jquery',
                     "code": $('#txtCode').val(),
                     "receiverName": $('#txtReceiverName').val(),
                     "receiverId": $('#txtReceiverID').val(),
-                    "ediTemplateName": $('#txtEdiTemplateName').val() != '0' ? $('#txtEdiTemplateName').val() : null ,
+                    "ediTemplateName": $('#txtEdiTemplateName').val() != '0' ? $('#txtEdiTemplateName').val() : null,
                     "ediFileExtension": $('#ediExtension').val(),
                     "eraFileExtension":  $('#eraExtension').val(),
                     "company_id": app.companyID,
@@ -411,7 +409,7 @@ define(['jquery',
                     });
             },
 
-            changeXmlTemplateSyntax: function(e) {
+            changeXmlTemplateSyntax: function() {
                 var templateSyntaxValue = $('#ddlXmlTemplateSyntax').val();
                 if(templateSyntaxValue == 1) {
                     $('.xmlTemplateSyntaxAuth').hide();
@@ -436,7 +434,7 @@ define(['jquery',
                     url: '/exa_modules/billing/autoCompleteRouter/edi_templates',
                     type: 'GET',
                     async: false,
-                    success: function (data, response) {
+                    success: function (data) {
                         templates = data && data.length > 0 ? data : [];
                     },
                     error: function (err, response) {

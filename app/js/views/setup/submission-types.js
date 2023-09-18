@@ -70,7 +70,7 @@ define(['jquery',
                             search: false,
                             className: 'icon-ic-edit',
                             route: '#setup/submission_types/edit/',
-                            formatter: function (e, model, data) {
+                            formatter: function () {
                                 return "<i class='icon-ic-edit' i18nt='shared.buttons.edit'></i>"
                             }
                         },
@@ -83,7 +83,7 @@ define(['jquery',
                                     self.model.set({ "id": rowID });
                                     self.model.destroy({
                                         data: $.param({ code: gridData.code }),
-                                        success: function (model, response) {
+                                        success: function () {
                                             commonjs.showStatus("messages.status.deletedSuccessfully");
                                             self.submissionTypesTable.refresh();
                                         },
@@ -93,7 +93,7 @@ define(['jquery',
                                     });
                                 }
                             },
-                            formatter: function (e, model, data) {
+                            formatter: function () {
                                 return "<i class='icon-ic-delete' i18nt='messages.status.clickHereToDelete'></i>"
                             }
                         },
@@ -139,7 +139,7 @@ define(['jquery',
                     datastore: self.submissionTypesList,
                     container: self.el,
                     customizeSort: true,
-                    offsetHeight: 01,
+                    offsetHeight: 1,
                     sortname: "id",
                     sortorder: "desc",
                     sortable: {

@@ -69,7 +69,7 @@ define(['jquery',
                 self.currentPageWidth = self.defaultPageWidth;
             },
 
-            changeTemplateType: function(e) {
+            changeTemplateType: function() {
                 var self = this;
                 $('#txtPageHeight').val(self.defaultPageHeight);
                 $('#txtPageWidth').val(self.defaultPageWidth);
@@ -110,7 +110,7 @@ define(['jquery',
                             search: false,
                             className: 'icon-ic-edit',
                             route: '#setup/printer_templates/edit/',
-                            formatter: function (e, model, data) {
+                            formatter: function () {
                                 return "<i class='icon-ic-edit' i18nt='shared.buttons.edit'></i>"
                             }
                         },
@@ -123,7 +123,7 @@ define(['jquery',
                                     self.model.set({ "id": rowID });
                                     self.model.destroy({
                                         data: $.param({name: gridData.name, templateType:gridData.template_type}),
-                                        success: function (model, response) {
+                                        success: function () {
                                             commonjs.showStatus("messages.status.deletedSuccessfully");
                                             self.paperClaimTemplatesTable.refresh();
                                         },
@@ -133,7 +133,7 @@ define(['jquery',
                                     });
                                 }
                             },
-                            formatter: function (e, model, data) {
+                            formatter: function () {
                                 return "<i class='icon-ic-delete' i18nt='messages.status.clickHereToDelete'></i>"
                             }
                         },
@@ -162,7 +162,7 @@ define(['jquery',
                     datastore: self.paperClaimTemplatesList,
                     container: self.el,
                     customizeSort: true,
-                    offsetHeight: 01,
+                    offsetHeight: 1,
                     sortname: "id",
                     sortorder: "desc",
                     sortable: {
@@ -201,7 +201,6 @@ define(['jquery',
             },
 
             showForm: function (id) {
-                var self = this;
                 this.renderForm(id);
             },
 
@@ -225,8 +224,8 @@ define(['jquery',
                                 var data = self.modelData = response[0];
                                 if (data) {
                                     $('#txtTemplateName').val(data.name ? data.name : '');
-                                    $('#chkActive').prop('checked', data.inactivated_dt ? true : false);
-                                    $('#chkDefault').prop('checked', data.is_default ? true : false);
+                                    $('#chkActive').prop('checked', !!data.inactivated_dt);
+                                    $('#chkDefault').prop('checked', !!data.is_default);
                                     $('#txtRightMargin').val(data.right_margin ? data.right_margin : 0);
                                     $('#txtLeftMargin').val(data.left_margin ? data.left_margin : 0),
                                         $('#txtTopMargin').val(data.top_margin ? data.top_margin : 0),
@@ -324,7 +323,6 @@ define(['jquery',
             setEditorContents: function (content) {
                 var timer;
                 var lastGen, lastChanged;
-                var self = this;
                 var editor = ace.edit('paperClaimEditor');
 
                 editor.setTheme();
@@ -343,7 +341,7 @@ define(['jquery',
 
                 generatePreview();
 
-                editor.getSession().on('change', function (e) {
+                editor.getSession().on('change', function () {
                     if (timer) {
                         clearTimeout(timer);
                     }
@@ -353,7 +351,7 @@ define(['jquery',
                     timer = setTimeout(function () {
                         if (!lastGen || lastGen < lastChanged) {
                             generatePreview();
-                        };
+                        }
                     }, 300);
                 });
 
@@ -384,7 +382,9 @@ define(['jquery',
                             document.getElementById('ifrTemplatePreview').src = res.data.pdfBlob;
                         };
 
+                        /* eslint-disable no-undef */
                         pdfWorker.postMessage(dd);
+                        /* eslint-enable no-undef */
                         return;
 
                         // pdfMake.createPdf(dd).getDataUrl(function (outDoc) {
@@ -412,7 +412,7 @@ define(['jquery',
                     commonjs.showLoading();
                     $.ajax({
                         url: '/exa_modules/billing/static/resx/printer_templates/' + templateNames[templateType],
-                        success: function (model, response) {
+                        success: function (model) {
                             self.setEditorContents(model);
                             commonjs.hideLoading();
                         },

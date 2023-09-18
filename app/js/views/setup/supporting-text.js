@@ -59,7 +59,7 @@ define(['jquery',
                     gridelementid: '#tblSupportingTextGrid',
                     custompager: new Pager(),
                     emptyMessage: commonjs.geti18NString("messages.status.noRecordFound"),
-                    colNames: ['','','','',''],
+                    colNames: ['', '', '', '', ''],
                     i18nNames: ['', '', '', 'setup.supportingText.templateName', 'setup.supportingText.supportingText' ],
                     colModel: [
                         {
@@ -76,7 +76,7 @@ define(['jquery',
                             search: false,
                             className:'icon-ic-edit',
                             route: '#setup/supporting_text/edit/',
-                            formatter: function(e, model, data) {
+                            formatter: function() {
                                 return "<i class='icon-ic-edit' i18nt='shared.buttons.edit'></i>"
                             }
                         },
@@ -89,7 +89,7 @@ define(['jquery',
                                     self.model.set({ "id": rowID });
                                     self.model.destroy({
                                         data: $.param({templateName: gridData.template_name, supportingText:gridData.supporting_text}),
-                                        success: function (model, response) {
+                                        success: function () {
                                             commonjs.showStatus("messages.status.deletedSuccessfully");
                                             self.supportingTextTable.refresh();
                                         },
@@ -99,7 +99,7 @@ define(['jquery',
                                     });
                                 }
                             },
-                            formatter: function(e, model, data) {
+                            formatter: function() {
                                 return "<i class='icon-ic-delete' i18nt='messages.status.clickHereToDelete'></i>"
                             }
                         },
@@ -110,13 +110,13 @@ define(['jquery',
                             name: 'supporting_text',
                         }
                     ],
-                    afterInsertRow: function (row_id, rData) {
+                    afterInsertRow: function (row_id) {
                         commonjs.changeColumnValue('#tblSupportingTextGrid', row_id);
                     },
                     datastore: self.supportingTextList,
                     container:self.el,
                     customizeSort: true,
-                    offsetHeight: 01,
+                    offsetHeight: 1,
                     sortname: "id",
                     sortorder: "desc",
                     sortable: {
@@ -362,7 +362,7 @@ define(['jquery',
 
             // BEGIN LABEL FUNCTIONS
 
-            expandCptLabels: function(id) {
+            expandCptLabels: function() {
                 var self = this;
                 $.ajax({
                     url: '/exa_modules/billing/setup/supporting_text/labelCpts/',
@@ -378,7 +378,7 @@ define(['jquery',
                 })
             },
 
-            expandModifierLabels: function(id) {
+            expandModifierLabels: function() {
                 var self = this;
                 $.ajax({
                     url: '/exa_modules/billing/setup/supporting_text/labelModifiers/',

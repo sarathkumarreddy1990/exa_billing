@@ -22,7 +22,6 @@ define([
             },
 
             initialize: function (options) {
-                var self = this;
                 this.options = options;
                 this.model = new ClaimStatusModel();
                 this.pager = new Pager();
@@ -40,7 +39,7 @@ define([
                     gridelementid: '#tblClaimStatusGrid',
                     custompager: new Pager(),
                     emptyMessage: commonjs.geti18NString("messages.status.noRecordFound"),
-                    colNames: ['', '', '', '', '', '',''],
+                    colNames: ['', '', '', '', '', '', ''],
                     i18nNames: ['', '', '', 'setup.common.code', 'setup.common.description', 'setup.common.displayOrder', 'in_active'],
                     colModel: [
                         {
@@ -57,7 +56,7 @@ define([
                             search: false,
                             className: 'icon-ic-edit',
                             route: '#setup/claim_status/edit/',
-                            formatter: function (e, model, data) {
+                            formatter: function () {
                                 return "<i class='icon-ic-edit' i18nt='shared.buttons.edit'></i>"
                             }
                         },
@@ -70,7 +69,7 @@ define([
                                     self.model.set({ "id": rowID });
                                     self.model.destroy({
                                         data: $.param({code: gridData.code, description:gridData.description}),
-                                        success: function (model, response) {
+                                        success: function () {
                                             commonjs.showStatus("messages.status.deletedSuccessfully");
                                             self.claimStatusTable.refresh();
                                         },
@@ -80,7 +79,7 @@ define([
                                     });
                                 }
                             },
-                            formatter: function (e, model, data) {
+                            formatter: function () {
                                 return "<i class='icon-ic-delete' i18nt='messages.status.clickHereToDelete'></i>"
                             }
                         },
@@ -110,7 +109,7 @@ define([
                     datastore: self.claimStatusList,
                     container: self.el,
                     customizeSort: true,
-                    offsetHeight: 01,
+                    offsetHeight: 1,
                     sortname: "display_order",
                     sortorder: "asc",
                     sortable: {
@@ -124,7 +123,7 @@ define([
                     disableadd: true,
                     disablereload: true,
                     pager: '#gridPager_ClaimStatus',
-                    onaftergridbind: function (model, gridObj) {
+                    onaftergridbind: function () {
                         $('input[name=display_order]').addClass('integerbox');
                         commonjs.validateControls();
                     }
@@ -149,7 +148,6 @@ define([
             },
 
             showForm: function (id) {
-                var self = this;
                 this.renderForm(id);
             },
 
@@ -166,8 +164,8 @@ define([
                                 $('#txtCode').val(response.code);
                                 $('#txtDescription').val(response.description);
                                 $('#txtDispOrder').val(response.display_order);
-                                $('#chkActive').prop('checked', response.inactivated_dt ? true : false);
-                                $('#chkIsSystemStatus').prop('checked', response.is_system_status  ? true : false);
+                                $('#chkActive').prop('checked', !!response.inactivated_dt);
+                                $('#chkIsSystemStatus').prop('checked', !!response.is_system_status);
                                 if (response.is_system_status) {
                                     $('#txtCode').attr('disabled', 'disabled');
                                     $('#chkActive').attr('disabled', 'disabled');
@@ -228,7 +226,7 @@ define([
                     "description": $('#txtDescription').val(),
                     "displayOrder" : $('#txtDispOrder').val(),
                     "isActive": !$('#chkActive').prop('checked'),
-                    "isSystemStatus" : $('#chkIsSystemStatus').prop('checked') ,
+                    "isSystemStatus" : $('#chkIsSystemStatus').prop('checked'),
                     "company_id": app.companyID
                 });
                 this.model.save({

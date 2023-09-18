@@ -31,7 +31,6 @@ define(['jquery',
             pager: null,
             events: { },
             initialize: function (options) {
-                var self = this;
                 this.options = options;
                 this.model = new BillingMessagesModel();
                 this.billingMessagesList = new BillingMessagesCollections();
@@ -48,7 +47,7 @@ define(['jquery',
                     gridelementid: '#tblBillingMessagesGrid',
                     custompager: new Pager(),
                     emptyMessage: commonjs.geti18NString("messages.status.noRecordFound"),
-                    colNames: ['','','',''],
+                    colNames: ['', '', '', ''],
                     i18nNames: ['', '', 'setup.common.code', 'setup.common.description'],
                     colModel: [
                         {
@@ -65,7 +64,7 @@ define(['jquery',
                             search: false,
                             className:'icon-ic-edit',
                             route: '#setup/billing_messages/edit/',
-                            formatter: function(e, model, data) {
+                            formatter: function() {
                                 return "<i class='icon-ic-edit' i18nt='shared.buttons.edit'></i>"
                             }
                         },
@@ -79,7 +78,7 @@ define(['jquery',
                     datastore: self.billingMessagesList,
                     container:self.el,
                     customizeSort: true,
-                    offsetHeight: 01,
+                    offsetHeight: 1,
                     sortname: "id",
                     sortorder: "desc",
                     sortable: {
@@ -110,7 +109,6 @@ define(['jquery',
             },
 
             showForm: function (id) {
-                var self = this;
                 this.renderForm(id);
             },
 

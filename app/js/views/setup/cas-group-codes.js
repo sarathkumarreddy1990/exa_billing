@@ -32,7 +32,6 @@ define(['jquery',
             events: {
             },
             initialize: function (options) {
-                var self = this;
                 this.options = options;
                 this.model = new CasGroupCodesModel();
                 this.casGroupCodesList = new CasGroupCodesCollections();
@@ -43,7 +42,6 @@ define(['jquery',
             render: function() {
                 var self = this;
                 var confirmDelete = commonjs.geti18NString("messages.status.areYouSureWantToDelete");
-                var deleteMessage = commonjs.geti18NString("messages.status.clickHereToDelete");
                 $('#divCasGroupCodesGrid').show();
                 $('#divCasGroupCodesForm').hide();
                 this.casGroupCodesTable = new customGrid();
@@ -51,7 +49,7 @@ define(['jquery',
                     gridelementid: '#tblCasGroupCodesGrid',
                     custompager: new Pager(),
                     emptyMessage: commonjs.geti18NString("messages.status.noRecordFound"),
-                    colNames: ['','','','','','', ''],
+                    colNames: ['', '', '', '', '', '', ''],
                     i18nNames: ['', '', '', 'setup.common.code', 'setup.common.name', 'setup.common.description', 'in_active'],
                     colModel: [
                         {
@@ -68,7 +66,7 @@ define(['jquery',
                             search: false,
                             className: 'icon-ic-edit',
                             route: '#setup/cas_group_codes/edit/',
-                            formatter: function (e, model, data) {
+                            formatter: function () {
                                 return "<i class='icon-ic-edit' i18nt='shared.buttons.edit'></i>"
                             }
                         },
@@ -81,7 +79,7 @@ define(['jquery',
                                     self.model.set({ "id": rowID });
                                     self.model.destroy({
                                         data: $.param({code: gridData.code, description:gridData.description}),
-                                        success: function (model, response) {
+                                        success: function () {
                                             commonjs.showStatus("messages.status.deletedSuccessfully");
                                             self.casGroupCodesTable.refresh();
                                         },
@@ -91,7 +89,7 @@ define(['jquery',
                                     });
                                 }
                             },
-                            formatter: function (e, model, data) {
+                            formatter: function () {
                                 return "<i class='icon-ic-delete' i18nt='messages.status.clickHereToDelete'></i>"
                             }
                         },
@@ -121,7 +119,7 @@ define(['jquery',
                     datastore: self.casGroupCodesList,
                     container:self.el,
                     customizeSort: true,
-                    offsetHeight: 01,
+                    offsetHeight: 1,
                     sortname: "id",
                     sortorder: "desc",
                     sortable: {
@@ -152,7 +150,6 @@ define(['jquery',
             },
 
             showForm: function (id) {
-                var self = this;
                 this.renderForm(id);
             },
 
@@ -169,7 +166,7 @@ define(['jquery',
                                     $('#txtCode').val(data.code ? data.code : '');
                                     $('#txtDescription').val(data.description ? data.description : '');
                                     $('#txtName').val(data.name ? data.name : '');
-                                    $('#chkActive').prop('checked', data.inactivated_dt ? true : false);
+                                    $('#chkActive').prop('checked', !!data.inactivated_dt);
                                 }
                             }
                         }
@@ -247,7 +244,7 @@ define(['jquery',
                     success: function (model, response) {
                         if(response) {
                             commonjs.showStatus('messages.status.savedSuccessfully');
-                            location.href = "#setup/cas_group_codes/list"; 
+                            location.href = "#setup/cas_group_codes/list";
                         }
                     },
                     error: function (model, response) {

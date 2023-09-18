@@ -22,7 +22,6 @@ define([
             },
 
             initialize: function (options) {
-                var self = this;
                 this.options = options;
                 this.model = new CasReasonCodesModel();
                 this.pager = new Pager();
@@ -57,7 +56,7 @@ define([
                             search: false,
                             className: 'icon-ic-edit',
                             route: '#setup/cas_reason_codes/edit/',
-                            formatter: function (e, model, data) {
+                            formatter: function () {
                                 return "<i class='icon-ic-edit' i18nt='shared.buttons.edit'></i>";
                             }
                         },
@@ -70,7 +69,7 @@ define([
                                     self.model.set({ "id": rowID });
                                     self.model.destroy({
                                         data: $.param({code: gridData.code, description:gridData.description}),
-                                        success: function (model, response) {
+                                        success: function () {
                                             commonjs.showStatus("messages.status.deletedSuccessfully");
                                             self.casReasonCodesTable.refresh();
                                         },
@@ -81,7 +80,7 @@ define([
                                 }
                             },
 
-                            formatter: function (e, model, data) {
+                            formatter: function () {
                                 return "<i class='icon-ic-delete' i18nt='messages.status.clickHereToDelete'></i>";
                             }
                         },
@@ -105,7 +104,7 @@ define([
                     datastore: self.casReasonCodesList,
                     container: self.el,
                     customizeSort: true,
-                    offsetHeight: 01,
+                    offsetHeight: 1,
                     sortname: "id",
                     sortorder: "desc",
                     sortable: {
@@ -139,7 +138,6 @@ define([
             },
 
             showForm: function (id) {
-                var self = this;
                 this.renderForm(id);
             },
 
@@ -154,7 +152,7 @@ define([
                             if (response) {
                                 $('#txtCode').val(response.code);
                                 $('#txtDescription').val(response.description);
-                                $('#chkActive').prop('checked', response.inactivated_dt ? true : false);
+                                $('#chkActive').prop('checked', !!response.inactivated_dt);
                             }
                         }
                     });
