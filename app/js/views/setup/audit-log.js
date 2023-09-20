@@ -109,7 +109,12 @@ define([
                         },
                         {
                             name: 'screen_name',
-                            width: 180
+                            width: 180,
+                            formatter: function (value) {
+                                return value === "UI"
+                                    ? value
+                                    : commonjs.capitalizeEveryWord(value, ["and"]);
+                            }
                         },
                         {
                             name: 'username',
@@ -215,8 +220,8 @@ define([
                         }
                         $("#userName").html(response.username);
                         $("#clientIp").html(response.client_ip);
-                        $("#module").html(response.module_name);
-                        $("#screen").html(response.screen_name);
+                        $("#module").html(commonjs.capitalizeEveryWord(response.module_name));
+                        $("#screen").html(commonjs.capitalizeEveryWord(response.screen_name, ["and"]));
                         $("#loggedDate").html(self.dateFormatter(response));
                         $("#description").html(response.description);
                         $("#showDetails").click(function () {

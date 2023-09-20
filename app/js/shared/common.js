@@ -5625,6 +5625,26 @@ var commonjs = {
             : $.noop;
     },
 
+    /**
+     * Returns back the string sent with every word capitalized
+     *   Ex. SOME WORDS HERE -> Some Words Here
+     *   Ex. some words here -> Some Words Here
+     *   Ex. sOME wORDS hERE -> Some Words Here
+     *
+     * @param {string} text
+     * @param {string[]} exceptions  Don't capitalize these words
+     * @returns {string}
+     */
+    capitalizeEveryWord: function (text, exceptions) {
+        exceptions = exceptions || [];
+
+        return _.trim(text).split(" ").map(function (item) {
+            return exceptions.some(function (ex) { return ex.toLowerCase() === item.toLowerCase(); })
+                ? item.toLowerCase()
+                : _.capitalize(item);
+        }).join(" ");
+    },
+
     tinyMceLoad: function(callback){
         if (typeof window.scriptFlag === 'undefined') {
             var script = document.createElement('script');
