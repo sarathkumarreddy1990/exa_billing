@@ -772,7 +772,7 @@ module.exports = {
                                                                         cas_group_codes.code AS "adjustmentGroupCode"
                                                                         , (
                                                                             SELECT
-                                                                                json_agg(row_to_json(CAS)) AS casList
+                                                                                json_agg(row_to_json(CAS)) AS caslist
                                                                             FROM (
                                                                                 SELECT
                                                                                     DISTINCT cas_reason_codes.code AS "reasonCode"
@@ -925,7 +925,7 @@ module.exports = {
                                                                                     cas_group_codes.code AS "adjustmentGroupCode"
                                                                                     , (
                                                                                         SELECT
-                                                                                            json_agg(row_to_json(CAS)) AS casList
+                                                                                            json_agg(row_to_json(CAS)) AS caslist
                                                                                         FROM (
                                                                                             SELECT
                                                                                                 cas_reason_codes.code AS "reasonCode"
