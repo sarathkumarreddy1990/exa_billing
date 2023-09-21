@@ -89,6 +89,7 @@ function (
             this.coverage_level = args.coverage_level || "";
             this.key = _.capitalize(this.coverage_level);
             this.parent = args.parent || {};
+            this.claim_id = args.claim_id;
 
             this.template_options = {
                 key: this.key,
@@ -1237,6 +1238,7 @@ function (
                     mobilePhone: this.data.patient_mobile_phone,
                     email: this.data.patient_email
                 },
+                claim_id: ~~this.claim_id,
                 studies: this.data.studies || [],
                 service_types: this.serviceTypes(),
                 visit: {
