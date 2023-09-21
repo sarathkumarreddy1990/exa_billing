@@ -475,7 +475,8 @@ define(['jquery',
                         show_benefits_on_date: this.showBenefitsOnDate(),
                         show_eligibility_status: true,
                         container_class: "col-xs-12",
-                        disabled: !app.checkPermissionCode("ELIG")
+                        disabled: !app.checkPermissionCode("ELIG"),
+                        claim_id: this.claim_Id || 0
                     });
                 }
 

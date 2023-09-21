@@ -1547,6 +1547,7 @@ function (
                 appointment_type_ids: this.getAppointmentIds(),
                 balance_due: this.data.estimation.balanceDue,
                 procedure_estimates: this.data.estimation.procedureEstimates,
+                claim_id: this.data.claim_id,
                 async: false,
                 save: false
             }
