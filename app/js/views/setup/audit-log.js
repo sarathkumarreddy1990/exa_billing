@@ -218,12 +218,12 @@ define([
                                 }
                             }
                         }
-                        $("#userName").html(response.username);
-                        $("#clientIp").html(response.client_ip);
-                        $("#module").html(commonjs.capitalizeEveryWord(response.module_name));
-                        $("#screen").html(commonjs.capitalizeEveryWord(response.screen_name, ["and"]));
-                        $("#loggedDate").html(self.dateFormatter(response));
-                        $("#description").html(response.description);
+                        $("#userName").text(response.username);
+                        $("#clientIp").text(response.client_ip);
+                        $("#module").text(commonjs.capitalizeEveryWord(response.module_name));
+                        $("#screen").text(commonjs.capitalizeEveryWord(response.screen_name, ["and"]));
+                        $("#loggedDate").text(self.dateFormatter(response));
+                        $("#description").text(response.description);
                         $("#showDetails").click(function () {
                             $("#oldInfoRow").toggle();
                         });
