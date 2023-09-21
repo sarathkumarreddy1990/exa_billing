@@ -896,6 +896,7 @@ module.exports = {
                                                                         , to_char(max(payments.accounting_date), 'YYYYMMDD') AS "accountingDt"
                                                                         , charges.id AS "chargeID"
                                                                         , insurance_info->'PayerID' AS "claimPayerID"
+                                                                        -- Other Subscriber/Payer's Payment/Adjustment details at charge level --
                                                                         , (
                                                                             SELECT insurance_info->'PayerID'
                                                                             FROM patient_insurances p_pi
