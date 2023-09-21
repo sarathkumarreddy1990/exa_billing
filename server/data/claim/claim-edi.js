@@ -691,6 +691,11 @@ module.exports = {
                                                     ) AS referring_provider
                                                     WHERE referring_provider IS NOT NULL
                                                   )
+                                                -- Other Subscriber/Payer Information Starts --
+                                                -- Primary payer needs secondary payer(insurance)'s details and payments if available.
+                                                -- Secondary payer needs primary payer(insurance)'s details and payments if available.
+                                                -- Tertiary payer needs secondary payer(insurance)'s details and payments if avaialble.
+                                                -- So for current responsible party of the claim, Other Subscriber/Payer's data will be Previous Payers' payment details
                                                 , (
                                                     SELECT
                                                         json_agg(row_to_json(otherSubscriber)) "otherSubscriber"
@@ -701,7 +706,7 @@ module.exports = {
                                                             , CASE ins_coverage_level.coverage_level
                                                                 WHEN 'primary' THEN 'S'
                                                                 WHEN 'secondary' THEN 'P'
-                                                                WHEN 'tertiary' THEN 'S'
+                                                                WHEN 'tertiary' THEN 'S' -- for tertiary insurance provider claims, the secondary insurance's payment details were encoded
                                                               END AS "otherClaimResponsibleParty"
                                                             , (
                                                                 SELECT
@@ -851,6 +856,7 @@ module.exports = {
                                                             END
                                                     ) AS OtherPayer
                                                   )
+                                                -- Other Subscriber/Payer Information Ends --
                                                 , (
                                                     SELECT
                                                         json_agg(row_to_json(serviceLine)) "serviceLine"
