@@ -949,6 +949,11 @@ module.exports = {
                                                     ) AS referring_provider
                                                     WHERE referring_provider IS NOT NULL
                                                   )
+                                                -- Other Subscriber/Payer Information Starts --
+                                                -- Primary payer needs secondary payer(insurance)'s details and payments if available.
+                                                -- Secondary payer needs primary payer(insurance)'s details and payments if available.
+                                                -- Tertiary payer needs secondary payer(insurance)'s details and payments if avaialble.
+                                                -- So for current responsible party of the claim, Other Subscriber/Payer's data will be Previous Payers' payment details
                                                 , (
                                                     SELECT
                                                         json_agg(row_to_json(otherSubscriber)) "otherSubscriber"
@@ -959,7 +964,7 @@ module.exports = {
                                                             , CASE ins_coverage_level.coverage_level
                                                                 WHEN 'primary' THEN 'S'
                                                                 WHEN 'secondary' THEN 'P'
-                                                                WHEN 'tertiary' THEN 'P'
+                                                                WHEN 'tertiary' THEN 'S' -- for tertiary insurance provider claims, the secondary insurance's payment details were encoded
                                                               END AS "otherClaimResponsibleParty"
                                                             , (
                                                                 SELECT
@@ -1022,6 +1027,52 @@ module.exports = {
                                                                     FROM billing.get_payer_claim_payments(claims.id)
                                                                 ) AS payerpaidAmount
                                                               )
+                                                              , (
+                                                                SELECT
+                                                                    json_agg(row_to_json(claimAdjustment)) "claimAdjustment"
+                                                                FROM (
+                                                                    SELECT
+                                                                        cas_group_codes.code AS "adjustmentGroupCode"
+                                                                        , (
+                                                                            SELECT
+                                                                                json_agg(row_to_json(CAS)) AS caslist
+                                                                            FROM (
+                                                                                SELECT
+                                                                                    DISTINCT cas_reason_codes.code AS "reasonCode"
+                                                                                    , SUM(cas_payment_application_details.amount)::NUMERIC::TEXT AS amount
+                                                                                FROM billing.cas_payment_application_details
+                                                                                INNER JOIN billing.cas_group_codes gc ON gc.id = cas_group_code_id
+                                                                                INNER JOIN billing.cas_reason_codes ON cas_reason_codes.id = cas_reason_code_id
+                                                                                INNER JOIN billing.payment_applications ON payment_applications.id = cas_payment_application_details.payment_application_id
+                                                                                INNER JOIN billing.charges bch ON bch.id = payment_applications.charge_id
+                                                                                INNER JOIN billing.payments ON
+                                                                                    billing.payments.id = payment_applications.payment_id
+                                                                                    AND payer_type = 'insurance'
+                                                                                    AND bch.claim_id = claims.id
+                                                                                    AND payment_applications.amount_type = 'adjustment'
+                                                                                WHERE cas_group_codes.code = gc.code
+                                                                                AND payments.insurance_provider_id NOT IN (
+                                                                                    SELECT
+                                                                                        insurance_provider_id
+                                                                                    FROM public.patient_insurances
+                                                                                    WHERE id = ANY(ARRAY[claim_ins.tertiary_patient_insurance_id, claim_ins.secondary_patient_insurance_id])
+                                                                                        AND insurance_provider_id <> payments.insurance_provider_id
+                                                                                )
+                                                                                GROUP BY cas_reason_codes.code
+                                                                            ) AS CAS
+                                                                          )
+                                                                    FROM billing.cas_payment_application_details
+                                                                    INNER JOIN billing.cas_group_codes ON cas_group_codes.id = cas_group_code_id
+                                                                    INNER JOIN billing.payment_applications ON payment_applications.id = cas_payment_application_details.payment_application_id
+                                                                    INNER JOIN billing.charges bch1 ON bch1.id = payment_applications.charge_id
+                                                                    INNER JOIN billing.payments
+                                                                        ON billing.payments.id = payment_applications.payment_id
+                                                                            AND payer_type = 'insurance'
+                                                                            AND bch1.claim_id = claims.id
+                                                                            AND payment_applications.amount_type = 'adjustment'
+                                                                    GROUP BY cas_group_codes.code
+                                                                ) AS claimAdjustment
+                                                              )
                                                         FROM patient_insurances
                                                         LEFT JOIN billing.insurance_provider_details other_ins_details
                                                             ON other_ins_details.insurance_provider_id = patient_insurances.insurance_provider_id
@@ -1029,7 +1080,7 @@ module.exports = {
                                                             CASE COALESCE(${payerType}, payer_type)
                                                                 WHEN 'primary_insurance' THEN claim_ins.secondary_patient_insurance_id
                                                                 WHEN 'secondary_insurance' THEN claim_ins.primary_patient_insurance_id
-                                                                WHEN 'tertiary_insurance' THEN claim_ins.primary_patient_insurance_id
+                                                                WHEN 'tertiary_insurance' THEN claim_ins.secondary_patient_insurance_id
                                                             END
                                                     ) AS otherSubscriber
                                                   )
@@ -1059,10 +1110,11 @@ module.exports = {
                                                             CASE COALESCE(${payerType}, payer_type)
                                                                 WHEN 'primary_insurance' THEN claim_ins.secondary_patient_insurance_id
                                                                 WHEN 'secondary_insurance' THEN claim_ins.primary_patient_insurance_id
-                                                                WHEN 'tertiary_insurance' THEN claim_ins.primary_patient_insurance_id
+                                                                WHEN 'tertiary_insurance' THEN claim_ins.secondary_patient_insurance_id
                                                             END
                                                     ) AS OtherPayer
                                                   )
+                                                -- Other Subscriber/Payer Information Ends --
                                                 , (
                                                     SELECT
                                                         json_agg(row_to_json(serviceLine)) "serviceLine"
@@ -1102,11 +1154,17 @@ module.exports = {
                                                                         , to_char(max(payments.accounting_date), 'YYYYMMDD') AS "accountingDt"
                                                                         , charges.id AS "chargeID"
                                                                         , insurance_info->'PayerID' AS "claimPayerID"
+                                                                        -- Other Subscriber/Payer's Payment/Adjustment details at charge level --
                                                                         , (
                                                                             SELECT insurance_info->'PayerID'
                                                                             FROM patient_insurances p_pi
                                                                             INNER JOIN insurance_providers ON insurance_providers.id = insurance_provider_id
-                                                                            WHERE p_pi.id = claim_ins.primary_patient_insurance_id
+                                                                            WHERE p_pi.id =
+                                                                                CASE COALESCE(${payerType}, claims.payer_type)
+                                                                                    WHEN 'primary_insurance' THEN claim_ins.secondary_patient_insurance_id
+                                                                                    WHEN 'secondary_insurance' THEN claim_ins.primary_patient_insurance_id
+                                                                                    WHEN 'tertiary_insurance' THEN claim_ins.secondary_patient_insurance_id
+                                                                                END
                                                                           ) AS "payerID"
                                                                         , CASE ins_coverage_level.coverage_level
                                                                             WHEN 'primary' THEN 'P'
@@ -1132,11 +1190,11 @@ module.exports = {
                                                                                     cas_group_codes.code AS "adjustmentGroupCode"
                                                                                     , (
                                                                                         SELECT
-                                                                                            json_agg(row_to_json(CAS)) AS casList
+                                                                                            json_agg(row_to_json(CAS)) AS caslist
                                                                                         FROM (
                                                                                             SELECT
                                                                                                 cas_reason_codes.code AS "reasonCode"
-                                                                                                , cas_payment_application_details.amount::NUMERIC::TEXT
+                                                                                                , SUM(cas_payment_application_details.amount)::NUMERIC::TEXT AS amount
                                                                                             FROM billing.cas_payment_application_details
                                                                                             INNER JOIN billing.cas_group_codes gc ON gc.id = cas_group_code_id
                                                                                             INNER JOIN billing.cas_reason_codes ON cas_reason_codes.id = cas_reason_code_id
@@ -1154,6 +1212,7 @@ module.exports = {
                                                                                                 WHERE id = ANY(ARRAY[claim_ins.tertiary_patient_insurance_id, claim_ins.secondary_patient_insurance_id])
                                                                                                     AND insurance_provider_id <> payments.insurance_provider_id
                                                                                             )
+                                                                                            GROUP BY cas_reason_codes.code
                                                                                         ) AS CAS
                                                                                       )
                                                                                 FROM billing.cas_payment_application_details
@@ -1205,7 +1264,7 @@ module.exports = {
                         )
                         SELECT
                             claims.id
-                            , insurance_providers.insurance_code AS insurance_provider_code\
+                            , insurance_providers.insurance_code AS insurance_provider_code
                             , *
                         FROM
                             cte_billing_providers
