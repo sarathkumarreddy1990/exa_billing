@@ -785,6 +785,11 @@ function getServiceFacilityData() {
     }
 }
 
+function professionalClaim(chargesData, billingType, isInsuranceSplit) {
+    const isProfessionalModifier = chargesData.some(charge => [charge.mod2, charge.mod1, charge.mod3, charge.mod4].includes('26'));
+    const isSplitClaim = billingType !== 'facility';
+    return isProfessionalModifier && isSplitClaim;
+}
 function formatSingleClaim(claimData, servicelineList) {
     HeaderDets = getHeaderDetails(claimData);
     subscriberDet = claimData && claimData.subscriber && claimData.subscriber[0] || "";
