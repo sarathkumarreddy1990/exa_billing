@@ -929,8 +929,8 @@ define('grid', [
 
                 batchClaimArray.push({
                     patient_id: gridData.hidden_patient_id,
-                    study_id: gridData.hidden_study_id,
-                    order_id: gridData.hidden_order_id,
+                    study_id: [gridData.hidden_study_id],
+                    order_id: [gridData.hidden_order_id],
                     billing_type: (app.isMobileBillingEnabled && gridData.hidden_billing_type) || 'global',
                     facility_id: gridData.hidden_facility_id
                 });
@@ -999,7 +999,7 @@ define('grid', [
                                 var changeGrid = initChangeGrid(claimsTable);
 
                                 for (var r = 0; r < batchClaimArray.length; r++) {
-                                    var rowId = batchClaimArray[r].study_id;
+                                    var rowId = batchClaimArray[r].study_id[0];
                                     var $row = $tblGrid.find('#' + rowId);
                                     var cells = [];
                                     var currentStudyDetails = data.find(function (row) { return row.study_id == rowId });

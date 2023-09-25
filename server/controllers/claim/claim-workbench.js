@@ -601,6 +601,9 @@ module.exports = {
     validateBatchClaims: async (params) => {
         let {
             studyDetails,
+            isMobileBillingEnabled,
+            is_us_billing,
+            isStudiesGroupingEnabled = false,
         } = params;
 
 
@@ -659,7 +662,12 @@ module.exports = {
         let row = validCharges?.rows?.[0];
         let errorData;
 
-        if (studyDetails.length !== parseInt(row.charges_count)) {
+        let hasValidClaims = isStudiesGroupingEnabled
+            ? parseInt(row.charges_count) > 0
+            : studyDetails?.length === parseInt(row.charges_count);
+
+
+        if (!hasValidClaims) {
             errorData = {
                 code: '55802'
                 , message: 'No charge in claim'
@@ -702,8 +710,8 @@ module.exports = {
                     if (study.billing_type !== 'census') {
                         studyDetails.push({
                             patient_id: study.patient_id,
-                            study_id: study.study_id,
-                            order_id: study.order_id,
+                            study_id: [study.study_id],
+                            order_id: [study.order_id],
                             billing_type: study.billing_type || 'global',
                             facility_id: study.facility_id
                         });
@@ -713,8 +721,8 @@ module.exports = {
                 _.map(studyData.rows, (study) => {
                     studyDetails.push({
                         patient_id: study.patient_id,
-                        study_id: study.study_id,
-                        order_id: study.order_id,
+                        study_id: [study.study_id],
+                        order_id: [study.order_id],
                         billing_type: 'global',
                         facility_id: study.facility_id
                     });
@@ -723,6 +731,7 @@ module.exports = {
 
             let result = await this.validateBatchClaims({
                 studyDetails,
+                isStudiesGroupingEnabled: params.isStudiesGroupingEnabled,
                 isMobileBillingEnabled: params.isMobileBillingEnabled === 'true',
                 is_us_billing: params.is_us_billing
             });
@@ -735,6 +744,7 @@ module.exports = {
         } else if (params.isMobileBillingEnabled === 'true' || params.is_us_billing) {
             let result = await this.validateBatchClaims({
                 studyDetails: JSON.parse(params.studyDetails),
+                isStudiesGroupingEnabled: params.isStudiesGroupingEnabled,
                 isMobileBillingEnabled: params.isMobileBillingEnabled === 'true',
                 is_us_billing: params.is_us_billing
             });

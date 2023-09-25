@@ -24,7 +24,24 @@ define(['jquery',
             model: null,
             template: null,
             pagerData: null,
-            gridI18nText: ['', '', '', '', 'billing.payments.orderingFacilityLocation', 'billing.payments.mrn', 'shared.fields.accessionNumber', 'billing.fileInsurance.patientNameGrid', 'report.reportFilter.dateOfService', 'home.sendStudies.studyDesc', 'shared.fields.censusType'],
+            gridI18nText: [
+                '',
+                '',
+                '',
+                '',
+                '',
+                '',
+                '',
+                '',
+                '',
+                'billing.payments.orderingFacilityLocation',
+                'billing.payments.mrn',
+                'shared.fields.accessionNumber',
+                'billing.fileInsurance.patientNameGrid',
+                'report.reportFilter.dateOfService',
+                'home.sendStudies.studyDesc',
+                'shared.fields.censusType'
+            ],
             censusType: [
                 { value: '', text: 'shared.options.select' },
                 { value: 'global', text: 'shared.fields.global' },
@@ -176,15 +193,32 @@ define(['jquery',
                     gridelementid: '#tblGridCensus',
                     emptyMessage: commonjs.geti18NString("messages.status.noRecordFound"),
                     custompager: new Pager(),
-                    colNames: ['', '', '', '<input type="checkbox" id="chkAllCensus"  onclick="commonjs.checkMultipleCensus(event)" />', '', '', '', '', '', '', ''],
+                    colNames: ['', '', '', '', '', '', '', '', '<input type="checkbox" id="chkAllCensus"  onclick="commonjs.checkMultipleCensus(event)" />', '', '','', '', '', '', ''],
                     i18nNames: self.gridI18nText,
                     colModel: [
                         {
-                            name: 'id', hidden: true,
-                        }, {
-                            name: 'patient_id', hidden: true,
-                        }, {
-                            name: 'order_id', hidden: true,
+                            name: 'id', hidden: true
+                        },
+                        {
+                            name: 'patient_id', hidden: true
+                        },
+                        {
+                            name: 'facility_id', hidden: true
+                        },
+                        {
+                            name: 'ordering_facility_location_id', hidden: true
+                        },
+                        {
+                            name: 'approving_provider_contact_id', hidden: true
+                        },
+                        {
+                            name: 'study_rendering_provider_contact_id', hidden: true
+                        },
+                        {
+                            name: 'facility_rendering_provider_contact_id', hidden: true
+                        },
+                        {
+                            name: 'order_id', hidden: true
                         },
                         {
                             name: 'as_chk',
@@ -384,6 +418,7 @@ define(['jquery',
                 var isInvalidCensusType = false;
                 var checkedStudies = $("input:checkbox[name=chkCensus]:checked");
                 var $btnCreateClaim = $('#btnCreateClaim');
+                var enableStudiesGrouping = $('#chkCombineSamePatientStudies').is(':checked');
 
                 if(!checkedStudies || !checkedStudies.length){
                     return commonjs.showWarning('messages.warning.oneStudyRequired');
@@ -402,13 +437,35 @@ define(['jquery',
                         study_id: id,
                         patient_id: gridData.patient_id,
                         order_id: gridData.order_id,
-                        billing_type: censusType
+                        facility_id: gridData.facility_id,
+                        rendering_provider_contact_id: gridData.approving_provider_contact_id || gridData.study_rendering_provider_contact_id || gridData.facility_rendering_provider_contact_id || null,
+                        billing_type: censusType,
+                        study_date: commonjs.convertToFacilityTimeZone(gridData.facility_id, gridData.study_dt).format('MM-DD-YYYY'),
                     });
+                });
+
+                var groupedStudies = _.groupBy(selectStudies, function(studies) {
+                    return studies.patient_id + '_' + studies.facility_id + '_' + studies.study_date + '_' + studies.ordering_facility_contact_id + '_' + studies.rendering_provider_contact_id + '_' + studies.billing_type;
+                });
+
+                var censusList = _.map(groupedStudies, function(gs) {
+
+                    return {
+                        study_id: _.map(gs, 'study_id'),
+                        patient_id: gs[0].patient_id,
+                        order_id: _.map(gs, 'order_id'),
+                        facility_id: gs[0].facility_id,
+                        rendering_provider_contact_id: gs[0].rendering_provider_contact_id,
+                        ordering_facility_contact_id: gs[0].ordering_facility_contact_id,
+                        billing_type: gs[0].billing_type,
+                        study_date: gs[0].study_date,
+                    }
                 });
 
                 if (isInvalidCensusType) {
                     return commonjs.showWarning('messages.warning.validCensusType');
                 }
+
                 commonjs.showLoading();
                 $btnCreateClaim.prop('disabled', true);
 
@@ -416,13 +473,14 @@ define(['jquery',
                     url: '/exa_modules/billing/claim_workbench/claims/batch',
                     type: 'POST',
                     data: {
-                        studyDetails: JSON.stringify(selectStudies),
+                        studyDetails: JSON.stringify(censusList),
                         company_id: app.companyID,
                         customScreenName: 'Census',
                         isAllCensus: false,
                         isAllStudies: false,
+                        isStudiesGroupingEnabled: enableStudiesGrouping,
                         isMobileBillingEnabled: app.isMobileBillingEnabled,
-                        isMobileRadEnabled: app.settings.enableMobileRad
+                        isMobileRadEnabled: app.settings.enableMobileRad,
                     },
                     success: function (data) {
                         commonjs.hideLoading();
