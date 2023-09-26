@@ -75,6 +75,40 @@ module.exports = {
         ) st_trans ON TRUE
         LEFT JOIN LATERAL (
             SELECT
+                ppi.insurance_provider_id
+            FROM public.order_patient_insurances opi
+            INNER JOIN public.patient_insurances ppi ON ppi.id = opi.patient_insurance_id
+            WHERE
+                opi.order_id = ps.order_id
+            AND opi.coverage_level = 'primary'
+            AND (
+                ppi.valid_to_date >= ps.study_dt
+                OR ppi.valid_to_date IS NULL
+            )
+        ) order_ins ON TRUE
+        LEFT JOIN LATERAL (
+            SELECT
+                ppi.insurance_provider_id
+            FROM public.patient_insurances ppi
+            WHERE
+                ppi.patient_id = pp.id
+            AND ppi.coverage_level = 'primary'
+            AND (
+                ppi.valid_to_date >= ps.study_dt
+                OR ppi.valid_to_date IS NULL
+            )
+            ORDER BY ppi.id DESC
+            LIMIT 1
+        ) patient_ins ON TRUE
+        LEFT JOIN LATERAL (
+            SELECT
+                pip.id AS claim_insurance_provider_id
+            FROM public.insurance_providers pip
+            WHERE pip.id = COALESCE(order_ins.insurance_provider_id, patient_ins.insurance_provider_id)::BIGINT
+            AND pip.inactivated_dt IS NULL
+        ) ins_prov_details ON TRUE
+        LEFT JOIN LATERAL (
+            SELECT
                 bcs.id
             FROM billing.charges_studies bcs
             INNER JOIN billing.charges bc ON bc.id = bcs.charge_id
@@ -100,6 +134,7 @@ module.exports = {
                         NULLIF(pf.facility_info->'rendering_provider_id', '')::BIGINT AS facility_rendering_provider_contact_id,
                         ps.reading_physician_id AS study_rendering_provider_contact_id,
                         st_trans.approving_provider_id AS approving_provider_contact_id,
+                        ins_prov_details.claim_insurance_provider_id,
                         ps.study_description,
                         ps.dicom_status,
                         ps.study_dt,
