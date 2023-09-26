@@ -34,6 +34,7 @@ define(['jquery',
                 '',
                 '',
                 '',
+                '',
                 'billing.payments.orderingFacilityLocation',
                 'billing.payments.mrn',
                 'shared.fields.accessionNumber',
@@ -193,7 +194,7 @@ define(['jquery',
                     gridelementid: '#tblGridCensus',
                     emptyMessage: commonjs.geti18NString("messages.status.noRecordFound"),
                     custompager: new Pager(),
-                    colNames: ['', '', '', '', '', '', '', '', '<input type="checkbox" id="chkAllCensus"  onclick="commonjs.checkMultipleCensus(event)" />', '', '','', '', '', '', ''],
+                    colNames: ['', '', '', '', '', '', '', '', '', '<input type="checkbox" id="chkAllCensus"  onclick="commonjs.checkMultipleCensus(event)" />', '', '','', '', '', '', ''],
                     i18nNames: self.gridI18nText,
                     colModel: [
                         {
@@ -216,6 +217,9 @@ define(['jquery',
                         },
                         {
                             name: 'facility_rendering_provider_contact_id', hidden: true
+                        },
+                        {
+                            name: 'claim_insurance_provider_id', hidden: true
                         },
                         {
                             name: 'order_id', hidden: true
@@ -439,13 +443,15 @@ define(['jquery',
                         order_id: gridData.order_id,
                         facility_id: gridData.facility_id,
                         rendering_provider_contact_id: gridData.approving_provider_contact_id || gridData.study_rendering_provider_contact_id || gridData.facility_rendering_provider_contact_id || null,
+                        ordering_facility_contact_id: gridData.ordering_facility_location_id || null,
                         billing_type: censusType,
+                        insurance_provider_id: gridData.claim_insurance_provider_id || null,
                         study_date: commonjs.convertToFacilityTimeZone(gridData.facility_id, gridData.study_dt).format('MM-DD-YYYY'),
                     });
                 });
 
                 var groupedStudies = _.groupBy(selectStudies, function(studies) {
-                    return studies.patient_id + '_' + studies.facility_id + '_' + studies.study_date + '_' + studies.ordering_facility_contact_id + '_' + studies.rendering_provider_contact_id + '_' + studies.billing_type;
+                    return studies.patient_id + '_' + studies.facility_id + '_' + studies.study_date + '_' + studies.ordering_facility_contact_id + '_' + studies.rendering_provider_contact_id + '_'  + studies.insurance_provider_id + '_' + studies.billing_type;
                 });
 
                 var censusList = _.map(groupedStudies, function(gs) {
@@ -457,6 +463,7 @@ define(['jquery',
                         facility_id: gs[0].facility_id,
                         rendering_provider_contact_id: gs[0].rendering_provider_contact_id,
                         ordering_facility_contact_id: gs[0].ordering_facility_contact_id,
+                        insurance_provider_id: gs[0].insurance_provider_id,
                         billing_type: gs[0].billing_type,
                         study_date: gs[0].study_date,
                     }

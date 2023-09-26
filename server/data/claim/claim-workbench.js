@@ -676,7 +676,7 @@ module.exports = {
                            batch_claim_details bcd
                         LEFT JOIN LATERAL (
                             SELECT *
-                            FROM billing.get_batch_claim_details(bcd.study_id, ${params.created_by}, bcd.patient_id, bcd.order_id, bcd.billing_type, ${isMobileBillingEnabled}, ${isStudiesGroupingEnabled}, ${is_us_billing})
+                            FROM billing.get_batch_claim_details(bcd.study_id, ${params.created_by}, bcd.patient_id, bcd.order_id, bcd.billing_type, ${isMobileBillingEnabled}, ${is_us_billing}, ${isStudiesGroupingEnabled})
                         ) d ON true
                       )
                       SELECT `

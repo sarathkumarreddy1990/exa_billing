@@ -663,7 +663,7 @@ module.exports = {
         let errorData;
 
         let hasValidClaims = isStudiesGroupingEnabled
-            ? parseInt(row.charges_count) > 0
+            ? row.charges_count > 0
             : studyDetails?.length === parseInt(row.charges_count);
 
 
