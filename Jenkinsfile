@@ -93,7 +93,7 @@ else {
   ])
 }
 
-node('exa-windows-builder') {
+node('exa-windows-node-14.x') {
   if(env.VERSION_CHOICE && env.VERSION_CHOICE == "default" &&
      !env.VERSION_PASSEDIN.trim()) {
     println "For testing only!"
