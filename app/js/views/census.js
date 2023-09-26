@@ -466,7 +466,7 @@ define(['jquery',
                         isAllStudies: false,
                         isStudiesGroupingEnabled: enableStudiesGrouping,
                         isMobileBillingEnabled: app.isMobileBillingEnabled,
-                        isMobileRadEnabled: app.settings.enableMobileRad,
+                        isMobileRadEnabled: app.settings.enableMobileRad
                     },
                     success: function (data) {
                         commonjs.hideLoading();
