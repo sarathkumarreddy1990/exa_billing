@@ -601,8 +601,6 @@ module.exports = {
     validateBatchClaims: async (params) => {
         let {
             studyDetails,
-            isMobileBillingEnabled,
-            is_us_billing,
             isStudiesGroupingEnabled = false,
         } = params;
 

@@ -194,7 +194,7 @@ define(['jquery',
                     gridelementid: '#tblGridCensus',
                     emptyMessage: commonjs.geti18NString("messages.status.noRecordFound"),
                     custompager: new Pager(),
-                    colNames: ['', '', '', '', '', '', '', '', '', '<input type="checkbox" id="chkAllCensus"  onclick="commonjs.checkMultipleCensus(event)" />', '', '','', '', '', '', ''],
+                    colNames: ['', '', '', '', '', '', '', '', '', '<input type="checkbox" id="chkAllCensus"  onclick="commonjs.checkMultipleCensus(event)" />', '', '', '', '', '', '', ''],
                     i18nNames: self.gridI18nText,
                     colModel: [
                         {
