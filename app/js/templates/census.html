@@ -38,13 +38,17 @@
                 </div>
             </div>
             <div class="col-lg-6 display-flex">
-                <div class="col-lg-6">
+                <div class="col-lg-4">
                     <button class="btn btn-primary hideProp" id="btnClearAllCensus"></button>
                     <button class="btn btn-primary hideProp" id="btnSelectAllCensus"></button>
                     <button type="button" class="btn btn-primary position-absolute btm-0-lft-0" id="btnSaveNotes" i18n="shared.buttons.saveNotes"></button>
                 </div>
-                <div class="col-lg-6">
+                <div class="col-lg-8">
                     <div class="col-md-12 text-right btm-0-rgt-15 position-absolute">
+                        <div class="form-check form-check-inline ml-2">
+                            <label class="col-form-label form-check-label pr-3" for="chkCombineSamePatientStudies" i18n="shared.fields.combineSamePatientStudies"></label>
+                            <input class="col-form-content form-check-input" type="checkbox" id="chkCombineSamePatientStudies" name="Combine studies for same patient" checked>
+                        </div>
                         <span class="btn btn-primary ml-2" id="btnValidateExportCensus">
                             <i i18nt="shared.fields.export" class="fa fa-download"></i>
                         </span>

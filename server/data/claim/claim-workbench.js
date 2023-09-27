@@ -645,7 +645,8 @@ module.exports = {
             is_alberta_billing,
             is_ohip_billing,
             is_us_billing,
-            isMobileBillingEnabled
+            isMobileBillingEnabled,
+            isStudiesGroupingEnabled
         } = params;
         let createClaimFunction = 'billing.create_claim_charge';
 
@@ -658,13 +659,15 @@ module.exports = {
         const sql = SQL`
                     WITH batch_claim_details AS (
                         SELECT
-                            patient_id, study_id, order_id, billing_type
+                            patient_id,
+                            study_id,
+                            order_id,
+                            billing_type
                         FROM
-                            json_to_recordset(${studyDetails}) AS study_ids
-                            (
+                            json_to_recordset(${studyDetails}) AS study_ids(
                                 patient_id bigint,
-                                study_id bigint,
-                                order_id bigint,
+                                study_id bigint[],
+                                order_id bigint[],
                                 billing_type text
                             )
                     ), details AS (
@@ -673,7 +676,7 @@ module.exports = {
                            batch_claim_details bcd
                         LEFT JOIN LATERAL (
                             SELECT *
-                            FROM billing.get_batch_claim_details(bcd.study_id, ${params.created_by}, bcd.patient_id, bcd.order_id, bcd.billing_type, ${isMobileBillingEnabled}, ${is_us_billing})
+                            FROM billing.get_batch_claim_details(bcd.study_id, ${params.created_by}, bcd.patient_id, bcd.order_id, bcd.billing_type, ${isMobileBillingEnabled}, ${is_us_billing}, ${isStudiesGroupingEnabled})
                         ) d ON true
                       )
                       SELECT `
@@ -794,11 +797,11 @@ module.exports = {
         const sql = SQL`
                     WITH batch_claim_details AS (
                         SELECT
-                             study_id
+                            UNNEST(study_id) AS study_id
                         FROM
                             json_to_recordset(${study_data}) AS study_ids
                             (
-                                study_id bigint
+                                study_id bigint[]
                             )
                     )
                     SELECT
