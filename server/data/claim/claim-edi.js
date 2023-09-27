@@ -778,6 +778,7 @@ module.exports = {
                                             SELECT
                                                 claims.id AS "claimNumber"
                                                 , order_details.study_id IS NOT NULL AS "hasStudyReference"
+                                                , insurance_split_details.is_primary_ins_split_enabled AS "isInsuranceSplitEnabled"
                                                 , bdr.code AS "delayReasonCode"
                                                 , order_details.order_id AS "orderId"
                                                 , frequency AS "claimFrequencyCode"
@@ -1340,6 +1341,15 @@ module.exports = {
                 WHERE
                     pi.id IN (claim_ins.primary_patient_insurance_id, claim_ins.secondary_patient_insurance_id)
             ) ins_details ON TRUE
+            LEFT JOIN LATERAL (
+                SELECT
+                    ipd.is_split_claim_enabled AS is_primary_ins_split_enabled
+                FROM patient_insurances pi
+                LEFT JOIN insurance_providers ip ON ip.id = pi.insurance_provider_id
+                LEFT JOIN billing.insurance_provider_details ipd ON ipd.insurance_provider_id = ip.id
+                WHERE
+                    pi.id = claim_ins.primary_patient_insurance_id
+            ) AS insurance_split_details ON TRUE
             LEFT JOIN LATERAL (
                 SELECT
                     bpr.id AS billing_provider_id

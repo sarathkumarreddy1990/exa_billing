@@ -456,7 +456,7 @@ function formatRedForm(claimData, servicelineList, pageBrk) {
     serviceFacNPI = serviceFac && serviceFac.NPINO || "";
     pos = claimDet && claimDet.POS || "";
     billType = claimDet && claimDet.billingType || "";
-    isInsuranceSplitEnabled = subscriberDet && subscriberDet.isSplitClaimEnabled || false;
+    isInsuranceSplitEnabled = claimDet && claimDet.isInsuranceSplitEnabled || false;
     hasProfessionalModifier = servicelineList.some(charge => [charge.mod1, charge.mod2, charge.mod3, charge.mod4].includes('26'));
     isSplitClaim = ['split', 'split_p'].includes(billType) || (billType === 'global' && isInsuranceSplitEnabled);
     isMobileBillingEnabled = claimData.is_mobile_billing_enabled || false;
