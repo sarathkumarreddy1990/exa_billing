@@ -493,7 +493,6 @@ module.exports = {
     },
 
     createPaymentFromERA: async function (params, eraResponseJson) {
-
         let paymentResult;
         let payerDetails = JSON.parse(params.payer_details);
 
@@ -528,7 +527,7 @@ module.exports = {
         payerDetails.isERAPayment = true;
         payerDetails.file_id = params.file_id;
 
-        paymentResult = await paymentController.createOrUpdatePayment(payerDetails);
+        paymentResult = await paymentController.createPayment(payerDetails);
         paymentResult = paymentResult && paymentResult.rows && paymentResult.rows.length ? paymentResult.rows[0] : {};
         paymentResult.file_id = params.file_id;
         paymentResult.created_by = payerDetails.created_by;
@@ -656,7 +655,7 @@ module.exports = {
         payerDetails.isERAPayment = true;
         payerDetails.file_id = 0; // ToDo:: uploaded ERA file id
 
-        paymentResult = await paymentController.createOrUpdatePayment(payerDetails);
+        paymentResult = await paymentController.createPayment(payerDetails);
         paymentResult = paymentResult && paymentResult.rows && paymentResult.rows.length ? paymentResult.rows[0] : {};
         paymentResult.file_id =  payerDetails.file_id; // imported ERA file id
         paymentResult.created_by = payerDetails.created_by;
