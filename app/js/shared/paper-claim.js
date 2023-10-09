@@ -194,7 +194,7 @@ define([
                 var dd = null;
 
                 try {
-                    eval(template, claimData);
+                    eval(template, claimData); // claimData parameter is only here to prevent no_unused-vars lint error
                 } catch (err) { console.log(err); }
 
                 if (!dd || typeof dd !== 'object') {
