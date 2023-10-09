@@ -188,13 +188,13 @@ define([
                 this.pdfWorker.postMessage(docDefinition);
             };
 
-            this.mergeTemplate = function (templateType, template) {
+            this.mergeTemplate = function (templateType, template, claimData) {
                 template = template.template_content;
 
                 var dd = null;
 
                 try {
-                    eval(template);
+                    eval(template, claimData); // claimData parameter is only here to prevent no_unused-vars lint error
                 } catch (err) { console.log(err); }
 
                 if (!dd || typeof dd !== 'object') {
