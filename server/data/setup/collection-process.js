@@ -421,35 +421,37 @@ const acr = {
                     ) AS last_patient_statement ON TRUE
                     LEFT JOIN LATERAL (
                         SELECT
-                            timezone(get_facility_tz(c.facility_id::integer), MAX(applied_dt))::DATE AS last_payment_dt
+                            timezone(get_facility_tz(c.facility_id::integer), MAX(applied_dt))::DATE AS last_pat_payment_dt
                         FROM billing.charges AS ch
                         INNER JOIN billing.payment_applications AS pa ON pa.charge_id = ch.id
+                        INNER JOIN billing.payments bp ON bp.id = pa.payment_id
                         WHERE ch.claim_id = c.id
                         AND pa.amount != 0::money
+                        AND bp.payer_type = 'patient' -- consider only patient payments for last patient payment applied for the claim.
                     ) AS payment_details ON TRUE `;
 
         if (acr_claim_status_statement_count && acr_claim_status_statement_days && acr_claim_status_last_payment_days) {
             sql.append(`WHERE
                 NOT ( CASE
-                        WHEN  payment_details.last_payment_dt IS NULL AND last_patient_statement.created_dt IS NULL THEN TRUE
-                        WHEN  payment_details.last_payment_dt IS NOT NULL THEN
+                        WHEN  payment_details.last_pat_payment_dt IS NULL AND last_patient_statement.created_dt IS NULL THEN TRUE
+                        WHEN  payment_details.last_pat_payment_dt IS NOT NULL THEN
                             CASE
                                 WHEN
                                 (
-                                   last_patient_statement.created_dt IS NOT NULL AND ( payment_details.last_payment_dt BETWEEN (last_patient_statement.created_dt) AND (last_patient_statement.created_dt + interval '${acr_claim_status_statement_days} days')::DATE )
+                                   last_patient_statement.created_dt IS NOT NULL AND ( payment_details.last_pat_payment_dt BETWEEN (last_patient_statement.created_dt) AND (last_patient_statement.created_dt + interval '${acr_claim_status_statement_days} days')::DATE )
                                 ) OR
                                 (
                                    last_patient_statement.created_dt IS NOT NULL AND ( last_patient_statement.created_dt + interval '${acr_claim_status_statement_days} days')::DATE > timezone(get_facility_tz(c.facility_id::integer), now())::DATE
                                 ) THEN
                                    CASE
-                                    WHEN (payment_details.last_payment_dt + interval '${acr_claim_status_last_payment_days} days')::DATE > timezone(get_facility_tz(c.facility_id::integer), now())::DATE
+                                    WHEN (payment_details.last_pat_payment_dt + interval '${acr_claim_status_last_payment_days} days')::DATE > timezone(get_facility_tz(c.facility_id::integer), now())::DATE
                                         THEN TRUE
                                     ELSE FALSE
                                    END
-                                WHEN (payment_details.last_payment_dt + interval '${acr_claim_status_last_payment_days} days')::DATE > timezone(get_facility_tz(c.facility_id::integer), now())::DATE THEN TRUE
+                                WHEN (payment_details.last_pat_payment_dt + interval '${acr_claim_status_last_payment_days} days')::DATE > timezone(get_facility_tz(c.facility_id::integer), now())::DATE THEN TRUE
                                 ELSE FALSE
                             END
-                        WHEN  payment_details.last_payment_dt IS NULL AND last_patient_statement.created_dt IS NOT NULL AND
+                        WHEN  payment_details.last_pat_payment_dt IS NULL AND last_patient_statement.created_dt IS NOT NULL AND
                             (last_patient_statement.created_dt + interval '${acr_claim_status_statement_days} days')::DATE > timezone(get_facility_tz(c.facility_id::integer), now())::DATE THEN TRUE
                         ELSE FALSE
                     END
@@ -458,11 +460,11 @@ const acr = {
             sql.append(`WHERE
                 last_patient_statement.created_dt IS NOT NULL AND
                 NOT ( CASE
-                        WHEN  payment_details.last_payment_dt IS NULL THEN
+                        WHEN  payment_details.last_pat_payment_dt IS NULL THEN
                             (last_patient_statement.created_dt + interval '${acr_claim_status_statement_days} days')::DATE > timezone(get_facility_tz(c.facility_id::integer), now())::DATE
-                        WHEN  payment_details.last_payment_dt IS NOT NULL THEN
+                        WHEN  payment_details.last_pat_payment_dt IS NOT NULL THEN
                             CASE
-                                WHEN (payment_details.last_payment_dt
+                                WHEN (payment_details.last_pat_payment_dt
                                    BETWEEN (last_patient_statement.created_dt) AND (last_patient_statement.created_dt + interval '${acr_claim_status_statement_days} days')::DATE)
                                      THEN TRUE
                                 WHEN (last_patient_statement.created_dt + interval '${acr_claim_status_statement_days} days')::DATE > timezone(get_facility_tz(c.facility_id::integer), now())::DATE THEN TRUE
@@ -473,10 +475,10 @@ const acr = {
         } else {
             sql.append(`WHERE
                 NOT ( CASE
-                        WHEN  payment_details.last_payment_dt IS NULL THEN TRUE
-                        WHEN  payment_details.last_payment_dt IS NOT NULL THEN
+                        WHEN  payment_details.last_pat_payment_dt IS NULL THEN TRUE
+                        WHEN  payment_details.last_pat_payment_dt IS NOT NULL THEN
                             CASE
-                                WHEN (payment_details.last_payment_dt + interval '${acr_claim_status_last_payment_days} days')::DATE > timezone(get_facility_tz(c.facility_id::integer), now())::DATE
+                                WHEN (payment_details.last_pat_payment_dt + interval '${acr_claim_status_last_payment_days} days')::DATE > timezone(get_facility_tz(c.facility_id::integer), now())::DATE
                                    THEN TRUE
                                 ELSE FALSE
                             END
@@ -537,6 +539,7 @@ const acr = {
                         billing.claims
 		            INNER JOIN claim_payment_lists cpl ON cpl.claim_id = claims.id
                     INNER JOIN patients p ON p.id = claims.patient_id
+                    WHERE claims.payer_type = 'patient' -- consider the claims those are only patient responsible for moving to ACR
                     GROUP BY p.id
                     HAVING sum(cpl.claim_balance_total) >= ${acr_min_balance_amount}::money
                     ORDER BY p.id DESC
