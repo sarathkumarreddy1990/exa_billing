@@ -18,7 +18,7 @@ def getBuildJob(final String jobName) {
 def getAllBuildNumbers(Job job) {
   // "default" is used when this job is auto-triggered by the VersionMgr jobs
   // and will be handled as a no-op.
-  def buildNumbers = []
+  def buildNumbers = [env.BRANCH_NAME]
   (job.getBuilds()).each {
     def status = it.getBuildStatusSummary().message
     if ((status.contains("stable") || status.contains("normal")) &&
@@ -28,7 +28,6 @@ def getAllBuildNumbers(Job job) {
   }
   // "default" is used when this job is auto-triggered by the VersionMgr jobs
   // and will be handled as a no-op.
-  buildNumbers.add(env.BRANCH_NAME)
   buildNumbers.add("default")
   return buildNumbers
 }
@@ -40,7 +39,7 @@ BUILD_JOB_NAME = null
 boolean extendedProperties = false
 final String branch = env.BRANCH_NAME.replaceAll("/", "%2F")
 if(branch.contains("release")) {
-  BUILD_JOB_NAME = "EXA-Platform/VersionMgr/manage-version/$branch"
+  BUILD_JOB_NAME = "EXA-Platform/VersionMgr/exa-platform-version-builder/$branch"
   buildJob = getBuildJob(BUILD_JOB_NAME)
   if (buildJob) {
     buildNumbers = getAllBuildNumbers(buildJob)
