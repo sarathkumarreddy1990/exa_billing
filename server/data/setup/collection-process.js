@@ -433,7 +433,7 @@ const acr = {
         if (acr_claim_status_statement_count && acr_claim_status_statement_days && acr_claim_status_last_payment_days) {
             sql.append(`WHERE
                 NOT ( CASE
-                        WHEN  payment_details.last_pat_payment_dt IS NULL AND last_patient_statement.created_dt IS NULL THEN TRUE
+                        WHEN  payment_details.last_pat_payment_dt IS NULL AND last_patient_statement.created_dt IS NULL THEN FALSE
                         WHEN  payment_details.last_pat_payment_dt IS NOT NULL THEN
                             CASE
                                 WHEN
@@ -475,7 +475,7 @@ const acr = {
         } else {
             sql.append(`WHERE
                 NOT ( CASE
-                        WHEN  payment_details.last_pat_payment_dt IS NULL THEN TRUE
+                        WHEN  payment_details.last_pat_payment_dt IS NULL THEN FALSE
                         WHEN  payment_details.last_pat_payment_dt IS NOT NULL THEN
                             CASE
                                 WHEN (payment_details.last_pat_payment_dt + interval '${acr_claim_status_last_payment_days} days')::DATE > timezone(get_facility_tz(c.facility_id::integer), now())::DATE
