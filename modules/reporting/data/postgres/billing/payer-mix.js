@@ -48,7 +48,7 @@ WITH payerMixDetails AS (
         display_code AS "<%= codeHeader %>",
         insurance_code AS "Insurance Code",
         insurance_name AS "Insurance Name",
-        COALESCE(facility_name,' ─ ─ Total ─ ─ ') AS "Facility Name",
+        COALESCE(facility_name,'-- Total --') AS "Facility Name",
         claim_date AS "Claim Date",
         bill_fee AS "Bill Fee",
         claim_count AS "Claim Count"
@@ -59,7 +59,7 @@ WITH payerMixDetails AS (
         null::TEXT AS "<%= codeHeader %>",
         null::TEXT AS "Insurance Code",
         null::TEXT AS "Insurance Name",
-        '─ GRAND TOTAL ─'::TEXT AS "Facility Name",
+        '-- GRAND TOTAL --'::TEXT AS "Facility Name",
         null::TEXT AS "Claim Date",
         SUM(bill_fee) AS "Bill Fee",
         SUM(claim_count) AS "Claim Count"
