@@ -201,7 +201,7 @@ patient_payment AS(
 ( SELECT
     provider_type  AS "Ins Class"
     , CASE WHEN agg_claim.claim_id > 0 OR agg_claim.facility_id > 0 THEN agg_claim.facility_name
-           ELSE ' ─ Total ─ '
+           ELSE '-- Total --'
       END AS "Service Facility"
     , SUM(charge_details.total_bill_fee) AS "Charges"
     , SUM(COALESCE(pri_ins_payment.pri_adjustment,0::money)) AS "Adjustments"
@@ -235,7 +235,7 @@ ORDER BY
     UNION ALL
         SELECT
             null::TEXT  AS "Ins Class"
-        ,   '─ GRAND TOTAL ─'::TEXT AS "Service Facility"
+        ,   '-- GRAND TOTAL --'::TEXT AS "Service Facility"
     ,    SUM(charge_details.total_bill_fee) AS "Charges"
     , SUM(COALESCE(pri_ins_payment.pri_adjustment,0::money)) AS "Adjustments"
     , SUM(agg_claim.claim_balance) AS "Balance"
