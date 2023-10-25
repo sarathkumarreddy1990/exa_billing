@@ -54,7 +54,7 @@ const readingProviderFeesDataSetQueryTemplate = _.template(`
                 COALESCE(rpf.group_name, '- No Group Assigned -' )
             ELSE ''
             END AS "Group Name"
-        , COALESCE(rpf.display_code, '─ TOTAL ─'::TEXT ) AS "<%= codeHeader %>"
+        , COALESCE(rpf.display_code, '-- TOTAL --'::TEXT ) AS "<%= codeHeader %>"
         , COALESCE(rpf.display_description,'---') AS "Description"
         , claim_dt AS "Claim Date"
         , rpf.payer_name AS "Payer Name"
@@ -84,7 +84,7 @@ const readingProviderFeesDataSetQueryTemplate = _.template(`
     SELECT
     NULL AS "Claim ID",
     NULL AS "Group_name",
-    '─ GRAND TOTAL ─'::TEXT AS "CPT Code"
+    '-- GRAND TOTAL --'::TEXT AS "CPT Code"
     , NULL AS "Description"
     , '---' AS "Claim Date"
     , NULL AS "Payer Name"
