@@ -436,6 +436,11 @@ const api = {
         initialReportData.report.styles.cssStyleSSN = initialReportData.report.vars.columnHidden.ssn[initialReportData.report.params.country_alpha_3_code] ? "display: none" : "";
         initialReportData.report.styles.cssStyleExpiration = initialReportData.report.vars.columnHidden.expiration[initialReportData.report.params.country_alpha_3_code] ? "display: none" : "";
         initialReportData.filters = api.createReportFilters(initialReportData);
+
+        initialReportData.report.params.workedByAll = initialReportData.report.params.workedByAll === 'true';
+        initialReportData.report.params.isFacilityChk = initialReportData.report.params.isFacilityChk === 'true';
+        initialReportData.report.params.isBillingProChk = initialReportData.report.params.isBillingProChk === 'true';
+
         if (initialReportData.report.params.userIds && initialReportData.report.params.userIds.length > 0) {
             initialReportData.report.params.userIds = initialReportData.report.params.userIds.map(Number);
         }
@@ -664,18 +669,27 @@ const api = {
         const params = initialReportData.report.params;
         const filtersUsed = [];
         filtersUsed.push({ name: 'company', label: 'Company', value: lookups.company.name });
-        if (params.allFacilities && (params.facilityIds && params.facilityIds.length < 0))
-            filtersUsed.push({ name: 'facilities', label: 'Facilities', value: 'All' });
-        else {
-            const facilityNames = _(lookups.facilities).filter(f => params.facilityIds && params.facilityIds.indexOf(f.id) > -1).map(f => f.name).value();
-            filtersUsed.push({ name: 'facilities', label: 'Facilities', value: facilityNames });
-        }
-        // // Billing provider Filter
-        if (params.allBillingProvider == 'true')
-            filtersUsed.push({ name: 'billingProviderInfo', label: 'Billing Provider', value: 'All' });
-        else {
-            const billingProviderInfo = _(lookups.billingProviderInfo).map(f => f.name).value();
-            filtersUsed.push({ name: 'billingProviderInfo', label: 'Billing Provider', value: billingProviderInfo });
+
+        if (!params.workedByAll) {
+            if (params.isFacilityChk) {
+                // Facilities
+                if (params.allFacilities && (params.facilityIds && params.facilityIds.length < 0))
+                    filtersUsed.push({ name: 'facilities', label: 'Facilities', value: 'All' });
+                else {
+                    const facilityNames = _(lookups.facilities).filter(f => params.facilityIds && params.facilityIds.indexOf(f.id) > -1).map(f => f.name).value();
+                    filtersUsed.push({ name: 'facilities', label: 'Facilities', value: facilityNames });
+                }
+            }
+
+            if (params.isBillingProChk) {
+                // Billing provider Filter
+                if (params.allBillingProvider == 'true')
+                    filtersUsed.push({ name: 'billingProviderInfo', label: 'Billing Provider', value: 'All' });
+                else {
+                    const billingProviderInfo = _(lookups.billingProviderInfo).map(f => f.name).value();
+                    filtersUsed.push({ name: 'billingProviderInfo', label: 'Billing Provider', value: billingProviderInfo });
+                }
+            }
         }
 
         if (params.fromDate != '' && params.toDate != '') {
@@ -687,23 +701,28 @@ const api = {
             filtersUsed.push({ name: 'FromPayDate', label: 'Comment Date From', value: moment(params.cmtFromDate).format(params.dateFormat) });
             filtersUsed.push({ name: 'ToPayDate', label: 'Comment Date To', value: moment(params.cmtToDate).format(params.dateFormat) });
         }
+
         if (params.billCreatedDateFrom != '' && params.billCreatedDateTo != '') {
             filtersUsed.push({ name: 'FromBillCreated', label: 'Bill Created From', value: moment(params.billCreatedDateFrom).format(params.dateFormat) });
             filtersUsed.push({ name: 'ToBillCreated', label: 'Bill Created To', value: moment(params.billCreatedDateTo).format(params.dateFormat) });
         }
+
         if (params.userIds && params.userIds.length > 0) {
             filtersUsed.push({ name: 'users', label: 'Users', value: params.userName });
         }
         else {
             filtersUsed.push({ name: 'users', label: 'Users', value: 'All' });
         }
-        //Referring Physician Info
+
+        // Referring Physician Info
         if (params.referringProIds) {
             const referringPhysicianInfo = _(lookups.referringPhyInfo).map(f => f.name).value();
             filtersUsed.push({ name: 'referringPhysicianInfo', label: 'Referring Provider', value: referringPhysicianInfo });
         }
-        else
+        else {
             filtersUsed.push({ name: 'referringPhysicianInfo', label: 'Referring Provider', value: 'All' });
+        }
+
         return filtersUsed;
     },
     // ================================================================================================================
