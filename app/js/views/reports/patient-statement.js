@@ -82,7 +82,7 @@ define([
                 UI.bindPatient('txtPatient', this.usermessage.selectPatient, 'btnAddPatient', 'ulListPatients');
 
                 $('#ddlPatientOption')
-                .append('<option value="All">' + commonjs.geti18NString('shared.buttons.all'))
+                .append('<option value="All">' + commonjs.geti18NString('shared.fields.all'))
                 .append('<option value="S">' + commonjs.geti18NString('shared.fields.select'))
                 .append('<option value="R">' + commonjs.geti18NString('shared.fields.rangeByPatientName'));
 
