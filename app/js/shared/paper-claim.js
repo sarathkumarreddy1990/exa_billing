@@ -193,6 +193,10 @@ define([
 
                 var dd = null;
 
+                if (templateType === 'direct_invoice' || templateType === 'patient_invoice') {
+                    claimData = claimData[0];
+                }
+
                 try {
                     eval(template, claimData); // claimData parameter is only here to prevent no_unused-vars lint error
                 } catch (err) { console.log(err); }
