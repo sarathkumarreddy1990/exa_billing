@@ -298,6 +298,8 @@ define([
                 });
 
                 return urlParams = {
+                    isFacilityChk: $('#facilityChk').prop('checked'),
+                    isBillingProChk: $('#billingProChk').prop('checked'),
                     'dateFormat': this.viewModel.dateFormat,
                     'country_alpha_3_code': this.viewModel.country_alpha_3_code,
                     'allFacilities': this.viewModel.allFacilities,
