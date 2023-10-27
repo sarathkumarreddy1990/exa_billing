@@ -40,6 +40,7 @@ module.exports = {
         "base64": true,
         "tinymce": true,
         "fastdom": true,
+        "layout": true,
 
 
         // jqgrid vars defined in commonjs

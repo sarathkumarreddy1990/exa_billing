@@ -2614,26 +2614,18 @@ var commonjs = {
                 $('#' + gridId).setGridWidth(gridParentWidth);
             });
         }
-        //fix div.ui-jqgrid-bdiv width to proper size
-        //fix width for iconNav menu
+
         if ($('#viztekIconNav').is(':visible')) {
             if (!$('nav.viztek-nav').hasClass('open')) {
                 $('nav.viztek-nav').addClass('open');
             }
-            //$('#body_content').width($(window).width() - $('#viztekIconNav').outerWidth());
-            //$('#body_content').css('width', 'calc(100% - 50px)');
         }
-        /*else{
-         $('#body_content').removeAttr('Style');
-         }*/
-
     },
 
     resizeIconMenu: function () {
         var icon_panel = $('#viztekIconNav');
         var _d_height = window.innerHeight || document.documentElement.clientHeight || document.body.clientHeight || 0;
         icon_panel.css('height', _d_height);
-        //$('#viztekIconNav').css('height','100%');
     },
 
     resizeHomeScreen: function (retryCount) {
