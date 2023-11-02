@@ -128,11 +128,11 @@ define([
                 var self = this;
                 var drpEl = $('#txtDateRangeFromTo');
                 var drpOptions = { autoUpdateInput: false, locale: { format: 'L' } };
-                this.drpStudyDt = commonjs.bindDateRangePicker(drpEl, drpOptions, 'past', function (start, format) {
+                this.drpStudyDt = commonjs.bindDateRangePicker(drpEl, drpOptions, 'past', function (start) {
                     self.viewModel.dateFrom = start;
                     //  self.viewModel.dateTo = end;
                 });
-                drpEl.on('cancel.daterangepicker', function (ev, drp) {
+                drpEl.on('cancel.daterangepicker', function () {
                     self.viewModel.dateFrom = null;
                     //   self.viewModel.dateTo = null;
                 });
@@ -155,7 +155,7 @@ define([
                 return true;
             },
 
-            getSelectedFacility: function (e) {
+            getSelectedFacility: function () {
                 var selected = $("#ddlFacilityFilter option:selected");
                 var facilities = [];
                 selected.each(function () {
@@ -166,7 +166,7 @@ define([
             },
 
             // multi select billing provider - worked
-            getBillingProvider: function (e) {
+            getBillingProvider: function () {
                 var billing_pro = []
                 var selected = $("#ddlBillingProvider option:selected");
                 selected.each(function () {
@@ -209,7 +209,7 @@ define([
             },
 
             // multi select insurance provider
-            chkInsGroup: function (e) {
+            chkInsGroup: function () {
                 var ins_group = []
                 $('#insuranceGroupListBoxs input[type="checkbox"]').each(function () {
                     if ($(this).prop('checked')) {

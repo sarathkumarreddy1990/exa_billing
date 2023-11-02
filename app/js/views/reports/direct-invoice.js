@@ -53,7 +53,7 @@ define([
             },
 
             render: function () {
-                var modelCollection = Backbone.Collection.extend({
+                Backbone.Collection.extend({
                     model: Backbone.Model.extend({})
                 });
 
@@ -87,7 +87,7 @@ define([
                 UI.showReport(options);
             },
 
-            getSelectedFacility: function (e) {
+            getSelectedFacility: function () {
                 var selected = $("#ddlFacilityFilter option:selected");
                 var facilities = [];
                 selected.each(function () {
@@ -98,7 +98,7 @@ define([
             },
 
             // multi select billing provider - worked
-            getBillingProvider: function (e) {
+            getBillingProvider: function () {
                 var billing_pro = []
                 var selected = $("#ddlBillingProvider option:selected");
                 selected.each(function () {
@@ -114,7 +114,7 @@ define([
                     usersArray.push(~~$(this).attr('data-id'));
                     userNameArray.push($(this).closest('li').find('span').text());
                 });
-                return urlParams = {
+                return {
                     'facilityIds': this.selectedFacilityList ? this.selectedFacilityList : [],
                     'allFacilities': this.viewModel.allFacilities ? this.viewModel.allFacilities : '',
                     'sDate': '2018-06-23'

@@ -101,11 +101,11 @@ define([
                 var self = this;
                 var drpEl = $('#txtDateRangeFromTo');
                 var drpOptions = { autoUpdateInput: true, locale: { format: this.viewModel.dateFormat } };
-                this.drpStudyDt = commonjs.bindDateRangePicker(drpEl, drpOptions, 'past', function (start, end, format) {
+                this.drpStudyDt = commonjs.bindDateRangePicker(drpEl, drpOptions, 'past', function (start, end) {
                     self.viewModel.dateFrom = start;
                     self.viewModel.dateTo = end;
                 });
-                drpEl.on('cancel.daterangepicker', function (ev, drp) {
+                drpEl.on('cancel.daterangepicker', function () {
                     self.viewModel.dateFrom = null;
                     self.viewModel.dateTo = null;
                 });
@@ -165,7 +165,7 @@ define([
             },
 
             // multi select facilities - worked
-            getSelectedFacility: function (e) {
+            getSelectedFacility: function () {
                 var selected = $("#ddlFacilityFilter option:selected");
                 var facilities = [];
                 selected.each(function () {
@@ -176,7 +176,7 @@ define([
             },
 
             // multi select billing provider - worked
-            getBillingProvider: function (e) {
+            getBillingProvider: function () {
                 var billing_pro = []
                 var selected = $("#ddlBillingProvider option:selected");
                 selected.each(function () {
@@ -209,7 +209,7 @@ define([
             },
 
             getReportParams: function () {
-                return urlParams = {
+                return {
                     'dateFormat': this.viewModel.dateFormat,
                     'country_alpha_3_code': this.viewModel.country_alpha_3_code,
                     'facilityIds': this.selectedFacilityList || [],

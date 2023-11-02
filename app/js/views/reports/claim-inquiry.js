@@ -40,8 +40,6 @@ define([
                 referringDoctoreOption: null,
                 insuranceIds: null,
                 insuranceGroupIds: null,
-                userIds: null,
-                userNames: null,
                 refPhyId: null,
                 refProName: null,
                 referringProIds: null,
@@ -174,33 +172,33 @@ define([
 
                 //   Service date (Bill) Date Picker
                 var drpOptions = { autoUpdateInput: true, locale: { format: this.viewModel.dateFormat } };
-                this.drpStudyDt = commonjs.bindDateRangePicker(drpEl, drpOptions, 'past', function (start, end, format) {
+                this.drpStudyDt = commonjs.bindDateRangePicker(drpEl, drpOptions, 'past', function (start, end) {
                     self.viewModel.dateFrom = start;
                     self.viewModel.dateTo = end;
                 });
-                drpEl.on('cancel.daterangepicker', function (ev, drp) {
+                drpEl.on('cancel.daterangepicker', function () {
                     self.viewModel.dateFrom = null;
                     self.viewModel.dateTo = null;
                 });
                 //   CPT date  Date Picker
                 var cptDate = $('#serviceDateBillCPT');
-                var drpOptions = { autoUpdateInput: true, locale: { format: this.viewModel.dateFormat } };
-                this.commentDate = commonjs.bindDateRangePicker(cptDate, drpOptions, 'past', function (start, end, format) {
+                drpOptions = { autoUpdateInput: true, locale: { format: this.viewModel.dateFormat } };
+                this.commentDate = commonjs.bindDateRangePicker(cptDate, drpOptions, 'past', function (start, end) {
                     self.viewModel.cmtFromDate = start;
                     self.viewModel.cmtToDate = end;
                 });
-                cptDate.on('cancel.daterangepicker', function (ev, drp) {
+                cptDate.on('cancel.daterangepicker', function () {
                     self.viewModel.cmtFromDate = null;
                     self.viewModel.cmtToDate = null;
                 });
                 //   Bill Created date  Picker
                 var billCreatedDate = $('#serviceDateBillCreated');
-                var drpOptions = { autoUpdateInput: true, locale: { format: this.viewModel.dateFormat } };
-                this.billCreatedDate = commonjs.bindDateRangePicker(billCreatedDate, drpOptions, 'past', function (start, end, format) {
+                drpOptions = { autoUpdateInput: true, locale: { format: this.viewModel.dateFormat } };
+                this.billCreatedDate = commonjs.bindDateRangePicker(billCreatedDate, drpOptions, 'past', function (start, end) {
                     self.viewModel.billCreatedDateFrom = start;
                     self.viewModel.billCreatedDateTo = end;
                 });
-                billCreatedDate.on('cancel.daterangepicker', function (ev, drp) {
+                billCreatedDate.on('cancel.daterangepicker', function () {
                     self.viewModel.billCreatedDateFrom = null;
                     self.viewModel.billCreatedDateTo = null;
                 });
@@ -297,12 +295,11 @@ define([
                     userNameArray.push($(this).closest('li').find('span').text());
                 });
 
-                return urlParams = {
+                return {
                     isFacilityChk: $('#facilityChk').prop('checked'),
                     isBillingProChk: $('#billingProChk').prop('checked'),
                     'dateFormat': this.viewModel.dateFormat,
                     'country_alpha_3_code': this.viewModel.country_alpha_3_code,
-                    'allFacilities': this.viewModel.allFacilities,
 
                     'workedBy': $('#workedBy').prop('checked'),
                     'workedByAll': isWorkedByAll,
@@ -329,7 +326,6 @@ define([
 
                     allInsuranceGroup: this.viewModel.allInsGrpSelection ? this.viewModel.allInsGrpSelection : '',
 
-                    userIds: this.viewModel.userIds ? this.viewModel.userIds : '',
                     referringProIds: this.viewModel.refPhyId ? this.viewModel.refPhyId : '',
 
                     claimLists: this.selectedClaimList ? this.selectedClaimList : '',
@@ -421,12 +417,6 @@ define([
             },
 
 
-            onOptionChangeSelectCPT: function () {
-                if ($('#ddlCptCode').val() == 'S')
-                    $("#ddlCPTCodeBox").show();
-                else
-                    $("#ddlCPTCodeBox").hide();
-            },
             // CPT code select box binding in list
             onOptionChangeSelectCPT: function () {
                 if ($('#ddlCPTCodeOption').val() == 'S')
@@ -504,7 +494,7 @@ define([
 
             },
             // Binding selected facility from the check box - worked
-            getSelectedFacility: function (e) {
+            getSelectedFacility: function () {
                 var selected = $("#ddlFacilityFilter option:selected");
                 var facilities = [];
                 selected.each(function () {
@@ -515,7 +505,7 @@ define([
             },
 
             // multi select billing provider - worked
-            getBillingProvider: function (e) {
+            getBillingProvider: function () {
                 var billing_pro = []
                 var selected = $("#ddlBillingProvider option:selected");
                 selected.each(function () {
@@ -527,7 +517,7 @@ define([
 
 
             // multi select insurance provider
-            chkInsGroup: function (e) {
+            chkInsGroup: function () {
                 var ins_group = []
                 $('#insuranceGroupListBoxs input[type="checkbox"]').each(function () {
                     if ($(this).prop('checked')) {
@@ -560,7 +550,7 @@ define([
             },
 
 
-            selectAllBillingProviders: function (e) {
+            selectAllBillingProviders: function () {
                 if ($('#chkAllBillingPro').attr('checked')) {
                     $('input[name=allBillingProviders]').prop('checked', true);
                     var billing_pro = []
@@ -643,22 +633,16 @@ define([
 
             // Binding insurance group auto complete drop down. Todo:: Once insurance group screen come in setup then use  this fun.
             bindInsuranceGroupAutocomplete: function () {
-                var self = this;
-                var txtInsuranceGroupName = 'txtInsuranceGroupName';
                 // var s2id_txtInsuranceGroupName = 's2id_txtInsuranceGroupName a span';
                 // UI.bindInsuranceProviderGroupAutocomplete(txtInsuranceGroupName, s2id_txtInsuranceGroupName, 'Select Insurance Group', self.defaultyFacilityId, 'btnAddInsurance', 'ulListPatients');
             },
             // Binding user auto complete function
             bindUserAutocomplete: function () {
-                var self = this;
-                var txtUsersName = 'txtUsers';
                 // var s2id_txtInsuranceGroupName = 's2id_txtUsers a span';
                 // UI.bindUsersAutoComplete(txtUsersName, 'Select User','btnAddUsers', 'ulListUsers');
             },
             // Binding CPT auto complete for drop down
             bindCPTAutoComplete: function () {
-                var self = this;
-                var txtCptCode = 'txtCPTCode';
                 // var s2id_txtCPTCodeName = 's2id_txtCPTCode a span';
                 // UI.bindCptAutocomplete(txtCptCode, s2id_txtCPTCodeName, 'Select CPT Code', self.defaultyFacilityId, 'btnCPTCode', 'ulListCPTCodes');
             }

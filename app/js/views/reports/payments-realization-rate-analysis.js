@@ -107,11 +107,11 @@ define([
 
                 //   Service Date Picker
                 var drpOptionsServiceDate = { autoUpdateInput: true, locale: { format: this.viewModel.dateFormat } };
-                this.dtpAccountingDate = commonjs.bindDateRangePicker(serviceDate, drpOptionsServiceDate, 'past', function (start, end, format) {
+                this.dtpAccountingDate = commonjs.bindDateRangePicker(serviceDate, drpOptionsServiceDate, 'past', function (start, end) {
                     self.viewModel.serviceDateFrom = start;
                     self.viewModel.serviceDateTo = end;
                 });
-                serviceDate.on('cancel.daterangepicker', function (ev, drp) {
+                serviceDate.on('cancel.daterangepicker', function () {
                     self.viewModel.serviceDateFrom = null;
                     self.viewModel.serviceDateTo = null;
                 });
@@ -119,11 +119,11 @@ define([
                 //   Accounting Date Picker
                 var accountingDate = $('#accountingDateBind');
                 var drpOptionsAccountingDate = { autoUpdateInput: true, locale: { format: this.viewModel.dateFormat } };
-                this.dtpStudyDate = commonjs.bindDateRangePicker(accountingDate, drpOptionsAccountingDate, 'past', function (start, end, format) {
+                this.dtpStudyDate = commonjs.bindDateRangePicker(accountingDate, drpOptionsAccountingDate, 'past', function (start, end) {
                     self.viewModel.accountingDateFrom = start;
                     self.viewModel.accountingDateTo = end;
                 });
-                accountingDate.on('cancel.daterangepicker', function (ev, drp) {
+                accountingDate.on('cancel.daterangepicker', function () {
                     self.viewModel.accountingDateFrom = null;
                     self.viewModel.accountingDateTo = null;
                 });
@@ -211,7 +211,7 @@ define([
             },
 
             // Binding selected facility from the check box
-            getSelectedFacility: function (e) {
+            getSelectedFacility: function () {
                 var selected = $("#ddlFacilityFilter option:selected");
                 var facilities = [];
                 selected.each(function () {
@@ -222,7 +222,7 @@ define([
             },
 
             // multi select billing provider - worked
-            getBillingProvider: function (e) {
+            getBillingProvider: function () {
                 var billing_pro = []
                 var selected = $("#ddlBillingProvider option:selected");
                 selected.each(function () {
@@ -233,7 +233,7 @@ define([
             },
 
             // multi select insurance provider
-            chkInsGroup: function (e) {
+            chkInsGroup: function () {
                 var ins_group = []
                 $('#insuranceGroupListBoxs input[type="checkbox"]').each(function () {
                     if ($(this).prop('checked')) {
@@ -266,7 +266,7 @@ define([
                 }
             },
 
-            selectAllBillingProviders: function (e) {
+            selectAllBillingProviders: function () {
                 if ($('#chkAllBillingPro').attr('checked')) {
                     $('input[name=allBillingProviders]').prop('checked', true);
                     var billing_pro = []
@@ -307,7 +307,7 @@ define([
 
             // Binding Report Params
             getReportParams: function () {
-                return urlParams = {
+                return {
                     'dateFormat': this.viewModel.dateFormat,
                     'country_alpha_3_code': this.viewModel.country_alpha_3_code,
                     'facilityIds': this.selectedFacilityList || [],
