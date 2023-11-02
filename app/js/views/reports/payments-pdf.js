@@ -56,7 +56,7 @@ define([
             },
 
             render: function () {
-                var modelCollection = Backbone.Collection.extend({
+                Backbone.Collection.extend({
                     model: Backbone.Model.extend({})
                 });
 
@@ -76,8 +76,9 @@ define([
                 this.viewModel.reportFormat = rFormat;
                 this.viewModel.openInNewTab = openInNewTab && rFormat === 'pdf';
                 this.viewModel.paymentOptions = $('#ddlPaymentOption').val();
+                var urlParams;
                 if (reportArgs && reportArgs.flag == 'RISPrintReceipt') {
-                    var urlParams = {
+                    urlParams = {
                         studyIds: reportArgs.studyIds,
                         studyCptIds: reportArgs.studyCptIds,
                         patient_id: reportArgs.patient_id,
@@ -100,7 +101,7 @@ define([
                                 reportArgsFilterColumn = ["accounting_date"];
                               }
 
-                        var urlParams = {
+                        urlParams = {
                             pamentIds: reportArgs.payment_id,
                             paymentStatus: reportArgs.paymentStatus || " ",
                             filterFlag: "paymentsExportPDFFlag",
@@ -111,7 +112,7 @@ define([
                         }
                     }
                     else {
-                        var urlParams = {
+                        urlParams = {
                             pamentIds: reportArgs.payment_id,
                             paymentStatus: reportArgs.paymentStatus || " ",
                             filterFlag: "paymentsExportPDFFlag",
@@ -155,7 +156,7 @@ define([
                 UI.showReport(options);
             },
 
-            getSelectedFacility: function (e) {
+            getSelectedFacility: function () {
                 var selected = $("#ddlFacilityFilter option:selected");
                 var facilities = [];
                 selected.each(function () {
@@ -166,7 +167,7 @@ define([
             },
 
             // multi select billing provider - worked
-            getBillingProvider: function (e) {
+            getBillingProvider: function () {
                 var billing_pro = []
                 var selected = $("#ddlBillingProvider option:selected");
                 selected.each(function () {
@@ -182,7 +183,7 @@ define([
                     usersArray.push(~~$(this).attr('data-id'));
                     userNameArray.push($(this).closest('li').find('span').text());
                 });
-                return urlParams = {
+                return {
                     'companyId': 1,
                     'facilityIds': ['1'],
                     'allFacilities': true,

@@ -55,7 +55,7 @@ define([
             },
 
             render: function () {
-                var modelCollection = Backbone.Collection.extend({
+                Backbone.Collection.extend({
                     model: Backbone.Model.extend({})
                 });
 
@@ -73,24 +73,26 @@ define([
                 this.viewModel.reportFormat = rFormat;
                 this.viewModel.openInNewTab = openInNewTab && rFormat === 'pdf';
                 this.viewModel.paymentOptions = $('#ddlPaymentOption').val();
+                var urlParams;
+                var reportName;
                 if (claimInfo.flag == "patientInvoice") {
                     reportName = "patient-invoice";
-                    var urlParams = {
+                    urlParams = {
                         claimIds: claimInfo.claimID,
                         sDate: '2018-06-23'
 
                     }
                 }
                 else if (claimInfo.flag == "paymentInvoice"){
-                  var reportName = "payment-invoice";
-                    var urlParams = {
+                  reportName = "payment-invoice";
+                    urlParams = {
                         claimIds: claimInfo.claimID,
                         sDate: '2018-06-23'
                     }
                 }
                 else {
-                    var reportName = "patient-activity-statement";
-                    var urlParams = {
+                    reportName = "patient-activity-statement";
+                    urlParams = {
                         patientIID: claimInfo.patientId,
                         fromDate: claimInfo.fromDate,
                         reportBy: claimInfo.reportByFlag,
@@ -134,9 +136,10 @@ define([
                 this.viewModel.reportFormat = rFormat;
                 this.viewModel.openInNewTab = openInNewTab && rFormat === 'pdf';
                 this.viewModel.paymentOptions = $('#ddlPaymentOption').val();
+                var urlParams;
                 if (claimInfo.flag == "patientInvoice") {
                         reportName = "patient-invoice";
-                        var urlParams = {
+                        urlParams = {
                                 claimIds: claimInfo.claimID,
                                 sDate: '2018-06-23',
                                 openInNewTab: this.viewModel.openInNewTab
@@ -145,15 +148,15 @@ define([
                     }
                 else if (claimInfo.flag == "paymentInvoice"){
                         var reportName = "payment-invoice";
-                        var urlParams = {
+                        urlParams = {
                                 claimIds: claimInfo.claimID,
                                 sDate: '2018-06-23',
                                 openInNewTab: this.viewModel.openInNewTab
                         }
                     }
                 else {
-                        var reportName = "patient-activity-statement";
-                        var urlParams = {
+                        reportName = "patient-activity-statement";
+                        urlParams = {
                                 patientIID: claimInfo.patientId,
                                 fromDate: claimInfo.fromDate,
                                 reportBy: claimInfo.reportByFlag,
@@ -169,7 +172,7 @@ define([
 
                 return UI.generateReportUrl(reportName, this.viewModel.reportCategory, rFormat, urlParams);
             },
-            getSelectedFacility: function (e) {
+            getSelectedFacility: function () {
                 var selected = $("#ddlFacilityFilter option:selected");
                 var facilities = [];
                 selected.each(function () {
@@ -180,7 +183,7 @@ define([
             },
 
             // multi select billing provider - worked
-            getBillingProvider: function (e) {
+            getBillingProvider: function () {
                 var billing_pro = []
                 var selected = $("#ddlBillingProvider option:selected");
                 selected.each(function () {

@@ -49,7 +49,7 @@ define([
 
             initialize: function (options) {
                 this.showForm();
-                var modelCollection = Backbone.Collection.extend({
+                Backbone.Collection.extend({
                     model: Backbone.Model.extend({})
                 });
 
@@ -122,7 +122,7 @@ define([
                 commonjs.isMaskValidate();
             },
 
-            getSelectedFacility: function (e) {
+            getSelectedFacility: function () {
                 var selected = $("#ddlFacilityFilter option:selected");
                 var facilities = [];
                 selected.each(function () {
@@ -205,7 +205,7 @@ define([
             },
 
             getReportParams: function () {
-                return urlParams = {
+                return {
                     dateFormat: this.viewModel.dateFormat,
                     country_alpha_3_code: this.viewModel.country_alpha_3_code,
                     facilityIds: this.selectedFacilityList ? this.selectedFacilityList : [],
