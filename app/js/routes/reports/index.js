@@ -101,7 +101,7 @@ define([
                 $("#divPageHeaderButtons").html("");
             },
 
-            startChargesReport: function (subroute) {
+            startChargesReport: function () {
                 if (this.checkLicense('Charges') && !this.chargesRouter) {
                     this.defaultArgs.routePrefix = 'reports/r/';
                     this.chargesRouter = new ChargeReportRoute(this.defaultArgs.routePrefix, this.defaultArgs);
@@ -110,7 +110,7 @@ define([
                 }
             },
 
-            startClaimActivityReport: function (subroute) {
+            startClaimActivityReport: function () {
                 if (this.checkLicense('Claim Activity') && !this.claimActivityRouter) {
                     this.defaultArgs.routePrefix = 'reports/r/';
                     this.claimActivityRouter = new ClaimActivityReportRoute(this.defaultArgs.routePrefix, this.defaultArgs);
@@ -119,7 +119,7 @@ define([
                 }
             },
 
-            startClaimInquiryReport: function (subroute) {
+            startClaimInquiryReport: function () {
                 if (this.checkLicense('Claim Inquiry') && !this.claimInquiryRouter) {
                     this.defaultArgs.routePrefix = 'reports/r/';
                     this.claimInquiryRouter = new ClaimInquiryReportRoute(this.defaultArgs.routePrefix, this.defaultArgs);
@@ -128,7 +128,7 @@ define([
                 }
             },
 
-            startPaymentReporting: function (subroute) {
+            startPaymentReporting: function () {
                 if (this.checkLicense('Payments') && !this.paymentRouter) {
                     this.defaultArgs.routePrefix = 'reports/r/';
                     this.paymentRouter = new PaymentReportRoute(this.defaultArgs.routePrefix, this.defaultArgs);
@@ -137,7 +137,7 @@ define([
                 }
             },
 
-            startPatientStatementReporting: function (subroute) {
+            startPatientStatementReporting: function () {
                 if (this.checkLicense('Patient Statement') && !this.patientStatementRouter) {
                     this.defaultArgs.routePrefix = 'reports/r/';
                     this.patientStatementRouter = new PatientStatementRoute(this.defaultArgs.routePrefix, this.defaultArgs);
@@ -146,7 +146,7 @@ define([
                 }
             },
 
-            startModalitySummaryReporting: function (subroute) {
+            startModalitySummaryReporting: function () {
                 if (this.checkLicense('Modality Summary') && !this.modalitySummaryRouter) {
                     this.defaultArgs.routePrefix = 'reports/r/';
                     this.modalitySummaryRouter = new MoadalitySummaryRoute(this.defaultArgs.routePrefix, this.defaultArgs);
@@ -155,7 +155,7 @@ define([
                 }
             },
 
-            startPayerMixReporting: function (subroute) {
+            startPayerMixReporting: function () {
                 if (this.checkLicense('Payer Mix') && !this.payerMixtRouter) {
                     this.defaultArgs.routePrefix = 'reports/r/';
                     this.payerMixtRouter = new PayerMixRoute(this.defaultArgs.routePrefix, this.defaultArgs);
@@ -164,7 +164,7 @@ define([
                 }
             },
 
-            startPaymentsByInsuranceCompanyReporting: function (subroute) {
+            startPaymentsByInsuranceCompanyReporting: function () {
                 if (this.checkLicense('Payments By Ins Company') && !this.paymentsByInsuranceComapanyRouter) {
                     this.defaultArgs.routePrefix = 'reports/r/';
                     this.paymentsByInsuranceComapanyRouter = new PaymentByInsCompanyRoute(this.defaultArgs.routePrefix, this.defaultArgs);
@@ -173,7 +173,7 @@ define([
                 }
             },
 
-            startReferringProviderCountReporting: function (subroute) {
+            startReferringProviderCountReporting: function () {
                 if (this.checkLicense('Referring Provider Count') && !this.referringProCountRouter) {
                     this.defaultArgs.routePrefix = 'reports/r/';
                     this.referringProCountRouter = new ReferringProviderCountRoute(this.defaultArgs.routePrefix, this.defaultArgs);
@@ -182,7 +182,7 @@ define([
                 }
             },
 
-            startReferringProviderSummaryReporting: function (subroute) {
+            startReferringProviderSummaryReporting: function () {
                 if (this.checkLicense('Referring Provider Summary') && !this.referringProSummaryRouter) {
                     this.defaultArgs.routePrefix = 'reports/r/';
                     this.referringProSummaryRouter = new ReferringProviderSummaryRoute(this.defaultArgs.routePrefix, this.defaultArgs);
@@ -191,7 +191,7 @@ define([
                 }
             },
 
-            starttransactionSummaryReporting: function (subroute) {
+            starttransactionSummaryReporting: function () {
                 if (this.checkLicense('Transaction Summary') && !this.transactionSummaryRouter) {
                     this.defaultArgs.routePrefix = 'reports/r/';
                     this.transactionSummaryRouter = new TransactionSummaryRoute(this.defaultArgs.routePrefix, this.defaultArgs);
@@ -200,7 +200,7 @@ define([
                 }
             },
 
-            startDateOfSVCSummaryViewReporting: function (subroute) {
+            startDateOfSVCSummaryViewReporting: function () {
                 if (this.checkLicense('Date Of SVC Summary') && !this.dateOfSVCSummaryRouter) {
                     this.defaultArgs.routePrefix = 'reports/r/';
                     this.dateOfSVCSummaryRouter = new DateOfSVCSummaryRoute(this.defaultArgs.routePrefix, this.defaultArgs);
@@ -209,7 +209,7 @@ define([
                 }
             },
 
-            startDiagnosisCountReporting: function (subroute) {
+            startDiagnosisCountReporting: function () {
                 if (this.checkLicense('Diagnosis Count') && !this.diagnosisCountRouter) {
                     this.defaultArgs.routePrefix = 'reports/r/';
                     this.diagnosisCountRouter = new DiagnosisCountRoute(this.defaultArgs.routePrefix, this.defaultArgs);
@@ -218,7 +218,7 @@ define([
                 }
             },
 
-            startPatientsByInsuranceCompanyViewReporting: function (subroute) {
+            startPatientsByInsuranceCompanyViewReporting: function () {
                 if (this.checkLicense('Patients By Insurance Company') && !this.patientsByInsCompanyRouter) {
                     this.defaultArgs.routePrefix = 'reports/r/';
                     this.patientsByInsCompanyRouter = new PatientsByInsuranceCompanyRoute(this.defaultArgs.routePrefix, this.defaultArgs);
@@ -227,7 +227,7 @@ define([
                 }
             },
 
-            startProcedureCountViewReporting: function (subroute) {
+            startProcedureCountViewReporting: function () {
                 if (this.checkLicense('Procedure Count') && !this.procedureCountRouter) {
                     this.defaultArgs.routePrefix = 'reports/r/';
                     this.procedureCountRouter = new ProcedureCountRoute(this.defaultArgs.routePrefix, this.defaultArgs);
@@ -236,7 +236,7 @@ define([
                 }
             },
 
-            startReadingProviderFeesReporting: function (subroute) {
+            startReadingProviderFeesReporting: function () {
                 if (this.checkLicense('Reading Provider Fees') && !this.readingProviderFeesRouter) {
                     this.defaultArgs.routePrefix = 'reports/r/';
                     this.readingProviderFeesRouter = new ReadingProviderFeesRoute(this.defaultArgs.routePrefix, this.defaultArgs);
@@ -245,7 +245,7 @@ define([
                 }
             },
 
-            startMonthlyRecapReporting: function (subroute) {
+            startMonthlyRecapReporting: function () {
                 if (this.checkLicense('Monthly Recap') && !this.monthlyRecapRouter) {
                     this.defaultArgs.routePrefix = 'reports/r/';
                     this.monthlyRecapRouter = new MonthlyRecapRoute(this.defaultArgs.routePrefix, this.defaultArgs);
@@ -254,7 +254,7 @@ define([
                 }
             },
 
-            startClaimTransactionReporting: function (subroute) {
+            startClaimTransactionReporting: function () {
                 if (this.checkLicense('Claim Trancation') && !this.claimTrancationRouter) {
                     this.defaultArgs.routePrefix = 'reports/r/';
                     this.claimTrancationRouter = new ClaimTransactionRoute(this.defaultArgs.routePrefix, this.defaultArgs);
@@ -263,7 +263,7 @@ define([
                 }
             },
 
-            startProcedureAnalysisByInsuranceReporting: function (subroute) {
+            startProcedureAnalysisByInsuranceReporting: function () {
                 if (this.checkLicense('Procedure Analysis By Insurance') && !this.procedureAnalysisByInsuranceRouter) {
                     this.defaultArgs.routePrefix = 'reports/r/';
                     this.procedureAnalysisByInsuranceRouter = new ProcedureAnalysisByInsuranceRoute(this.defaultArgs.routePrefix, this.defaultArgs);
@@ -272,7 +272,7 @@ define([
                 }
             },
 
-            startCreditBalanceEncountersReporting: function (subroute) {
+            startCreditBalanceEncountersReporting: function () {
                 if (this.checkLicense('Credit Balance Encounters') && !this.creditBalanceEncounterRouter) {
                     this.defaultArgs.routePrefix = 'reports/r/';
                     this.creditBalanceEncounterRouter = new CreditBalanceEncountersRoute(this.defaultArgs.routePrefix, this.defaultArgs);
@@ -281,7 +281,7 @@ define([
                 }
             },
 
-            startAgedARSummaryReporting: function (subroute) {
+            startAgedARSummaryReporting: function () {
                 if (this.checkLicense('Aged AR Summary') && !this.agedARSummaryRouter) {
                     this.defaultArgs.routePrefix = 'reports/r/';
                     this.agedARSummaryRouter = new AgedArSummaryRoute(this.defaultArgs.routePrefix, this.defaultArgs);
@@ -290,7 +290,7 @@ define([
                 }
             },
 
-            startAgedARDetailsReporting: function (subroute) {
+            startAgedARDetailsReporting: function () {
                 if (this.checkLicense('Aged AR Details') && !this.agedARDetailsRouter) {
                     this.defaultArgs.routePrefix = 'reports/r/';
                     this.agedARDetailsRouter = new AgedArDetailsRoute(this.defaultArgs.routePrefix, this.defaultArgs);
@@ -299,7 +299,7 @@ define([
                 }
             },
 
-            startInsuranceVSLopReporting: function (subroute) {
+            startInsuranceVSLopReporting: function () {
                 if (this.checkLicense('Insurance VS LOP') && !this.insuranceVsLOPRouter) {
                     this.defaultArgs.routePrefix = 'reports/r/';
                     this.insuranceVsLOPRouter = new InsuranceVSLopRoute(this.defaultArgs.routePrefix, this.defaultArgs);
@@ -308,7 +308,7 @@ define([
                 }
             },
 
-            startPaymentsRealizationRateAnalysisReporting: function (subroute) {
+            startPaymentsRealizationRateAnalysisReporting: function () {
                 if (this.checkLicense('Payments Realization Rate Analysis') && !this.paymentsRealizationRateAnalysisRouter) {
                     this.defaultArgs.routePrefix = 'reports/r/';
                     this.paymentsRealizationRateAnalysisRouter = new PaymentsRealizationRateAnalysisRoute(this.defaultArgs.routePrefix, this.defaultArgs);
@@ -317,7 +317,7 @@ define([
                 }
             },
 
-            startCollectionsReporting: function (subroute) {
+            startCollectionsReporting: function () {
                 if (this.checkLicense('Collections') && !this.collectionsRouter) {
                     this.defaultArgs.routePrefix = 'reports/r/';
                     this.collectionsRouter = new CollectionsRoute(this.defaultArgs.routePrefix, this.defaultArgs);
@@ -333,7 +333,7 @@ define([
                 }
             },
 
-            checkLicense: function (currentScreen) {
+            checkLicense: function () {
                 return true;
             },
         });

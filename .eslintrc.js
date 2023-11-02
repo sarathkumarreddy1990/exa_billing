@@ -41,6 +41,8 @@ module.exports = {
         "tinymce": true,
         "fastdom": true,
         "layout": true,
+        "facilityModules": true,
+        "siteLayouts": true,
 
 
         // jqgrid vars defined in commonjs
