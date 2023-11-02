@@ -2815,11 +2815,10 @@ define([
                         ? 'insurance'
                         : self.currentResponsible;
 
-                        if ((paymentPayerType !== claimPayerType || $('#ddlClaimResponsible').val() === 'PSF') && isClaimPaidInFull){
+                    if ((paymentPayerType !== claimPayerType || $('#ddlClaimResponsible').val() === 'PSF') && isClaimPaidInFull) {
                         preventPayerTypeUpdate = (!isPayerChanged || isClaimOverPaid) && !isClaimPaidInFull;
                         preventClaimStatusUpdate = !isClaimStatusChanged && !isClaimPaidInFull;
                     }
-
                     commonjs.showLoading();
                     targetObj.attr('disabled', true);
 
