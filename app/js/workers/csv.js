@@ -14,7 +14,6 @@ const claimColumns = {
     "Billing Provider": "billing_provider",
     "Billing Fee": "billing_fee",
     "Account No": "account_no",
-    "Alt Account No": "pid_alt_account",
     "Policy Number": "policy_number",
     "Claim Status": "claim_status",
     "Date Of Birth": "birth_date",
@@ -198,7 +197,7 @@ function generateCsvData(dbResponse, callback) {
         if (rowIndex) {
             facilityTimeZone = _.filter(facilities, { id: parseInt(dbRow.facility_id) });
         }
-        return columns.map(function (colName, colIndex) {
+        return columns.map(function (colName) {
             var csvText = showLabel && rowIndex == 0 ? colName : dbRow[columnMap[colName]];
 
             if (rowIndex && dateColumnsWithTimeZoneConversion.indexOf(colName) > -1 && csvText) {

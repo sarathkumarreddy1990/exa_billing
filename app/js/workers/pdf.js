@@ -1,3 +1,5 @@
+// eslint is unable to detect the variables created via importScripts(), so we need to ignore the no-undef rule
+/* eslint-disable no-undef */
 importScripts('/exa_modules/billing/static/node_modules/pdfmake/build/pdfmake.min.js');
 importScripts('/exa_modules/billing/static/node_modules/pdfmake/build/vfs_fonts.js');
 
@@ -43,9 +45,4 @@ function generatePdfBlob(docDefinition, callback) {
     //const docDefinition = generateDocDefinition(myData);
     // pdfMake.createPdf(docDefinition).getBlob(callback);
     pdfMake.createPdf(docDefinition).getDataUrl(callback);
-}
-
-
-function generateDocDefinition(myData) {
-    return { content: ['First paragraph', 'Another paragraph'] };
 }
