@@ -2815,7 +2815,7 @@ define([
                         ? 'insurance'
                         : self.currentResponsible;
 
-                    if (paymentPayerType !== claimPayerType || $('#ddlClaimResponsible').val() === 'PSF') {
+                        if ((paymentPayerType !== claimPayerType || $('#ddlClaimResponsible').val() === 'PSF') && isClaimPaidInFull){
                         preventPayerTypeUpdate = (!isPayerChanged || isClaimOverPaid) && !isClaimPaidInFull;
                         preventClaimStatusUpdate = !isClaimStatusChanged && !isClaimPaidInFull;
                     }
