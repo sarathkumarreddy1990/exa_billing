@@ -5,7 +5,8 @@ module.exports = {
         "es6": true,
         "node": true,
         "amd": true,
-        "jquery": true
+        "jquery": true,
+        "worker": true,
     },
     "plugins": [
         "json"
