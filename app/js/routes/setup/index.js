@@ -52,7 +52,7 @@ define([
     EDITemplatesRoute,
     BillingMessagesRoute,
     InsuranceX12MappingRoute,
-	PaperClaimTemplatesRoute,
+    PaperClaimTemplatesRoute,
     AutoBillingRoute,
     SubmissionTypesRoute,
     CollectionsProcess,
@@ -99,7 +99,7 @@ define([
                 $("#divPageHeaderButtons").html("");
             },
 
-            startBillingProviders: function (subroute) {
+            startBillingProviders: function () {
                 if (this.checkLicense('BillingProviders') && !this.billingProviderRouter) {
                     this.defaultArgs.routePrefix = 'setup/billing_providers/';
                     this.billingProviderRouter = new BillingProvidersRoute(this.defaultArgs.routePrefix, this.defaultArgs);
@@ -108,7 +108,7 @@ define([
                 }
             },
 
-            startCasGroupCodes: function (subroute) {
+            startCasGroupCodes: function () {
                 if (this.checkLicense('CasGroupCodes') && !this.casGroupCodeRouter) {
                     this.defaultArgs.routePrefix = 'setup/cas_group_codes/';
                     this.casGroupCodeRouter = new CasGroupCodesRoute(this.defaultArgs.routePrefix, this.defaultArgs);
@@ -117,7 +117,7 @@ define([
                 }
             },
 
-            startCasReasonCodes: function (subroute) {
+            startCasReasonCodes: function () {
                 if (this.checkLicense('CasReasonCodes') && !this.casReasonCodesRouter) {
                     this.defaultArgs.routePrefix = 'setup/cas_reason_codes/';
                     this.casReasonCodesRouter = new CasReasonCodesRoute(this.defaultArgs.routePrefix, this.defaultArgs);
@@ -322,7 +322,7 @@ define([
                 }
             },
 
-            checkLicense: function (currentScreen) {
+            checkLicense: function () {
                 //return layout.checkLicense(currentScreen);
                 return true;
             },
