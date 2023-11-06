@@ -73,16 +73,23 @@ define([
                 claim_sort_order = $('#ddlBillingSortOrder').val();
                 $('#ulSortList li').each(function () {
                     var input = $($(this).find('input[type=checkbox]')[0]);
-                    claimFieldOrder.push(input.attr('id').split('~')[1]);
+                    var $fieldID = input.attr('id').split('~')[1];
+                    var $fieldName = input.val();
+
+                    var currElIndex = _.findIndex(billingClaimGridFields, { name: $fieldName });
+
+                    claimFieldOrder.push($fieldID);
                     if (input.is(':checked')) {
-                        claimSettingFields.push(input.attr('id').split('~')[1]);
-                        if (_.findIndex(billingClaimGridFields, { name: input.val() }) == -1) {
+                        claimSettingFields.push($fieldID);
+                        if (currElIndex == -1) {
                             billingClaimGridFields.push({
-                                "name": input.val(),
-                                "id": input.attr('id').split('~')[1],
+                                "name": $fieldName,
+                                "id": $fieldID,
                                 "width": $(this).find('input[type=hidden]')[0].value || 0
                             });
                         }
+                    } else if (currElIndex > -1) {
+                        billingClaimGridFields.splice(currElIndex, 1);
                     }
                 });
 

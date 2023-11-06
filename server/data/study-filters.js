@@ -27,19 +27,23 @@ module.exports = {
             sqlQuery = SQL `
                         SELECT
                             filter_info  AS perms_filter,
+                            bus.grid_field_settings AS grid_options,
                             grid_filters.*
                         FROM
                             billing.grid_filters
+                        LEFT JOIN billing.user_settings bus ON bus.user_id = grid_filters.user_id
                         WHERE
                             grid_filters.id = ${args.id} `;
 
         } else {
             sqlQuery = SQL`
                         SELECT
-                            worklist_filter_info    AS perms_filter,
+                            us.worklist_filter_info AS perms_filter,
+                            bus.grid_field_settings AS grid_options,
                             row_to_json(u.*)        AS user_details
                         FROM
-                            public.user_settings
+                            public.user_settings us
+                        LEFT JOIN billing.user_settings bus ON bus.user_id = us.user_id
                         JOIN LATERAL (
                             SELECT
                                 user_type,
@@ -48,13 +52,13 @@ module.exports = {
                                 all_facilities,
                                 user_group_id
                             FROM users
-                            WHERE id = user_id
+                            WHERE id = us.user_id
                         ) u ON TRUE
                         WHERE
-                            user_id = ${args.user_id}
+                            us.user_id = ${args.user_id}
             `;
         }
-        
+
         return await query(sqlQuery);
     }
 };
