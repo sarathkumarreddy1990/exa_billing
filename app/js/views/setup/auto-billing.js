@@ -789,6 +789,11 @@ define(['jquery',
                 }, {
                     success: function (model, response) {
                         $('#btnSaveautoBilling').prop('disabled', false);
+                        if (response[0].status === 'EXISTS') {
+                            commonjs.showWarning('messages.warning.shared.alreadyexists');
+                            return;
+                        }
+                        
                         if (response) {
                             commonjs.showStatus('messages.status.savedSuccessfully');
                             if (options.closeOnSuccess) {
