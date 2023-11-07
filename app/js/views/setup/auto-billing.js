@@ -789,12 +789,12 @@ define(['jquery',
                 }, {
                     success: function (model, response) {
                         $('#btnSaveautoBilling').prop('disabled', false);
-                        if (response[0].status === 'EXISTS') {
-                            commonjs.showWarning('messages.warning.shared.alreadyexists');
-                            return;
-                        }
-                        
                         if (response) {
+                            if (response.length && response[0].status === 'EXISTS') {
+                                commonjs.showWarning('messages.warning.shared.alreadyexists');
+                                return;
+                            }
+
                             commonjs.showStatus('messages.status.savedSuccessfully');
                             if (options.closeOnSuccess) {
                                 Backbone.history.navigate('#setup/auto_billing/list', true);
