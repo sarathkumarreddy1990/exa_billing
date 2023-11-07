@@ -39,8 +39,13 @@ const colModel = [
         searchFlag: '%'
     },
     {
-        name: 'reason_code',
-        searchColumns: ['cas_reason_codes.code'],
+        name: 'line_eob_codes',
+        searchColumns: ['charge_eob.explanatory_codes'],
+        searchFlag: 'arrayString'
+    },
+    {
+        name: 'claim_eob_codes',
+        searchColumns: ['claim_eob.explanatory_codes'],
         searchFlag: 'arrayString'
     },
     {
@@ -306,9 +311,11 @@ const api = {
             case 'created_dt': return 'claims.created_dt';
             case 'claim_status': return 'claim_status.description';
             case 'claim_id':
-            case 'id': return 'claims.id';
+            case 'id':
+                return 'claims.id';
             case 'patient_name': return 'patients.full_name';
-            case 'reason_code': return 'cas_reason_codes.code';
+            case 'line_eob_codes': return 'charge_eob.explanatory_codes';
+            case 'claim_eob_codes': return 'claim_eob.explanatory_codes';
             case 'birth_date': return 'patients.birth_date::text';
             case 'account_no': return 'patients.account_no';
             case 'patient_ssn': return `patients.patient_info->'ssn'`;
@@ -379,7 +386,6 @@ const api = {
     getWLQuery: function (columns, args) {
         args.sortField = api.getSortFields(args.sortField);
 
-
         let tables = Object.assign({}, api.getTables(args.sortField), api.getTables(args.filterQuery), api.getTables(args.permissionQuery), api.getTables(columns));
 
         const permissionQuery = args.permissionQuery ? ` INNER JOIN (${args.permissionQuery}) pquery ON pquery.id = studies.id ` : '';
@@ -389,10 +395,10 @@ const api = {
                 ${columns}
             FROM
                 billing.claims
-                INNER JOIN facilities ON facilities.id=claims.facility_id
+            INNER JOIN facilities ON facilities.id = claims.facility_id
             ${permissionQuery}
             ${api.getWLQueryJoin(tables, true, args.customArgs.filter_id, args.user_id, args.isCount, args) + args.filterQuery}
-            `;
+        `;
         return query;
     },
     getWLQueryJoin: function (columns, isInnerQuery, filterID, userID, isCount, args) {
@@ -420,7 +426,9 @@ const api = {
             ) studies ON TRUE `;
         }
 
-        if (tables.claim_status) { r += ' INNER JOIN billing.claim_status  ON claim_status.id=claims.claim_status_id'; }
+        if (tables.claim_status || tables.claim_eob || tables.charge_eob) {
+            r += ' INNER JOIN billing.claim_status ON claim_status.id = claims.claim_status_id';
+        }
 
         if (tables.billing_providers) { r += ' INNER JOIN billing.providers AS billing_providers ON billing_providers.id=claims.billing_provider_id'; }
 
@@ -455,32 +463,43 @@ const api = {
                    left join users on users.id=assigned_to `;
         }
 
-        if (tables.cas_reason_codes) {
-            r += ` LEFT JOIN LATERAL (
-                       SELECT ARRAY(
-                           SELECT
-                                ( CASE
-                                    WHEN pa.created_dt IS NULL OR cc.created_dt >= pa.created_dt
-                                    THEN bcrc.code
-                                    ELSE bcr.code
-                                END
-                            ) AS code
-                        FROM billing.claims bc
-                        INNER JOIN billing.claim_status bcs ON bcs.id = bc.claim_status_id
-                        INNER JOIN billing.charges ch ON ch.claim_id = bc.id
-                        LEFT JOIN billing.claim_explanatory_codes cc ON cc.claim_id = ch.claim_id
-                        LEFT JOIN billing.payment_applications bpa ON bpa.charge_id = ch.id
-                        LEFT JOIN billing.cas_payment_application_details pa ON pa.payment_application_id = bpa.id
-                        LEFT JOIN billing.cas_reason_codes bcrc ON bcrc.id = cc.cas_reason_code_id
-                        LEFT JOIN billing.cas_reason_codes bcr ON bcr.id = pa.cas_reason_code_id
-                        WHERE (bcrc.code IS NOT NULL OR bcr.code IS NOT NULL) AND bcs.code NOT IN('PA', 'PP')
-                        AND bc.id = claims.id
+        if (tables.claim_eob) {
+            r += `
+                LEFT JOIN LATERAL (
+                    SELECT ARRAY (
+                        SELECT
+                            bcrc.code
+                        FROM
+                            billing.claim_explanatory_codes bcec
+                        INNER JOIN billing.cas_reason_codes bcrc ON bcrc.id = bcec.cas_reason_code_id
+                        WHERE bcec.claim_id = claims.id
+                        AND claim_status.code NOT IN ('PA', 'PP')
                         AND bcrc.inactivated_dt IS NULL
-                        AND bcr.inactivated_dt IS NULL
-                        ORDER BY cc.created_dt, pa.created_dt DESC
-                        )  AS code
-                    ) AS cas_reason_codes
-                    ON true `;
+                        ORDER BY bcec.created_dt DESC
+                    ) AS explanatory_codes
+                ) claim_eob ON TRUE
+            `;
+        }
+
+        if (tables.charge_eob) {
+            r += `
+                LEFT JOIN LATERAL (
+                    SELECT ARRAY(
+                        SELECT
+                            bcrc.code
+                        FROM
+                            billing.payment_applications bpa
+                        INNER JOIN billing.charges bch ON bch.id = bpa.charge_id
+                        INNER JOIN billing.cas_payment_application_details bcpad ON bcpad.payment_application_id = bpa.id
+                        INNER JOIN billing.cas_reason_codes bcrc ON bcrc.id = bcpad.cas_reason_code_id
+                        WHERE bch.claim_id = claims.id
+                        AND bpa.amount_type = 'adjustment'
+                        AND bcrc.inactivated_dt IS NULL
+                        AND claim_status.code NOT IN ('PA', 'PP')
+                        ORDER BY bcpad.created_dt DESC
+                    ) AS explanatory_codes
+                ) charge_eob ON TRUE
+            `;
         }
 
         if (tables.insurance_provider_payer_types || tables.ins_prov || tables.patient_insurances || tables.payer_insurance || tables.edi_clearinghouses || tables.as_eligibility_status) {
@@ -583,43 +602,39 @@ const api = {
         return r;
     },
 
-    getWLQueryColumns: function (args) {
+    getWLQueryColumns: (args) => {
 
-        // ADDING A NEW WORKLIST COLUMN <-- Search for this
-        let stdcolumns = [
+        let commonColumns = [
             'claims.id',
-            'studies.modalities',
-            'claims.id as claim_id',
+            'claims.id AS claim_id',
+            'claims.id AS claim_no',
             'claims.claim_dt',
             'claims.created_dt',
             'claims.facility_id',
-            'claim_status.description as claim_status',
-            'claim_status.code as claim_status_code',
-            'patients.full_name as patient_name',
-            'cas_reason_codes.code as reason_code',
-            'patients.account_no',
-            'patients.birth_date::text as birth_date',
-            'claims.submitted_dt',
-            `patients.patient_info->'ssn'
-            as patient_ssn`,
-            'billing_providers.name as billing_provider',
-            'places_of_service.description AS place_of_service',
-            'ref_provider.full_name as   referring_providers',
-            'render_provider.full_name as   rendering_provider',
-            'ordering_facilities.name AS ordering_facility_name',
-            'ordering_facility_contacts.id AS ordering_facility_contact_id',
-            'facilities.facility_name as facility_name',
-            'bgct.charges_bill_fee_total as billing_fee',
-            'claims.current_illness_date::text as current_illness_date',
-            'claims.id As claim_no',
-            'patient_insurances.policy_number',
-            'patient_insurances.group_number',
             'claims.payer_type',
             'claims.billing_method',
-            `edi_clearinghouses.name as clearing_house`,
-            `payer_insurance.insurance_info->'edi_template'
-            as edi_template`,
-            `(  CASE payer_type
+            'patients.id AS patient_id',
+            'patients.full_name AS patient_name',
+            'edi_clearinghouses.name AS clearing_house',
+            'claim_status.description AS claim_status',
+            'claim_status.code AS claim_status_code',
+            'billing_providers.name AS billing_provider',
+            `patients.patient_info->'ssn' AS patient_ssn`,
+            'places_of_service.description AS place_of_service'
+        ];
+
+        // ADDING A NEW WORKLIST COLUMN <-- Search for this
+        let columns = {
+            "Account No": "patients.account_no",
+            "Date Of Birth": "patients.birth_date::TEXT",
+            "SSN": "patients.patient_info->'ssn' AS patient_ssn",
+            "Place Of Service": "places_of_service.description AS place_of_service",
+            "Referring Providers": "ref_provider.full_name AS referring_providers",
+            "Rendering Providers": "render_provider.full_name AS rendering_provider",
+            "Billing Fee": "bgct.charges_bill_fee_total AS billing_fee",
+            "Notes": "claims.billing_notes",
+            "Responsbile Party": `(
+                CASE payer_type
                     WHEN 'primary_insurance' THEN payer_insurance.insurance_name
                     WHEN 'secondary_insurance' THEN payer_insurance.insurance_name
                     WHEN 'tertiary_insurance' THEN payer_insurance.insurance_name
@@ -630,82 +645,113 @@ const api = {
                     WHEN 'service_facility_location' THEN public.get_service_facility_name(claims.id, claims.pos_map_code, claims.patient_id)
                 END
               ) AS payer_name`,
-            'bgct.claim_balance_total as claim_balance',
-            'billing_codes.description as billing_code',
-            'billing_codes.id as billing_code_id',
-            'billing_classes.description as billing_class',
-            'billing_classes.id as billing_class_id',
-            'claims.billing_notes',
-            'patients.gender',
-            'patients.id as patient_id',
-            'invoice_no',
-            'claim_comment.created_dt AS first_statement_dt',
-            'charge_details.charge_description',
-            'insurance_provider_payer_types.description AS ins_provider_type',
-            'bgct.payment_ids AS payment_id',
-            `CASE
-                WHEN (
-                        SELECT
-                            country_alpha_3_code
-                        FROM
-                            sites
-                        WHERE
-                            id = 1
-                     ) = 'can'
-                THEN
-                    public.get_eligibility_status(claim_ins.primary_patient_insurance_id, claims.claim_dt)
-                ELSE
-                    null
-            END AS as_eligibility_status`,
-            `claim_icds.description AS icd_description`,
-            `(CASE
-                 WHEN claims.frequency = 'corrected'
-                 THEN 'corrected_claim'
-                 WHEN (claims.frequency != 'corrected' OR claims.frequency IS NULL)
-                 THEN 'new_claim'
-              END) AS claim_action`,
-            `ins_prov.insurance_code`,
-            `ins_prov.insurance_name AS insurance_providers`,
-            `patient_alt_accounts.pid_alt_account`,
-            `patient_alt_accounts.phn_alt_account`,
-            `billing.can_bc_get_claim_sequence_numbers(claims.id) AS can_bc_claim_sequence_numbers`,
-            `AGE(CURRENT_DATE, submitted_dt) >= '3 days'::INTERVAL AND claim_status.code = 'PA' AS claim_resubmission_flag`,
-            'claims.billing_type',
-            `(
+            "Invoice": "claims.invoice_no",
+            "Date Of Injury": "claims.current_illness_date::text AS current_illness_date",
+            "Policy Number": "patient_insurances.policy_number",
+            "Group Number": "patient_insurances.group_number",
+            "Submitted Date": "claims.submitted_dt",
+            "First Statement Date": "claim_comment.created_dt AS first_statement_dt",
+            "Facility": "facilities.facility_name",
+            "Charge Description": "charge_details.charge_description",
+            "ICD Description": "claim_icds.description AS icd_description",
+            "Insurance Providers": "ins_prov.insurance_name AS insurance_providers",
+            "Ins Provider Type": "insurance_provider_payer_types.description AS ins_provider_type",
+            "Alt Account No": "patient_alt_accounts.pid_alt_account",
+            "PHN": "patient_alt_accounts.phn_alt_account",
+            "Line Reason Code": "charge_eob.explanatory_codes AS line_eob_codes",
+            "Claim Reason Code": "claim_eob.explanatory_codes AS claim_eob_codes",
+            "Modality": "studies.modalities",
+            "Billing type": "claims.billing_type",
+            "Eligibility": `
+                  CASE
+                      WHEN (
+                              SELECT
+                                  country_alpha_3_code
+                              FROM sites
+                              WHERE id = 1
+                          ) = 'can'
+                      THEN
+                          public.get_eligibility_status(claim_ins.primary_patient_insurance_id, claims.claim_dt)
+                      ELSE null
+                  END AS as_eligibility_status`,
+            "Ordering Facility Type": `(
                 SELECT
                     description
                 FROM
                     ordering_facility_types
                 WHERE
                     ordering_facility_types.id = ordering_facility_contacts.ordering_facility_type_id
-            ) AS ordering_facility_type`
-        ];
+                    ) AS ordering_facility_type`,
+            "Balance": "bgct.claim_balance_total AS claim_balance",
+            "Gender": "patients.gender",
+            "Payment ID": "bgct.payment_ids AS payment_id",
+            "Ordering Facility": "ordering_facilities.name AS ordering_facility_name",
 
-        if(args.customArgs.filter_id=='Follow_up_queue'){
+            // Country config based worklist columns
+            "Microfilm Number": "claims.can_mhs_microfilm_no",
+            "Sequence Numbers": "billing.can_bc_get_claim_sequence_numbers(claims.id) AS can_bc_claim_sequence_numbers",
+            "AHS Claim Action": `
+                        CASE
+                            WHEN claims.frequency = 'corrected'
+                            THEN 'corrected_claim'
+                            WHEN (claims.frequency != 'corrected' OR claims.frequency IS NULL)
+                            THEN 'new_claim'
+                        END AS claim_action`,
+            "AHS Claim Num": "claims.can_ahs_claim_number AS can_ahs_claim_no"
+        };
 
-            stdcolumns.push( ' FinalClaims.assigned_dt::text as followup_date ');
-            stdcolumns.push( ' FinalClaims.assigned_user_id as assigned_id ');
-            stdcolumns.push( ' FinalClaims.assigned_user as assigned_to ');
+
+        if (args?.billingRegionCode === 'can_AB') {
+            commonColumns.push(`AGE(CURRENT_DATE, submitted_dt) >= '3 days'::INTERVAL AND claim_status.code = 'PA' AS claim_resubmission_flag`);
+        }
+
+        if (args?.billingRegionCode === 'can_ON') {
+            commonColumns.push('claim_errors.error_data');
+
 
         }
-        else
-        {
+        let stdcolumns = (args?.grid_options || []).reduce((stdcolumns, o) => {
 
-            stdcolumns.push( ' claim_followups.followup_date::text as followup_date ');
-            stdcolumns.push( ' users.id as assigned_id ');
-            stdcolumns.push( ` users.username||'('||get_full_name(users.first_name,users.last_name)||')' as assigned_to `);
+            if (columns[o.name]) {
+                switch (o.name) {
+                    case 'Billing Class':
+                        stdcolumns.push(
+                            'billing_classes.description AS billing_class',
+                            'billing_classes.id AS billing_class_id'
+                        );
+                        break;
+                    case 'Billing Code':
+                        stdcolumns.push(
+                            'billing_codes.description AS billing_code',
+                            'billing_codes.id AS billing_code_id'
+                        );
+                        break;
+                    case 'Ordering Facility':
+                        stdcolumns.push('ordering_facility_contacts.id AS ordering_facility_contact_id')
+                        break;
+                    case 'Insurance Providers':
+                        stdcolumns.push('ins_prov.insurance_code');
+                        break;
+                }
+                stdcolumns.push(
+                    columns[o.name]
+                );
+            }
 
+            return stdcolumns;
+        }, []);
+
+        if (args.customArgs.filter_id == 'Follow_up_queue') {
+            stdcolumns.push('FinalClaims.assigned_dt::text AS followup_date');
+            stdcolumns.push('FinalClaims.assigned_user_id AS assigned_id');
+            stdcolumns.push('FinalClaims.assigned_user AS assigned_to');
+        } else {
+            stdcolumns.push('claim_followups.followup_date::text AS followup_date');
+            stdcolumns.push('users.id AS assigned_id');
+            stdcolumns.push(`users.username||'('||get_full_name(users.first_name,users.last_name)||')' AS assigned_to`);
         }
 
-        if (['can_ON'].indexOf(args.billingRegionCode) > -1) {
-            stdcolumns.push('claim_errors.error_data');
-        } else if (args.billingRegionCode === 'can_BC') {
-            stdcolumns.push('billing.can_bc_get_claim_sequence_numbers(claims.id) AS can_bc_claim_sequence_numbers');
-        } else if (args.billingRegionCode === 'can_AB') {
-            stdcolumns.push('claims.can_ahs_claim_number AS can_ahs_claim_no');
-        } else if (args.billingRegionCode === 'can_MB') {
-            stdcolumns.push(`claims.can_mhs_microfilm_no`);
-        }
+        stdcolumns = stdcolumns.concat(commonColumns).join(',\n\t\t');
 
         return stdcolumns;
 
@@ -752,11 +798,11 @@ const api = {
             followupselect = `, users.id as assigned_user_id , users.username||'('||get_full_name(users.first_name,users.last_name)||')' as assigned_user,claim_followups.followup_date::text as assigned_dt `;
         }
 
-        let innerQuery = api.getWLQuery(`
-                            row_number() over(${sort}) as number
-                            , claims.id AS claim_id
-                            ${followupselect}
-                            `, args, params);
+        let innerQuery = api.getWLQuery(
+            ` row_number() over(${sort}) as number
+                , claims.id AS claim_id
+                ${followupselect}`
+            , args, params);
 
         innerQuery += limit + offset;
 
@@ -769,10 +815,12 @@ const api = {
         let columns = api.getWLQueryColumns(args);
         let sql = `
             SELECT
-            ${columns},
-            FinalClaims.number,
-            claim_alert.show_alert_icon
-            FROM (${innerQuery}) as FinalClaims
+                FinalClaims.number,
+                claim_alert.show_alert_icon,
+                ${columns}
+            FROM (
+                ${innerQuery}
+            ) AS FinalClaims
             INNER JOIN billing.claims ON FinalClaims.claim_id = claims.id
             INNER JOIN facilities ON facilities.id = claims.facility_id
             LEFT JOIN LATERAL (
@@ -893,6 +941,7 @@ const api = {
 
         if (responseUserSetting.length > 0) {
             let userSetting = responseUserSetting[0];
+            args.grid_options = userSetting.grid_options || [];
 
             const perms_filter = userSetting.perms_filter;
 

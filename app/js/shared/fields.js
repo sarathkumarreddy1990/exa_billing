@@ -581,7 +581,7 @@ define([ 'backbone', 'immutable', 'moment', 'shared/utils' ], function ( Backbon
                     "field_info": {
                         "custom_name": "AHS Claim Num",
                         "name": "can_ahs_claim_no",
-                        "width": 75,
+                        "width": 150,
                         "hidden": app.billingRegionCode !== "can_AB"
                     }
                 },
@@ -849,14 +849,31 @@ define([ 'backbone', 'immutable', 'moment', 'shared/utils' ], function ( Backbon
                         "hidden": app.billingRegionCode !== 'can_AB'
                     }
                 },
-                "Reason Code": {
+                "Line Reason Code": {
                     "id": 69,
-                    "field_code": "reason_code",
-                    "field_name": "Reason Code",
-                    "i18n_name": "setup.userSettings.reasonCode",
+                    "field_code": "line_eob_codes",
+                    "field_name": "Line Reason Code",
+                    "i18n_name": "setup.userSettings.lineReasonCode",
                     "field_info": {
-                        "custom_name": "Reason Code",
-                        "name": "reason_code",
+                        "custom_name": "Line Reason Code",
+                        "name": "line_eob_codes",
+                        "width": 150,
+                        "searchFlag": "%",
+                        "stype": "select",
+                        "sortable": true,
+                        "searchoptions": {
+                            "value": casReasonCodes
+                        }
+                    }
+                },
+                "Claim Reason Code": {
+                    "id": 80,
+                    "field_code": "claim_eob_codes",
+                    "field_name": "Claim Reason Code",
+                    "i18n_name": "setup.userSettings.claimReasonCode",
+                    "field_info": {
+                        "custom_name": "Claim Reason Code",
+                        "name": "claim_eob_codes",
                         "width": 150,
                         "searchFlag": "%",
                         "stype": "select",
