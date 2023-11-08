@@ -145,7 +145,8 @@ const acr = {
             screen_name: 'Payments',
             module_name: moduleName,
             client_ip: ip,
-            user_id: parseInt(userId)
+            user_id: parseInt(userId),
+            payment_application_source: 'from cron auto collections process'
         };
         let companySettings = await acr.getData(params);
 
@@ -372,14 +373,15 @@ const acr = {
                 , change_responsible_party AS (
                     SELECT
                         billing.update_claim_responsible_party(
-                            claim_id
-                            , 0
-                            , ${companyId}
-                            , null
-                            , 0
-                            , false
-                            , 0
-                            , null
+                            claim_id,
+                            0,
+                            ${companyId},
+                            null,
+                            0,
+                            false,
+                            0,
+                            null,
+                            (${JSON.stringify(auditDetails)})::JSONB
                         ) AS result
                     FROM
                         claim_charges
