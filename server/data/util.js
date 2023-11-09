@@ -218,6 +218,25 @@ const util = {
                 query += util.getDateRangeQuery(query, filterObj, filterFlag);
             }
 
+            // Bind User facilities and worklist filters for facilities from RIS to billing
+            let facilityFilterObj = (filterObj?.studyInformation || filterObj?.ClaimInformationInformation)?.facility;
+
+            if (facilityFilterObj) {
+                let obj = facilityFilterObj;
+                let facilityQuery = '';
+
+                if (obj && obj.list && obj.list.length) {
+                    let facilityArray = _.map(obj.list, (x) => x.id);
+                    facilityQuery = util.getConditionalOperator(obj.condition, `ANY(ARRAY[` + facilityArray + `])`, true, 'array', ` claims.facility_id `);
+
+                    if (obj.condition == 'IsNot') {
+                        facilityQuery += ' OR claims.facility_id IS NULL';
+                    }
+
+                    query += util.getRelationOperator(query) + '(' + facilityQuery + ')';
+                }
+            }
+
             if (filterObj.ClaimInformation) {
                 if (filterObj.ClaimInformation.claimStatus) {
                     let obj = filterObj.ClaimInformation.claimStatus;
@@ -393,23 +412,6 @@ const util = {
                 if (insFilterClaimGroup) {
                     query = util.getinsuranceFilterQuery(insFilterClaimGroup.insProvClaimGroup, shared.insuranceProviderClaimGroup(), 'insProvClaimGroup', query);
                 }
-
-                if (filterObj.ClaimInformation.facility) {
-                    let obj = filterObj.ClaimInformation.facility;
-                    let facilityQuery = '';
-
-                    if (obj && obj.list && obj.list.length) {
-                        let facilityArray = _.map(obj.list, (x) => x.id);
-                        facilityQuery = util.getConditionalOperator(obj.condition, `ANY(ARRAY[` + facilityArray + `])`, true, 'array', ` claims.facility_id `);
-
-                        if (obj.condition == 'IsNot') {
-                            facilityQuery += ' OR claims.facility_id IS NULL';
-                        }
-
-                        query += util.getRelationOperator(query) + '(' + facilityQuery + ')';
-                    }
-                }
-
 
                 if (filterObj.ClaimInformation.ordering_facility) {
                     let obj = filterObj.ClaimInformation.ordering_facility;
