@@ -878,14 +878,15 @@ const api = {
         //studyfilterdata.getUserWLFilters(filter_options, function (err, response) {
         const filter = response.rows && response.rows.length > 0 ? response.rows[0] : {};
 
-        // const {
-        //     joined_filter_info
-        // } = filter;
+        const {
+            joined_filter_info
+        } = filter;
 
-        // const filter_query = joined_filter_info && api.getCombinedQuery(joined_filter_info) || '';
+        const filter_query = joined_filter_info && api.getCombinedQuery([joined_filter_info], args.user_id) || '';
+        const newFilter = Object.assign(filter, { filter_query });
 
-        filter.perms_filter = util.getClaimFilterQuery(filter.perms_filter, 'claims', args.user_id, args.statOverride);
-        let responseUserSetting = [filter];
+        newFilter.perms_filter = util.getClaimFilterQuery(filter.perms_filter, 'claims', args.user_id, args.statOverride);
+        let responseUserSetting = [newFilter];
 
         let permission_query = SQL`
             -- permission query
@@ -912,13 +913,6 @@ const api = {
                 //showEncOnly = (showEncOnly == false) ? userSetting.worklist_filter_info.options.showEncOnly : showEncOnly;    // Totally crashes the worklist when you try to respect the user filter Show Encounters Only option
 
                 statOverride = !statOverride && perms_filter && perms_filter.options && perms_filter.options.statOverride || statOverride;
-
-                if (userSetting.userDetails) { // this is permissions based on use facilities [why base on orders vs studies facility_id ??]
-                    if (userSetting.userDetails.user_type != 'SU' && userSetting.userDetails.all_facilities != true) {
-
-                        whereClause.permission_filter = AND(whereClause.permission_filter, ` claims.facility_id = ANY(ARRAY[${userSetting.userDetails.facilities}]) `);
-                    }
-                }
 
                 if (!_.isEmpty(userSetting.user_details)) {
                     if (userSetting.user_details.user_type !== 'SU' && userSetting.user_details.all_facilities !== true) {
