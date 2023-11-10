@@ -589,6 +589,7 @@ const api = {
                 ${columns}
             FROM
                 studies
+            INNER JOIN facilities ON studies.facility_id = facilities.id AND facilities.is_active = true
             ${permissionQuery}
             ${api.getWLQueryJoin(tables) + args.filterQuery}
             `;
@@ -601,7 +602,7 @@ const api = {
         let imp_facilities = tables.tat;
         let r = '';
 
-        if (tables.facilities || imp_facilities) {r += ' INNER JOIN facilities ON studies.facility_id = facilities.id ';}//AND (facilities.is_active = true OR facilities.facility_info->'show_studies' = 'true') `;
+        if (tables.facilities || imp_facilities) {r += ' INNER JOIN facilities ON studies.facility_id = facilities.id AND facilities.is_active = true ';}//AND (facilities.is_active = true OR facilities.facility_info->'show_studies' = 'true') `;
 
         if (tables.patients) {r += ' INNER JOIN patients ON studies.patient_id = patients.id ';}
 

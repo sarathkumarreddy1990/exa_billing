@@ -395,7 +395,7 @@ const api = {
                 ${columns}
             FROM
                 billing.claims
-            INNER JOIN facilities ON facilities.id = claims.facility_id
+            INNER JOIN facilities ON facilities.id = claims.facility_id AND facilities.is_active = true
             ${permissionQuery}
             ${api.getWLQueryJoin(tables, true, args.customArgs.filter_id, args.user_id, args.isCount, args) + args.filterQuery}
         `;
@@ -822,7 +822,7 @@ const api = {
                 ${innerQuery}
             ) AS FinalClaims
             INNER JOIN billing.claims ON FinalClaims.claim_id = claims.id
-            INNER JOIN facilities ON facilities.id = claims.facility_id
+            INNER JOIN facilities ON facilities.id = claims.facility_id AND facilities.is_active = true
             LEFT JOIN LATERAL (
                 SELECT
                     true AS show_alert_icon
