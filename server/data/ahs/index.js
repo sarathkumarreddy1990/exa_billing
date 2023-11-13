@@ -581,7 +581,7 @@ const ahsData = {
                                 'service_date', bch.charge_dt
                                 , 'health_service_code', pcc.display_code
                                 , 'health_service_description', pcc.display_description
-                                , 'skill_code', sc.code
+                                , 'skill_code', s.code
                                 , 'calls'
                                 , CASE
                                     WHEN s.hospital_admission_dt IS NULL
@@ -594,9 +594,17 @@ const ahsData = {
                         , bch.claim_id
                     FROM billing.charges bch
                     LEFT JOIN public.cpt_codes pcc ON pcc.id = bch.cpt_id
-                    LEFT JOIN billing.charges_studies bchs ON bchs.charge_id = bch.id
-                    LEFT JOIN public.studies s ON s.id = bchs.study_id
-                    LEFT JOIN public.skill_codes sc ON sc.id = s.can_ahs_skill_code_id
+                    LEFT JOIN LATERAL (
+                        SELECT
+                            sc.code,
+                            s.hospital_admission_dt,
+                            s.study_dt
+                        FROM billing.charges_studies bchs
+                        LEFT JOIN public.studies s ON s.id = bchs.study_id
+                        LEFT JOIN public.skill_codes sc ON sc.id = s.can_ahs_skill_code_id
+                        WHERE bchs.charge_id = bch.id
+                    ) AS s ON TRUE
+                    WHERE bch.claim_id = ANY (${claimIds})
                     GROUP BY
                         bch.claim_id
                 ) AS cd ON cd.claim_id = bc.id
