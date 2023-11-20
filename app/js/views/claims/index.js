@@ -4608,8 +4608,7 @@ define(['jquery',
                     var samePolicy = info.policy_number === policy;
                     var sameCoverageLevel = info.coverage_level === coverage_level;
                     var sameRecord = info.id === ~~id;
-                    let isActive = info.is_active;
-                    return sameProvider && samePolicy && sameCoverageLevel && !sameRecord && isActive;
+                    return sameProvider && samePolicy && sameCoverageLevel && !sameRecord && info.is_active;
                 });
             },
 
