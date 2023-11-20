@@ -2425,6 +2425,7 @@ define([
                 if (isDebit && adjustmentCodeType) {
                     $('#btnPayfullAppliedPendingPayments').attr('disabled', true);
                     var thisAdjustment;
+                    var thisPayment;
 
                     $.each(lineItems, function () {
                         thisAdjustment = $(this).find('.payment__this_adjustment');
@@ -2686,7 +2687,6 @@ define([
                 var self = this;
                 var isDebit = $('.checkDebit')[0].checked;
                 var adjustment_codetype = $('#ddlAdjustmentCode_fast').find(':selected').attr('data_code_type');
-                var adjustment_code = $('#ddlAdjustmentCode_fast').find(':selected').attr('data_code');
                 var val = ['refund_debit', 'recoupment_debit', 'debit'];
                 var isNegativeAdj = val.indexOf(adjustment_codetype) > -1;
 
