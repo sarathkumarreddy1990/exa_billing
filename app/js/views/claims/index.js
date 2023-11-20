@@ -4592,12 +4592,12 @@ define(['jquery',
                     var samePolicy = info.policy_number === policy;
                     var sameCoverageLevel = info.coverage_level === coverage_level;
                     var sameRecord = info.id === ~~id;
-                    return sameProvider && samePolicy && sameCoverageLevel && !sameRecord;
+                    return sameProvider && samePolicy && sameCoverageLevel && !sameRecord && info.is_active;
                 });
             },
 
             /**
-             * Validates insurance to ensure that the user didn't enter the same carrier and policy number for multiple 
+             * Validates insurance to ensure that the user didn't enter the same carrier and policy number for multiple
              * coverage levels (ie. entered the same policy for both primary and secondary coverage)
              *
              * @returns {boolean}
