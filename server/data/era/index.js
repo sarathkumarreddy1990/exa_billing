@@ -332,14 +332,14 @@ module.exports = {
                                 final_claim_charges fcc
                             INNER JOIN public.patients p on p.id = fcc.patient_id
                             INNER JOIN billing.charges ch on ch.id = fcc.charge_id
-                            WHERE
-                                (   CASE
-                                    WHEN 'OHIP_EOB' = ${paymentDetails.from} AND fcc.claim_payment_status = 'PP' THEN true
+                            WHERE (
+                                CASE
+                                    WHEN 'OHIP_EOB' = ${paymentDetails.from} AND fcc.claim_payment_status = 'PP'
+                                    THEN TRUE
                                     WHEN fcc.patient_lname != '' AND 'OHIP_EOB' != ${paymentDetails.from}
-                                    THEN lower(p.last_name) = lower(fcc.patient_lname)
-                                        ELSE '0'
-                                    END
-                                )
+                                    THEN TRUE
+                                    ELSE '0'
+                                END)
                         ),
                         insert_payment_adjustment AS (
                             SELECT
