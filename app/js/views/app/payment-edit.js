@@ -2424,31 +2424,33 @@ define([
 
                 if (isDebit && adjustmentCodeType) {
                     $('#btnPayfullAppliedPendingPayments').attr('disabled', true);
-                    var thisAdjustment;
-                    var thisPayment;
+                    var $thisAdjustment;
+                    var $thisPayment;
 
                     $.each(lineItems, function () {
-                        thisAdjustment = $(this).find('.payment__this_adjustment');
-                        thisPayment = $(this).find('.payment__this_pay');
-                        $(this).find('.payment__this_pay').attr('disabled', ['refund_debit', 'debit'].indexOf(adjustmentCodeType) > -1);
+                        var hasDebit = ['refund_debit', 'debit'].indexOf(adjustmentCodeType) > -1;
+                        $thisAdjustment = $(this).find('.payment__this_adjustment');
+                        $thisPayment = $(this).find('.payment__this_pay');
+
+                        $thisPayment.prop('disabled', hasDebit);
 
                         if (adjustmentCodeType === 'refund_debit') {
-                            $(this).find('.payment__this_pay').val('0.00');
+                            $thisPayment.val('0.00');
                             $(this).find('.payment__other_adjustment').val('0.00');
-                            thisAdjustment.val(parseFloat(-Math.abs(thisAdjustment.val())).toFixed(2));
+                            $thisAdjustment.val(parseFloat(-Math.abs($thisAdjustment.val())).toFixed(2));
                         }
                         else if (adjustmentCode === 'BDR') {
-                            thisAdjustment.val(parseFloat(-Math.abs(thisAdjustment.val())).toFixed(2));
+                            $thisAdjustment.val(parseFloat(-Math.abs($thisAdjustment.val())).toFixed(2));
                         }
                         else if (adjustmentCodeType === 'recoupment_debit') {
-                            $(this).find('.payment__this_pay').attr('disabled', false);
-                            thisAdjustment.val(parseFloat(-Math.abs(thisAdjustment.val())).toFixed(2));
-                            thisPayment.val(parseFloat(-Math.abs(thisPayment.val())).toFixed(2));
+                            $thisPayment.prop('disabled', false);
+                            $thisAdjustment.val(parseFloat(-Math.abs($thisAdjustment.val())).toFixed(2));
+                            $thisPayment.val(parseFloat(-Math.abs($thisPayment.val())).toFixed(2));
                         }
                         else {
-                            thisAdjustment.val(parseFloat(Math.abs(thisAdjustment.val())).toFixed(2));
-                            thisPayment.val(parseFloat(Math.abs(thisPayment.val())).toFixed(2));
-                            $(this).find('.payment__this_pay').attr('disabled', false);
+                            $thisAdjustment.val(parseFloat(Math.abs($thisAdjustment.val())).toFixed(2));
+                            $thisPayment.val(parseFloat(Math.abs($thisPayment.val())).toFixed(2));
+                            $thisPayment.attr('disabled', false);
                         }
                     });
 
@@ -2456,10 +2458,10 @@ define([
                 else {
                     lineItems.find('.payment__this_pay').attr('disabled', false);
                     $.each(lineItems, function () {
-                        thisAdjustment = $(this).find('.payment__this_adjustment');
-                        var thisPayment = $(this).find('.payment__this_pay');
-                        thisAdjustment.val(parseFloat(Math.abs(thisAdjustment.val())).toFixed(2));
-                        thisPayment.val(parseFloat(Math.abs(thisPayment.val())).toFixed(2));
+                        var $thisAdjustment = $(this).find('.payment__this_adjustment');
+                        var $thisPayment = $(this).find('.payment__this_pay');
+                        $thisAdjustment.val(parseFloat(Math.abs($thisAdjustment.val())).toFixed(2));
+                        $thisPayment.val(parseFloat(Math.abs($thisPayment.val())).toFixed(2));
                     });
                     $('#btnPayfullAppliedPendingPayments').attr('disabled', false);
                 }
