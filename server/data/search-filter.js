@@ -589,7 +589,6 @@ const api = {
                 ${columns}
             FROM
                 studies
-            INNER JOIN facilities ON studies.facility_id = facilities.id AND facilities.is_active = true
             ${permissionQuery}
             ${api.getWLQueryJoin(tables) + args.filterQuery}
             `;
@@ -602,7 +601,9 @@ const api = {
         let imp_facilities = tables.tat;
         let r = '';
 
-        if (tables.facilities || imp_facilities) {r += ' INNER JOIN facilities ON studies.facility_id = facilities.id AND facilities.is_active = true ';}//AND (facilities.is_active = true OR facilities.facility_info->'show_studies' = 'true') `;
+        if (tables.facilities || imp_facilities) {
+            r += ' INNER JOIN facilities ON studies.facility_id = facilities.id AND facilities.is_active ';
+        }
 
         if (tables.patients) {r += ' INNER JOIN patients ON studies.patient_id = patients.id ';}
 
@@ -1208,10 +1209,10 @@ const api = {
         const filter = response.rows[0] || {};
 
         const {
-            joined_filter_info
+            filter_info
         } = filter;
 
-        const filter_query = joined_filter_info && util.getCombinedQuery([joined_filter_info], args.user_id, args.statOverride) || '';
+        const filter_query = filter_info && util.getCombinedQuery([{ filter_info }], args.user_id, args.statOverride) || '';
         const newFilter = Object.assign(filter, { filter_query });
 
         newFilter.perms_filter = await util.getStudyFilterQuery(filter.perms_filter, args.user_id, args.statOverride);
