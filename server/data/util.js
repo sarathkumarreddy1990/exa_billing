@@ -421,10 +421,6 @@ const util = {
                         let facilityArray = _.map(obj.list, (x) => x.id);
                         facilityQuery = util.getConditionalOperator(obj.condition, `ANY(ARRAY[` + facilityArray + `])`, true, 'array', ` claims.facility_id `);
 
-                        if (obj.condition == 'IsNot') {
-                            facilityQuery += ' OR claims.facility_id IS NULL';
-                        }
-
                         query += util.getRelationOperator(query) + '(' + facilityQuery + ')';
                     }
                 }
