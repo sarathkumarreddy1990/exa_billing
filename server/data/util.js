@@ -219,7 +219,7 @@ const util = {
             }
 
             // Bind User facilities and worklist filters for facilities from RIS to billing
-            let facilityFilterObj = (filterObj?.studyInformation || filterObj?.ClaimInformationInformation)?.facility;
+            let facilityFilterObj = filterObj?.studyInformation?.facility;
 
             if (facilityFilterObj) {
                 let obj = facilityFilterObj;
@@ -411,6 +411,18 @@ const util = {
 
                 if (insFilterClaimGroup) {
                     query = util.getinsuranceFilterQuery(insFilterClaimGroup.insProvClaimGroup, shared.insuranceProviderClaimGroup(), 'insProvClaimGroup', query);
+                }
+
+                if (filterObj.ClaimInformation.facility) {
+                    let obj = filterObj.ClaimInformation.facility;
+                    let facilityQuery = '';
+
+                    if (obj && obj.list && obj.list.length) {
+                        let facilityArray = _.map(obj.list, (x) => x.id);
+                        facilityQuery = util.getConditionalOperator(obj.condition, `ANY(ARRAY[` + facilityArray + `])`, true, 'array', ` claims.facility_id `);
+
+                        query += util.getRelationOperator(query) + '(' + facilityQuery + ')';
+                    }
                 }
 
                 if (filterObj.ClaimInformation.ordering_facility) {
@@ -1045,7 +1057,7 @@ const util = {
 
             }
 
-            let flag = filterObj.studyInformation.flag;
+            let flag = filterObj?.studyInformation?.flag;
 
             if (flag) {
                 let len = flag.list.length;
