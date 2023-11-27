@@ -389,7 +389,6 @@ const api = {
                 ${columns}
             FROM
                 billing.claims
-                INNER JOIN facilities ON facilities.id=claims.facility_id
             ${permissionQuery}
             ${api.getWLQueryJoin(tables, true, args.customArgs.filter_id, args.user_id, args.isCount, args) + args.filterQuery}
             `;
@@ -406,7 +405,10 @@ const api = {
 
         if (tables.patients) { r += ' INNER JOIN patients ON claims.patient_id = patients.id '; }
 
-        //  if (tables.facilities) { r += ' INNER JOIN facilities ON facilities.id=claims.facility_id '; }
+        if (tables.facilities) {
+            r += ' INNER JOIN facilities ON facilities.id = claims.facility_id AND facilities.is_active ';
+        }
+
         if (tables.studies) {
             r += `  LEFT JOIN LATERAL (
                 SELECT
@@ -774,7 +776,6 @@ const api = {
             claim_alert.show_alert_icon
             FROM (${innerQuery}) as FinalClaims
             INNER JOIN billing.claims ON FinalClaims.claim_id = claims.id
-            INNER JOIN facilities ON facilities.id = claims.facility_id
             LEFT JOIN LATERAL (
                 SELECT
                     true AS show_alert_icon
@@ -879,10 +880,10 @@ const api = {
         const filter = response.rows && response.rows.length > 0 ? response.rows[0] : {};
 
         const {
-            joined_filter_info
+            filter_info
         } = filter;
 
-        const filter_query = joined_filter_info && api.getCombinedQuery([joined_filter_info], args.user_id) || '';
+        const filter_query = filter_info && api.getCombinedQuery([{ filter_info }], args.user_id) || '';
         const newFilter = Object.assign(filter, { filter_query });
 
         newFilter.perms_filter = util.getClaimFilterQuery(filter.perms_filter, 'claims', args.user_id, args.statOverride);
@@ -900,6 +901,11 @@ const api = {
             const studyFilter = userSetting;
 
             if (studyFilter) {
+
+
+                if (studyFilter.filter_query) {
+                    whereClause.studyFilter = AND(whereClause.studyFilter, studyFilter.filter_query);
+                }
 
                 if (studyFilter.perms_filter) {
                     whereClause.studyFilter = AND(whereClause.studyFilter, studyFilter.perms_filter);
