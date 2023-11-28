@@ -5371,6 +5371,45 @@ define(['jquery',
                 });
             },
 
+            getBusinessArrangement: function (facility_id, rendering_provider_id) {
+                var self = this;
+
+                $.ajax({
+                    url: '/exa_modules/billing/claims/claim/business_arrangement',
+                    type: 'GET',
+                    data: {
+                        facility_id: facility_id,
+                        rendering_provider_id: rendering_provider_id
+                    },
+                    success: function (data) {
+                        if (!data.length || !data[0].can_ahs_locum_arrangement_provider) {
+                            return;
+                        }
+
+                        self.can_ahs_business_arrangement_facility = data[0].can_ahs_business_arrangement_facility;
+                        self.can_ahs_locum_arrangement_provider = data[0].can_ahs_locum_arrangement_provider;
+
+                        var $businessArrangement = $('input[name="BusinessArrangement"]');
+                        var payToValue = self.getPayToValue();
+
+                        $businessArrangement
+                            .off('change')
+                            .on('change', function () {
+                                if (this.checked) {
+                                    var value = $(this).val();
+                                    self.setBusinessArrangement(value);
+                                }
+                            })
+                            .val([payToValue]);
+
+                        $businessArrangement.trigger('change');
+                    },
+                    error: function (err, response) {
+                        commonjs.handleXhrError(err, response);
+                    }
+                })
+            },
+
             processClaim: function (e) {
                 var self = this, currentRowID;
                 var $tblGrid = self.options.grid_id || null;
@@ -6060,8 +6099,8 @@ define(['jquery',
                 self.toggleWCBInjuryTypes();
 
                 //EXA-18273 - Bind Charges created on current date for a patient.
-                if (app.billingRegionCode === 'can_AB' && self.studyDate) {
-                    self.getPatientCharges(patient_details.patient_id);
+                if (app.billingRegionCode === 'can_AB') {
+                    self.getBusinessArrangement(patient_details.facility_id, patient_details.rendering_provider_id);
                 }
 
                 // Set Default details
