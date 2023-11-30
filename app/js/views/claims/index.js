@@ -1597,15 +1597,16 @@ define(['jquery',
                             ? ''
                             : data.frequency;
                         var disableCorrected = isRejectedClaimStatus || !actionCode;
-                        var validClaimStatusArray = ['APP', 'AOP', 'PIF', 'R', 'D', 'BR', 'AD', 'ADP', 'ARP', 'OH', 'PA', 'PS', 'PP'];
-                        var disableClaimStatus = self.priInsCode && self.priInsCode.toLowerCase() === 'ahs' || false;
-                        var enableClaimStatus = disableClaimStatus && validClaimStatusArray.indexOf(data.claim_status_code) !== -1;
+                        var invalidClaimStatusArray = ['DEL', 'ISS', 'PAE', 'PGA', 'PGD', 'REJ', 'REQ'];
+                        var disableClaimStatus = (
+                            self.priInsCode && self.priInsCode.toLowerCase() === 'ahs' &&
+                            invalidClaimStatusArray.indexOf(data.claim_status_code) !== -1
+                        ) || false;
 
                         frequencyElement.find('option[value=""]').prop('disabled', !disableCorrected);
                         frequencyElement.find('option[value="corrected"]').prop('disabled', disableCorrected);
                         frequencyElement.find('option[value="'+ actionCode +'"]').prop('selected', 'selected');
-
-                        $('#ddlClaimStatus').prop('disabled', disableClaimStatus && !enableClaimStatus);
+                        $('#ddlClaimStatus').prop('disabled', disableClaimStatus);
 
                         //EXA-18272 - Restrict to add/remove new charge on edit claim for alberta billing
                         $("td span.addChargeLine").parent().remove();
