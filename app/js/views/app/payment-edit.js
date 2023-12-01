@@ -3882,11 +3882,13 @@ define([
                     var currentClaimStatus = app.claim_status.find(function(obj) {
                         return obj.id === details.claim_status_id;
                     });
-                    var validClaimStatusArray = ['APP', 'AOP', 'PIF', 'R', 'D', 'BR', 'AD', 'ADP', 'ARP', 'OH', 'PA', 'PS', 'PP'];
-                    var disableClaimStatus = details && details.primary_ins_provider_code && details.primary_ins_provider_code.toLowerCase() === 'ahs' || false;
-                    var enableClaimStatus = disableClaimStatus && validClaimStatusArray.indexOf(currentClaimStatus.code) !== -1;
+                    var invalidClaimStatusArray = ['DEL', 'ISS', 'PAE', 'PGA', 'PGD', 'REJ', 'REQ'];
+                    var disableClaimStatus = (
+                        details && details.primary_ins_provider_code && details.primary_ins_provider_code.toLowerCase() === 'ahs' &&
+                        invalidClaimStatusArray.indexOf(currentClaimStatus.code) !== -1
+                    ) || false;
 
-                    $('#ddlClaimStatus').prop('disabled', disableClaimStatus && !enableClaimStatus);
+                    $('#ddlClaimStatus').prop('disabled', disableClaimStatus);
                 } else if (app.billingRegionCode === 'can_MB') {
                     var queryClaimStatusId, p77ClaimStatusId;
 
