@@ -67,7 +67,7 @@ var invoiceData = [{
         "claim_id": "CLAIM01",
         "payment_id": "PAYMENT01",
         "payments_applied_total": "$01.00",
-        "ajdustments_applied_total": "$0.00"
+        "adjustments_applied_total": "$0.00"
     }, {
         "payment_dt": "YYYY-MM-DDTHH:MM:SS.MS-00:00",
         "payer_type": "insurance",
@@ -75,7 +75,7 @@ var invoiceData = [{
         "claim_id": "CLAIM01",
         "payment_id": "PAYMENT02",
         "payments_applied_total": "$02.00",
-        "ajdustments_applied_total": null
+        "adjustments_applied_total": null
     }]
 }]
 
@@ -404,7 +404,7 @@ function Invoice() {
                     table: {
                         widths: [445, 120],
                         headerRows: 1,
-                        body: 
+                        body:
                             [gridData]
                     },layout: 'noBorders',colSpan: 2
                 }, {}

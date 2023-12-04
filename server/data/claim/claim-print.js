@@ -188,7 +188,7 @@ module.exports = {
                                     bpa.amount
                               ELSE
                                     0.00::money
-                        END)  AS ajdustments_applied_total
+                        END)  AS adjustments_applied_total
                 FROM billing.payments bp
                 INNER JOIN billing.payment_applications bpa ON bpa.payment_id = bp.id
                 INNER JOIN billing.charges ch ON ch.id = bpa.charge_id
