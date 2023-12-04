@@ -536,7 +536,9 @@ const api= {
 
     updateNotes: data.updateNotes,
 
-    getChargesByPatientId: data.getChargesByPatientId
+    getChargesByPatientId: data.getChargesByPatientId,
+
+    getBusinessArrangement: data.getBusinessArrangement
 };
 
 module.exports = api;
