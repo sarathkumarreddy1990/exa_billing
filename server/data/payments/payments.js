@@ -1625,7 +1625,7 @@ module.exports = {
                     SELECT
                         ccf.charges_bill_fee_total - (
                             applications.payments_applied_total +
-                            applications.ajdustments_applied_total +
+                            applications.adjustments_applied_total +
                             applications.refund_amount
                         ) AS claim_balance_total
                         ,ccf.claim_id
@@ -1634,7 +1634,7 @@ module.exports = {
                     LEFT JOIN LATERAL (
                         SELECT
                             coalesce(sum(pa.amount)   FILTER (WHERE pa.amount_type = 'payment'),0::money)    AS payments_applied_total,
-                            coalesce(sum(pa.amount)   FILTER (WHERE pa.amount_type = 'adjustment' AND (adj.accounting_entry_type != 'refund_debit' OR pa.adjustment_code_id IS NULL)),0::money) AS ajdustments_applied_total,
+                            coalesce(sum(pa.amount)   FILTER (WHERE pa.amount_type = 'adjustment' AND (adj.accounting_entry_type != 'refund_debit' OR pa.adjustment_code_id IS NULL)),0::money) AS adjustments_applied_total,
                             coalesce(sum(pa.amount)   FILTER (WHERE adj.accounting_entry_type = 'refund_debit'),0::money) AS refund_amount,
                             c.claim_id
                         FROM
@@ -1734,7 +1734,7 @@ module.exports = {
                 SELECT
                     ccf.charges_bill_fee_total - (
                         applications.payments_applied_total +
-                        applications.ajdustments_applied_total +
+                        applications.adjustments_applied_total +
                         applications.refund_amount
                     ) AS claim_balance_total
                     ,ccf.claim_id
@@ -1744,7 +1744,7 @@ module.exports = {
                     SELECT
                         coalesce(sum(pa.amount)   FILTER (WHERE pa.amount_type = 'payment'),0::money)    AS payments_applied_total
                         ,coalesce(sum(pa.amount)   FILTER (WHERE pa.amount_type = 'adjustment'
-                        AND (adj.accounting_entry_type != 'refund_debit' OR pa.adjustment_code_id IS NULL)),0::money) AS ajdustments_applied_total
+                        AND (adj.accounting_entry_type != 'refund_debit' OR pa.adjustment_code_id IS NULL)),0::money) AS adjustments_applied_total
                         ,coalesce(sum(pa.amount)   FILTER (WHERE adj.accounting_entry_type = 'refund_debit'),0::money) AS refund_amount
                         ,c.claim_id
                     FROM

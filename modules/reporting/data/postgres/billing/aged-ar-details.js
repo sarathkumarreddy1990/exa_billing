@@ -24,7 +24,7 @@ WITH charges_cwt AS (
 applications_cwt AS (
     SELECT  cc.claim_id
         ,  coalesce(sum(pa.amount)   FILTER (WHERE pa.amount_type = 'payment'),0::money)    AS payments_applied_total
-        , coalesce(sum(pa.amount)   FILTER (WHERE pa.amount_type = 'adjustment'),0::money) AS ajdustments_applied_total
+        , coalesce(sum(pa.amount)   FILTER (WHERE pa.amount_type = 'adjustment'),0::money) AS adjustments_applied_total
     FROM charges_cwt cc
     INNER JOIN billing.charges AS c  ON c.claim_id = cc.claim_id
     INNER JOIN billing.payment_applications AS pa ON pa.charge_id = c.id
@@ -36,10 +36,10 @@ get_claim_details AS(
     SELECT
         cc.claim_id as claim_id,
         cc.age as age,
-       (cc.charges_bill_fee_total - ( coalesce(ac.payments_applied_total,0::money) +  coalesce(ac.ajdustments_applied_total,0::money) )) AS balance
+       (cc.charges_bill_fee_total - ( coalesce(ac.payments_applied_total,0::money) +  coalesce(ac.adjustments_applied_total,0::money) )) AS balance
     FROM charges_cwt cc
     LEFT JOIN applications_cwt ac ON cc.claim_id = ac.claim_id
-    WHERE (cc.charges_bill_fee_total - ( coalesce(ac.payments_applied_total,0::money) +  coalesce(ac.ajdustments_applied_total,0::money) )) != 0::money
+    WHERE (cc.charges_bill_fee_total - ( coalesce(ac.payments_applied_total,0::money) +  coalesce(ac.adjustments_applied_total,0::money) )) != 0::money
  ),
  aging_details  AS( SELECT
  <% if (facilityIds) { %> (pf.facility_name) <% } else  { %> 'All'::text <% } %> as "Facility",

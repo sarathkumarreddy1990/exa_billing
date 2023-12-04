@@ -67,7 +67,7 @@ var invoiceData = [{
         "claim_id": "CLAIM01",
         "payment_id": "PAYMENT01",
         "payments_applied_total": "$01.00",
-        "ajdustments_applied_total": "$0.00"
+        "adjustments_applied_total": "$0.00"
     }, {
         "payment_dt": "YYYY-MM-DDTHH:MM:SS.MS-00:00",
         "payer_type": "insurance",
@@ -75,7 +75,7 @@ var invoiceData = [{
         "claim_id": "CLAIM01",
         "payment_id": "PAYMENT02",
         "payments_applied_total": "$02.00",
-        "ajdustments_applied_total": null
+        "adjustments_applied_total": null
     }]
 }]
 var ClaimDetails = invoiceData[0].claim_details;
@@ -99,8 +99,8 @@ function bindHead(claimNo, data, columns, value) {
                     } else if (key === 'city') {
                         dataRow.push(
                             (data[i][value]['address2'] ? (data[i][value]['address2'] + "\n") : "") +
-                            (data[i][value][key] ? data[i][value][key] : '') + 
-                            (data[i][value]['state'] ? '  ' + data[i][value]['state'] : "") + 
+                            (data[i][value][key] ? data[i][value][key] : '') +
+                            (data[i][value]['state'] ? '  ' + data[i][value]['state'] : "") +
                             (data[i][value]['zip_code'] ? '  ' +data[i][value]['zip_code'] : "")
                         );
                     } else if (key === 'facility_address1') {
@@ -185,7 +185,7 @@ function bindpayment(claimNo, data, columns, amount_type) {
                     columns.forEach(function(column) {
                         if (column == 'payment_dt') {
                             dataRow.push(row[column] ? Dateformat(row[column]) : '');
-                        } else if (column == 'payments_applied_total' || column == 'ajdustments_applied_total') {
+                        } else if (column == 'payments_applied_total' || column == 'adjustments_applied_total') {
                             dataRow.push({text: (row[column] || '$0.00') , alignment:'right' });
                         } else if (column == 'amount_type' && row[column] == 'payment') {
                             dataRow.push('Payment');
@@ -364,7 +364,7 @@ function bindInvoice(data, columns) {
                                             style: 'myTable',
                                             table: {
                                                 widths: [55, 75, 65, 150, 115],
-                                                body: bindpayment(row.claim_no, PaymentDetails, ["claim_id", 'payment_dt', "amount_type", "payer_name", "ajdustments_applied_total"], adjustment)
+                                                body: bindpayment(row.claim_no, PaymentDetails, ["claim_id", 'payment_dt', "amount_type", "payer_name", "adjustments_applied_total"], adjustment)
                                             },
                                             layout: 'noBorders'
                                         }],
@@ -374,7 +374,7 @@ function bindInvoice(data, columns) {
                                                 widths: [370, 115],
                                                 body: [
                                                     [
-                                                        {text: "Total",alignment: "right"}, 
+                                                        {text: "Total",alignment: "right"},
                                                         {
                                                             style: 'myTable',
                                                             table: {
