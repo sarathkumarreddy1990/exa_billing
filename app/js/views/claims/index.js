@@ -4544,6 +4544,7 @@ define(['jquery',
                                             }
                                         }
                                     } else {
+                                        $("#btnClaimsRefresh").click();
                                         $("#btnStudiesRefresh").click();
                                     }
 
