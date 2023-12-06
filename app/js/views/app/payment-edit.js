@@ -2935,7 +2935,6 @@ define([
                 var patientStatementParams = this.createPatientActivityParams(claimId, patientId);
                 if (patientStatementParams) {
                     this.PatientStatementView.onReportViewClick(e, patientStatementParams);
-                    $('#modal_div_container').css('overflow', '');
                 }
             },
 
