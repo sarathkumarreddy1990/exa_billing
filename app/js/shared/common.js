@@ -4408,9 +4408,13 @@ var commonjs = {
                     window.parent.reportWindow.location.href = url + '?m_i=' + (0) + '&l=2';
                     return;
                 }
-                    window.parent.reportWindow = window.open("about:blank", "mywin" + 0, "left=" + left + ",top=" + top + ",width=" + width + ",height=" + height);
-                    window.parent.reportWindow.location.href = url + '?m_i=' + (0) + '&l=' + (1);
 
+                window.parent.reportWindow = window.open(url + '?m_i=' + (0) + '&l=' + (1), "mywin" + 0, "left=" + left + ",top=" + top + ",width=" + width + ",height=" + height);
+                window.parent.reportWindow.onload = function () {
+                    parent.reportWindow.onpagehide = function () {
+                        window.parent.reportWindow = null;
+                    };
+                }
             }
         });
     },
