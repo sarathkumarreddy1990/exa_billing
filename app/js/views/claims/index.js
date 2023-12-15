@@ -4913,6 +4913,11 @@ define(['jquery',
                     return false;
                 }
 
+                if (!self.validateInsuranceDuplication()) {
+                    commonjs.showWarning("messages.warning.order.existsDifferentCoverageLevel", "largewarning");
+                    return false;
+                }
+
                 if (self.priInsID && self.validatePatientAddress("primary")) {
                     self.isUpdatePatientInfo = true;
                 }
