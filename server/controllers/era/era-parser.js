@@ -228,7 +228,7 @@ module.exports = {
                         let charge_id = 0;
 
                         if (serviceIdentification && serviceIdentification.length) {
-                            charge_id = serviceIdentification[0].assingedNumber && !isNaN(serviceIdentification[0].assingedNumber) ? serviceIdentification[0].assingedNumber : 0;
+                            charge_id = serviceIdentification[0].assignedNumber && !isNaN(serviceIdentification[0].assignedNumber) ? serviceIdentification[0].assignedNumber : 0;
                         }
 
                         /**
