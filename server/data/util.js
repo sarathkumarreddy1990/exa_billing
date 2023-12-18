@@ -1052,9 +1052,6 @@ const util = {
                 }
             }
 
-            if (filterObj.options && !filterObj.options.statOverride && statOverride && query) {
-                query = ' (( ' + query + ' ) OR studies.stat_level > 0 ) ';
-            }
         }
 
         return query;
