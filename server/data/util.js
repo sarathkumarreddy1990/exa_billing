@@ -494,7 +494,7 @@ const util = {
         return query;
 
     },
-    getStudyFilterQuery: function (filterObj, user_id, statOverride) {
+    getStudyFilterQuery: function (filterObj, user_id) {
         let query = '';
 
         if (filterObj) {
