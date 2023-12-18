@@ -494,7 +494,7 @@ const util = {
         return query;
 
     },
-    getStudyFilterQuery: function (filterObj, user_id, statOverride) {
+    getStudyFilterQuery: function (filterObj, user_id) {
         let query = '';
 
         if (filterObj) {
@@ -1084,9 +1084,6 @@ const util = {
                 }
             }
 
-            if (filterObj.options && !filterObj.options.statOverride && statOverride && query) {
-                query = ' (( ' + query + ' ) OR studies.stat_level > 0 ) ';
-            }
         }
 
         return query;
