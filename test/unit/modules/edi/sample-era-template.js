@@ -137,8 +137,8 @@ module.exports = {
       "NAME": "HEADER NUMBER",
       "ALLOW_EMPTY_SEGMENT": false,
       "REPEAT": true,
-      "ELEMENTS": [ "{svc.assingedNumber}" ],
-      "ELEMENTS_ID": [ "assingedNumber" ],
+      "ELEMENTS": [ "{svc.assignedNumber}" ],
+      "ELEMENTS_ID": [ "assignedNumber" ],
       "ORDER": [ "CLP" ],
       "CLP": {
         "LOOP": "2100",
@@ -303,8 +303,8 @@ module.exports = {
           "REF": {
             "ID": "serviceIdentification",
             "NAME": "SERVICE IDENTIFICATION",
-            "ELEMENTS": [ "6R", "{svc.assingedNumber}" ],
-            "ELEMENTS_ID": [ "referenceIdentQual", "assingedNumber" ]
+            "ELEMENTS": [ "6R", "{svc.assignedNumber}" ],
+            "ELEMENTS_ID": [ "referenceIdentQual", "assignedNumber" ]
           }
         }
       }
