@@ -112,6 +112,11 @@ router.get('/get_patient_charges', async (req, res) => {
     httpHandler.sendRows(req, res, data);
 });
 
+router.get('/business_arrangement', async (req, res) => {
+    const data = await claimsController.getBusinessArrangement(req.query);
+    httpHandler.sendRows(req, res, data);
+});
+
 router.put('/notes/:id', async (req, res) => {
     req.body.claimId = req.params.id;
     const data = await claimsController.updateNotes(req.body);

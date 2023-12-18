@@ -53,7 +53,7 @@ define([
                 }
             },
 
-            startStudies: function (subroute) {
+            startStudies: function () {
                 if (this.checkLicense('Studies') && !this.studiesRouter) {
                     this.defaultArgs.routePrefix = 'billing/studies/';
                     this.studiesRouter = new StudiesRoute(this.defaultArgs.routePrefix, this.defaultArgs);
@@ -62,7 +62,7 @@ define([
                 }
             },
 
-            startClaimWorkbench: function (subroute) {
+            startClaimWorkbench: function () {
                 if (this.checkLicense('ClaimWorkbench') && !this.claimWorkbenchRouter) {
                     this.defaultArgs.routePrefix = 'billing/claim_workbench/';
                     this.claimWorkbenchRouter = new ClaimWorkBenchRoute(this.defaultArgs.routePrefix, this.defaultArgs);
@@ -71,12 +71,12 @@ define([
                 }
             },
 
-            startInvoiceReports: function (subroute) {
+            startInvoiceReports: function () {
                 this.defaultArgs.routePrefix = 'billing/invoice_report/';
                 this.claimWorkbenchRouter = new ClaimWorkBenchRoute(this.defaultArgs.routePrefix, this.defaultArgs);
             },
 
-            startPayments: function (subroute) {
+            startPayments: function () {
                 if (this.checkLicense('Payments') && !this.paymentsRouter) {
                     this.defaultArgs.routePrefix = 'billing/payments/';
                     this.paymentsRouter = new PaymentsRoute(this.defaultArgs.routePrefix, this.defaultArgs);
@@ -85,7 +85,7 @@ define([
                 }
             },
 
-            startEra: function (subroute) {
+            startEra: function () {
                 if (this.checkLicense('Era') && !this.eraRouter) {
                     this.defaultArgs.routePrefix = 'billing/era/';
                     this.eraRouter = new EraRoute(this.defaultArgs.routePrefix, this.defaultArgs);
@@ -110,7 +110,7 @@ define([
                 }
             },
 
-            checkLicense: function (currentScreen) {
+            checkLicense: function () {
                 //return layout.checkLicense(currentScreen);
                 return true;
             },

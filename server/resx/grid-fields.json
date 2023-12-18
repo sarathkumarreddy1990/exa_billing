@@ -468,15 +468,26 @@
             "field_code": "claim_action"
         },
         {
-            "field_code": "reason_code",
-            "field_name": "Reason Code",
-            "i18n_name": "setup.userSettings.reasonCode",
+            "field_code": "line_eob_codes",
+            "field_name": "Line Reason Code",
+            "i18n_name": "setup.userSettings.lineReasonCode",
             "field_info": {
-                "name": "reason_code",
+                "name": "line_eob_codes",
                 "width": 170,
                 "searchFlag": "%"
             },
             "id": 69
+        },
+        {
+            "field_code": "claim_eob_codes",
+            "field_name": "Claim Reason Code",
+            "i18n_name": "setup.userSettings.claimReasonCode",
+            "field_info": {
+                "name": "claim_eob_codes",
+                "width": 170,
+                "searchFlag": "%"
+            },
+            "id": 80
         },
         {
             "id": 72,

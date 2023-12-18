@@ -136,7 +136,7 @@ function ($, _, Backbone, UI, MainTemplate) {
                 self.viewModel.dateFrom = start;
                 self.viewModel.dateTo = end;
             });
-            drpEl.on('cancel.daterangepicker', function (ev, drp) {
+            drpEl.on('cancel.daterangepicker', function () {
                 self.viewModel.dateFrom = null;
                 self.viewModel.dateTo = null;
             });
@@ -208,7 +208,7 @@ function ($, _, Backbone, UI, MainTemplate) {
         },
 
           // multi select facilities - worked
-          getSelectedFacility: function (e) {
+          getSelectedFacility: function () {
             var selected = $("#ddlFacilityFilter option:selected");
             var facilities = [];
             selected.each(function () {
@@ -219,7 +219,7 @@ function ($, _, Backbone, UI, MainTemplate) {
         },
 
         // multi select billing provider - worked
-        getBillingProvider: function (e) {
+        getBillingProvider: function () {
             var billing_pro = []
             var selected = $("#ddlBillingProvider option:selected");
             selected.each(function () {
@@ -249,7 +249,7 @@ function ($, _, Backbone, UI, MainTemplate) {
             }
             return true;
         },
-        onShowCheckboxes: function (e) {
+        onShowCheckboxes: function () {
             var checkboxes = document.getElementById("facilityCheckbox");
             if (!this.expanded) {
                 checkboxes.style.display = "block";
@@ -261,7 +261,7 @@ function ($, _, Backbone, UI, MainTemplate) {
             }
         },
         // Select all facility changes
-        selectAllFacility: function (e) {
+        selectAllFacility: function () {
             if ($('#chkAllFacility').attr('checked')) {
                 $('input[name=allInusranceFacilities]').prop('checked', true);
                 this.viewModel.allFacilities = true;
@@ -274,7 +274,7 @@ function ($, _, Backbone, UI, MainTemplate) {
             }
             $('#selFacilitiesCount').html('');
         },
-        selectAllBillingProviders: function (e) {
+        selectAllBillingProviders: function () {
             if ($('#chkAllBillingProvider').attr('checked')) {
                 $('input[name=allBillingProviders]').prop('checked', true);
                 var billing_pro = []
@@ -294,7 +294,7 @@ function ($, _, Backbone, UI, MainTemplate) {
             }
             $('#selBillingProviderCount').html('');
         },
-        chkSelectFacility: function (e) {
+        chkSelectFacility: function () {
             var facilities = []
             $('#facilityCheckbox input[type="checkbox"]').each(function () {
                 if ($(this).prop('checked')) {
@@ -307,7 +307,7 @@ function ($, _, Backbone, UI, MainTemplate) {
             var selCount = this.selectedFacilityList ? this.selectedFacilityList.length : 0;
             $('#selFacilitiesCount').html(' (' + selCount + ')');
         },
-        chkBillingProvider: function (e) {
+        chkBillingProvider: function () {
             var billing_pro = []
             $('#billingCheckboxes input[type="checkbox"]').each(function () {
                 if ($(this).prop('checked')) {

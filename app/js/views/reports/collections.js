@@ -1,5 +1,4 @@
-define
-    ([
+define([
         'jquery'
         , 'underscore'
         , 'backbone'
@@ -87,11 +86,11 @@ define
                 var self = this;
                 var drpEl = $('#txtDateRangeFromTo');
                 var dropOPtions = { autoUpdateInput: true, locale: { format: 'L' } };
-                self.drpClaimDate = commonjs.bindDateRangePicker(drpEl, dropOPtions, 'past', function (start, end, format) {
+                self.drpClaimDate = commonjs.bindDateRangePicker(drpEl, dropOPtions, 'past', function (start, end) {
                     self.viewModel.dateFrom = start;
                     self.viewModel.dateTo = end;
                 });
-                drpEl.on('cancel.daterangepicker', function (ev, drp) {
+                drpEl.on('cancel.daterangepicker', function () {
                     self.viewModel.dateFrom = null;
                     self.viewModel.dateTo = null;
                 });
@@ -112,7 +111,7 @@ define
                 return true;
             },
 
-            getSelectedFacility: function (e) {
+            getSelectedFacility: function () {
                 var self = this;
                 var selected = $("#ddlFacilityFilter option:selected");
                 var facilities = [];
@@ -123,7 +122,7 @@ define
                 self.viewModel.allFacilities = self.selectedFacilityList && self.selectedFacilityList.length === $("#ddlFacilityFilter option").length;
             },
 
-            getBillingProvider: function (e) {
+            getBillingProvider: function () {
                 var self = this;
                 var billing_pro = [];
                 var selected = $("#ddlBillingProvider option:selected");

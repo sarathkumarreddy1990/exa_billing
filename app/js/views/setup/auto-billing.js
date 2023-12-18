@@ -71,7 +71,6 @@ define(['jquery',
         };
 
 
-
         var modalitiesChanged = function() {
             toggleCptCodes(!getSelectedModalities().length);
         };
@@ -90,19 +89,19 @@ define(['jquery',
 
 
         var setAutoBillingValues = function (id, values) {
-            id.append(createOptionElement(
-                values.id,
-                values.text
-            ));
+            var optionExists = id.find(`option[value="${values.id}"]`).length > 0;
+
+            if (optionExists) {
+                commonjs.showWarning('messages.warning.shared.alreadyexists');
+                return;
+            }
+            id.append(createOptionElement(values.id, values.text));
             values = null;
         }
 
         var removeAutoBillingValues = function(id) {
              id.find('option:selected').remove();
         }
-
-
-
 
         var loadAutobillingRule = function(response) {
             var data = response[0];
@@ -790,6 +789,11 @@ define(['jquery',
                     success: function (model, response) {
                         $('#btnSaveautoBilling').prop('disabled', false);
                         if (response) {
+                            if (response.length && response[0].status === 'EXISTS') {
+                                commonjs.showWarning('messages.warning.shared.alreadyexists');
+                                return;
+                            }
+
                             commonjs.showStatus('messages.status.savedSuccessfully');
                             if (options.closeOnSuccess) {
                                 Backbone.history.navigate('#setup/auto_billing/list', true);

@@ -23,19 +23,19 @@ define([
                 "billing/*subroute": "startApp",
             },
 
-            startApp: function (subroute) {
+            startApp: function () {
                 if (!this.appRouter) {
                     this.appRouter = new AppRoute("billing/", { createTrailingSlashRoutes: true });
                 }
             },
 
-            startSetup: function (subroute) {
+            startSetup: function () {
                 if (!this.setupRouter) {
                     this.setupRouter = new SetupRoute("setup/", { createTrailingSlashRoutes: true });
                 }
             },
 
-            startReporting: function (subroute) {
+            startReporting: function () {
                 if (!this.reportingRouter) {
                     this.reportingRouter = new ReportsRoute("reports/", { createTrailingSlashRoutes: true }); // new module, notice plural "/reports" <---
                 }

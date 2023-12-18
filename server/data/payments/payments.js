@@ -642,11 +642,9 @@ module.exports = {
             line_items,
             adjustmentId,
             auditDetails,
-            logDescription,
             is_payerChanged } = params;
 
         adjustmentId = adjustmentId || null;
-        logDescription = `Claim updated Id : ${params.claimId}`;
 
         const sql = SQL`
             WITH claim_comment_details AS (
@@ -704,7 +702,7 @@ module.exports = {
             ),
 
             update_claims AS (
-                UPDATE billing.claims
+                UPDATE billing.claims AS new_values
                 SET
                     `
             .append(is_claimDenied === 'true'
@@ -717,19 +715,33 @@ module.exports = {
                                 CASE
                                     WHEN ${is_payerChanged} AND NOT ${is_claimDenied} THEN
                                         ${params.payerType}
-                                    ELSE payer_type
+                                    ELSE
+                                        new_values.payer_type
                                 END
+                FROM billing.claims AS old_values
+                LEFT JOIN LATERAL (
+                    SELECT
+                        get_full_name(last_name, first_name) || ' (Account# ' ||
+                        TRIM(COALESCE(account_no,'')) || ')' AS full_name_account_no
+                    FROM patients
+                    WHERE id = old_values.patient_id
+                ) AS p ON TRUE
                 WHERE
-                    id = ${params.claimId}
+                    new_values.id = ${params.claimId}
+                AND old_values.id = new_values.id
                 RETURNING
-                    *,
-                    (
-                        SELECT row_to_json(old_row)
-                        FROM (
-                            SELECT *
-                            FROM billing.claims
-                            WHERE id = ${params.claimId}) old_row
-                    ) old_values
+                    new_values.id,
+                    p.full_name_account_no,
+                    jsonb_build_object(
+                        'old_values',
+                            billing.get_key_value_audit_jsonb('claim_status_id', new_values.claim_status_id::TEXT, old_values.claim_status_id::TEXT, TRUE) ||
+                            billing.get_key_value_audit_jsonb('Billing Notes', new_values.billing_notes, old_values.billing_notes, TRUE) ||
+                            billing.get_key_value_audit_jsonb('payer_type', new_values.payer_type, old_values.payer_type, TRUE),
+                        'new_values',
+                            billing.get_key_value_audit_jsonb('claim_status_id', new_values.claim_status_id::TEXT, old_values.claim_status_id::TEXT, FALSE) ||
+                            billing.get_key_value_audit_jsonb('Billing Notes', new_values.billing_notes, old_values.billing_notes, FALSE) ||
+                            billing.get_key_value_audit_jsonb('payer_type', new_values.payer_type, old_values.payer_type, FALSE)
+                    ) AS detailed_info
             ),
 
             insert_claim_comments AS (
@@ -754,24 +766,21 @@ module.exports = {
 
             update_claims_audit_cte AS (
                 SELECT billing.create_audit(
-                    ${auditDetails.company_id}
-                    , ${auditDetails.screen_name}
-                    , id
-                    , ${auditDetails.screen_name}
-                    , ${auditDetails.module_name}
-                    , ${logDescription}
-                    , ${auditDetails.client_ip}
-                    , json_build_object(
-                        'old_values', COALESCE(old_values, '{}'),
-                        'new_values', (SELECT row_to_json(temp_row)::jsonb - 'old_values'::text
-                                        FROM (SELECT *
-                                                FROM update_claims
-                                        ) temp_row)
-                        )::jsonb
-                    , ${user_id}
+                    ${auditDetails.company_id},
+                    ${auditDetails.screen_name},
+                    id,
+                    ${auditDetails.screen_name},
+                    ${auditDetails.module_name},
+                    'Claim ' || id || ' updated for patient ' || full_name_account_no,
+                    ${auditDetails.client_ip},
+                    detailed_info,
+                    ${user_id}
                 ) AS id
                 FROM update_claims
-                WHERE id IS NOT NULL
+                WHERE
+                    id IS NOT NULL
+                AND detailed_info->'old_values' != '{}'::JSONB
+                AND detailed_info->'new_values' != '{}'::JSONB
             ),
 
             insert_claim_comment_audit_cte AS (
@@ -791,25 +800,6 @@ module.exports = {
                 ) AS id
                 FROM insert_claim_comments
                 WHERE id IS NOT NULL
-            ),
-
-            create_audit_study_status AS (
-                SELECT billing.create_audit(
-                        ${auditDetails.company_id}
-                    , ${auditDetails.screen_name}
-                    , id
-                    , ${auditDetails.screen_name}
-                    , ${auditDetails.module_name}
-                    , 'Claim Status '|| ${params.claimId} || ' manually changed by user ( ' || ${user_id} || ' ) to Claim status id  ' || ${params.claimStatusID}
-                    , ${auditDetails.client_ip}
-                    , json_build_object(
-                        'old_values', '{}',
-                        'new_values', '{}'
-                    )::jsonb
-                    , ${user_id}
-                ) AS id
-                FROM update_claims
-                WHERE id IS NOT NULL AND ${params.claimStatusID} != 0
             ),
 
             allowed_payment_application_audit AS (
@@ -836,8 +826,6 @@ module.exports = {
             UNION ALL
             SELECT null,id,null FROM insert_claim_comment_audit_cte
             UNION ALL
-            SELECT null, id, null FROM create_audit_study_status
-            UNION ALL
             SELECT null, id, null FROM allowed_payment_application_audit
             `);
 
@@ -848,6 +836,7 @@ module.exports = {
             return result;
         }
 
+        params.auditDetails.payment_application_source = 'from creating payment application';
         let updateResponsibleResult = await this.updateClaimResponsibleParty(params);
 
         if (updateResponsibleResult instanceof Error) {
@@ -877,6 +866,10 @@ module.exports = {
     },
 
     updatePaymentApplication: async function (params) {
+        let {
+            is_claimDenied,
+            deniedStatusId
+        } = params;
 
         let logDescription = ` Payment application updated for claim id : ${params.claimId} For payment id : `;
 
@@ -992,25 +985,49 @@ module.exports = {
                             RETURNING *
                         ),
 
-                        update_claim_details AS(
-                            UPDATE billing.claims
+                        update_claims AS (
+                            UPDATE billing.claims AS new_values
                             SET
-                                billing_notes = ${params.billingNotes}
-                                , payer_type =(
-                                    CASE
-                                        WHEN ${params.is_payerChanged} AND NOT ${params.is_claimDenied} THEN ${params.payerType}
-                                    ELSE payer_type
-                                    END
-                                    )
+                                `
+                        .append(is_claimDenied === 'true'
+                            ? SQL`claim_status_id = ${deniedStatusId},`
+                            : ``
+                        )
+                        .append(SQL`
+                                billing_notes = ${params.billingNotes},
+                                payer_type =
+                                        CASE
+                                            WHEN ${params.is_payerChanged} AND NOT ${params.is_claimDenied} THEN
+                                                ${params.payerType}
+                                            ELSE
+                                                new_values.payer_type
+                                        END
+                            FROM billing.claims AS old_values
+                            LEFT JOIN LATERAL (
+                                SELECT
+                                    get_full_name(last_name, first_name) || ' (Account# ' ||
+                                    TRIM(COALESCE(account_no,'')) || ')' AS full_name_account_no
+                                FROM patients
+                                WHERE id = old_values.patient_id
+                            ) AS p ON TRUE
                             WHERE
-                                id = ${params.claimId}
-                            RETURNING *,
-                            (
-                                SELECT row_to_json(old_row)
-                                FROM   (SELECT *
-                                    FROM   billing.claims
-                                    WHERE  id = ${params.claimId}) old_row
-                            ) old_value),
+                                new_values.id = ${params.claimId}
+                            AND old_values.id = new_values.id
+                            RETURNING
+                                new_values.id,
+                                p.full_name_account_no,
+                                jsonb_build_object(
+                                    'old_values',
+                                        billing.get_key_value_audit_jsonb('claim_status_id', new_values.claim_status_id::TEXT, old_values.claim_status_id::TEXT, TRUE) ||
+                                        billing.get_key_value_audit_jsonb('Billing Notes', new_values.billing_notes, old_values.billing_notes, TRUE) ||
+                                        billing.get_key_value_audit_jsonb('payer_type', new_values.payer_type, old_values.payer_type, TRUE),
+                                    'new_values',
+                                        billing.get_key_value_audit_jsonb('claim_status_id', new_values.claim_status_id::TEXT, old_values.claim_status_id::TEXT, FALSE) ||
+                                        billing.get_key_value_audit_jsonb('Billing Notes', new_values.billing_notes, old_values.billing_notes, FALSE) ||
+                                        billing.get_key_value_audit_jsonb('payer_type', new_values.payer_type, old_values.payer_type, FALSE)
+                                ) AS detailed_info
+                        ),
+
                         update_claim_comments AS(
                             INSERT INTO billing.claim_comments
                             ( claim_id
@@ -1067,24 +1084,26 @@ module.exports = {
                                 FROM update_applications
                                 WHERE id IS NOT NULL
                             ),
+
                             update_claims_audit_cte as(
                                 SELECT billing.create_audit(
-                                    ${params.companyId}
-                                    , 'claims'
-                                    , id
-                                    , ${params.screenName}
-                                    , ${params.moduleName}
-                                    , 'Claim updated id :' || id
-                                    , ${params.clientIp}
-                                    , json_build_object(
-                                        'old_values', COALESCE(old_value, '{}'),
-                                        'new_values', (SELECT row_to_json(temp_row)::jsonb - 'old_values'::text FROM (SELECT * FROM update_claim_details) temp_row)
-                                    )::jsonb
-                                    , ${params.userId}
+                                    ${params.companyId},
+                                    ${params.screenName},
+                                    id,
+                                    ${params.screenName},
+                                    ${params.moduleName},
+                                    'Claim ' || id || ' updated in updating payment for patient ' || full_name_account_no,
+                                    ${params.clientIp},
+                                    detailed_info,
+                                    ${params.userId}
                                 ) AS id
-                                FROM update_claim_details
-                                WHERE id IS NOT NULL
+                                FROM update_claims
+                                WHERE
+                                    id IS NOT NULL
+                                AND detailed_info->'old_values' != '{}'::JSONB
+                                AND detailed_info->'new_values' != '{}'::JSONB
                             ),
+
                             insert_claim_comment_audit_cte as(
                                 SELECT billing.create_audit(
                                     ${params.companyId}
@@ -1120,25 +1139,8 @@ module.exports = {
                                 ) AS id
                                 FROM update_cas_application
                                 WHERE id IS NOT NULL
-                            ),
-                            create_audit_study_status AS (
-                                SELECT billing.create_audit(
-                                      ${params.companyId}
-                                    , ${params.screenName}
-                                    , id
-                                    , ${params.screenName}
-                                    , ${params.moduleName}
-                                    , 'Claim Status '|| ${params.claimId} || ' manually changed by user ( ' || ${params.user_id} || ' ) to Claim status id  ' || ${params.claimStatusID}
-                                    , ${params.clientIp}
-                                    , json_build_object(
-                                        'old_values', '{}',
-                                        'new_values', '{}'
-                                    )::jsonb
-                                    , ${params.user_id}
-                                ) AS id
-                                FROM update_claims_audit_cte
-                                WHERE id IS NOT NULL AND ${params.claimStatusID} != 0
                             )
+
                             SELECT id,null from update_applications_audit_cte
                             UNION
                             SELECT id,null from update_claims_audit_cte
@@ -1146,8 +1148,7 @@ module.exports = {
                             SELECT id,null from insert_claim_comment_audit_cte
                             UNION
                             SELECT id,null from update_cas_applications_audit
-                            UNION ALL
-                            SELECT id, null FROM create_audit_study_status`;
+                        `);
 
         let result = await query(sql);
 
@@ -1162,6 +1163,7 @@ module.exports = {
             return casInsertResult;
         }
 
+        params.auditDetails.payment_application_source = 'from updating payment application';
         let updateResponsibleResult = await this.updateClaimResponsibleParty(params);
 
         if (updateResponsibleResult instanceof Error) {
@@ -1179,21 +1181,23 @@ module.exports = {
             companyId,
             claimStatusID,
             is_payerChanged,
-            paymentId
+            paymentId,
+            auditDetails
         } = params;
 
         if (changeResponsibleParty === 'true') {
             let sql = SQL`
                 SELECT
                     billing.update_claim_responsible_party(
-                        ${claimId}
-                        , 0
-                        , ${companyId}
-                        , NULL
-                        , ${claimStatusID}
-                        , ${is_payerChanged}
-                        , ${paymentId}
-                        , NULL
+                        ${claimId},
+                        0,
+                        ${companyId},
+                        NULL,
+                        ${claimStatusID},
+                        ${is_payerChanged},
+                        ${paymentId},
+                        NULL,
+                        (${JSON.stringify(auditDetails)})::JSONB
                     ) AS result
             `;
 
@@ -1625,7 +1629,7 @@ module.exports = {
                     SELECT
                         ccf.charges_bill_fee_total - (
                             applications.payments_applied_total +
-                            applications.ajdustments_applied_total +
+                            applications.adjustments_applied_total +
                             applications.refund_amount
                         ) AS claim_balance_total
                         ,ccf.claim_id
@@ -1634,7 +1638,7 @@ module.exports = {
                     LEFT JOIN LATERAL (
                         SELECT
                             coalesce(sum(pa.amount)   FILTER (WHERE pa.amount_type = 'payment'),0::money)    AS payments_applied_total,
-                            coalesce(sum(pa.amount)   FILTER (WHERE pa.amount_type = 'adjustment' AND (adj.accounting_entry_type != 'refund_debit' OR pa.adjustment_code_id IS NULL)),0::money) AS ajdustments_applied_total,
+                            coalesce(sum(pa.amount)   FILTER (WHERE pa.amount_type = 'adjustment' AND (adj.accounting_entry_type != 'refund_debit' OR pa.adjustment_code_id IS NULL)),0::money) AS adjustments_applied_total,
                             coalesce(sum(pa.amount)   FILTER (WHERE adj.accounting_entry_type = 'refund_debit'),0::money) AS refund_amount,
                             c.claim_id
                         FROM
@@ -1706,7 +1710,8 @@ module.exports = {
             screen_name: screenName,
             module_name: moduleName,
             client_ip: clientIp,
-            user_id: parseInt(userId)
+            user_id: parseInt(userId),
+            payment_application_source: 'from small balance adjustment'
         };
 
         const sql =SQL`WITH
@@ -1734,7 +1739,7 @@ module.exports = {
                 SELECT
                     ccf.charges_bill_fee_total - (
                         applications.payments_applied_total +
-                        applications.ajdustments_applied_total +
+                        applications.adjustments_applied_total +
                         applications.refund_amount
                     ) AS claim_balance_total
                     ,ccf.claim_id
@@ -1744,7 +1749,7 @@ module.exports = {
                     SELECT
                         coalesce(sum(pa.amount)   FILTER (WHERE pa.amount_type = 'payment'),0::money)    AS payments_applied_total
                         ,coalesce(sum(pa.amount)   FILTER (WHERE pa.amount_type = 'adjustment'
-                        AND (adj.accounting_entry_type != 'refund_debit' OR pa.adjustment_code_id IS NULL)),0::money) AS ajdustments_applied_total
+                        AND (adj.accounting_entry_type != 'refund_debit' OR pa.adjustment_code_id IS NULL)),0::money) AS adjustments_applied_total
                         ,coalesce(sum(pa.amount)   FILTER (WHERE adj.accounting_entry_type = 'refund_debit'),0::money) AS refund_amount
                         ,c.claim_id
                     FROM
@@ -1942,14 +1947,15 @@ module.exports = {
             , change_responsible_party AS (
                 SELECT
                     billing.update_claim_responsible_party(
-                        claim_id
-                        , 0
-                        , ${companyId}
-                        , null
-                        , 0
-                        , false
-                        , 0
-                        , ${from}
+                        claim_id,
+                        0,
+                        ${companyId},
+                        null,
+                        0,
+                        false,
+                        0,
+                        ${from},
+                        (${JSON.stringify(auditDetails)})::JSONB
                     ) AS result
                 FROM
                     claim_charges
@@ -1984,7 +1990,8 @@ module.exports = {
             screen_name: screenName,
             module_name: moduleName,
             client_ip: clientIp,
-            user_id: parseInt(userId)
+            user_id: parseInt(userId),
+            payment_application_source: 'from claim adjustment to paid in full'
         };
 
         const sql =SQL`WITH
@@ -2150,14 +2157,15 @@ module.exports = {
             , change_responsible_party AS (
                 SELECT
                     billing.update_claim_responsible_party(
-                        claim_id
-                        , 0
-                        , ${companyId}
-                        , null
-                        , 0
-                        , false
-                        , 0
-                        , null
+                        claim_id,
+                        0,
+                        ${companyId},
+                        null,
+                        0,
+                        false,
+                        0,
+                        null,
+                        (${JSON.stringify(auditDetails)})::JSONB
                     ) AS result
                 FROM
                     claim_charges

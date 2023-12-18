@@ -82,10 +82,10 @@ define(['jquery',
 
                 this.paymentStatusList = new modelCollection(paymentStatus);
                 var facilities = app.facilities;
-                var adjustment_codes = jQuery.grep([], function (obj, i) {
+                var adjustment_codes = jQuery.grep([], function (obj) {
                     return (obj.type == "ADJCDE" || obj.type == "REFADJ");
                 });
-                var claim_status = jQuery.grep([], function (obj, i) {
+                var claim_status = jQuery.grep([], function (obj) {
                     return (obj.type == "CLMSTS");
                 });
                 this.facilityList = new modelCollection(commonjs.bindArray(facilities, false, true, true));
@@ -128,7 +128,7 @@ define(['jquery',
                 commonjs.isMaskValidate();
             },
 
-            render: function (opener) {
+            render: function () {
                 var self = this;
                 self.defalutCASArray = [0, 1, 2, 3, 4, 5, 6];
                 $(this.el).html(this.paymentsGridTemplate({ paymentStatus: this.paymentStatusList.toJSON(), facilityList: this.facilityList.toJSON(), 'casArray': self.defalutCASArray, adjustmentCodes: self.adjustmentCodeList.toJSON(), 'claimStatusList': this.claimStatusList.toJSON() }));
@@ -218,7 +218,7 @@ define(['jquery',
                     sort: true
                 });
 
-                var billingMethodValue = commonjs.buildGridSelectFilter({
+                commonjs.buildGridSelectFilter({
                     arrayOfObjects: this.billing_method,
                     searchKey: "value",
                     textDescription: "text",
@@ -251,13 +251,13 @@ define(['jquery',
                             {
                                 name: 'edit', width: 50, sortable: false, search: false,
                                 className: 'icon-ic-edit',
-                                formatter: function (e, model, data) {
+                                formatter: function () {
                                     return "<i class='icon-ic-edit' i18nt='shared.buttons.edit'></i>";
                                 },
-                                customAction: function (rowID, e) {
+                                customAction: function (rowID) {
                                     self.editPayment(rowID, self.from);
                                 },
-                                cellattr: function (rowId, value, rowObject, colModel, arrData) {
+                                cellattr: function () {
                                     return 'style=text-align:center;'
                                 }
                             },
@@ -277,7 +277,7 @@ define(['jquery',
                             { name: 'adjustment_amount', width: 215, validateMoney: true },
                             { name: 'notes', width: 215 },
                             { name: 'user_full_name', width: 215 },
-                            { name: 'payment_mode', width: 215, stype: 'select', formatter: self.paymentModeFormatter, stype: 'select', "searchoptions": { "value": payment_mode, "tempvalue": payment_mode } },
+                            { name: 'payment_mode', width: 215, stype: 'select', formatter: self.paymentModeFormatter, "searchoptions": { "value": payment_mode, "tempvalue": payment_mode } },
                             { name: 'card_number', width: 215 },
                             { name: 'facility_name', width: 200, stype: 'select', "searchoptions": { "value": facilities, "tempvalue": facilities } },
                             { name: 'total_amount', hidden: true },
@@ -294,7 +294,7 @@ define(['jquery',
                         caption: "Payments",
                         datastore: self.paymentsList,
                         container: this.el,
-                        offsetHeight: 01,
+                        offsetHeight: 1,
                         dblClickActionIndex: 1,
                         ondblClickRow: function (rowID) {
                             self.editPayment(rowID, self.from);
@@ -373,7 +373,7 @@ define(['jquery',
                     url: "/exa_modules/billing/payments/total_amount",
                     type: "GET",
                     data: dataSet,
-                    success: function (data, textStatus, jqXHR) {
+                    success: function (data) {
                         if (data && data.length) {
                             $("#divAmountTotal").html(data[0].total_amount);
                             $("#divAppliedTotal").html(data[0].total_applied);
@@ -386,7 +386,7 @@ define(['jquery',
                 });
             },
 
-            setMoneyMask: function (obj1, obj2) {
+            setMoneyMask: function () {
                 var $gridFields = $(".ui-jqgrid-htable thead:first tr.ui-search-toolbar");
                 $gridFields.find("input[name=available_balance],[name=applied],[name=amount],[name=adjustment_amount]").addClass('negativeFloatBox');
                 $gridFields.find("input[name=payment_id]").addClass('integerbox');
@@ -475,12 +475,12 @@ define(['jquery',
 
             generatePDF: function (e) {
                 var self = this;
-                filterData = JSON.stringify(self.pager.get("FilterData"));
-                filterCol = JSON.stringify(self.pager.get("FilterCol"));
+                var filterData = JSON.stringify(self.pager.get("FilterData"));
+                var filterCol = JSON.stringify(self.pager.get("FilterCol"));
                 self.paymentPDF = new paymentPDF({ el: $('#modal_div_container') });
                 var paymentPDFArgs = {
                     paymentStatus: $("#ulPaymentStatus").val(),
-                    'isDateFlag': $('#filterByPostingDt').prop('checked') ? true : false,
+                    'isDateFlag': !!$('#filterByPostingDt').prop('checked'),
                     from: self.from ?self.from: 'Billing',
                     filterData: filterData,
                     filterColumn : filterCol,
@@ -498,9 +498,12 @@ define(['jquery',
             },
             exportExcel: function () {
                 var self = this;
-                filterData = JSON.stringify(self.pager.get("FilterData"));
-                filterCol = JSON.stringify(self.pager.get("FilterCol"));
+                var filterData = JSON.stringify(self.pager.get("FilterData"));
+                var filterCol = JSON.stringify(self.pager.get("FilterCol"));
+                // TODO: grid doesn't appear to be defined. Should it be changed to something else?
+                /* eslint-disable no-undef */
                 var searchFilterFlag = grid.getGridParam("postData")._search;
+                /* eslint-enable no-undef */
                 $('#btnGenerateExcel').prop('disabled', true);
                 var facilityTz = app.facilities.map(function (val) { return { 'id': val.id, 'value': val.time_zone } });
                 commonjs.showLoading();
@@ -508,7 +511,7 @@ define(['jquery',
                     url: "/exa_modules/billing/payments/payments_list",
                     type: 'GET',
                     data: {
-                        paymentReportFlag: searchFilterFlag ? false : true,
+                        paymentReportFlag: !searchFilterFlag,
                         paymentStatus: $("#ulPaymentStatus").val(),
                         from: self.from,
                         filterData: filterData,
@@ -518,7 +521,7 @@ define(['jquery',
                         filterByDateType: 'accounting_date',
                         country_code: app.country_alpha_3_code
                     },
-                    success: function (data, response) {
+                    success: function (data) {
                         commonjs.prepareCsvWorker({
                             data: data,
                             reportName: 'PAYMENTS',
@@ -539,7 +542,7 @@ define(['jquery',
             },
 
             bindDateRangeOnSearchBox: function (gridObj) {
-                var self = this, tabtype = 'order';
+                var self = this;
                 var columnsToBind = ['payment_dt', 'accounting_date']
                 var drpOptions = { locale: { format: "L" } };
                 var currentFilter = 1;
@@ -554,7 +557,7 @@ define(['jquery',
                         colElement.val(fromDate.format("L") + " - " + toDate.format("L"));
                     }
 
-                    var drp = commonjs.bindDateRangePicker(colElement, drpOptions, rangeSetName, function (start, end, format) {
+                    commonjs.bindDateRangePicker(colElement, drpOptions, rangeSetName, function (start, end) {
                         if (start && end) {
                             currentFilter.startDate = start.format('L');
                             currentFilter.endDate = end.format('L');
@@ -567,17 +570,17 @@ define(['jquery',
                             });
                         }
                     });
-                    colElement.on("apply.daterangepicker", function (ev, drp) {
+                    colElement.on("apply.daterangepicker", function () {
                         gridObj.refresh();
                     });
-                    colElement.on("cancel.daterangepicker", function (ev, drp) {
+                    colElement.on("cancel.daterangepicker", function () {
                         self.isCleared = true;
                         self.searchPayments();
                     });
                 });
             },
 
-            applyTOSPayment: _.debounce(function (e) {
+            applyTOSPayment: _.debounce(function () {
 
                 var self =this;
                 var paymentStatus = $("#ulPaymentStatus").val();
@@ -624,7 +627,7 @@ define(['jquery',
                     url: '/exa_modules/billing/payments/apply_tos_payments',
                     type: 'POST',
                     data: dataSet,
-                    success: function (data, response) {
+                    success: function (data) {
                         if (data && data.length) {
                             if (data[0].message) {
                                 commonjs.showWarning(data[0].message);
@@ -634,22 +637,22 @@ define(['jquery',
                             }
                             commonjs.hideLoading();
                         }
-                        $('#btnTOSPayment').prop('disabled',false);
+                        $('#btnTOSPayment').prop('disabled', false);
                     },
                     error: function (err, response) {
                         commonjs.handleXhrError(err, response);
                         commonjs.hideLoading();
-                        $('#btnTOSPayment').prop('disabled',false);
+                        $('#btnTOSPayment').prop('disabled', false);
                     }
                 };
 
-                $('#btnTOSPayment').prop('disabled',true);
+                $('#btnTOSPayment').prop('disabled', true);
                 commonjs.showLoading();
                 $.ajax(tos_request);
 
             }, 500),
 
-            showAdjustmentWriteOff: _.debounce(function (e) {
+            showAdjustmentWriteOff: _.debounce(function () {
                 var self = this;
                 self.patientClaimPager = new ModelPaymentsPager();
 
@@ -680,7 +683,7 @@ define(['jquery',
                 commonjs.isMaskValidate();
             }, 500),
 
-            showPatientsGrid: function (e) {
+            showPatientsGrid: function () {
                 var self = this;
                 var writeOffAmount =  $('#txtWriteOffAmt').val();
                 var $balanceWriteOff = $('#btnBalanceWriteOff');
@@ -803,12 +806,12 @@ define(['jquery',
                             isSubGrid: true
                         });
                     },
-                    onaftergridbind: function (model, gridObj) {
+                    onaftergridbind: function (model) {
                         if (model && model.length) {
                             $balanceWriteOff.removeClass('d-none');
                         }
 
-                        $balanceWriteOff.off().click(_.debounce(function (e) {
+                        $balanceWriteOff.off().click(_.debounce(function () {
                             var writeOffAmount = $('#txtWriteOffAmt').val();
                             var msg = commonjs.geti18NString("messages.confirm.payments.writeOffAmountAreYouSure")
                                 msg = msg.replace('WRITE_OFF_AMOUNT', writeOffAmount);
@@ -825,16 +828,16 @@ define(['jquery',
                                         from : 'write-off'
                                     },
                                     beforeSend: function(){
-                                        $balanceWriteOff.prop('disabled',true);
-                                        $btnNext.prop('disabled',true);
+                                        $balanceWriteOff.prop('disabled', true);
+                                        $btnNext.prop('disabled', true);
                                     },
-                                    success: function (data, response) {
+                                    success: function (data) {
                                         if (data && data.length) {
                                             commonjs.showStatus('messages.status.tosSuccessfullyCompleted');
                                             commonjs.hideLoading();
-                                            $balanceWriteOff.prop('disabled',false);
+                                            $balanceWriteOff.prop('disabled', false);
                                             $balanceWriteOff.addClass('d-none');
-                                            $btnNext.prop('disabled',false);
+                                            $btnNext.prop('disabled', false);
                                             // After write-off close popup
                                             commonjs.hideDialog();
                                         }
@@ -843,8 +846,8 @@ define(['jquery',
                                     error: function (err, response) {
                                         commonjs.handleXhrError(err, response);
                                         commonjs.hideLoading();
-                                        $balanceWriteOff.prop('disabled',false);
-                                        $btnNext.prop('disabled',false);
+                                        $balanceWriteOff.prop('disabled', false);
+                                        $btnNext.prop('disabled', false);
                                     }
                                 };
 

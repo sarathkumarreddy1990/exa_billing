@@ -10,7 +10,7 @@ define([
     'text!templates/app/era-preview.html',
     'collections/app/era',
     'models/pager',
-	'text!templates/app/era-processed-response.html'],
+    'text!templates/app/era-processed-response.html'],
     function (jQuery, Immutable, _, Backbone, JGrid, JGridLocale, eraGrid, eraProgress, EraPreview, eraLists, EobFilesPager, EraResponse) {
         var eraView = Backbone.View.extend({
 
@@ -32,7 +32,6 @@ define([
 
             initialize: function (options) {
                 this.options = options;
-                var _self = this;
                 this.pager = new EobFilesPager();
                 this.eraLists = new eraLists();
             },
@@ -43,7 +42,7 @@ define([
                 $(this.el).html(this.eraGridTemplate());
                 self.getEobFilesList();
                 commonjs.currentModule = 'EOB';
-                document.getElementById("ifrEobFileUpload").addEventListener('load', function (e) {
+                document.getElementById("ifrEobFileUpload").addEventListener('load', function () {
                     var elList = this.contentWindow.document.querySelectorAll("[i18n]");
                     if (elList.length > 0) {
                         for (var i = 0; i < elList.length; i++) {
@@ -90,7 +89,7 @@ define([
                             cellattr: function () {
                                 return "style='text-align: center;text-decoration: underline;'";
                             },
-                            customAction: function (rowID, e) {
+                            customAction: function (rowID) {
                                 var gridData = $('#tblEOBFileList').jqGrid('getRowData', rowID);
                                 if ('success' === gridData.current_status.toLowerCase()) {
                                     self.showPayments(rowID, gridData.uploaded_file_name);
@@ -141,7 +140,7 @@ define([
                                 self.downloadEobJson(fileName, rowID, gridObj);
                             }
                         },
-                        { name: 'id', index: 'id',  width: 50, searchFlag: 'int', searchFlag: '%' },
+                        { name: 'id', index: 'id',  width: 50, searchFlag: '%' },
                         { name: 'payment_id', width: 100, searchFlag: '%', paymentIDFormatter: true },
                         { name: 'uploaded_file_name', width: 300, searchFlag: 'hstore', searchoptions: { defaultValue: commonjs.filterData['uploaded_file_name'] } },
                         {
@@ -158,7 +157,7 @@ define([
                             name: 'current_status', width: 200, stype: 'select',
                             searchoptions: { value: self.eobStatus, defaultValue: commonjs.filterData['current_status'] },
                             edittype: 'select', editoptions: { value: self.eobStatus },
-                            cellattr: function (rowId, value, rowObject, colModel, arrData) {
+                            cellattr: function () {
                                 return 'style=text-transform: capitalize;'
                             }, formatter: function (cellvalue, options, rowObject) {
                                 return self.eobStatusFormatter(cellvalue, options, rowObject);
@@ -202,7 +201,7 @@ define([
                     ondblClickRow: function (rowID) {
                         var gridData = $('#tblEOBFileList').jqGrid('getRowData', rowID);
                         var fileStatus = gridData.current_status && gridData.current_status.toLowerCase() || '';
-                        
+
                         if (['failure', 'success'].indexOf(fileStatus) == -1) {
                             self.processFile(rowID, gridData, null);
                         }
@@ -269,7 +268,7 @@ define([
                         colElement.val(fromDate.format("L") + " - " + toDate.format("L"));
                     }
 
-                    var drp = commonjs.bindDateRangePicker(colElement, drpOptions, "past", function (start, end, format) {
+                    commonjs.bindDateRangePicker(colElement, drpOptions, "past", function (start, end) {
                         if (start && end) {
                             currentFilter.startDate = start.format('L');
                             currentFilter.endDate = end.format('L');
@@ -282,7 +281,7 @@ define([
                             });
                         }
                     });
-                    colElement.on("apply.daterangepicker", function (obj) {
+                    colElement.on("apply.daterangepicker", function () {
                         gridObj.refresh();
                     });
                     colElement.on("cancel.daterangepicker", function () {
@@ -292,7 +291,7 @@ define([
                 });
             },
 
-            afterEraGridBind: function (dataset, e, self) {
+            afterEraGridBind: function () {
                 var fileUploadedObj = document && document.getElementById("ifrEobFileUpload") && document.getElementById("ifrEobFileUpload").contentWindow
                     && document.getElementById("ifrEobFileUpload").contentWindow.document && document.getElementById("ifrEobFileUpload").contentWindow.document.getElementById('fileNameUploaded');
 
@@ -314,7 +313,7 @@ define([
                 }
             },
 
-            setPhoneMask: function (obj1, obj2) {
+            setPhoneMask: function () {
                 $(".ui-jqgrid-htable thead:first tr.ui-search-toolbar input[name=id]").addClass('integerbox');
                 commonjs.validateControls();
             },
@@ -355,7 +354,7 @@ define([
                         company_id: app.companyID,
                         facility_id: app.facilityID
                     },
-                    success: function (model, response) {
+                    success: function (model) {
                         switch(app.billingRegionCode) {
                             case 'can_MB':
                             case 'can_BC':
@@ -455,11 +454,11 @@ define([
                     }
                 }
 
-                $('#btnProcessPaymentCancel').off().click(function (e) {
+                $('#btnProcessPaymentCancel').off().click(function () {
                     commonjs.hideDialog();
                     self.reloadERAFilesLocal();
                 });
-                $('#btnProcessPayment').off().click(function (e) {
+                $('#btnProcessPayment').off().click(function () {
                     if (!$('#select2-ddlInsuranceProviders-container').attr('data_description') || !$('#select2-ddlInsuranceProviders-container').attr('data_id')) {
                         commonjs.showWarning('messages.status.pleaseSelectInsuranceProvider');
                     } else {
@@ -467,7 +466,7 @@ define([
                     }
                 });
 
-                $('.eraClose').off().click(function (e) {
+                $('.eraClose').off().click(function () {
                     self.reloadERAFilesLocal();
                     $('.modal-dialog .btn-secondary, .modal-dialog  .close').removeClass('eraClose');
                 });
@@ -528,7 +527,6 @@ define([
 
             reloadERAFiles: function () {
                 commonjs.filterData = {};
-                var iframeObj = document.getElementById("ifrEobFileUpload") && document.getElementById("ifrEobFileUpload").contentWindow ? document.getElementById("ifrEobFileUpload").contentWindow : null;
                 var fileUploadedObj = document.getElementById("ifrEobFileUpload").contentWindow.document.getElementById('fileNameUploaded');
                 var fileDuplicateObj = document.getElementById("ifrEobFileUpload").contentWindow.document.getElementById('fileIsDuplicate');
                 var fileStoreExist = document.getElementById("ifrEobFileUpload").contentWindow.document.getElementById('fileStoreExist');
@@ -575,16 +573,14 @@ define([
                     fileUploadedObj.innerHTML = '';
                     fileStoreExist.innerHTML = '';
                     return false;
-                } 
+                }
                     this.pager.set({ "PageNo": 1 });
                     $('.ui-jqgrid-htable:visible').find('input, select').val('');
                     this.eobFilesTable.refreshAll();
-                
+
             },
 
             showEraPreview: function (fileName) {
-
-                var self = this;
                 commonjs.showLoading();
 
                 $.ajax({
@@ -594,7 +590,7 @@ define([
                     data: {
                         f: fileName
                     },
-                    success: function (eraJson, response) {
+                    success: function (eraJson) {
                         commonjs.hideLoading();//console.log(eraJson)
 
                         try {
@@ -625,10 +621,9 @@ define([
                             file_id: fileId,
                             company_id: app.companyID
                         },
-                        success: function (model, response) {
+                        success: function (model) {
 
                             if (model && model.rows && model.rows.length) {
-                                var $eraTable = $('#eraResultTable');
                                 fileName = fileName.substr(0, fileName.lastIndexOf('.'));
 
                                 var ins = model.rows[0];
@@ -677,12 +672,12 @@ define([
                 }
 
 
-                $('.btnCloseEraResultDiv').off().click(function (e) {
+                $('.btnCloseEraResultDiv').off().click(function () {
                     $("#divEraResult").hide();
                 });
             },
 
-            downloadEobJson: function(fileName, rowID, gridObj) {
+            downloadEobJson: function(fileName, rowID) {
                 $.ajax({
                     url: '/exa_modules/billing/era/get_json_file',
                     type: "GET",
@@ -690,7 +685,7 @@ define([
                         company_id: app.companyID,
                         file_id: rowID
                     },
-                    success: function (model, response) {
+                    success: function (model) {
                         var decodeEle = document.createElement('a');
                         decodeEle.setAttribute('href', 'data:text/plain;charset=utf-8,' + encodeURIComponent(JSON.stringify(model)));
                         decodeEle.setAttribute('download', fileName + '.txt');

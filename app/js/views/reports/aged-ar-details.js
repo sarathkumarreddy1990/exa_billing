@@ -28,7 +28,6 @@ define(['jquery',
                 billingProvider: null,
                 allBillingProvider: false,
                 excelExtended: false,
-                excelExtended: false,
                 insuranceOption: null,
                 insGroupOption: null,
                 insuranceIds: null,
@@ -46,18 +45,14 @@ define(['jquery',
                 'click #btnExcelReportExtended': 'onReportViewClick',
                 'click #btnCsvReport': 'onReportViewClick',
                 'click #btnXmlReport': 'onReportViewClick',
-                'click #btnXmlReport': 'onReportViewClick',
                 'change #ddlInsuranceOption': 'onInsuranceOptionChange',
                 'change .insGrpChk': 'chkInsGroup',
                 'click #showInsGroupCheckboxes': 'showInsuranceGroupList',
                 "click #chkAllInsGroup": "selectAllInsGroup"
             },
 
-            initialize: function (options) {
+            initialize: function () {
                 this.showForm();
-                var modelCollection = Backbone.Collection.extend({
-                    model: Backbone.Model.extend({})
-                });
                 // Set date range to Facility Date
                 this.viewModel.dateFrom = commonjs.getFacilityCurrentDateTime(app.facilityID);
                 this.viewModel.dateTo = this.viewModel.dateFrom.clone();
@@ -133,7 +128,7 @@ define(['jquery',
             },
 
 
-            getSelectedFacility: function (e) {
+            getSelectedFacility: function () {
                 var selected = $("#ddlFacilityFilter option:selected");
                 var facilities = [];
                 selected.each(function () {
@@ -144,7 +139,7 @@ define(['jquery',
             },
 
             // multi select billing provider - worked
-            getBillingProvider: function (e) {
+            getBillingProvider: function () {
                 var billing_pro = []
                 var selected = $("#ddlBillingProvider option:selected");
                 selected.each(function () {
@@ -188,7 +183,7 @@ define(['jquery',
             },
 
             // multi select insurance provider
-            chkInsGroup: function (e) {
+            chkInsGroup: function () {
                 var ins_group = []
                 $('#insuranceGroupListBoxs input[type="checkbox"]').each(function () {
                     if ($(this).prop('checked')) {

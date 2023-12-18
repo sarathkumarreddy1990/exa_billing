@@ -5,7 +5,8 @@ module.exports = {
         "es6": true,
         "node": true,
         "amd": true,
-        "jquery": true
+        "jquery": true,
+        "worker": true,
     },
     "plugins": [
         "json"
@@ -40,6 +41,9 @@ module.exports = {
         "base64": true,
         "tinymce": true,
         "fastdom": true,
+        "layout": true,
+        "facilityModules": true,
+        "siteLayouts": true,
 
 
         // jqgrid vars defined in commonjs

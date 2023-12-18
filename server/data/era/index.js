@@ -213,13 +213,13 @@ module.exports = {
     },
 
     createPaymentApplication: async function (params, paymentDetails) {
-
         let {
             lineItems
             , claimComments
             , audit_details
         } = params;
 
+        audit_details.payment_application_source = 'from apply to all claims';
         const sql = SQL` WITH
                         application_details AS (
                             SELECT
@@ -332,14 +332,14 @@ module.exports = {
                                 final_claim_charges fcc
                             INNER JOIN public.patients p on p.id = fcc.patient_id
                             INNER JOIN billing.charges ch on ch.id = fcc.charge_id
-                            WHERE
-                                (   CASE
-                                    WHEN 'OHIP_EOB' = ${paymentDetails.from} AND fcc.claim_payment_status = 'PP' THEN true
+                            WHERE (
+                                CASE
+                                    WHEN 'OHIP_EOB' = ${paymentDetails.from} AND fcc.claim_payment_status = 'PP'
+                                    THEN TRUE
                                     WHEN fcc.patient_lname != '' AND 'OHIP_EOB' != ${paymentDetails.from}
-                                    THEN lower(p.last_name) = lower(fcc.patient_lname)
-                                        ELSE '0'
-                                    END
-                                )
+                                    THEN TRUE
+                                    ELSE '0'
+                                END)
                         ),
                         insert_payment_adjustment AS (
                             SELECT
@@ -390,8 +390,17 @@ module.exports = {
                         ),
                         update_claim_status_and_payer AS (
                             SELECT
-                                DISTINCT claim_id
-                                ,billing.update_claim_responsible_party(claim_id, claim_status_code, ${paymentDetails.company_id}, original_reference, 0, false, ${paymentDetails.id}, null)
+                                DISTINCT claim_id,
+                                billing.update_claim_responsible_party(
+                                    claim_id,
+                                    claim_status_code,
+                                    ${paymentDetails.company_id},
+                                    original_reference, 0,
+                                    false,
+                                    ${paymentDetails.id},
+                                    null,
+                                    (${JSON.stringify(audit_details)})::JSONB
+                                )
                             FROM
                                 matched_claims
                             INNER JOIN billing.get_claim_totals(matched_claims.claim_id) bgct ON TRUE
@@ -449,6 +458,7 @@ module.exports = {
                                 update_claim_status
                         )  AS update_claim_status
                         `;
+
         return await query(sql);
     },
 

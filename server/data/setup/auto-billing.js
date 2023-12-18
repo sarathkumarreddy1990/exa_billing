@@ -412,7 +412,23 @@ module.exports = {
             exclude_insurance_providers,
         } = params;
 
-        const sql = SQL`
+        let sql = SQL`
+                SELECT 'EXISTS' AS status
+                    FROM billing.autobilling_rules
+                    WHERE description = ${description}
+                    AND deleted_dt IS NULL
+                    LIMIT 1
+            `
+
+        const {
+            rows
+        } = await query(sql);
+
+        if (rows.length) {
+            return { rows };
+        }
+
+        sql = SQL`
             WITH abrInsert AS (
                 INSERT INTO billing.autobilling_rules (
                     description
@@ -569,8 +585,24 @@ module.exports = {
             companyId,
         } = params;
 
+        let sql = SQL`
+                SELECT 'EXISTS' AS status
+                    FROM billing.autobilling_rules
+                    WHERE description = ${description}
+                    AND id <> ${id}
+                    AND deleted_dt IS NULL
+                    LIMIT 1
+            `
 
-        const sql = SQL`
+        const {
+            rows
+        } = await query(sql);
+
+        if (rows.length) {
+            return { rows }
+        }
+
+        sql = SQL`
             WITH
                 old_audit AS (
                     SELECT row_to_json(row) AS old_values

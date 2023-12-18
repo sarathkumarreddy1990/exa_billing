@@ -2226,11 +2226,16 @@ define('grid', [
                         return isClaimGrid && e.claim_resubmission_flag;
                     }).length;
 
-                    var validClaimStatusArray = ['APP', 'AOP', 'PIF', 'R', 'D', 'BR', 'AD', 'ADP', 'ARP', 'OH', 'PA', 'PS', 'PP'];
+                    var invalidClaimStatusArray = ['DEL', 'ISS', 'PAE', 'PGA', 'PGD', 'REJ', 'REQ'];
 
-                    if ((insurance_codes.length && insurance_codes.indexOf("ahs") > -1 && validClaimStatusArray.indexOf(gridData.hidden_claim_status_code) !== -1)
+                    if (
+                        (
+                            insurance_codes.length && insurance_codes.indexOf("ahs") > -1 &&
+                            invalidClaimStatusArray.indexOf(gridData.hidden_claim_status_code) === -1
+                        )
                         || (insurance_codes.length && insurance_codes.indexOf("wcb") > -1)
-                        || resubmissionFlag) {
+                        || resubmissionFlag
+                    ) {
                         $('#li_ul_change_claim_status').show();
                     }
                 }

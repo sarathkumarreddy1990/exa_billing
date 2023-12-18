@@ -27,7 +27,6 @@ define([
             },
 
             initializeRouter: function () {
-        agedardetails: 'Aged AR Details',
                 this.options.screen = facilityModules.reportScreens.agedardetails;
                 layout.initializeLayout(this);
 

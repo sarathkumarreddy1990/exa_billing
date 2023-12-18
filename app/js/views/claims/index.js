@@ -1597,15 +1597,16 @@ define(['jquery',
                             ? ''
                             : data.frequency;
                         var disableCorrected = isRejectedClaimStatus || !actionCode;
-                        var validClaimStatusArray = ['APP', 'AOP', 'PIF', 'R', 'D', 'BR', 'AD', 'ADP', 'ARP', 'OH', 'PA', 'PS', 'PP'];
-                        var disableClaimStatus = self.priInsCode && self.priInsCode.toLowerCase() === 'ahs' || false;
-                        var enableClaimStatus = disableClaimStatus && validClaimStatusArray.indexOf(data.claim_status_code) !== -1;
+                        var invalidClaimStatusArray = ['DEL', 'ISS', 'PAE', 'PGA', 'PGD', 'REJ', 'REQ'];
+                        var disableClaimStatus = (
+                            self.priInsCode && self.priInsCode.toLowerCase() === 'ahs' &&
+                            invalidClaimStatusArray.indexOf(data.claim_status_code) !== -1
+                        ) || false;
 
                         frequencyElement.find('option[value=""]').prop('disabled', !disableCorrected);
                         frequencyElement.find('option[value="corrected"]').prop('disabled', disableCorrected);
                         frequencyElement.find('option[value="'+ actionCode +'"]').prop('selected', 'selected');
-
-                        $('#ddlClaimStatus').prop('disabled', disableClaimStatus && !enableClaimStatus);
+                        $('#ddlClaimStatus').prop('disabled', disableClaimStatus);
 
                         //EXA-18272 - Restrict to add/remove new charge on edit claim for alberta billing
                         $("td span.addChargeLine").parent().remove();
@@ -4543,6 +4544,7 @@ define(['jquery',
                                             }
                                         }
                                     } else {
+                                        $("#btnClaimsRefresh").click();
                                         $("#btnStudiesRefresh").click();
                                     }
 
@@ -4608,7 +4610,7 @@ define(['jquery',
                     var samePolicy = info.policy_number === policy;
                     var sameCoverageLevel = info.coverage_level === coverage_level;
                     var sameRecord = info.id === ~~id;
-                    return sameProvider && samePolicy && sameCoverageLevel && !sameRecord;
+                    return sameProvider && samePolicy && sameCoverageLevel && !sameRecord && info.is_active;
                 });
             },
 
@@ -4904,6 +4906,11 @@ define(['jquery',
                         }
                         self.is_tertiary_available = true;
 
+                }
+
+                if (!self.validateInsuranceDuplication()) {
+                    commonjs.showWarning("messages.warning.order.existsDifferentCoverageLevel", "largewarning");
+                    return false;
                 }
 
                 if (!self.validateInsuranceDuplication()) {
@@ -5445,6 +5452,45 @@ define(['jquery',
                         commonjs.handleXhrError(err, response);
                     }
                 });
+            },
+
+            getBusinessArrangement: function (facility_id, rendering_provider_id) {
+                var self = this;
+
+                $.ajax({
+                    url: '/exa_modules/billing/claims/claim/business_arrangement',
+                    type: 'GET',
+                    data: {
+                        facility_id: facility_id,
+                        rendering_provider_id: rendering_provider_id
+                    },
+                    success: function (data) {
+                        if (!data.length || !data[0].can_ahs_locum_arrangement_provider) {
+                            return;
+                        }
+
+                        self.can_ahs_business_arrangement_facility = data[0].can_ahs_business_arrangement_facility;
+                        self.can_ahs_locum_arrangement_provider = data[0].can_ahs_locum_arrangement_provider;
+
+                        var $businessArrangement = $('input[name="BusinessArrangement"]');
+                        var payToValue = self.getPayToValue();
+
+                        $businessArrangement
+                            .off('change')
+                            .on('change', function () {
+                                if (this.checked) {
+                                    var value = $(this).val();
+                                    self.setBusinessArrangement(value);
+                                }
+                            })
+                            .val([payToValue]);
+
+                        $businessArrangement.trigger('change');
+                    },
+                    error: function (err, response) {
+                        commonjs.handleXhrError(err, response);
+                    }
+                })
             },
 
             processClaim: function (e) {
@@ -6145,8 +6191,8 @@ define(['jquery',
                 self.toggleWCBInjuryTypes();
 
                 //EXA-18273 - Bind Charges created on current date for a patient.
-                if (app.billingRegionCode === 'can_AB' && self.studyDate) {
-                    self.getPatientCharges(patient_details.patient_id);
+                if (app.billingRegionCode === 'can_AB') {
+                    self.getBusinessArrangement(patient_details.facility_id, patient_details.rendering_provider_id);
                 }
 
                 // Set Default details

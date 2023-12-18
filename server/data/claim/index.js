@@ -1689,6 +1689,34 @@ module.exports = {
         return await query(sql);
     },
 
+    getBusinessArrangement: async (params) => {
+        let {
+            facility_id,
+            rendering_provider_id
+        } = params;
+
+        let sql = SQL`
+                    SELECT
+                    (
+                        SELECT
+                            f.can_ahs_business_arrangement
+                        FROM
+                            facilities f
+                        WHERE
+                            f.id = ${facility_id}
+                    ) AS can_ahs_business_arrangement_facility,
+                    (
+                        SELECT
+                            pc.can_locum_arrangement
+                        FROM
+                            provider_contacts pc
+                        WHERE
+                            pc.id = ${rendering_provider_id}
+                    ) AS can_ahs_locum_arrangement_provider `;
+
+        return await query(sql);
+    },
+
     updateNotes: async (params) => {
         const {
             claimId,

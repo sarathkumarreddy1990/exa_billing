@@ -201,6 +201,7 @@ module.exports = {
             params.updateAppliedPayments = updateAppliedPayments;
             params.save_cas_details = save_cas_details;
             params.claimCommentDetails = claimCommentDetails;
+            params.auditDetails = auditDetails;
             return await data.updatePaymentApplication(params);
         }
 

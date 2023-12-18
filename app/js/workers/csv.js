@@ -14,7 +14,6 @@ const claimColumns = {
     "Billing Provider": "billing_provider",
     "Billing Fee": "billing_fee",
     "Account No": "account_no",
-    "Alt Account No": "pid_alt_account",
     "Policy Number": "policy_number",
     "Claim Status": "claim_status",
     "Date Of Birth": "birth_date",
@@ -41,7 +40,8 @@ const claimColumns = {
     "Facility": "facility_name",
     "First Statement Date": "first_statement_dt",
     "AHS Claim Action": "claim_action",
-    "Reason Code": "reason_code",
+    "Line Reason Code": "line_eob_codes",
+    "Claim Reason Code": "claim_eob_codes",
     "PHN": "phn_alt_account",
     "Sequence Numbers": "can_bc_claim_sequence_numbers",
     "Alt Account No": "pid_alt_account",
@@ -198,7 +198,7 @@ function generateCsvData(dbResponse, callback) {
         if (rowIndex) {
             facilityTimeZone = _.filter(facilities, { id: parseInt(dbRow.facility_id) });
         }
-        return columns.map(function (colName, colIndex) {
+        return columns.map(function (colName) {
             var csvText = showLabel && rowIndex == 0 ? colName : dbRow[columnMap[colName]];
 
             if (rowIndex && dateColumnsWithTimeZoneConversion.indexOf(colName) > -1 && csvText) {
