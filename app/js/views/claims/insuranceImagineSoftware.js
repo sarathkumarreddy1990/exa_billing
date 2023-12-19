@@ -939,24 +939,7 @@ function (
             $("#divVisitReferringPhysician").empty();
 
             referring_physicians.forEach(function (ref, index) {
-                if (ref.provider_id && ref.provider_contact_id) {
-                    $.ajax({
-                        url: "/providerContacts",
-                        type: "GET",
-                        data: {
-                            provider_id: ref.provider_id,
-                            provider_contact_id: ref.provider_contact_id,
-                            from: "serviceProvider"
-                        },
-                        success: function (response) {
-                            var result = _.get(response, "result[0]", []);
-                            self.writeReferringPhysicians(result, index);
-                        },
-                        error: function (err, response) {
-                            commonjs.handleXhrError(err, response);
-                        }
-                    });
-                }
+                self.writeReferringPhysicians(ref, index);
             });
 
             return this;
