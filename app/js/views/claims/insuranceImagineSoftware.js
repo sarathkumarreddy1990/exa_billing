@@ -67,6 +67,8 @@ function (
 
             if (class_this && !_.includes(class_this, "pop-dont-hide")) {
                 $(".popover").hide();
+            } else {
+                $(".popover").show();
             }
         },
 
@@ -937,27 +939,7 @@ function (
             $("#divVisitReferringPhysician").empty();
 
             referring_physicians.forEach(function (ref, index) {
-                var info = ref.contact_info;
-
-                if (info) {
-                    var contact = {
-                        name: ref.name || "",
-                        address1: info.ADDR1 || "",
-                        address2: info.ADDR2 || "",
-                        city: info.CITY || "",
-                        state: (info.STATE_NAME !== "Select" && info.STATE_NAME) || info.STATE || "",
-                        zip: info.ZIP || "",
-                        office_phone: info.OFPHNO || info.phone || "",
-                        phone: info.PHNO || "",
-                        mobile: info.MOBNO || "",
-                        pager: info.PAGRNO || "",
-                        fax: info.OFFAXNO || info.FAXNO || "",
-                        email: info.EMAIL || "",
-                        provider_alerts: info.providerAlerts || ""
-                    };
-
-                    self.writeReferringPhysicians(contact, index);
-                }
+                self.writeReferringPhysicians(ref, index);
             });
 
             return this;
