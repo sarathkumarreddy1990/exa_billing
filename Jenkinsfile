@@ -92,7 +92,7 @@ else {
   ])
 }
 
-node('exa-windows-node-18.x') {
+node('exa-windows-node-20.x') {
   if(env.VERSION_CHOICE && env.VERSION_CHOICE == "default" &&
      !env.VERSION_PASSEDIN.trim()) {
     println "For testing only!"
