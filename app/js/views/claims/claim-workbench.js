@@ -792,7 +792,7 @@ define(['jquery',
                 data.err = data && (data.err || data[0]);
 
                 if (data && data.isInvalidBillingMethod) {
-                    commonjs.showWarning('messages.status.pleaseSelectValidClaimsMethod'); //?????
+                    commonjs.showWarning('messages.status.pleaseSelectValidClaimsMethod');
                 } else if (data && data.isMultipleInsurances) {
                     commonjs.showWarning('messages.warning.claims.multipleInsurancesForSubmission');
                 } else if (data && data.isFolderNotExists) {
