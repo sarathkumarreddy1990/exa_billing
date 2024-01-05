@@ -6,8 +6,6 @@ yarn.lock
 build2/
 test-reports/
 
-app/package-lock.json
-
 # ignore project files
 .idea
 *.code-workspace
