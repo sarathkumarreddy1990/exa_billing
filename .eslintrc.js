@@ -44,7 +44,8 @@ module.exports = {
         "layout": true,
         "facilityModules": true,
         "siteLayouts": true,
-
+        "exaInternalErrors": true,
+        "sessionManager": true,
 
         // jqgrid vars defined in commonjs
         "jq_isWidthResize": true,
