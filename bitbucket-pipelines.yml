@@ -33,7 +33,7 @@ definitions:
         script:
           - npm ci --progress false --audit false
           # lint using project settings (also uses JSON plugin)
-          - npx eslint --ext ".json,.js" --format "junit" --output-file "./test-reports/eslint.junit.xml" "."
+          - npx eslint --format "junit" --output-file "./test-reports/eslint.junit.xml" "."
     - step: &trigger_jenkins_job
         name: Trigger Jenkins job
         script:
