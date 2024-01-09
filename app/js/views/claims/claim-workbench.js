@@ -515,6 +515,10 @@ define(['jquery',
                 commonjs.setFilter(filterID, filter);
             },
             createClaims: function (e, isFromReclaim) {
+                if ($('#btnClaimFormat').attr("data-disabled") === "disabled") {
+                    return false;
+                }
+
                 var self = this;
                 var billingMethodFormat = '';
                 var isCanada = app.country_alpha_3_code === 'can';
@@ -784,6 +788,7 @@ define(['jquery',
                     }
                 }
 
+                $('#btnClaimFormat').attr('data-disabled', "disabled");
                 commonjs.showLoading();
 
                 var url = self.getSubmitClaimUrl(app.billingRegionCode, isWCBBilling);
@@ -799,6 +804,7 @@ define(['jquery',
                     success: function (data, textStatus, jqXHR) {
                         commonjs.hideLoading();
                         isWCBBilling = isWCBBilling || (data && data.isWCBBilling);
+                        data.removeDisabledFlag = true;
 
                         switch (app.billingRegionCode) {
                             case 'can_AB':
@@ -818,8 +824,13 @@ define(['jquery',
                             default:
                                 self.ediResponse(data, isFromReclaim);
                         }
+
+                        if (data.removeDisabledFlag) {
+                            $('#btnClaimFormat').removeAttr("data-disabled");
+                        }
                     },
                     error: function (err) {
+                        $('#btnClaimFormat').removeAttr("data-disabled");
                         commonjs.handleXhrError(err);
                     }
                 });
@@ -878,7 +889,6 @@ define(['jquery',
                 });
             },
 
-
             ohipResponse: function(data) {
                 var errData = null;
 
@@ -899,20 +909,21 @@ define(['jquery',
                 }
 
                 var errorContent = '<div style="width:100%;height:100%" id="divError"><textarea style="width:100%;height:100%" id="txtAreaErrorData">' + JSON.stringify(errData, undefined, 4) + '</textarea></div>';
+                data.removeDisabledFlag = false;
 
                 commonjs.showDialog({
                     header: 'OHIP  Submission Error',
                     i18nHeader: 'shared.moduleheader.ohipClaims',
                     width: '50%',
                     height: '50%',
-                    html: errorContent
+                    html: errorContent,
+                    onHide: function () {
+                        $('#btnClaimFormat').removeAttr("data-disabled");
+                    }
                 });
-
             },
 
-
             ahsResponse: function (data) {
-
                 data.err = data && (data.err || data[0]);
 
                 if (data && data.isInvalidBillingMethod) {
@@ -925,6 +936,7 @@ define(['jquery',
                     commonjs.showWarning('messages.warning.claims.ahsConnectionFailed');
                 } else if (data.validationMessages && data.validationMessages.length) {
                     var responseTemplate = _.template(validationTemplate);
+                    data.removeDisabledFlag = false;
 
                     // To show array of validation messages
                     commonjs.showNestedDialog({
@@ -934,7 +946,10 @@ define(['jquery',
                         width: '60%',
                         html: responseTemplate({
                             'validationMessages': data.validationMessages
-                        })
+                        }),
+                        onHide: function () {
+                            $('#btnClaimFormat').removeAttr("data-disabled");
+                        }
                     });
                 } else if (data.err) {
                     commonjs.showWarning(data.err);
@@ -942,7 +957,6 @@ define(['jquery',
                     commonjs.showStatus('messages.status.claimSubmitted');
                     this.refreshClaims(true);
                 }
-
             },
 
             ediResponse: function (data, isFromReclaim) {
@@ -993,7 +1007,7 @@ define(['jquery',
                         result = _.groupBy(validations, "dataID");
                     }
 
-                    self.ediTemplateRender(isFromReclaim, result, data.ediTextWithValidations, commonErrorValidation);
+                    self.ediTemplateRender(isFromReclaim, result, data.ediTextWithValidations, commonErrorValidation, data);
                     $(".popoverWarning").popover();
 
                     if (data.validations && data.validations.length == 0) {
@@ -1068,6 +1082,7 @@ define(['jquery',
 
                 if (errorDetails && errorDetails.length) {
                     var responseTemplate = _.template(validationTemplate);
+                    data.removeDisabledFlag = false;
 
                     commonjs.showNestedDialog({
                         header: 'Claim Validation Result',
@@ -1076,13 +1091,15 @@ define(['jquery',
                         width: '60%',
                         html: responseTemplate({
                             'validationMessages': errorDetails
-                        })
+                        }),
+                        onHide: function () {
+                            $('#btnClaimFormat').removeAttr("data-disabled");
+                        }
                     });
                 } else if (data.err) {
                     commonjs.showWarning(data.err);
                 } else if (data.fileContent) {
                     commonjs.showStatus('messages.status.claimSubmitted');
-
                     self.downloadClaimSubmission(data.fileContent, data.fileName, 'base64', 'application/zip');
                 }
             },
@@ -3295,7 +3312,10 @@ define(['jquery',
                 if (!isFromEDI) {
                     $('#revalidateClaim').off('click').on('click', function() { self.revalidateClaim() });
                 } else {
-                    $('#reclaimEDI').off('click').on('click', function(e) { self.createClaims(e, true) });
+                    $('#reclaimEDI').off('click').on('click', function(e) {
+                        $('#btnClaimFormat').removeAttr("data-disabled");
+                        self.createClaims(e, true)
+                    });
                 }
             },
 
@@ -3389,7 +3409,7 @@ define(['jquery',
                     };
 
                     var result = Object.keys(errorResult.reciprocalErrorArray).length ? errorResult.reciprocalErrorArray : errorResult.encoderErrorArray;
-                    self.ediTemplateRender(isFromReclaim, result, null, errorResult.commonError);
+                    self.ediTemplateRender(isFromReclaim, result, null, errorResult.commonError, data);
                     $('#divEDIResult, #aDownloadEDI, #liEDI').hide();
                     $('#reclaimEDI, #divErrorMsgs').show();
                 } else {
@@ -3404,8 +3424,9 @@ define(['jquery',
              * @param  {Object} result  edi response
              * @param  {Object} ediText  edi text
              * @param  {Object} commonErrorValidation  common error list
+             * @param  {Object} data particularly, the remove disabled flag
              */
-            ediTemplateRender: function (isFromReclaim, result, ediText, commonErrorValidation) {
+            ediTemplateRender: function (isFromReclaim, result, ediText, commonErrorValidation, data) {
                 var self = this;
                 if (isFromReclaim) {
                     $('#modal_div_container').html(
@@ -3418,6 +3439,8 @@ define(['jquery',
                     commonjs.updateCulture(app.currentCulture, commonjs.beautifyMe());
                     self.initEvent(true);
                 } else {
+                    data.removeDisabledFlag = false;
+
                     commonjs.showDialog({
                         header: 'EDI Claim',
                         i18nHeader: 'shared.moduleheader.ediClaims',
@@ -3435,6 +3458,7 @@ define(['jquery',
                         },
                         onHide: function () {
                             commonjs.previousValidationResults = null;
+                            $('#btnClaimFormat').removeAttr("data-disabled");
                         }
                     });
                 }
