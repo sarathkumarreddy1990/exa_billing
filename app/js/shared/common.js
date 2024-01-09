@@ -1,3 +1,4 @@
+/* eslint-disable no-unused-vars */
 
 var moment;
 require.config({
@@ -12,56 +13,40 @@ define(['moment-timezone'], function (momenttz) {
     moment = momenttz;
 });
 
-var settingsReceived = false
-    , patientFrameVisited = false
-    , companiesReceived = false
-    , orderFrameVisited = false
-    , tickTimer = null
-    , jq_isWidthResize
-    , jq_isHeightResize
-    , jq_userWidth
-    , jq_userHeight
-    , jq_offsetWidth
-    , jq_offsetheight
-    , burnQueue_Study = []
-    , cdburnStudies = []
-    , cdBurnerObj
-    , merge_Studies = []
-    , multiMergestudy = []
-    , study_uid_arr = []
-    , study_uid_arr_multi = []
-    , studyTab = ""
-    , removeStudyTab = ""
-    , editStudyID = 0
-    , editOrderID = 0
-    , isDefaultTab = false
-    , homeOpentab = ""
-    , _isDirty = false
-    , arrInterval = []
-    , isPatientSearch = true
-    , filterQueries = []
-    , prevTime
-    , previousValidationResults,
-    setupStatusCodes = function (data) {
-        commonjs.statusCodes = data;
-        // Below is for my convenience
-        var i = 0;
-        var count = data.length;
-        var regUndesirables = /[^A-Z0-9\s\-]/g;
-        var code;
-        var desc;
-        if (Array.isArray(data) && count !== 0) {
-            for (; i < count; ++i) {
-                code = data[i];
-                desc = code.status_desc.toUpperCase().replace(regUndesirables, '');
-                commonjs.statusCodesMap = commonjs.statusCodesMap.set(code.status_code, desc);
-                commonjs.statusCodesNamesMap = commonjs.statusCodesNamesMap.set(desc, code.status_code);
-            }
+var tickTimer = null;
+var jq_isWidthResize;
+var jq_isHeightResize;
+var jq_userWidth;
+var jq_userHeight;
+var jq_offsetWidth;
+var jq_offsetheight;
+var studyTab = "";
+var editStudyID = 0;
+var homeOpentab = "";
+var _isDirty = false;
+var arrInterval = [];
+var filterQueries = [];
+var previousValidationResults;
+var setupStatusCodes = function (data) {
+    commonjs.statusCodes = data;
+    // Below is for my convenience
+    var i = 0;
+    var count = data.length;
+    var regUndesirables = /[^A-Z0-9\s-]/g;
+    var code;
+    var desc;
+    if (Array.isArray(data) && count !== 0) {
+        for (; i < count; ++i) {
+            code = data[i];
+            desc = code.status_desc.toUpperCase().replace(regUndesirables, '');
+            commonjs.statusCodesMap = commonjs.statusCodesMap.set(code.status_code, desc);
+            commonjs.statusCodesNamesMap = commonjs.statusCodesNamesMap.set(desc, code.status_code);
         }
     }
-    , $window = $(window)
-    , $document = $(document)
-    , $body = $('body');
+};
+var $window = $(window);
+var $document = $(document);
+var $body = $('body');
 
 var commonjs = {
     requestTimeout: 80000,
@@ -123,13 +108,13 @@ var commonjs = {
      */
     setupCityStateZipInputs: function setupCityStateZipInputs() {
         var $getCityStateByZipContainer = $('.get-city-state-by-zip');
-        $getCityStateByZipContainer.each(function (index) {
+        $getCityStateByZipContainer.each(function () {
             var $this = $(this);
             var $cityInput = $this.find('.city-input');
             var $stateInput = $this.find('.state-input');
             var $zipInput = $this.find('.zip-input');
 
-            function handleChangeZip(event) {
+            function handleChangeZip() {
                 var zip = ($zipInput.val() || '').trim();
 
                 if (zip > 0) {
@@ -159,7 +144,7 @@ var commonjs = {
         });
 
         var $getZipByCityStateContainer = $('.get-zip-by-city-state');
-        $getZipByCityStateContainer.each(function (index) {
+        $getZipByCityStateContainer.each(function () {
             var $this = $(this);
             var $cityInput = $this.find('.city-input');
             var $stateInput = $this.find('.state-input');
@@ -168,7 +153,7 @@ var commonjs = {
             var $zipList = $zipListContainer.find('.zip-list');
             var $applyZipButton = $zipListContainer.find('.apply-zip');
 
-            function handleChangeCityState(event) {
+            function handleChangeCityState() {
                 var city = ($cityInput.val() || '').trim().toUpperCase();
                 var state = ($stateInput.val() || '').trim().toUpperCase();
 
@@ -205,13 +190,13 @@ var commonjs = {
                             }
                         },
                         error: function (error) {
-                            console.error('Error getting city/state using zip ' + zip, error);
+                            console.error('Error getting city/state using zip ', error);
                         }
                     });
                 }
             }
 
-            function handleApplyZip(event) {
+            function handleApplyZip() {
                 $zipInput.val($zipList.val());
                 $zipListContainer.hide();
                 $applyZipButton.attr('disabled', true);
@@ -326,18 +311,14 @@ var commonjs = {
     /**
      * Alter study information in current filter's datastore.
      * @param {Object|Object[]} data - Array of many or single object
-     * @param {string|number}   [id] - If included it means to change, not add
      * @returns {boolean}
      */
-    setData: function (data, id) {
+    setData: function (data) {
         var root = window.parent || window;
         var cjs = root.commonjs;
         var filterID = cjs.currentStudyFilter || root.homeOpentab;
         var filter = cjs.loadedStudyFilters.get(filterID);
         if (typeof data === 'object' && filter && filter.datastore) {
-            // var isValidString = typeof id === 'string' && id.trim() !== '';
-            // var isValidNumber = typeof id === 'number' && !isNaN(id);
-            // var isValidID = isValidString || isValidNumber || id === true;
             filter.datastore.add(Array.isArray(data) ? data : [data], {
                 'merge': true,
                 'filter': filter,
@@ -486,21 +467,6 @@ var commonjs = {
         { 'value': 'TR', 'text': 'Transmit Report' }
     ],
 
-    patientFlags: {
-        'HMO': "HMO Patient", 'MEDPAT': "Medicare Patient", '9999': "Unavailable / Unknown", '99': "No Typology Code available for payment source", '98': "Other specified (includes Hospice - Unspecified plan)", '96': "Auto Insurance (no fault)", '959': "Worker's Comp, Other unspecified",
-        '954': "Worker's Comp Other Managed Care", '953': "Worker's Comp Fee-for-Service", '951': "Worker's Comp HMO", '95': "Worker's Compensation", '94': "Long-term Care Insurance", '93': "Disability Insurance", '92': "Other (Non-government)", '91': "Foreign National", '9': "MISCELLANEOUS/OTHER", '89': "No Payment, Other", '85': "Research/Donor",
-        '84': "Hill Burton Free Care", '83': "Refusal to Pay/Bad Debt", '823': "Research/Clinical Trial", '822': "Professional Courtesy", '821': "Charity", '82': "	No Charge", '81': "Self-pay", '8': "NO PAYMENT from an Organization/Agency/Program/Private Payer Listed", '79': "Other Managed Care, Unknown if public or private",
-        '73': "POS", '72': "PPO", '71': "HMO", '7': "MANAGED CARE, UNSPECIFIED (to be used only if one can't distinguish public from private)", '69': "BC (Indemnity or Managed Care) - Other", '64': "BC (Indemnity or Managed Care) - Unspecified", '63': "BC (Indemnity or Managed Care) - Out of State", '62': "BC Indemnity", '619': "BC Managed Care - Other", '613': "BC Managed Care - POS", '612': "BC Managed Care - PPO",
-        '611': "BC Managed Care - HMO", '61': "BC Managed Care", '6': "BLUE CROSS/BLUE SHIELD", '59': "Other Private Insurance", '55': "Small Employer Purchasing Group", '54': "Organized Delivery System", '53': "Managed Care (private) or private health insurance (indemnity), not otherwise specified", '529': "Private health insurance-other commercial Indemnity",
-        '523': "Medicare supplemental policy (as second payer)", '522': "Self-insured (ERISA) Administrative Services Only (ASO) plan", '521': "Commercial Indemnity", '52': "Private Health Insurance - Indemnity", '519': "Managed Care, Other (non HMO)", '515': "Gatekeeper PPO (GPPO)", '514': "Exclusive Provider Organization", '513': "Commercial Managed Care - POS", '512': "Commercial Managed Care - PPO", '511': "Commercial Managed Care - HMO", '51': "Managed Care (Private)", '5': "PRIVATE HEALTH INSURANCE", '44': "Corrections Unknown Level", '43': "Corrections Local",
-        '42': "Corrections State", '41': "Corrections Federal", '4': "DEPARTMENTS OF CORRECTIONS", '39': "Other Federal", '389': "Federal, State, Local not specified - Other", '382': "	Federal, State, Local not specified - FFS", '3819': "Federal, State, Local not specified - not specified managed care", '3813': "Federal, State, Local not specified - POS", '3812': "Federal, State, Local not specified - PPO", '3811': "Federal, State, Local not specified - HMO", '381': "Federal, State, Local not specified managed care", '38': "Other Government (Federal, State, Local not specified)", '379': "Local, not otherwise specified (other local, county)",
-        '372': "FFS/Indemnity", '3713': "POS", '3712': "PPO", '3711': "HMO", '371': "Local - Managed care", '37': "Local Government", '369': "State, not otherwise specified (other state)", '362': "Specific state programs (list/ local code)", '361': "State SCHIP program (codes for individual states)", '36': "State Government", '35': "Black Lung", '349': "Other", '343': "Ryan White Act", '342': "Migrant Health Program",
-        '341': "Title V (MCH Block Grant)", '334/': "Indian Tribe - Sponsored Coverage", '333': "Indian Health Service - Managed Care", '332': "Indian Health Service - Contract", '331': "Indian Health Service - Regular", '33': "Indian Health Service or Tribe", '3229': "Other non-veteran care", '3223': "Children of Women Vietnam Veterans (CWVV)", '3222': "Spina Bifida Health Care Program (SB)", '3221': "Civilian Health and Medical Program for the VA (CHAMPVA)", '322': "Non-veteran care", '32126': "Other Federal Agency",
-        '32125': "Sharing Agreements", '32124': "State Veterans Home", '32123': "Contract Nursing Home/Community Nursing Home", '32122': "Foreign Fee/Foreign Medical Program(FMP)", '32121': "Fee Basis", '3212': "Indirect Care--Care provided outside VA facilities", '3211': "Direct Care--Care provided in VA facilities", '321': "Veteran care--Care provided to Veterans", '32': "Department of Veterans Affairs", '313': "Dental --Stand Alone", '3123': "TRICARE For Life (TFL)", '3122': "Non-enrolled Space Available", '3121': "Enrolled Prime-HMO", '312': "Military Treatment Facility", '3119': "Department of Defense - (other)",
-        '3116': "Uniformed Services Family Health Plan (USFHP) -- HMO", '3115': "TRICARE Reserve Select", '3114': "TRICARE For Life--Medicare Supplement", '3113': "TRICARE Standard - Fee For Service", '3112': "TRICARE Extra-PPO", '3111': "TRICARE Prime-HMO", '311': "TRICARE (CHAMPUS)", '31': "Department of Defense", '3': "OTHER GOVERNMENT (Federal/State/Local) (excluding Department of Corrections)", '29': "Medicaid Other", '25': "Medicaid - Out of State", '24': "Medicaid Applicant", '23': "Medicaid/SCHIP", '22': "Medicaid (Non-managed Care Plan)", '219': "Medicaid Managed Care Other", '213': "Medicaid PCCM (Primary Care Case Management)",
-        '212': "Medicaid PPO", '211': "Medicaid HMO", '21': "Medicaid (Managed Care)", '2': "MEDICAID", '19': "Medicare Other", '129': "Medicare Non-managed Care Other", '123': "Medicare Medical Savings Account (MSA)", '122': "Medicare Drug Benefit", '121': "Medicare FFS", '12': "Medicare (Non-managed Care)", '119': "Medicare Managed Care Other", '113': "Medicare POS", '112': "Medicare PPO", '111': "	Medicare HMO", '11': "Medicare (Managed Care)", '1': "MEDICARE"
-    },
-
     previousRange: null,
 
     limitedKeyCodes: [220, 192],
@@ -544,7 +510,7 @@ var commonjs = {
     validateDateTimePickerRange: function (f, t, allowFutureRange, timeUnit) {
         var dtpFrom = (f && (typeof f === "string")) ? this.getDateTimePicker(f) : f;
         var dtpTo = (t && (typeof t === "string")) ? this.getDateTimePicker(t) : t;
-        var timeUnit = (typeof timeUnit === "undefined") ? "second" : timeUnit;
+        timeUnit = (typeof timeUnit === "undefined") ? "second" : timeUnit;
         var validTimeUnits = ["year", "month", "week", "day", "hour", "minute", "second"];
         var retVal = { valid: false, type: "error", message: "" };
 
@@ -1484,7 +1450,7 @@ var commonjs = {
                 commonjs.showError('messages.errors.dependentrecordfound');
             }
             else {
-                if (response.hasOwnProperty("error") && response.error.hasOwnProperty("code")) {
+                if (_.has(response, 'error') && _.has(response.error, 'code')) {
                     switch (response.error.code) {
                         case '100':
                             break;
@@ -1615,7 +1581,7 @@ var commonjs = {
             l,
             clean = function (value) {
                 // Remove leading double quotes
-                value = value.replace(/^\"|\"$/g, "");
+                value = value.replace(/^"|"$/g, "");
                 // Unescape quotes
                 value = value.replace(/\\"/g, "\"");
                 //Unescape backslashes
@@ -1681,6 +1647,7 @@ var commonjs = {
                     text: 'All'
                 });
             }
+            /* eslint-disable no-redeclare */
             for (var i = 0; i < arrayValue.length; i++) {
                 var obj = {
                     id: arrayValue[i].id,
@@ -1691,6 +1658,7 @@ var commonjs = {
                     obj[fieldName] = commonjs.hstoreParse(arrayValue[i].facility_info)[fieldName];
                 settingsArray.push(obj);
             }
+            /* eslint-enable no-redeclare */
             return settingsArray;
 
     },
@@ -1778,37 +1746,7 @@ var commonjs = {
         return val ? this.convertToCompanyTimeZone(val).format('L LT z') : '';
     },
     getFormattedDateTime: function (val, isStudy, isSchedule, showDay) {
-
         return val ? this.convertToCompanyTimeZone(val).format('L LT z') : '';
-
-        var result = "";
-        if (commonjs.checkNotEmpty(val) && val != null) {
-            if (showDay)
-                return moment(val).format('dddd L LT');
-            return moment(val).format('L LT');
-
-            if (isStudy) {
-                if (showDay)
-                    result = moment(val).format('dddd L LT');
-                else
-                    result = moment(val).format('L LT');
-            } else {
-                var code = app.getFacilitywithTimeZone(app.default_facility_id);
-                var zone = 0;
-                if (commonjs.checkNotEmpty(code)) {
-                    zone = app.getZoneValue(code);
-                }
-                if (isSchedule)
-                    result = moment(val).zone(-zone).format('L LT');
-                else {
-                    if (showDay)
-                        result = moment(val).zone(-zone).format('dddd L LT');
-                    else
-                        result = moment(val).zone(-zone).format('L LT');
-                }
-            }
-        }
-        return result;
     },
 
     getFormattedDate: function (val) {
@@ -1881,7 +1819,6 @@ var commonjs = {
         var momentVal = null;
         if (!val) {
             throw new Error("Please specify value as string (or moment object)!");
-            return null;
         }
 
         var useTimeZone = (timeZone && timeZone !== "");
@@ -1896,7 +1833,7 @@ var commonjs = {
         } else if (moment.isDate(val)) {
             console.warn('Fix this! Pass in a valid ISO string or moment object, not a JS Date...');
             console.trace();
-            dtIso = val.ToISOString();
+            var dtIso = val.ToISOString();
             if (useTimeZone) {
                 momentVal = useParseFormats ? moment.tz(dtIso, parseFormats, timeZone) : moment.tz(dtIso, timeZone);
             } else {
@@ -1913,14 +1850,8 @@ var commonjs = {
             }
         } else {
             throw new Error("Please pass in string or moment object!");
-            return null;
         }
         // // if TZ is specified, force the moment object to use it ***but do not convert it to that TZ*** !!!
-        // if (timeZone && timeZone !== "") {
-        // 	//first strip the TZ if it exists
-        // 	var stripTz = momentVal.format('YYYY-MM-DDTHH:mm:ss');
-        // 	momentVal = moment.tz(stripTz, timeZone);
-        // }
         if (!momentVal.isValid()) {
             console.warn("Resulting moment object is invalid! Value: %s ", momentVal.format());
         }
@@ -2231,12 +2162,16 @@ var commonjs = {
         $('.maskUnits').attr('placeholder', '0.000');
 
         $(".maskUnits").on("keypress", function (e) {     // function for allow 3 digits before decimal point in amount
+            /* eslint-disable no-undef */
             value1 = $(this).val();
             value = value1;
-            if (value1 > 999.999)
+            if (value1 > 999.999) {
                 this.value = this.oldvalue;
-            else
+            }
+            else {
                 this.oldvalue = this.value;
+            }
+            /* eslint-enable no-undef */
         });
 
         $('.maskFee').inputmask("numeric", {
@@ -2270,12 +2205,16 @@ var commonjs = {
         });
 
         $(".maskFee, .maskFeeAllowMinus").on("keypress", function (e) {     // function for allow 8 digits before decimal point in amount
+            /* eslint-disable no-undef */
             value1 = $(this).val();
             value = value1;
-            if (value1 > 99999999.99)
+            if (value1 > 99999999.99) {
                 this.value = this.oldvalue;
-            else
+            }
+            else {
                 this.oldvalue = this.value;
+            }
+            /* eslint-enable no-undef */
         });
         $('.maskFee, .maskFeeAllowMinus').attr('placeHolder', '0.00');
 
@@ -2607,13 +2546,12 @@ var commonjs = {
             }
         });
 
-        if (grid = $('.ui-jqgrid-btable:visible')) {
-            grid.each(function (index) {
-                gridId = $(this).attr('id');
-                gridParentWidth = $('#gbox_' + gridId).parent().width();
-                $('#' + gridId).setGridWidth(gridParentWidth);
-            });
-        }
+        var $grid = $('.ui-jqgrid-btable:visible');
+        $grid.each(function () {
+            var gridId = $(this).attr('id');
+            var gridParentWidth = $('#gbox_' + gridId).parent().width();
+            $('#' + gridId).setGridWidth(gridParentWidth);
+        });
 
         if ($('#viztekIconNav').is(':visible')) {
             if (!$('nav.viztek-nav').hasClass('open')) {
@@ -2751,12 +2689,15 @@ var commonjs = {
     },
 
     setCookie: function (name, value, days) {
+        var expires;
         if (days) {
             var date = new Date();
             date.setTime(date.getTime() + (days * 24 * 60 * 60 * 1000));
-            var expires = "; expires=" + date.toGMTString();
+            expires = "; expires=" + date.toGMTString();
         }
-        else var expires = "";
+        else {
+            expires = "";
+        }
         document.cookie = name + "=" + value + expires + "; path=/";
     },
 
@@ -2782,6 +2723,7 @@ var commonjs = {
         else {
             var k;
             if (current_value_array.length < index) {
+                /* eslint-disable no-redeclare */
                 for (var i = 0; i <= index; i++) {
                     if (i == index) {
                         current_value_array.push(index);
@@ -2793,6 +2735,7 @@ var commonjs = {
                         }
                     }
                 }
+                /* eslint-enable no-redeclare */
             }
             else {
                 current_value_array[index] = val;
@@ -2804,10 +2747,10 @@ var commonjs = {
 
     getCookie: function (c_name) {
         if (document.cookie.length > 0) {
-            c_start = document.cookie.indexOf(c_name + "=");
+            var c_start = document.cookie.indexOf(c_name + "=");
             if (c_start != -1) {
                 c_start = c_start + c_name.length + 1;
-                c_end = document.cookie.indexOf(";", c_start);
+                var c_end = document.cookie.indexOf(";", c_start);
                 if (c_end == -1) {
                     c_end = document.cookie.length;
                 }
@@ -2820,10 +2763,10 @@ var commonjs = {
     getCookieOptions: function (index) {
         var c_name = 'user_options';
         if (document.cookie.length > 0) {
-            c_start = document.cookie.indexOf(c_name + "=");
+            var c_start = document.cookie.indexOf(c_name + "=");
             if (c_start != -1) {
                 c_start = c_start + c_name.length + 1;
-                c_end = document.cookie.indexOf(";", c_start);
+                var c_end = document.cookie.indexOf(";", c_start);
                 if (c_end == -1) {
                     c_end = document.cookie.length;
                 }
@@ -2845,7 +2788,7 @@ var commonjs = {
     getTimeFromMinutes: function (minutes) {
         //console.war("TODO: replace getTimeFromMinutes() with moment.add(amount,'minutes')...");
         var hour = Math.floor(minutes / 60);
-        var minutes = minutes % 60;
+        minutes = minutes % 60;
         var ampm = (hour >= 12 && hour < 24) ? 'pm' : 'am';
         if (hour > 12) {
             hour = hour - 12;
@@ -2911,7 +2854,7 @@ var commonjs = {
             commonjs.docResize();
         }
 
-        if(app.chat) app.chat.updateChatTheme(currentTheme);
+        if(app.chat) app.chat.updateChatTheme(app.currentTheme);
     },
 
     refreshUserSettings: function () {
@@ -3127,8 +3070,9 @@ var commonjs = {
 
             window.onbeforeunload = function () {
                 // Closing WebTrans window that opened from the Viewer's [T] button (emit transcription unlock)
+                var lock_args;
                 if (window.name && window.name.indexOf("trans_") > -1 && window.opener) {
-                    var lock_args = {
+                    lock_args = {
                         study_id: (window.name.split('_')[1]) ? window.name.split('_')[1] : 0,
                         lock_type: 'unlock',
                         session_id: app.sessionID,
@@ -3142,7 +3086,7 @@ var commonjs = {
                     //      public/javascripts/shared/viewer/events.js
                     //      public/javascripts/views/dicomviewer/viewer2.js
                     //      public/javascripts/shared/common.js
-                    var lock_args = {
+                    lock_args = {
                         session_id: app.sessionID,
                         user_id: app.userID,
                         user_name: app.userInfo.first_name + ' ' + app.userInfo.last_name,
@@ -3151,11 +3095,15 @@ var commonjs = {
                     commonjs.emitViewerClose(lock_args);
                 }
 
-                if (typeof (prefetchViewer) != 'undefined' && prefetchViewer)
+                /* eslint-disable no-undef */
+                if (typeof (prefetchViewer) != 'undefined' && prefetchViewer) {
                     prefetchViewer.closeAllViewerWindows();
+                }
+                /* eslint-enable no-undef */
 
-                if (commonjs.reportWindow)
+                if (commonjs.reportWindow) {
                     commonjs.reportWindow.close();
+                }
 
                 if (_isDirty) {
                     return '';
@@ -3180,9 +3128,13 @@ var commonjs = {
             commonjs.validateControls();
 
             if (typeof btoa === "undefined") {
+                /* eslint-disable no-global-assign */
+                /* eslint-disable no-undef */
                 _keyStr = base64._keyStr;
                 btoa = base64.encode;
                 atob = base64.decode;
+                /* eslint-enable no-global-assign */
+                /* eslint-enable no-undef */
             }
         });
         $('#userName').text(app.userInfo.userFullName);
@@ -3204,7 +3156,7 @@ var commonjs = {
      */
     patientRecentSearchResult: function (patientID, flag, status, patientDetails) {
 
-        var patientID = btoa(patientID);
+        patientID = btoa(patientID);
         var patientSearchCount = JSON.parse(localStorage.getItem('patientSearchCount')) || [];
         var patientSearchResult = JSON.parse(localStorage.getItem('patientRecentSearchResult')) || [];
         var existPatientIndex = _.findIndex(patientSearchResult, {
@@ -3279,7 +3231,7 @@ var commonjs = {
     validateControls: function () {
         $(".floatbox").on("keypress keyup blur", function (event) {
             //$(this).val($(this).val().replace(/[^0-9\.]/g, ''));
-            $(this).val().replace(/[^0-9\.]/g, '');
+            $(this).val().replace(/[^0-9.]/g, '');
             if ((event.which != 46 || $(this).val().indexOf('.') != -1) && (event.which < 48 || event.which > 57)) {
                 event.preventDefault();
             }
@@ -3292,11 +3244,12 @@ var commonjs = {
             }
         });
         var stringBoxFunction = function (e) {
+            var charCode;
             if (window.event) {
-                var charCode = window.event.keyCode;
+                charCode = window.event.keyCode;
             }
             else if (e) {
-                var charCode = e.which;
+                charCode = e.which;
             }
             else {
                 return true;
@@ -3312,10 +3265,12 @@ var commonjs = {
             try {
                 stringBoxFunction(e);
             }
+            /* eslint-disable no-empty */
             catch (err) { }
+            /* eslint-enable no-empty */
         });
         $(".floatboxtwodec").on("keypress keyup blur", function (event) {
-            $(this).val().replace(/[^0-9\.]/g, '');
+            $(this).val().replace(/[^0-9.]/g, '');
             if ((event.which != 46 || $(this).val().indexOf('.') != -1) && (event.which < 48 || event.which > 57)) {
                 event.preventDefault();
             }
@@ -3337,7 +3292,7 @@ var commonjs = {
         });
         // added for negative float numbers
         $(".negativeFloatBox").on("keypress keyup blur", function (event) {
-            $(this).val().replace(/[^0-9\.-]/g, '');
+            $(this).val().replace(/[^0-9.-]/g, '');
             if ((event.which != 46 || $(this).val().indexOf('.') != -1) && (event.which < 48 || event.which > 57) && (event.which != 45 || $(this).val().indexOf('-') != -1)) {
                 event.preventDefault();
             }
@@ -3369,11 +3324,6 @@ var commonjs = {
         value = value.toString().split('e');
 
         return (+(value[0] + 'e' + (value[1] ? (+value[1] - exp) : -exp))).toFixed(exp);
-    },
-
-    initDocEvents: function () {
-        sessionManager.initialize();
-        if (window.isMobileViewer) common.initTouch();
     },
 
     checkActivity: function (timeout, interval) {
@@ -3669,12 +3619,16 @@ var commonjs = {
             },
             success: function (data) {
                 if (data.error) {
+                    /* eslint-disable no-undef */
                     handleResponseError(data.error);
+                    /* eslint-enable no-undef */
                     return;
                 }
             },
             error: function (request, status, error) {
+                /* eslint-disable no-undef */
                 handleAjaxError(request, status, error);
+                /* eslint-enable no-undef */
             }
         });
         return false;
@@ -3702,7 +3656,9 @@ var commonjs = {
             try {
                 return JSON.parse(jsonString);
             }
+            /*eslint-disable no-empty */
             catch (e) { }
+            /*eslint-enable no-empty */
         }
         else if (typeof jsonString === 'object' && jsonString !== null) {
             return jsonString;
@@ -3832,7 +3788,7 @@ var commonjs = {
                         return obj.code === status.process_status;
                     });
 
-                    statusDesc = statusData && statusData.description || status.process_status;
+                    var statusDesc = statusData && statusData.description || status.process_status;
 
                     $('#showColor').append(
                         $('<div/>').append(
@@ -3850,9 +3806,6 @@ var commonjs = {
             }
         }
     },
-    disableKeys: function (e) {
-        $("#" + element.id).data('tooltip').destroy();
-    },
 
 
 
@@ -3861,6 +3814,8 @@ var commonjs = {
         var keycode;
         var regID = commonjs.regExps.regKeyDownIDs;
         var elementID = element.id;
+        var $thColumn;
+        var $thColumnTarget;
         if (window.event) {
             keycode = window.event.keyCode;
             e = window.event
@@ -3909,8 +3864,8 @@ var commonjs = {
                     // To be honest, everywhere there's a [...].find('#' + elementID)
                     // should be replaced by an `if ...$element is inside of $thColumn...` etc.
                     // but we don't want to break things just because of common sense.
-                    var $thColumn = $('.ui-th-column');
-                    var $thColumnTarget = $thColumn.find("#" + elementID);
+                    $thColumn = $('.ui-th-column');
+                    $thColumnTarget = $thColumn.find("#" + elementID);
                     $thColumnTarget.each(function () {
                         var $this = $(this);
                         $this.tooltip({
@@ -3965,7 +3920,9 @@ var commonjs = {
 
         }
         if (e.shiftKey) {
+            /* eslint-disable no-redeclare */
             for (var i = 0;
+            /* eslint-enable no-redeclare */
                 i < commonjs.limitedKeyCodesAfterShift.length;
                 i++) {
                 if (keycode == commonjs.limitedKeyCodesAfterShift[i]) {//220-\, 192-~, 222-'
@@ -3999,8 +3956,8 @@ var commonjs = {
                         }
                         else {
 
-                            var $thColumn = $('.ui-th-column');
-                            var $thColumnTarget = $thColumn.find("#" + elementID);
+                            $thColumn = $('.ui-th-column');
+                            $thColumnTarget = $thColumn.find("#" + elementID);
                             $thColumnTarget.each(function () {
 
                                 $thColumnTarget.tooltip({
@@ -4057,10 +4014,7 @@ var commonjs = {
                 }
             }
         }
-        if (keycode == 27) {
-
-        }
-        else if (keycode == 8) {//backspace key
+        if (keycode != 27 && keycode == 8) {//backspace key
             if (element.readOnly || element.tagName == 'SELECT')
                 return false;
         }
@@ -4082,7 +4036,9 @@ var commonjs = {
                 else
                     commonjs.handleEnableKeys(e, element);
             }
+            /* eslint-disable no-empty */
             catch (err) { }
+            /* eslint-enable no-empty */
         }
     },
 
@@ -4159,8 +4115,9 @@ var commonjs = {
 
             $('#divPageHeaderButtons').empty();
             var value = '';
+            var tempDiv;
             if (args.buttons && args.buttons.length > 0) {
-                var tempDiv = $('<div class="btn-group"></div>');
+                tempDiv = $('<div class="btn-group"></div>');
                 $('#divPageHeaderButtons').append(tempDiv);
                 $.each(args.buttons, function (index, buttonArgs) {
                     value = buttonArgs.value.replace(/ /g, '');
@@ -4214,7 +4171,7 @@ var commonjs = {
             }
 
             if (args.toggles && args.toggles.length > 0) {
-                var tempDiv = $('<div class="btn-group btn-toggle" style="display:inline;float:right;"></div>');
+                tempDiv = $('<div class="btn-group btn-toggle" style="display:inline;float:right;"></div>');
                 $('#divPageHeaderButtons').append(tempDiv);
                 $.each(args.toggles, function (index, toggleArgs) {
                     value = toggleArgs.value.replace(/ /g, '');
@@ -4601,7 +4558,7 @@ var commonjs = {
 
     validateMailID: function (emailAddress) {
         // var pattern = /^((([a-z]|\d|[!#\$%&'\*\+\-\/=\?\^_`{\|}~]|[\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF])+(\.([a-z]|\d|[!#\$%&'\*\+\-\/=\?\^_`{\|}~]|[\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF])+)*)|((\x22)((((\x20|\x09)*(\x0d\x0a))?(\x20|\x09)+)?(([\x01-\x08\x0b\x0c\x0e-\x1f\x7f]|\x21|[\x23-\x5b]|[\x5d-\x7e]|[\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF])|(\\([\x01-\x09\x0b\x0c\x0d-\x7f]|[\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF]))))*(((\x20|\x09)*(\x0d\x0a))?(\x20|\x09)+)?(\x22)))@((([a-z]|\d|[\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF])|(([a-z]|\d|[\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF])([a-z]|\d|-|\.|_|~|[\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF])*([a-z]|\d|[\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF])))\.)+(([a-z]|[\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF])|(([a-z]|[\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF])([a-z]|\d|-|\.|_|~|[\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF])*([a-z]|[\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF])))\.?$/i;
-        var pattern = /^([a-zA-Z0-9_\.\-])+\@(([a-zA-Z0-9])+\.)+([a-zA-Z0-9]{2,4})+$/;
+        var pattern = /^([a-zA-Z0-9_.-])+@(([a-zA-Z0-9])+\.)+([a-zA-Z0-9]{2,4})+$/;
         return pattern.test(emailAddress);
     },
 
@@ -4665,7 +4622,7 @@ var commonjs = {
         if (location.hash.indexOf('&') > -1) {
             return commonjs.getParameterByName(location.hash);
         }
-        return commonjs.getParameterByName(location.search, /[\?&#]/);
+        return commonjs.getParameterByName(location.search, /[?&#]/);
     },
 
     getParameterByName: function (queryString, sep) {
@@ -4676,7 +4633,7 @@ var commonjs = {
         var l;
         if (queryString) {
             // Split into key/value pairs
-            queries = queryString.split(sep || /[\?&]/);
+            queries = queryString.split(sep || /[?&]/);
 
             // Convert the array of strings into an object
             for (i = 0, l = queries.length; i < l; i++) {
@@ -4697,7 +4654,7 @@ var commonjs = {
             return qs.def_session;
         }
         if (location.search.indexOf('def_session') > -1) {
-            var qs = commonjs.getParameterByName(location.search);
+            qs = commonjs.getParameterByName(location.search);
             return qs.def_session;
         }
 
@@ -4736,7 +4693,7 @@ var commonjs = {
             var tatClass = "";
             if (tat_level == 3) tatClass = " class='blinking' ";
 
-            var r = "" +
+            r = "" +
                 "<div style='background-color: " + app.tat_config[tat_level + 1].color + "; color: " + app.tat_config[tat_level + 1].text_color + "; padding-left: 10px;'>" +
                 "    <span " + tatClass + ">" + app.tat_config[tat_level + 1].description + "</span>" +
                 "</div>";
@@ -4876,7 +4833,7 @@ var commonjs = {
             var j = gridParams.length;
             while (j--) {
                 // Check to see if this column is an icon column (new property)
-                if (gridParams[j].hasOwnProperty('isIconCol') && gridParams[j].isIconCol) {
+                if (_.has(gridParams[j], 'isIconCol') && gridParams[j].isIconCol) {
                     var _name = gridParams[j].name,
                         _hidden = gridParams[j].hidden;
 
@@ -4894,7 +4851,7 @@ var commonjs = {
         regIgnoreEnableKeys: /ignoreEnableKeys/,
         regKeyDownIDs: /(?:txtFieldSeperator|ddlRModality|txtRBodyPart|txtRDescription|txtRMainBodyPart|txtRMainDescription)/,
         regMobile1: /(android|bb\d+|meego).+mobile|avantgo|bada\/|blackberry|blazer|compal|elaine|fennec|hiptop|iemobile|ip(hone|od)|iris|kindle|lge |maemo|midp|mmp|mobile.+firefox|netfront|opera m(ob|in)i|palm( os)?|phone|p(ixi|re)\/|plucker|pocket|psp|series(4|6)0|symbian|treo|up\.(browser|link)|vodafone|wap|windows ce|xda|xiino|android|ipad|playbook|silk/i,
-        regMobile2: /1207|6310|6590|3gso|4thp|50[1-6]i|770s|802s|a wa|abac|ac(er|oo|s\-)|ai(ko|rn)|al(av|ca|co)|amoi|an(ex|ny|yw)|aptu|ar(ch|go)|as(te|us)|attw|au(di|\-m|r |s )|avan|be(ck|ll|nq)|bi(lb|rd)|bl(ac|az)|br(e|v)w|bumb|bw\-(n|u)|c55\/|capi|ccwa|cdm\-|cell|chtm|cldc|cmd\-|co(mp|nd)|craw|da(it|ll|ng)|dbte|dc\-s|devi|dica|dmob|do(c|p)o|ds(12|\-d)|el(49|ai)|em(l2|ul)|er(ic|k0)|esl8|ez([4-7]0|os|wa|ze)|fetc|fly(\-|_)|g1 u|g560|gene|gf\-5|g\-mo|go(\.w|od)|gr(ad|un)|haie|hcit|hd\-(m|p|t)|hei\-|hi(pt|ta)|hp( i|ip)|hs\-c|ht(c(\-| |_|a|g|p|s|t)|tp)|hu(aw|tc)|i\-(20|go|ma)|i230|iac( |\-|\/)|ibro|idea|ig01|ikom|im1k|inno|ipaq|iris|ja(t|v)a|jbro|jemu|jigs|kddi|keji|kgt( |\/)|klon|kpt |kwc\-|kyo(c|k)|le(no|xi)|lg( g|\/(k|l|u)|50|54|\-[a-w])|libw|lynx|m1\-w|m3ga|m50\/|ma(te|ui|xo)|mc(01|21|ca)|m\-cr|me(rc|ri)|mi(o8|oa|ts)|mmef|mo(01|02|bi|de|do|t(\-| |o|v)|zz)|mt(50|p1|v )|mwbp|mywa|n10[0-2]|n20[2-3]|n30(0|2)|n50(0|2|5)|n7(0(0|1)|10)|ne((c|m)\-|on|tf|wf|wg|wt)|nok(6|i)|nzph|o2im|op(ti|wv)|oran|owg1|p800|pan(a|d|t)|pdxg|pg(13|\-([1-8]|c))|phil|pire|pl(ay|uc)|pn\-2|po(ck|rt|se)|prox|psio|pt\-g|qa\-a|qc(07|12|21|32|60|\-[2-7]|i\-)|qtek|r380|r600|raks|rim9|ro(ve|zo)|s55\/|sa(ge|ma|mm|ms|ny|va)|sc(01|h\-|oo|p\-)|sdk\/|se(c(\-|0|1)|47|mc|nd|ri)|sgh\-|shar|sie(\-|m)|sk\-0|sl(45|id)|sm(al|ar|b3|it|t5)|so(ft|ny)|sp(01|h\-|v\-|v )|sy(01|mb)|t2(18|50)|t6(00|10|18)|ta(gt|lk)|tcl\-|tdg\-|tel(i|m)|tim\-|t\-mo|to(pl|sh)|ts(70|m\-|m3|m5)|tx\-9|up(\.b|g1|si)|utst|v400|v750|veri|vi(rg|te)|vk(40|5[0-3]|\-v)|vm40|voda|vulc|vx(52|53|60|61|70|80|81|83|85|98)|w3c(\-| )|webc|whit|wi(g |nc|nw)|wmlb|wonu|x700|yas\-|your|zeto|zte\-/i
+        regMobile2: /1207|6310|6590|3gso|4thp|50[1-6]i|770s|802s|a wa|abac|ac(er|oo|s-)|ai(ko|rn)|al(av|ca|co)|amoi|an(ex|ny|yw)|aptu|ar(ch|go)|as(te|us)|attw|au(di|-m|r |s )|avan|be(ck|ll|nq)|bi(lb|rd)|bl(ac|az)|br(e|v)w|bumb|bw-(n|u)|c55\/|capi|ccwa|cdm-|cell|chtm|cldc|cmd-|co(mp|nd)|craw|da(it|ll|ng)|dbte|dc-s|devi|dica|dmob|do(c|p)o|ds(12|-d)|el(49|ai)|em(l2|ul)|er(ic|k0)|esl8|ez([4-7]0|os|wa|ze)|fetc|fly(-|_)|g1 u|g560|gene|gf-5|g-mo|go(\.w|od)|gr(ad|un)|haie|hcit|hd-(m|p|t)|hei-|hi(pt|ta)|hp( i|ip)|hs-c|ht(c(-| |_|a|g|p|s|t)|tp)|hu(aw|tc)|i-(20|go|ma)|i230|iac( |-|\/)|ibro|idea|ig01|ikom|im1k|inno|ipaq|iris|ja(t|v)a|jbro|jemu|jigs|kddi|keji|kgt( |\/)|klon|kpt |kwc-|kyo(c|k)|le(no|xi)|lg( g|\/(k|l|u)|50|54|-[a-w])|libw|lynx|m1-w|m3ga|m50\/|ma(te|ui|xo)|mc(01|21|ca)|m-cr|me(rc|ri)|mi(o8|oa|ts)|mmef|mo(01|02|bi|de|do|t(-| |o|v)|zz)|mt(50|p1|v )|mwbp|mywa|n10[0-2]|n20[2-3]|n30(0|2)|n50(0|2|5)|n7(0(0|1)|10)|ne((c|m)-|on|tf|wf|wg|wt)|nok(6|i)|nzph|o2im|op(ti|wv)|oran|owg1|p800|pan(a|d|t)|pdxg|pg(13|-([1-8]|c))|phil|pire|pl(ay|uc)|pn-2|po(ck|rt|se)|prox|psio|pt-g|qa-a|qc(07|12|21|32|60|-[2-7]|i-)|qtek|r380|r600|raks|rim9|ro(ve|zo)|s55\/|sa(ge|ma|mm|ms|ny|va)|sc(01|h-|oo|p-)|sdk\/|se(c(-|0|1)|47|mc|nd|ri)|sgh-|shar|sie(-|m)|sk-0|sl(45|id)|sm(al|ar|b3|it|t5)|so(ft|ny)|sp(01|h-|v-|v )|sy(01|mb)|t2(18|50)|t6(00|10|18)|ta(gt|lk)|tcl-|tdg-|tel(i|m)|tim-|t-mo|to(pl|sh)|ts(70|m-|m3|m5)|tx-9|up(\.b|g1|si)|utst|v400|v750|veri|vi(rg|te)|vk(40|5[0-3]|-v)|vm40|voda|vulc|vx(52|53|60|61|70|80|81|83|85|98)|w3c(-| )|webc|whit|wi(g |nc|nw)|wmlb|wonu|x700|yas-|your|zeto|zte-/i
     },
 
     isMobileOrTablet: function () {
@@ -4912,10 +4869,13 @@ var commonjs = {
             var self = this;
             var modifier = element.getAttribute('data-type');
             var id = element.getAttribute('data-value');
-            if (isFrom == 'M')
-                var modifierElement = 'txtModifier';
-            else
-                var modifierElement = 'ddlPointer';
+            var modifierElement;
+            if (isFrom == 'M') {
+                modifierElement = 'txtModifier';
+            }
+            else {
+                modifierElement = 'ddlPointer';
+            }
 
             var dataType = isFrom; // M -- modifier , P -- Pointer
             if (($(element).val() == "") || $(element).hasClass('invalidModifier')) {
@@ -5021,17 +4981,6 @@ var commonjs = {
         });
     },
 
-    getModalityOptions: function (modality) {
-        if (prefetch.viewerConfig && prefetch.viewerConfig.viewer_modality_options) {
-            if (prefetch.viewerConfig.viewer_modality_options[modality]) return prefetch.viewerConfig.viewer_modality_options[modality];
-            var splitedModality = modality ? modality.split(',') : [];
-            var altModality = (splitedModality && splitedModality.length > 1) ? splitedModality[0].trim() : null;
-            if (altModality && prefetch.viewerConfig && prefetch.viewerConfig.viewer_modality_options && prefetch.viewerConfig.viewer_modality_options[altModality]) return prefetch.viewerConfig.viewer_modality_options[altModality];
-            else if (prefetch.viewerConfig && prefetch.viewerConfig.viewer_modality_options && prefetch.viewerConfig.viewer_modality_options['all']) return prefetch.viewerConfig.viewer_modality_options['all'];
-        }
-        return null;
-    },
-
     /**
      * Given an array of modality ids, return the modality of the highest priority
      *
@@ -5073,11 +5022,6 @@ var commonjs = {
     getModalityRoomFromId: function (id) {
         var modality_room = _.find(app.modality_room, { 'id': id }) || {};
         return modality_room.modality_room_name || '';
-    },
-
-    getlayoutFormat: function (modality) {
-        var options = this.getModalityOptions(modality);
-        return (options && options.layout && options.layout.screen_layout) || '2*2';
     },
 
     isIE: function () {
@@ -5127,13 +5071,15 @@ var commonjs = {
                 // Sort
                 if (o.sort) {
                     o.arrayOfObjects.sort(function (a, b) {
+                        var atxt;
+                        var btxt;
                         if (o.prependKey) {
-                            var atxt = a[o.searchKey].toLowerCase() + " (" + a[o.textDescription].toLowerCase() + ")";
-                            var btxt = b[o.searchKey].toLowerCase() + " (" + b[o.textDescription].toLowerCase() + ")";
+                            atxt = a[o.searchKey].toLowerCase() + " (" + a[o.textDescription].toLowerCase() + ")";
+                            btxt = b[o.searchKey].toLowerCase() + " (" + b[o.textDescription].toLowerCase() + ")";
                         }
                         else {
-                            var atxt = a[o.textDescription].toLowerCase();
-                            var btxt = b[o.textDescription].toLowerCase();
+                            atxt = a[o.textDescription].toLowerCase();
+                            btxt = b[o.textDescription].toLowerCase();
                         }
 
                         if (atxt < btxt) return -1;
@@ -5396,15 +5342,16 @@ var commonjs = {
 
         document.body.appendChild(link);
 
+        var blob;
         if (window.navigator.msSaveBlob) {
 
-            var blob = new Blob([decodeURIComponent(csvData)], {
+            blob = new Blob([decodeURIComponent(csvData)], {
                 type: 'text/csv;charset=utf8'
             });
 
             window.navigator.msSaveBlob(blob, fileName);
         } else if (window.Blob && window.URL) {
-            var blob = new Blob([csvData], { type: 'text/csv;charset=utf8' });
+            blob = new Blob([csvData], { type: 'text/csv;charset=utf8' });
             var csvUrl = URL.createObjectURL(blob);
 
             $('#lnkDownloadCsv')
@@ -5415,7 +5362,7 @@ var commonjs = {
 
             link.click();
         } else {
-            var csvData = 'data:application/csv;charset=utf-8,' + encodeURIComponent(csvData);
+            csvData = 'data:application/csv;charset=utf-8,' + encodeURIComponent(csvData);
 
             $('#lnkDownloadCsv')
                 .attr({
@@ -5493,7 +5440,7 @@ var commonjs = {
     },
 
     getPlaceHolderForSearch: function () {
-        $select2Container1 = $('.select2-container--open');
+        var $select2Container1 = $('.select2-container--open');
         var $searchfield = $select2Container1.children().find('.select2-search__field');
         $searchfield.prop('placeholder', 'Type to search');
     },
@@ -5566,24 +5513,6 @@ var commonjs = {
             : "";
 
         return (city + comma + state + " " + zip).trim();
-    },
-
-    /**
-     * Returns back the string sent with every word capitalized
-     *   Ex. OTHER COVERAGE -> Other Coverage
-     *
-     * @param {string} text
-     * @param {string[]} exceptions  Don't capitalize these words
-     * @returns {string}
-     */
-    capitalizeEveryWord: function (text, exceptions) {
-        exceptions = exceptions || [];
-
-        return _.trim(text).split(" ").map(function (item) {
-            return exceptions.some(function (ex) { return ex.toLowerCase() === item.toLowerCase(); })
-                ? item.toLowerCase()
-                : _.capitalize(item);
-        }).join(" ");
     },
 
     /**
