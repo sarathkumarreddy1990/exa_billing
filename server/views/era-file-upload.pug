@@ -48,6 +48,7 @@ html
             }
 
             function download(e) {
+                $('#btnDownload_EOB').attr('disabled', "disabled");
                 var loadingMsg = parent.commonjs.geti18NString('billing.era.eraDownloadingStatus');
                 parent.commonjs.showLoading(loadingMsg);
 
@@ -64,9 +65,11 @@ html
                         }
                         var reloadERA = parent.document.getElementById('btnReloadERA');
                         reloadERA && reloadERA.click();
+                        $('#btnDownload_EOB').removeAttr("disabled");
                     },
                     error: function (err, response) {
                         parent.commonjs.handleXhrError(err, response);
+                        $('#btnDownload_EOB').removeAttr("disabled");
                     },
                     dataType: 'json'
                 });
