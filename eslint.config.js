@@ -34,6 +34,7 @@ module.exports = [
                 'siteLayouts': true,
                 'exaInternalErrors': true,
                 'sessionManager': true,
+                'permissions': true,
 
                 // jqgrid vars defined in commonjs
                 'jq_isWidthResize': true,
@@ -89,9 +90,6 @@ module.exports = [
             'modules/ohip/**',
             'gulpfile.js',
             'dbManager.js',
-
-            // temporarily ignore files and directories that are not yet ready for linting
-            'app/js/main.js',
 
             // lots of errors here, so saving it for later
             'app/js/shared/grid.js'

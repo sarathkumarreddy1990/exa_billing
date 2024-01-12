@@ -1,3 +1,4 @@
+/* eslint-disable no-unused-vars */
 var rjsConfig = {
     waitSeconds: 0,
     paths: {
