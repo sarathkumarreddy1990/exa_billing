@@ -81,7 +81,7 @@ define([
                 });
                 this.viewModel.facilities = new modelCollection(commonjs.getCurrentUsersFacilitiesFromAppSettings(app.facilityID));
                 this.$el.html(this.mainTemplate(this.viewModel));
-                UI.bindBillingProvider(this.isPrintingOutsideReportingModule);
+                UI.bindBillingProvider();
                 UI.bindPatient('txtPatient', this.usermessage.selectPatient, 'btnAddPatient', 'ulListPatients');
 
                 $('#ddlPatientOption')
@@ -152,8 +152,8 @@ define([
                 }).get();
 
                 this.viewModel.patientOption = $('#ddlPatientOption').val();
-                this.viewModel.billingProvider = $('#ddlBillingProviderReport').val();
-                this.viewModel.allBillingProviders = $("#ddlBillingProviderReport option:selected").length === $("#ddlBillingProviderReport option").length;
+                this.viewModel.billingProvider = $('#ddlBillingProvider').val();
+                this.viewModel.allBillingProviders = $("#ddlBillingProvider option:selected").length === $("#ddlBillingProvider option").length;
                 this.viewModel.minAmount = $('#minAmount').val() || "0";
                 this.viewModel.patientLastnameFrom = $('#patientLastnameFrom').val() === '' ? 'a' : $('#patientLastnameFrom').val();
                 this.viewModel.patientLastnameTo = $('#patientLastnameTo').val() === '' ? 'z' : $('#patientLastnameTo').val();
