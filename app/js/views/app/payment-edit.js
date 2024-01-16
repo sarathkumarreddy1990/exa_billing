@@ -2920,7 +2920,8 @@ define([
 
             createPatientActivityParams: function(claimId, patientId) {
                 this.PatientStatementView = new PatientStatementView({
-                    el: $('#reportFrame')
+                    el: $('#reportFrame'),
+                    isPrintingOutsideReportingModule: true
                 });
                 return {
                     'patientIds': patientId,
