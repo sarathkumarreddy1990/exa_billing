@@ -225,6 +225,7 @@ define(['jquery',
                 this.associatedCpts = [];
                 this.associatedModifiers = [];
             },
+
             urlNavigation: function () { //To restrict the change in URL based on tab selection. Maintain Same URL for every tab in claim creation screen
                 var self = this;
                 if (!self.isEdit) {
@@ -232,6 +233,7 @@ define(['jquery',
                     return false
                 }
             },
+
             getClaimChargeFieldDetails: function (billingRegionCode) {
                 switch (billingRegionCode) {
                     case 'can_AB':
@@ -261,6 +263,7 @@ define(['jquery',
                         }
                 }
             },
+
             render: function (isFrom) {
                 var self = this;
                 var claimSubmissionCodes = _.filter(self.claimSubmissionCodes.toJSON(), function (obj) {
@@ -2043,8 +2046,12 @@ define(['jquery',
             },
 
             bindclaimFormEvents: function (isFrom) {
-
                 var self = this;
+
+                $("#ddlClaimResponsible").off().change(function () {
+                    self.getBillFee();
+                });
+
                 $("#createNewCharge").off().click(function (e) {
                     self.addChargeLine(e);
                 });
@@ -2163,6 +2170,54 @@ define(['jquery',
                     self.onChangeServiceLocation();
                 });
 
+            },
+
+            getBillFee: function () {
+                var self = this;
+                var facility_id = $('#ddlFacility option:selected').val() != '' ? parseInt($('#ddlFacility option:selected').val()) : null;
+                var currentResponsible = _.find(this.responsible_list, function(d) { return d.payer_type === $('#ddlClaimResponsible').val(); });
+                var arrBillFee = [];
+
+                $('#tBodyCharge').find('tr').each(function (index) {
+                    var dataRowId = $(this).attr('data_row_id');
+                    var chargeData = _.find(self.chargeModel, { 'data_row_id': parseInt(dataRowId) });
+
+                    arrBillFee.push({
+                        row_id: dataRowId,
+                        claim_id: chargeData.claim_id || null,
+                        cpt_id: $('#lblCptCode_' + dataRowId).attr('data_id'),
+                        modifier1_id: $('#txtModifier1_' + dataRowId).attr('data-id') || null,
+                        modifier2_id: $('#txtModifier2_' + dataRowId).attr('data-id') || null,
+                        modifier3_id: $('#txtModifier3_' + dataRowId).attr('data-id') || null,
+                        modifier4_id: $('#txtModifier4_' + dataRowId).attr('data-id') || null,
+                        payer_type: currentResponsible.payer_type_name,
+                        payer_id: currentResponsible.payer_id,
+                        facility_id: facility_id,
+                        study_id: chargeData.study_id || null,
+                        charge_dt: commonjs.shiftToFacilityTimeZone(facility_id, $('#txtScheduleDate_' + dataRowId).val()).format('YYYY-MM-DD LT z') || null
+                    });
+                });
+
+                $.ajax({
+                    type: 'GET',
+                    url: '/exa_modules/billing/claims/claim/billingFee',
+                    contentType: 'application/json',
+                    dataType: 'json',
+                    data: {
+                        arrBillFee: JSON.stringify(arrBillFee)
+                    },
+                    success: function (data) {
+                        var billFeeData = {};
+                        for (var i = 0; i < data.length; i++) {
+                            billFeeData = data[i];
+                            $('#txtBillFee_' + billFeeData.row_id).val(billFeeData.computed_bill_fee);
+                            $('#txtBillFee_' + billFeeData.row_id).blur();
+                        }
+                    },
+                    error: function (err, response) {
+                        commonjs.handleXhrError(err, response);
+                    }
+                })
             },
 
             openUnSavedChangesModal: function (isFrom, e) {
@@ -2337,7 +2392,6 @@ define(['jquery',
                     })
 
                 }
-
             },
 
             updateNotes: function () {
@@ -3039,6 +3093,7 @@ define(['jquery',
                     $('#divSelCptDescription_' + rowIndex).remove();
                 }
             },
+
             clearProviderSkillCodes: function () {
                 $('#select2-ddlSkillCodes-container').html(this.usermessage.selectSkillCodes);
                 $("#ddlSkillCodes").attr('value', '');
@@ -3165,6 +3220,7 @@ define(['jquery',
                     return res.full_name + ' ' + res.npi_no;
                 }
             },
+
             toggleSkillCodeSection: function () {
                 var self = this;
                 if (self.ACSelect.readPhy.contact_id > 0) {
@@ -3778,6 +3834,7 @@ define(['jquery',
                 }
 
             },
+
             bindWCBDetails: function(elementId, res) {
                 var self = this;
                 if (elementId === 'wcbNatureOfInjury') {
@@ -3790,6 +3847,7 @@ define(['jquery',
                     self.wcbAreaDescription = res.description || null;
                 }
             },
+
             bindInsurance: function (element_id, res) {
                 var self = this;
                 var payer_type;
@@ -4082,6 +4140,7 @@ define(['jquery',
 
                 return false;
             },
+
             getSkillCodeId: function() {
                 var can_ahs_skill_code_id = null;
 
@@ -5213,6 +5272,7 @@ define(['jquery',
                 else
                     document.querySelector('#txt' + flag + 'DOB').value = ""
             },
+
             checkAddressDetails: function (flag) {
                 var chkaddress1 = $('#txt' + flag + 'SubPriAddr').val();
                 var chkaddress2 = $('#txt' + flag + 'SubSecAddr').val();
@@ -6896,9 +6956,11 @@ define(['jquery',
 
                 commonjs.updateCulture(app.currentCulture, commonjs.beautifyMe);
             },
+
             bindCityStateZipTemplate:function(data, AddressInfoMap, flag){
                 address.bindCountrySelectToCityStateZip('#div' + flag + 'AddressInfo', data, AddressInfoMap);
             },
+
             checkHealthNumberEligiblity: function () {
                 if (app.country_alpha_3_code === 'can') {
                     $('label[for=txtPriPolicyNo] span').remove();
@@ -6907,6 +6969,7 @@ define(['jquery',
                     }
                 }
             },
+
             checkAccountingDateChangePermission: function (index) {
                 var changeAccountingDates = app.userInfo.user_settings && app.userInfo.user_settings.userCanChangeAccountingDates;
                 if (!changeAccountingDates || changeAccountingDates === 'false') {
@@ -6916,6 +6979,7 @@ define(['jquery',
                     });
                 }
             },
+
             bindShortCutEvent: function (e) {
                 if (!$('.woClaimRelated').length) {
                     return;
@@ -6969,6 +7033,7 @@ define(['jquery',
                     $('#' + activeElement).trigger('click');
                 }
             },
+
             createShortCut: function () {
                 $document
                     .off('keydown', this.bindShortCutEvent)
@@ -7397,7 +7462,6 @@ define(['jquery',
 
                 return "";
             }
-
         });
 
         return claimView;

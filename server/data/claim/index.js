@@ -2,6 +2,51 @@ const { query, queryRows, SQL } = require('../index');
 const { getClaimPatientInsurances } = require('../../shared/index');
 
 module.exports = {
+    getBillFee: async function (params) {
+        let {
+            arrBillFee
+        } = params;
+
+        let sql = SQL`
+            SELECT
+                row_id,
+                billing.get_computed_bill_fee(
+                    claim_id,
+                    cpt_id,
+                    modifier1_id,
+                    modifier2_id,
+                    modifier3_id,
+                    modifier4_id,
+                    'billing',
+                    payer_type,
+                    payer_id,
+                    facility_id,
+                    study_id,
+                    charge_dt
+                ) AS computed_bill_fee
+            FROM (
+                SELECT *
+                FROM jsonb_to_recordset(
+                    ${arrBillFee}::JSONB
+                ) AS bill_fee_rec(
+                    row_id BIGINT,
+                    claim_id BIGINT,
+                    cpt_id BIGINT,
+                    modifier1_id BIGINT,
+                    modifier2_id BIGINT,
+                    modifier3_id BIGINT,
+                    modifier4_id BIGINT,
+                    payer_type TEXT,
+                    payer_id BIGINT,
+                    facility_id BIGINT,
+                    study_id BIGINT,
+                    charge_dt DATE
+                )
+            ) AS bill_fee
+        `;
+
+         return await queryRows(sql);
+    },
 
     getKeys: async function () {
         const sql = SQL`SELECT * FROM
