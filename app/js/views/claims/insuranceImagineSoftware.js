@@ -844,11 +844,9 @@ function (
 
             $("#divEligibilityPlanDetails").text(this.data.eligibility.planDetailsDisplay);
 
-            if (this.isEligible()) {
-                this.eligibilityItems().forEach(function (item) {
-                    self.writeEligibilityItem(item.el, item.value);
-                });
-            }
+            this.eligibilityItems().forEach(function (item) {
+                self.writeEligibilityItem(item.el, item.value);
+            });
 
             return this;
         },
