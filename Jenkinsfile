@@ -1,4 +1,4 @@
-@Library("kmha-infrastructure@release/2.1.2") _
+@Library("kmha-infrastructure") _
 import com.kmha.exa.builders.BaseBuilder
 import com.kmha.exa.builders.BillingBuilder
 
@@ -97,6 +97,6 @@ node('exa-windows-node-20.x') {
      !env.VERSION_PASSEDIN.trim()) {
     println "For testing only!"
   }
-  def wb = new BillingBuilder()
-  wb.buildAndArchiveArtifact()
+  def obj = new BillingBuilder(this, env.VERSION_PASSEDIN.trim(), env.DEBUG_LEVEL.toInteger(), env.UPLOAD_ARTIFACTS.toBoolean())
+  obj.buildAndArchiveArtifact()
 }
