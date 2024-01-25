@@ -2541,9 +2541,10 @@ define([
                     var fromDt = $('#txtDateFrom').val(),
                         toDt = $('#txtDateTo').val();
                     if (fromDt && toDt) {
-                        fromTime = $('#txtFromTimeDate').val() ? " " + $('#txtFromTimeDate').val() : "";
-                        toTime = $('#txtToTimeDate').val() ? " " + $('#txtToTimeDate').val(): "";
-                        $('#lblSummaryDate').text('Date: from ' + fromDt + fromTime + ' to ' + toDt + toTime);
+                        fromTime = $('#txtFromTimeDate').val();
+                        toTime = $('#txtToTimeDate').val();
+
+                        $('#lblSummaryDate').text('Date: from ' + fromDt + ' ' + fromTime + ' to ' + toDt+ ' ' + toTime);
                     }
                 }
 
