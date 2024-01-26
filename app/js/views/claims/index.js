@@ -2178,7 +2178,7 @@ define(['jquery',
                 var currentResponsible = _.find(this.responsible_list, function(d) { return d.payer_type === $('#ddlClaimResponsible').val(); });
                 var arrBillFee = [];
 
-                $('#tBodyCharge').find('tr').each(function (index) {
+                $('#tBodyCharge').find('tr').each(function () {
                     var dataRowId = $(this).attr('data_row_id');
                     var chargeData = _.find(self.chargeModel, { 'data_row_id': parseInt(dataRowId) });
 

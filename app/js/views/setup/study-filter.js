@@ -2525,8 +2525,8 @@ define([
                     text = $('#rbtLast').is(':checked') ? 'Last ' : 'Next ';
                     if (commonjs.checkNotEmpty($('#txtLastTime').val())) {
                         var lastFromTo = "";
-                        fromTime = self.timeConverter($('#txtFromTimeLast').val());
-                        toTime = self.timeConverter($('#txtToTimeLast').val());
+                        fromTime = $('#txtFromTimeLast').val();
+                        toTime = $('#txtToTimeLast').val();
                         if (fromTime && toTime) {
                             lastFromTo = " " + fromTime + " " + toTime;
                         }
@@ -2541,9 +2541,10 @@ define([
                     var fromDt = $('#txtDateFrom').val(),
                         toDt = $('#txtDateTo').val();
                     if (fromDt && toDt) {
-                        fromTime = $('#txtFromTimeDate').val() ? " " + self.timeConverter($('#txtFromTimeDate').val()) : "";
-                        toTime = $('#txtToTimeDate').val() ? " " + self.timeConverter($('#txtToTimeDate').val()): "";
-                        $('#lblSummaryDate').text('Date: from ' + fromDt + fromTime + ' to ' + toDt + toTime);
+                        fromTime = $('#txtFromTimeDate').val();
+                        toTime = $('#txtToTimeDate').val();
+
+                        $('#lblSummaryDate').text('Date: from ' + fromDt + ' ' + fromTime + ' to ' + toDt+ ' ' + toTime);
                     }
                 }
 
@@ -2738,11 +2739,6 @@ define([
                     arrSummary = " " + $('input[name=' + radioName + ']:checked').val() + " " + arrSummary
                 }
                 return arrSummary;
-            },
-
-            timeConverter: function (timeStr){
-               var time = timeStr.split(':');
-               return (time[0] > 12) ? ""+(time[0]-12)+":"+time[1]+" PM": ""+time[0]+":"+time[1]+" AM" ;
             }
         })
     });
