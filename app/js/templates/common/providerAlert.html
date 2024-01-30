@@ -1,5 +1,5 @@
-<div style="color: black; margin-bottom: 15px;">
-    <div style="font-weight: bold;">
+<div class="mb10">
+    <div class="font-weight-bold">
         <% if (provider.onclick) { %>
             <a style="color: blue;" href="javascript:void(0);" onclick="<%= provider.onclick %>"><%= provider.name %></a>
         <% } else {
@@ -8,7 +8,7 @@
     </div>
 
     <!-- Address / Email -->
-    <div style="margin-bottom: 10px;">
+    <div class="mb10">
         <% if (provider.address1) { %>
         <div>
             <%= provider.address1 %>
@@ -26,13 +26,13 @@
 
         <% if (provider.email) { %>
         <div>
-            <a href="mailto: <%= provider.email %>" style="color: blue;"><%= provider.email %></a>
+            <%= provider.email %>
         </div>
         <% } %>
     </div>
 
     <!-- Phone / Fax -->
-    <div style="margin-bottom: 10px;">
+    <div class="mb10">
         <% if (provider.office_phone) { %>
         <div>
             <div class="ib w100"><%= labels.office_phone %></div>

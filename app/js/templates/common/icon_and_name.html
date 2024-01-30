@@ -1,0 +1,13 @@
+<div class="provider-alert-anchor">
+    <div data-id="<%= data.id %>" data-type="<%= data.type %>" class="phy-summary <%= data.containerCss %>">
+        <% if (data.reverseOrder) { %>
+            <%= data.name || data.NAME || '' %>
+        <% } %>
+        <div class="name-icon" title="<%= data.title || '' %>" <% if (data.popover) { print(' data-toggle="popover" ') } %>>
+            <i class="<%= data.iconCss || 'fa fa-user-md'%>"></i>
+        </div>
+        <% if (!data.reverseOrder) { %>
+            <%= data.name || data.NAME || '' %>
+        <% } %>
+    </div>
+</div>

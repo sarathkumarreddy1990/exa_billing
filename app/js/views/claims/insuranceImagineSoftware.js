@@ -3,8 +3,7 @@ define([
     "underscore",
     "backbone",
     "sweetalert2",
-    "text!templates/icon_and_name.html",
-    "text!templates/providerAlert.html",
+    "views/common/providerAlert",
     "text!templates/claims/insuranceImagineSoftware.html",
     "text!templates/claims/insuranceImagineSoftwarePrint.html",
     "text!templates/claims/insuranceImagineSoftwareEligibilityItem.html",
@@ -17,8 +16,7 @@ function (
     _,
     Backbone,
     swal2,
-    IconNameTemplate,
-    ProviderAlertTemplate,
+    ProviderAlertView,
     ImagineSoftwareTemplate,
     ImagineSoftwarePrintTemplate,
     EligibilityItemTemplate,
@@ -34,8 +32,7 @@ function (
         template: _.template(ImagineSoftwareTemplate),
         printTemplate: _.template(ImagineSoftwarePrintTemplate),
         eligibilityItemTemplate: _.template(EligibilityItemTemplate),
-        iconNameTemplate: _.template(IconNameTemplate),
-        providerAlertTemplate:  _.template(ProviderAlertTemplate),
+        providerAlertView: null,
         printLetterTemplate: _.template(imagineSoftwareLetterPrintTemplate),
         letterTemplate: _.template(imagineSoftwareLetterTemplate),
         data: {},
@@ -157,6 +154,31 @@ function (
                     .activateEligibility()
                     .updateCulture()
                     .setParentData("eligibility", eligibility_data);
+            });
+
+            return this;
+        },
+
+        /**
+         * Render the provider alert view
+         *
+         * @param {object} args
+         * @prop  {number} args.id
+         * @prop  {string} args.name
+         * @prop  {object} args.data
+         */
+        renderProviderAlertView: function (args) {
+            this.providerAlertView = new ProviderAlertView({
+                el: "#divVisitReferringPhysician"
+            });
+
+            this.providerAlertView.render({
+                id: args.id,
+                anchor: $('#divImagineSoftwarePage'),
+                placement: "bottom",
+                name: args.name,
+                type: "referring",
+                fixMultipleOpen: true
             });
 
             return this;
@@ -936,8 +958,11 @@ function (
             $("#divVisitDateOfService").text(moment(data.dateOfService).format("L"));
             $("#divVisitReferringPhysician").empty();
 
-            referring_physicians.forEach(function (ref, index) {
-                self.writeReferringPhysicians(ref, index);
+            referring_physicians.forEach(function (item, index) {
+                self.renderProviderAlertView({
+                    id: item.provider_contact_id,
+                    name: item.name
+                });
             });
 
             return this;
@@ -974,48 +999,6 @@ function (
             $("#spanModalHeaderNested").append(text);
 
             return this;
-        },
-
-        /**
-         * Write a Referring Physician with a popover
-         *
-         * @param {object} contact
-         * @param {number} index
-         */
-        writeReferringPhysicians: function (contact, index) {
-            // Physician template
-            $("#divVisitReferringPhysician").append(this.iconNameTemplate({
-                data: {
-                    id: "divImagineSoftwareRefPhy" + index,
-                    name: contact.name,
-                    iconCss: "fa fa-user-md",
-                    popover: true
-                }
-            }));
-
-            // Popover box
-            var $phyEle = $("#divVisitReferringPhysician").find("#divImagineSoftwareRefPhy" + index);
-            $phyEle.popover({
-                html: true,
-                container: "body",
-                placement: "bottom",
-                content: this.providerAlertTemplate({
-                    provider: contact,
-                    labels: {
-                        office_phone: commonjs.geti18NString("shared.fields.officePhone"),
-                        phone: commonjs.geti18NString("shared.fields.phone"),
-                        mobile: commonjs.geti18NString("shared.fields.mobilePhone"),
-                        office_fax: commonjs.geti18NString("shared.fields.officeFax"),
-                        fax: commonjs.geti18NString("shared.fields.fax"),
-                        pager: commonjs.geti18NString("shared.fields.pager")
-                    }
-                })
-            });
-
-            // When openning a physician popover, close any other opened popovers
-            $phyEle.on("show.bs.popover", function () {
-                $(".popover").popover("hide");
-            });
         },
 
         /**
