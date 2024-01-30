@@ -1442,7 +1442,8 @@ function (
          * @returns {string[]}
          */
         serviceTypesImagineSoftware: function () {
-            var arr_service_types = [];
+            // Per EXA-41866, we need to always send service type 45
+            var arr_service_types = [45];
             var add_4 = this.data.studies.some(function (study) {
                 var modality = study.modality || study.modality_name || study.modality_code || "";
                 return !_.includes(["CT", "MR"], modality);
