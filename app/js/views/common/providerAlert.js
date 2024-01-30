@@ -215,7 +215,7 @@ function (
             $el.popover("show");
 
             // Hack that allows the popover to show more than once on the ImagineSoft screen
-            if (!!this.args.fixMultipleOpen) {
+            if (this.args.fixMultipleOpen) {
                 setTimeout(function () {
                     $(".popover").css("display", "block");  // Makes visible
                     window.scrollTo(1, 0);  // Scrolling fixes the positioning of the popover and tail

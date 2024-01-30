@@ -958,7 +958,7 @@ function (
             $("#divVisitDateOfService").text(moment(data.dateOfService).format("L"));
             $("#divVisitReferringPhysician").empty();
 
-            referring_physicians.forEach(function (item, index) {
+            referring_physicians.forEach(function (item) {
                 self.renderProviderAlertView({
                     id: item.provider_contact_id,
                     name: item.name
