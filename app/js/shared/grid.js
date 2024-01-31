@@ -1861,7 +1861,6 @@ define('grid', [
             });
 
             if (doExport) {
-                var searchFilterFlag = grid.getGridParam("postData")._search;
                 var colHeader = studyFields.colName;
                 var current_filter_id = $('#claimsTabs').find('.active a').attr('data-container')
                 var filterContent = commonjs.loadedStudyFilters.get(filterID);

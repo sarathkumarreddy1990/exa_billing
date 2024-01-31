@@ -54,7 +54,7 @@ module.exports = {
                     bgf.display_in_ddl,
                     bgf.inactivated_dt
                 FROM billing.grid_filters bgf
-                WHERE bgf.user_id = ${args.user_id}
+                WHERE (bgf.user_id = ${args.user_id} OR bgf.is_global_filter)
                     AND bgf.filter_type = ${filterType}
                     AND bgf.id = ${args.id}
             ) AS bgf ON TRUE

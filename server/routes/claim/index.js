@@ -6,7 +6,14 @@ const { promisify } = require('util');
 const readFileAsync = promisify(fs.readFile);
 
 const claimsController = require('../../controllers/claim/index');
+const claimsData = require('../../data/claim/index');
 const httpHandler = require('../../shared/http');
+
+router.get('/billingFee', async (req, res) => {
+    const data = await claimsData.getBillFee(req.query);
+    httpHandler.send(req, res, data);
+});
+
 
 router.get('/line_items', async function (req, res) {
     const data = await claimsController.getLineItemsDetails(req.query);

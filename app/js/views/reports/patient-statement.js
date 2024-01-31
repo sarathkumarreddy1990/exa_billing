@@ -48,7 +48,10 @@ define([
             },
 
             initialize: function (options) {
-                this.showForm();
+                if (!options.isPrintingOutsideReportingModule) {
+                    this.showForm();
+                }
+
                 Backbone.Collection.extend({
                     model: Backbone.Model.extend({})
                 });
