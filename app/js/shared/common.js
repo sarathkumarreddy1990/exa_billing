@@ -4368,6 +4368,36 @@ var commonjs = {
         });
     },
 
+    /**
+     * Binds the unload object that clears out the window reference
+     *
+     * @param {object}   windowObj
+     * @param {function} fnOnClose
+     */
+    bindWindowUnload: function (windowObj, fnOnClose) {
+
+        // Start checking for early window close
+        var earlyCloseTimer = setInterval(function () {
+            if (windowObj.closed) {
+                clearInterval(earlyCloseTimer);
+                fnOnClose();
+            }
+        }, 500);
+
+        // Bind onload to run once the window is fully loaded
+        windowObj.onload = function () {
+            // Window is fully loaded. Bind beforeunload handler.
+            $(windowObj).on("beforeunload", function () {
+                fnOnClose();
+            });
+
+            // Stop checking for early window close
+            clearInterval(earlyCloseTimer);
+        };
+
+        return this;
+    },
+
     detectChromeExtension: function (callback) {
         var self = this;
         var extensionId = "mlkplhocljobcbmokjlehlminmnfaddn";
