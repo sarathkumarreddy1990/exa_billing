@@ -4383,15 +4383,8 @@ var commonjs = {
             }
         }, 500);
 
-        // Bind beforeunload handler directly
-        $(windowObj).on("beforeunload", function () {
-            // Stop checking for early window close
-            clearInterval(earlyCloseTimer);
-            fnOnClose();
-        });
-
         return this;
-    },   
+    },
 
     detectChromeExtension: function (callback) {
         var self = this;
