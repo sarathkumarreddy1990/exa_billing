@@ -6627,6 +6627,7 @@ define(['jquery',
                             } else {
                                 window.patientChartWindow = window.open("about:blank");
                                 window.patientChartWindow.location.href = url;
+                                commonjs.bindWindowUnload(window.patientChartWindow, commonjs.closePatientChartWindow);
                             }
                         }));
 
