@@ -677,7 +677,7 @@ module.exports = {
                                                         'approving_provider',
                                                         order_details.study_id
                                                     ) AS approving_provider
-                                                    WHERE order_details.study_status = 'APP'
+                                                    WHERE order_details.study_status IN ('APP', 'APCD')
                                                         AND approving_provider IS NOT NULL
                                                   )
                                                 , (
