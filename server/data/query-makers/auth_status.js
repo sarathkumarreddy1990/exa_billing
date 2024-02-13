@@ -13,9 +13,6 @@ const authStatuses = {
 
 module.exports = ( fieldID, fieldValue ) => {
     return `
-        public.get_authorization_study_filter(
-            auth.as_authorization,
-            ARRAY['${authStatuses[ fieldValue.toLowerCase() ]}']
-        )
+        public.get_authorization_status_by_study(studies.id) = ANY(ARRAY['${authStatuses[ fieldValue.toLowerCase() ]}'])
     `;
 }
