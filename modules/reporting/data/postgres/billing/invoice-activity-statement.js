@@ -17,6 +17,7 @@ WITH get_payer_details AS(
         bc.invoice_no IS NOT NULL
         AND bc.id = <%= claimId %>
 ),
+
 claim_details AS(
     SELECT
         ppr.full_name AS referring_physician_name,
@@ -107,6 +108,7 @@ claim_details AS(
     WHERE
         bc.id = <%= claimId %>
 ),
+
 charge_details AS(
     SELECT
          bc.invoice_no AS invoice_no,
@@ -118,7 +120,7 @@ charge_details AS(
          ARRAY_AGG(bc.id) AS claim_id,
          bc.facility_id
     FROM billing.claims bc
-        <%= joinQuery %>
+        <%= joinCondition %>
         INNER JOIN LATERAL (SELECT * FROM billing.get_claim_totals(bc.id)) claim_totals ON true
     WHERE
         bc.invoice_no IS NOT NULL
@@ -137,7 +139,7 @@ invoice_payment_details AS(
         claim_totals.claim_balance_total AS balance
     FROM
         billing.claims bc
-    <%= joinQuery %>
+    <%= joinCondition %>
     INNER JOIN LATERAL (SELECT * FROM billing.get_claim_totals(bc.id)) claim_totals ON true
     WHERE
         bc.invoice_no IS NOT NULL
@@ -147,6 +149,7 @@ invoice_payment_details AS(
         submitted_dt,
         claim_totals.claim_balance_total
 ),
+
 age_calculation AS (
     SELECT
        COALESCE(SUM(balance) FILTER(WHERE ipd.age <= 0 ) , 0::MONEY) AS current_balance,
