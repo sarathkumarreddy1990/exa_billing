@@ -31,7 +31,7 @@
         "express-promise-router": "^3.0.3",
         "express-session": "^1.18.0",
         "formidable": "^1.2.6",
-        "fs-extra": "^8.1.0",
+        "fs-extra": "^11.2.0",
         "helmet": "^4.6.0",
         "http-errors": "^2.0.0",
         "ioredis": "^4.28.5",
