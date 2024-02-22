@@ -622,7 +622,9 @@ const api = {
             'claim_status.code AS claim_status_code',
             'billing_providers.name AS billing_provider',
             `patients.patient_info->'ssn' AS patient_ssn`,
-            'places_of_service.description AS place_of_service'
+            'places_of_service.description AS place_of_service',
+            'ins_prov.insurance_name AS hidden_insurance_providers',
+            'ins_prov.insurance_code AS hidden_insurance_provider_codes'
         ];
 
         // ADDING A NEW WORKLIST COLUMN <-- Search for this
