@@ -1539,7 +1539,7 @@ define('grid', [
                     hidden: true,
                     isIconCol: true,
                     formatter: function (cellvalue, options, rowObject) {
-                        return rowObject.insurance_providers || "";
+                        return rowObject.hidden_insurance_providers || "";
                     }
                 },
                 {
@@ -1551,7 +1551,7 @@ define('grid', [
                     hidden: true,
                     isIconCol: true,
                     formatter: function (cellvalue, options, rowObject) {
-                        return rowObject.insurance_code || "";
+                        return rowObject.hidden_insurance_provider_codes || "";
                     }
                 },
                 {
