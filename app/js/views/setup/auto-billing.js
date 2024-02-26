@@ -469,7 +469,7 @@ define([
 
                 templateSelection: function(res) {
                     return self.getTextAdded({
-                        idAdded: _.get(res,'id'),
+                        idAdded: _.get(res, 'id'),
                         name: _.get(res, 'text'),
                         code: '',
                         $btnAdd: $('#btnAddAutoBillingStudyStatus')
@@ -488,7 +488,7 @@ define([
 
                 templateSelection: function(res) {
                     return self.getTextAdded({
-                        idAdded: _.get(res,'id'),
+                        idAdded: _.get(res, 'id'),
                         name: _.get(res, 'text'),
                         code: '',
                         $btnAdd: $('#btnAddAutoBillingFacility')
@@ -507,7 +507,7 @@ define([
 
                 templateSelection: function(res) {
                     return self.getTextAdded({
-                        idAdded: _.get(res,'id'),
+                        idAdded: _.get(res, 'id'),
                         name: _.get(res, 'text'),
                         code: '',
                         $btnAdd: $('#btnAddAutoBillingOrderingFacility')
@@ -527,7 +527,7 @@ define([
 
                 templateSelection: function(res) {
                     return self.getTextAdded({
-                        idAdded: _.get(res,'id'),
+                        idAdded: _.get(res, 'id'),
                         name: _.get(res, 'text'),
                         code: '',
                         $btnAdd: $('#btnAddAutoBillingModality')
@@ -571,7 +571,7 @@ define([
 
                 templateSelection: function(res) {
                     return self.getTextAdded({
-                        idAdded: _.get(res,'id'),
+                        idAdded: _.get(res, 'id'),
                         name: _.get(res, 'display_description'),
                         code: _.get(res, 'display_code'),
                         $btnAdd: $('#btnAddAutoBillingCptCode')
@@ -611,7 +611,7 @@ define([
                 },
                 templateSelection: function(res) {
                     return self.getTextAdded({
-                        idAdded: _.get(res,'id'),
+                        idAdded: _.get(res, 'id'),
                         name: _.get(res, 'description'),
                         code: _.get(res, 'code'),
                         $btnAdd: $('#btnAddAutoBillingInsuranceProviderPayerType')
@@ -651,7 +651,7 @@ define([
                 },
                 templateSelection: function(res) {
                     return self.getTextAdded({
-                        idAdded: _.get(res,'id'),
+                        idAdded: _.get(res, 'id'),
                         name: _.get(res, 'insurance_name'),
                         code: _.get(res, 'insurance_code'),
                         $btnAdd: $('#btnAddAutoBillingInsuranceProvider')
