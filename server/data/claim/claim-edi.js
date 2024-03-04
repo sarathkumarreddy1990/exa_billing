@@ -436,6 +436,7 @@ module.exports = {
                                         FROM (
                                             SELECT
                                                 UPPER(insurance_name) AS "payerName"
+                                                , UPPER(TRIM(insurance_code)) AS "payerCode"
                                                 , insurance_info->'PayerID' AS "payerID"
                                                 , insurance_info->'Address1' AS "insuranceprovideraddressline1"
                                                 , insurance_info->'Address2' AS "insuranceprovideraddressline2"
