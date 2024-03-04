@@ -19,7 +19,7 @@
         "fastdom": "^1.0.12",
         "font-awesome": "^4.7.0",
         "immutable": "^5.0.0-beta.5",
-        "inputmask": "^5.0.8",
+        "inputmask": "^3.3.11",
         "jquery": "3.7.1",
         "jquery-sortable": "^0.9.13",
         "jquery-ui-dist": "^1.13.2",
