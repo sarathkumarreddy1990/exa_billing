@@ -107,6 +107,7 @@ claim_details AS(
     WHERE
         bc.id = <%= claimId %>
 ),
+
 charge_details AS(
     SELECT
          bc.invoice_no AS invoice_no,
@@ -114,9 +115,7 @@ charge_details AS(
          SUM(claim_totals.charges_bill_fee_total) AS bill_fee,
          SUM(claim_totals.payments_applied_total) AS payment,
          SUM(claim_totals.adjustments_applied_total) AS adjustment,
-         SUM(claim_totals.claim_balance_total) AS balance,
-         ARRAY_AGG(bc.id) AS claim_id,
-         bc.facility_id
+         SUM(claim_totals.claim_balance_total) AS balance
     FROM billing.claims bc
         <%= joinQuery %>
         INNER JOIN LATERAL (SELECT * FROM billing.get_claim_totals(bc.id)) claim_totals ON true
@@ -125,10 +124,9 @@ charge_details AS(
         AND bc.billing_method = 'direct_billing'
         <%= whereQuery %>
     GROUP BY
-        invoice_no,
-        facility_id
+        invoice_no
     ORDER BY
-        invoice_no DESC
+        invoice_no::INT
 ),
 
 invoice_payment_details AS(
