@@ -118,7 +118,7 @@ charge_details AS(
          SUM(claim_totals.adjustments_applied_total) AS adjustment,
          SUM(claim_totals.claim_balance_total) AS balance
     FROM billing.claims bc
-        <%= joinCondition %>
+        <%= joinQuery %>
         INNER JOIN LATERAL (SELECT * FROM billing.get_claim_totals(bc.id)) claim_totals ON true
     WHERE
         bc.invoice_no IS NOT NULL
@@ -136,7 +136,7 @@ invoice_payment_details AS(
         claim_totals.claim_balance_total AS balance
     FROM
         billing.claims bc
-    <%= joinCondition %>
+    <%= joinQuery %>
     INNER JOIN LATERAL (SELECT * FROM billing.get_claim_totals(bc.id)) claim_totals ON true
     WHERE
         bc.invoice_no IS NOT NULL
@@ -258,11 +258,13 @@ const api = {
                 break;
             case 'primary_insurance':
                 filters.selectDetails = ' ppi.insurance_provider_id AS insurance_provider_id, bc.payer_type ';
-                filters.joinQuery = ` INNER JOIN LATERAL (
-                            SELECT id
-                            FROM public.patient_insurances ppi
-                            INNER JOIN get_payer_details gpd ON gpd.insurance_provider_id = ppi.insurance_provider_id
-                          ) ppi ON TRUE `;
+                filters.joinQuery = `
+                    LEFT JOIN billing.claim_patient_insurances bcpi ON bcpi.claim_id = bc.id AND bcpi.coverage_level = 'primary'
+                    INNER JOIN LATERAL (
+                        SELECT id
+                        FROM public.patient_insurances ppi
+                        INNER JOIN get_payer_details gpd ON gpd.insurance_provider_id = ppi.insurance_provider_id
+                    ) ppi ON TRUE `;
                 filters.whereQuery = ` AND bc.payer_type = 'primary_insurance' AND bcpi.patient_insurance_id = ppi.id `;
                 filters.joinCondition = `
                     INNER JOIN billing.claim_patient_insurances bcpi ON bcpi.claim_id = bc.id AND bcpi.coverage_level = 'primary'
@@ -270,11 +272,13 @@ const api = {
                 break;
             case 'secondary_insurance':
                 filters.selectDetails = ' ppi.insurance_provider_id AS insurance_provider_id, bc.payer_type ';
-                filters.joinQuery = ` INNER JOIN LATERAL (
-                            SELECT id
-                            FROM public.patient_insurances ppi
-                            INNER JOIN get_payer_details gpd ON gpd.insurance_provider_id = ppi.insurance_provider_id
-                          ) ppi ON TRUE `;
+                filters.joinQuery = `
+                    LEFT JOIN billing.claim_patient_insurances bcsi ON bcsi.claim_id = bc.id AND bcsi.coverage_level = 'secondary'
+                    INNER JOIN LATERAL (
+                        SELECT id
+                        FROM public.patient_insurances ppi
+                        INNER JOIN get_payer_details gpd ON gpd.insurance_provider_id = ppi.insurance_provider_id
+                    ) ppi ON TRUE `;
                 filters.whereQuery = `AND bc.payer_type = 'secondary_insurance' AND bcsi.patient_insurance_id = ppi.id `;
                 filters.joinCondition = `
                     INNER JOIN billing.claim_patient_insurances bcsi ON bcsi.claim_id = bc.id AND bcsi.coverage_level = 'secondary'
@@ -282,11 +286,13 @@ const api = {
                 break;
             case 'tertiary_insurance':
                 filters.selectDetails = ' ppi.insurance_provider_id AS insurance_provider_id, bc.payer_type ';
-                filters.joinQuery = ` INNER JOIN LATERAL (
-                            SELECT id
-                            FROM public.patient_insurances ppi
-                            INNER JOIN get_payer_details gpd ON gpd.insurance_provider_id = ppi.insurance_provider_id
-                          ) ppi ON TRUE `;
+                filters.joinQuery = `
+                    LEFT JOIN billing.claim_patient_insurances bcti ON bcti.claim_id = bc.id AND bcti.coverage_level = 'tertiary'
+                    INNER JOIN LATERAL (
+                        SELECT id
+                        FROM public.patient_insurances ppi
+                        INNER JOIN get_payer_details gpd ON gpd.insurance_provider_id = ppi.insurance_provider_id
+                    ) ppi ON TRUE `;
                 filters.whereQuery = ` AND bc.payer_type = 'tertiary_insurance' AND bcti.patient_insurance_id = ppi.id `;
                 filters.joinCondition = `
                     INNER JOIN billing.claim_patient_insurances bcti ON bcti.claim_id = bc.id AND bcti.coverage_level = 'tertiary'
