@@ -19,7 +19,9 @@ module.exports = {
 			WITH claim_details AS(
                 SELECT
                     bc.invoice_no,
-                    timezone(get_facility_tz(bc.facility_id::int), now()) AS invoice_date,
+                    COALESCE(bc.submitted_dt::DATE,
+                        timezone(get_facility_tz(bc.facility_id::int), now())
+                    ) AS invoice_date,
                     current_illness_date::text,
                     same_illness_first_date::text,
                     unable_to_work_from_date::text,
