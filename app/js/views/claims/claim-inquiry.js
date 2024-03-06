@@ -726,7 +726,7 @@ define([
                             $('#tdPtAge60').text(data[0].to60 || '$0.00')
                             $('#tdPtAge90').text(data[0].to90 || '$0.00')
                             $('#tdPtAge120').text(data[0].to120 || '$0.00')
-                            $('#tdPtAgeTotal').text(data[0].sum || '$0.00')
+                            $('#tdPtAgeTotal').text(data[0].total_balance || '$0.00')
                         }
                     },
                     error: function (err, response) {
