@@ -1027,8 +1027,10 @@ module.exports = {
     },
 
     getInvoicePaymentsAge: async function (params) {
-
-        let { payerType, claimID } = params;
+        let {
+            payerType,
+            claimID
+        } = params;
 
         let {
             joinCondition,
@@ -1038,36 +1040,46 @@ module.exports = {
             havingQuery
         } = await this.getInvoiceDetails(payerType, params);
 
-        return await query(`WITH  get_payer_details AS(
-                                SELECT
-                                    ${selectDetails}
-                                FROM billing.claims bc
-                                ${joinCondition}
-                                WHERE bc.invoice_no is not null
-                                AND bc.payer_type = '${payerType}'
-                                AND bc.id = ${claimID}
-                            ),
-                            invoice_payment_details AS(
-                            SELECT
-                                COALESCE(max(date_part('day', (now() - bc.submitted_dt))),0) AS age
-                                , claim_totals.claim_balance_total AS balance
-                            FROM billing.claims bc
-                            ${joinQuery}
-                            INNER JOIN LATERAL (SELECT * FROM billing.get_claim_totals(bc.id)) claim_totals ON true
-                            WHERE
-                                bc.invoice_no is not null
-                            ${whereQuery}
-                            group by submitted_dt,claim_totals.claim_balance_total)
-                            SELECT
-                                COALESCE(sum(balance) FILTER(WHERE ipd.age <= 0 ) , 0::money) AS current_balance,
-                                COALESCE(sum(balance) FILTER(WHERE ipd.age > 0 and ipd.age <= 30 ) , 0::money) AS to30,
-                                COALESCE(sum(balance) FILTER(WHERE ipd.age > 30 and ipd.age <= 60) , 0::money) AS to60,
-                                COALESCE(sum(balance) FILTER(WHERE ipd.age > 60 and ipd.age <= 90 ) , 0::money) AS to90,
-                                COALESCE(sum(balance) FILTER(WHERE ipd.age > 90 and ipd.age <= 120 ) , 0::money) AS to120,
-                                sum(balance)
-                            FROM invoice_payment_details ipd
-                            ${havingQuery}`);
+        const sql = `
+            WITH get_payer_details AS (
+                SELECT
+                    ${selectDetails}
+                FROM billing.claims bc
+                ${joinCondition}
+                WHERE bc.invoice_no is not null
+                AND bc.payer_type = '${payerType}'
+                AND bc.id = ${claimID}
+            ),
 
+            invoice_payment_details AS (
+                SELECT
+                    bc.invoice_no,
+                    bc.submitted_dt::DATE AS submitted_dt,
+                    claim_totals.charges_bill_fee_total AS bill_fee,
+                    claim_totals.payments_applied_total AS payment,
+                    claim_totals.adjustments_applied_total AS adjustment,
+                    claim_totals.claim_balance_total AS balance,
+                    bc.id AS claim_id,
+                    bc.facility_id
+                FROM billing.claims bc
+                ${joinQuery}
+                INNER JOIN LATERAL (SELECT * FROM billing.get_claim_totals(bc.id)) claim_totals ON true
+                WHERE bc.invoice_no IS NOT NULL
+                AND bc.billing_method = 'direct_billing'
+                ${whereQuery}
+            )
+
+            SELECT
+                coalesce(sum(balance) FILTER (WHERE submitted_dt BETWEEN current_date - 29 AND current_date), 0::money) AS current_balance,
+                coalesce(sum(balance) FILTER (WHERE submitted_dt BETWEEN current_date - 59 AND current_date - 30), 0::money) AS to30,
+                coalesce(sum(balance) FILTER (WHERE submitted_dt BETWEEN current_date - 89 AND current_date - 60), 0::money) AS to60,
+                coalesce(sum(balance) FILTER (WHERE submitted_dt BETWEEN current_date - 119 AND current_date - 90), 0::money) AS to90,
+                coalesce(sum(balance) FILTER (WHERE submitted_dt <= current_date - 120), 0::money) AS to120,
+                coalesce(sum(balance), 0::money) AS total_balance
+            FROM invoice_payment_details
+        `;
+
+        return await query(sql);
     },
 
     getclaimPatientLog: async function (params) {

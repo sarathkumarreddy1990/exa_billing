@@ -4,7 +4,7 @@ const commonIndex = require('../../../../../server/shared/index');
 const claimInquiryData = require('../../../../../server/data/claim/claim-inquiry');
 
 // generate query template ***only once*** !!!
-const invoiceActivityStatementTemplate2 = _.template(`
+const invoiceActivityStatementTemplate = _.template(`
 WITH get_payer_details AS (
     SELECT
         <%= selectDetails %>
@@ -22,9 +22,7 @@ invoice_payments AS (
         claim_totals.charges_bill_fee_total AS bill_fee,
         claim_totals.payments_applied_total AS payment,
         claim_totals.adjustments_applied_total AS adjustment,
-        claim_totals.claim_balance_total AS balance,
-        bc.id AS claim_id,
-        bc.facility_id
+        claim_totals.claim_balance_total AS balance
     FROM billing.claims bc
     <%= joinQuery %>
     INNER JOIN LATERAL (SELECT * FROM billing.get_claim_totals(bc.id)) claim_totals ON true
@@ -35,38 +33,26 @@ invoice_payments AS (
 
 total_invoice_details AS (
     SELECT
-        ROW_NUMBER () OVER (ORDER BY invoice_no) AS id,
         invoice_no::INT AS invoice_no,
-        to_char(timezone(public.get_facility_tz(facility_id::INT), MAX(submitted_dt)::TIMESTAMP), '<%= dateFormat %>') AS invoice_date,
+        to_char(submitted_dt, '<%= dateFormat %>') AS invoice_date,
         SUM(bill_fee) AS invoice_bill_fee,
         SUM(payment) AS invoice_payment,
         SUM(adjustment) AS invoice_adjustment,
-        SUM(balance) AS invoice_balance,
-        COUNT(1) OVER (range unbounded preceding) AS total_records,
-        ARRAY_AGG(claim_id) AS claim_ids,
-        facility_id
+        SUM(balance) AS invoice_balance
     FROM invoice_payments
-    GROUP BY invoice_no,facility_id
-    ORDER BY invoice_no
-),
-
-invoice_age_balance AS (
-    SELECT
-        COALESCE(max(date_part('day', (now() - submitted_dt))),0) AS age,
-        balance
-    FROM invoice_payments
-    GROUP BY submitted_dt, balance
+    GROUP BY invoice_no, submitted_dt
+    ORDER BY invoice_no::INT
 ),
 
 age_details AS (
     SELECT
-        COALESCE(sum(balance) FILTER(WHERE age <= 0), 0::money) AS current_balance,
-        COALESCE(sum(balance) FILTER(WHERE age > 0 and age <= 30 ), 0::money) AS age_30,
-        COALESCE(sum(balance) FILTER(WHERE age > 30 and age <= 60), 0::money) AS age_60,
-        COALESCE(sum(balance) FILTER(WHERE age > 60 and age <= 90), 0::money) AS age_90,
-        COALESCE(sum(balance) FILTER(WHERE age > 90 and age <= 120), 0::money) AS age_120,
-        sum(balance) AS total_balance
-    FROM invoice_age_balance
+        coalesce(sum(balance) FILTER (WHERE submitted_dt BETWEEN current_date - 29 AND current_date), 0::money) AS current_balance,
+        coalesce(sum(balance) FILTER (WHERE submitted_dt BETWEEN current_date - 59 AND current_date - 30), 0::money) AS age_30,
+        coalesce(sum(balance) FILTER (WHERE submitted_dt BETWEEN current_date - 89 AND current_date - 60), 0::money) AS age_60,
+        coalesce(sum(balance) FILTER (WHERE submitted_dt BETWEEN current_date - 119 AND current_date - 90), 0::money) AS age_90,
+        coalesce(sum(balance) FILTER (WHERE submitted_dt <= current_date - 120), 0::money) AS age_120,
+        coalesce(sum(balance), 0::money) AS total_balance
+    FROM invoice_payments
 ),
 
 providers_details AS (
@@ -231,7 +217,7 @@ const api = {
 
     createInvoiceActivityStatementDataSet: (reportParams) => {
         const queryContext = api.getinvoiceActivityDataSetQueryContext(reportParams);
-        const query = invoiceActivityStatementTemplate2(queryContext.templateData);
+        const query = invoiceActivityStatementTemplate(queryContext.templateData);
         return db.queryForReportData(query, queryContext.queryParams);
     },
 
