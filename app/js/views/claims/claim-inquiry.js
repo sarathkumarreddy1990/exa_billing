@@ -668,6 +668,10 @@ define([
                             },
                             customAction: function (rowID) {
                                 var invoiceData = $('#tblInvoiceGrid').jqGrid('getRowData', rowID);
+                                $("#gs_invoice_date").attr('disabled', 'disabled');
+                                $("#siteModalNested").on('hidden.bs.modal', function (event) {
+                                    $("#gs_invoice_date").removeAttr('disabled');
+                                });
                                 self.printInvoice(invoiceData);
                             }
                         }
