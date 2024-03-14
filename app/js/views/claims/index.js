@@ -935,8 +935,6 @@ define(['jquery',
                                     }
                                 }
                             });
-
-
                             self.bindExistingInsurance(existingPrimaryInsurance, 'ddlExistPriIns')
                             self.bindExistingInsurance(existingSecondaryInsurance, 'ddlExistSecIns')
                             self.bindExistingInsurance(existingTriInsurance, 'ddlExistTerIns')
