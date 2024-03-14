@@ -502,7 +502,7 @@ define(['jquery',
                 var filterCol = JSON.stringify(self.pager.get("FilterCol"));
                 // TODO: grid doesn't appear to be defined. Should it be changed to something else?
                 /* eslint-disable no-undef */
-                var searchFilterFlag = grid.getGridParam("postData")._search;
+                var searchFilterFlag = $('#tblpaymentsGrid').getGridParam("postData")._search;
                 /* eslint-enable no-undef */
                 $('#btnGenerateExcel').prop('disabled', true);
                 var facilityTz = app.facilities.map(function (val) { return { 'id': val.id, 'value': val.time_zone } });
