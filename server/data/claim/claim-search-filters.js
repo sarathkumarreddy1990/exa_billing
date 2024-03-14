@@ -624,7 +624,19 @@ const api = {
             `patients.patient_info->'ssn' AS patient_ssn`,
             'places_of_service.description AS place_of_service',
             'ins_prov.insurance_name AS hidden_insurance_providers',
-            'ins_prov.insurance_code AS hidden_insurance_provider_codes'
+            'ins_prov.insurance_code AS hidden_insurance_provider_codes',
+            `(
+                CASE payer_type
+                    WHEN 'primary_insurance' THEN payer_insurance.insurance_name
+                    WHEN 'secondary_insurance' THEN payer_insurance.insurance_name
+                    WHEN 'tertiary_insurance' THEN payer_insurance.insurance_name
+                    WHEN 'ordering_facility' THEN ordering_facilities.name
+                    WHEN 'referring_provider' THEN ref_provider.full_name
+                    WHEN 'rendering_provider' THEN render_provider.full_name
+                    WHEN 'patient' THEN patients.full_name
+                    WHEN 'service_facility_location' THEN public.get_service_facility_name(claims.id, claims.pos_map_code, claims.patient_id)
+                END
+            ) AS payer_name `
         ];
 
         // ADDING A NEW WORKLIST COLUMN <-- Search for this
@@ -637,18 +649,6 @@ const api = {
             "Rendering Providers": "render_provider.full_name AS rendering_provider",
             "Billing Fee": "bgct.charges_bill_fee_total AS billing_fee",
             "Notes": "claims.billing_notes",
-            "Responsbile Party": `(
-                CASE payer_type
-                    WHEN 'primary_insurance' THEN payer_insurance.insurance_name
-                    WHEN 'secondary_insurance' THEN payer_insurance.insurance_name
-                    WHEN 'tertiary_insurance' THEN payer_insurance.insurance_name
-                    WHEN 'ordering_facility' THEN ordering_facilities.name
-                    WHEN 'referring_provider' THEN ref_provider.full_name
-                    WHEN 'rendering_provider' THEN render_provider.full_name
-                    WHEN 'patient' THEN patients.full_name
-                    WHEN 'service_facility_location' THEN public.get_service_facility_name(claims.id, claims.pos_map_code, claims.patient_id)
-                END
-              ) AS payer_name`,
             "Invoice": "claims.invoice_no",
             "Date Of Injury": "claims.current_illness_date::text AS current_illness_date",
             "Policy Number": "patient_insurances.policy_number",
