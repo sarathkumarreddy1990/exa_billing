@@ -924,9 +924,7 @@ define(['jquery',
                             self.federalTaxId = claimDetails.federal_tax_id || '';
 
                             $.each(existing_insurance, function (index, value) {
-                                var isDisplayInsurance = !value.valid_to_date || moment(claimDetails.claim_dt).isSameOrBefore(value.valid_to_date);
-
-                                if (isDisplayInsurance) {
+                                if (value.is_active) {
                                     switch (value.coverage_level) {
                                         case 'primary':
                                             existingPrimaryInsurance.push(value);
@@ -3614,10 +3612,7 @@ define(['jquery',
                             self.tradingPartnerId = existing_insurance.length && existing_insurance[0].ins_partner_id ? existing_insurance[0].ins_partner_id : '';
 
                             $.each(existing_insurance, function (index, value) {
-                                var isDisplayInsurance = !value.valid_to_date || moment(self.cur_study_date).isSameOrBefore(value.valid_to_date);
-
-                                if (isDisplayInsurance) {
-
+                                if (value.is_active) {
                                     switch (value.coverage_level) {
                                         case 'primary':
                                             self.existingPrimaryInsurance.push(value);
@@ -4669,7 +4664,7 @@ define(['jquery',
                     var samePolicy = info.policy_number === policy;
                     var sameCoverageLevel = info.coverage_level === coverage_level;
                     var sameRecord = info.id === ~~id;
-                    return sameProvider && samePolicy && sameCoverageLevel && !sameRecord && info.is_active;
+                    return sameProvider && samePolicy && sameCoverageLevel && !sameRecord;
                 });
             },
 
