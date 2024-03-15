@@ -584,7 +584,7 @@ module.exports = {
                             , f.facility_info -> 'npino' as npi_no
                             , f.facility_info -> 'federal_tax_id' as federal_tax_id
                             , f.facility_info -> 'enable_insurance_eligibility' as enable_insurance_eligibility
-                            , (pi.valid_to_date >= (${params.claim_date})::DATE OR pi.valid_to_date IS NULL) AS is_active
+                            , (pi.valid_to_date >= CURRENT_DATE OR pi.valid_to_date IS NULL) AS is_active
                             , ipd.billing_method
                         FROM public.patient_insurances pi
                         INNER JOIN public.insurance_providers ip ON ip.id= pi.insurance_provider_id
@@ -1032,7 +1032,7 @@ module.exports = {
                               pi.id
                             , ip.id AS insurance_provider_id
                             , pi.policy_number
-                            , (pi.valid_to_date >= c.claim_dt OR pi.valid_to_date IS NULL) AS is_active
+                            , (pi.valid_to_date >= CURRENT_DATE OR pi.valid_to_date IS NULL) AS is_active
                             , ip.insurance_name
                             , ip.insurance_code
                             , ip.insurance_info->'partner_id' AS ins_partner_id
