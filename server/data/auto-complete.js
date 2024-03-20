@@ -577,12 +577,12 @@ module.exports = {
 
         let facility_query = '';
         if (facility_id) {
-            facility_query = ` AND EXISTS (
+            facility_query = SQL` AND EXISTS (
                 SELECT 1
                 FROM ordering_facility_facilities
                 WHERE ordering_facility_id = pof.id
                 AND facility_id = ${facility_id}
-            )`;
+            ) `;
         }
 
         if (q) {

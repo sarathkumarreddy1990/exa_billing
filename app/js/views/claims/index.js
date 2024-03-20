@@ -3671,15 +3671,14 @@ define(['jquery',
             },
 
             changeMobileBillingDefaultValues: function (currentBillingType) {
-                var self = this;
                 var ddlClaimResponsible = $('#ddlClaimResponsible');
 
                 if (currentBillingType === 'facility') {
                     if (!ddlClaimResponsible.find('option[value="POF"]').length) {
                         this.updateResponsibleList({
                             payer_type: 'POF',
-                            payer_id: self.ordering_facility_id,
-                            payer_name: self.ordering_facility_name + self.claimResponsible
+                            payer_id: this.ordering_facility_id,
+                            payer_name: this.ordering_facility_name + self.claimResponsible
                         }, null);
                     }
                     ddlClaimResponsible.val("POF").change();
