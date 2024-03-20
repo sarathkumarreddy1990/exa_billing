@@ -575,7 +575,10 @@ define(['jquery',
                 self.hct.date();
                 self.priDOB = commonjs.bindDateTimePicker('divPriDOB', { format: 'L' });
                 self.priDOB.date();
-                commonjs.bindDateTimePicker('divDOF', { format: 'L' });
+
+                if (app.billingRegionCode === 'can_AB') { 
+                    commonjs.bindDateTimePicker('divDOF', { format: 'L' });
+                }
 
                 if (app.country_alpha_3_code !== 'can') {
                     self.secDOB = commonjs.bindDateTimePicker('divSecDOB', { format: 'L' });
