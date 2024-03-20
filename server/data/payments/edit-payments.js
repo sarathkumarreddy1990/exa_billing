@@ -402,6 +402,7 @@ module.exports = {
                 ROW_NUMBER () OVER (ORDER BY bc.id) as id,
                 bc.id AS claim_id,
                 bc.invoice_no,
+                bc.facility_id,
                 get_full_name(pp.last_name,pp.first_name) AS full_name,
                 bc.claim_dt AS claim_date,
                 max(bpa.id) AS payment_application_id,
