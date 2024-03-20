@@ -568,11 +568,22 @@ module.exports = {
             company_id,
             sortField,
             sortOrder,
+            facility_id,
             pageSize,
             page,
             q
         } = args;
         let whereQuery = '';
+
+        let facility_query = '';
+        if (facility_id) {
+            facility_query = ` AND EXISTS (
+                SELECT 1
+                FROM ordering_facility_facilities
+                WHERE ordering_facility_id = pof.id
+                AND facility_id = ${facility_id}
+            )`;
+        }
 
         if (q) {
             whereQuery = SQL` AND (
@@ -590,6 +601,7 @@ module.exports = {
                 WHERE pofc.inactivated_dt IS NULL
                     AND pof.inactivated_dt IS NULL
                     AND pof.company_id = ${company_id}`
+            .append(facility_query)
             .append(whereQuery)
             .append(`
             )
@@ -617,6 +629,7 @@ module.exports = {
             WHERE pofc.inactivated_dt IS NULL
                 AND pof.inactivated_dt IS NULL
                 AND pof.company_id = ${company_id}`)
+            .append(facility_query)
             .append(whereQuery);
 
         sql.append(`
