@@ -3674,6 +3674,13 @@ define(['jquery',
                 var ddlClaimResponsible = $('#ddlClaimResponsible');
 
                 if (currentBillingType === 'facility') {
+                    if (!ddlClaimResponsible.find('option[value="POF"]').length) {
+                        this.updateResponsibleList({
+                            payer_type: 'POF',
+                            payer_id: this.ordering_facility_id,
+                            payer_name: this.ordering_facility_name + self.claimResponsible
+                        }, null);
+                    }
                     ddlClaimResponsible.val("POF").change();
                 } else {
                     var defaultResponsible = ddlClaimResponsible.find('option[value="PIP_P"]').length
@@ -3699,6 +3706,7 @@ define(['jquery',
                                 sortField: "location",
                                 sortOrder: "ASC",
                                 groupType: 'OF',
+                                facility_id: $('#ddlFacility').val(),
                                 company_id: app.companyID
                             };
                         },
