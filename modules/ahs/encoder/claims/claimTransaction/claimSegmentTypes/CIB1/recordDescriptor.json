@@ -4,7 +4,7 @@
     "startPos": 1,
     "length": 4
   },
-  "wcb_billing_number": {
+  "service_provider_prid": {
     "format": "n",
     "startPos": 5,
     "length": 9,
