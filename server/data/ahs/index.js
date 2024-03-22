@@ -196,7 +196,8 @@ const ahsData = {
                             THEN TO_CHAR(timezone(f.time_zone, bc.claim_dt)::DATE, 'YYYYMMDD')
                             ELSE TO_CHAR(s.hospital_admission_dt, 'YYYYMMDD')
                         END
-                        , 'billing_number', LPAD(p_app.provider_info->'WCBBillingNumber' , 8, '0')
+                        , 'billing_number', LPAD(pc_app.can_prid, 8, '0')
+                        , 'practitioner_billing_number', LPAD(p_app.provider_info->'WCBBillingNumber' , 8, '0')
                         , 'invoice_type_code', 'MEDCARE'
                         , 'invoice_type_description', ''
                         , 'provider_skill_code', scc.code
@@ -376,7 +377,8 @@ const ahsData = {
                         'provider_skill_code', scc.code,
                         'contract_id', '000001',
                         'role', 'GP',
-                        'billing_number', LPAD(p_app.provider_info->'WCBBillingNumber', 8, '0')
+                        'billing_number', LPAD(pc_app.can_prid, 8, '0'),
+                        'practitioner_billing_number', LPAD(p_app.provider_info->'WCBBillingNumber', 8, '0')
                     ) AS practitioner_data
                     , bp.address_line1 AS invoice_submitter_address
                     , bp.city AS invoice_submitter_city
@@ -918,6 +920,7 @@ const ahsData = {
                         billing.get_can_ahs_mod10_for_claim_sequence_number(
                             inserted_efc.sequence_number :: INT8
                         )                                            AS check_digit,
+                        p_app.provider_info->'WCBBillingNumber'      AS wcb_billing_number,
 
                         -- currently hard-coded - AHS does not support another code right now
                         'CIP1'                                       AS transaction_type,
