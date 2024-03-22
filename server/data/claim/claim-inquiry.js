@@ -754,7 +754,7 @@ module.exports = {
             pageNo,
             pageSize,
             patientId,
-            billProvId
+            billProvId = 0
         } = params;
 
         let billProvWhereQuery = billProvId && billProvId != 0 && billProvId != '' ? `AND claims.billing_provider_id = ${billProvId}` : '';
