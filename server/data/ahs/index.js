@@ -197,7 +197,7 @@ const ahsData = {
                             ELSE TO_CHAR(s.hospital_admission_dt, 'YYYYMMDD')
                         END
                         , 'billing_number', LPAD(pc_app.can_prid, 8, '0')
-                        , 'practitioner_billing_number', LPAD(p_app.provider_info->'WCBBillingNumber' , 8, '0')
+                        , 'practitioner_billing_number', p_app.provider_info->'WCBBillingNumber'
                         , 'invoice_type_code', 'MEDCARE'
                         , 'invoice_type_description', ''
                         , 'provider_skill_code', scc.code
@@ -378,7 +378,7 @@ const ahsData = {
                         'contract_id', '000001',
                         'role', 'GP',
                         'billing_number', LPAD(pc_app.can_prid, 8, '0'),
-                        'practitioner_billing_number', LPAD(p_app.provider_info->'WCBBillingNumber', 8, '0')
+                        'practitioner_billing_number', p_app.provider_info->'WCBBillingNumber'
                     ) AS practitioner_data
                     , bp.address_line1 AS invoice_submitter_address
                     , bp.city AS invoice_submitter_city
