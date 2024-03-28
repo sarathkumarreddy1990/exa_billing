@@ -1036,8 +1036,7 @@ module.exports = {
             joinCondition,
             selectDetails,
             joinQuery,
-            whereQuery,
-            havingQuery
+            whereQuery
         } = await this.getInvoiceDetails(payerType, params);
 
         const sql = `
