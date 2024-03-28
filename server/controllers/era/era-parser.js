@@ -46,36 +46,29 @@ const commentsDetails = [
 ];
 
 module.exports = {
-
     getFormatedLineItemsAndClaims: async function (claimLists, params) {
-
         let claimComments = [];
         let lineItems = [];
         let claimPaymentInformation = [];
-
         let payer_details = params.payer_details ? JSON.parse(params.payer_details) : {};
-
         let cas_details = await data.getcasReasonGroupCodes(payer_details);
 
         cas_details = cas_details.rows && cas_details.rows.length ? cas_details.rows[0] : {};
 
         // split and merge multiple claims in ~LX segments
         _.each(claimLists, function (obj) {
-
             if (obj.claimPaymentInformation && obj.claimPaymentInformation.length > 1) {
                 obj.claimPaymentInformation.map(item => {
                     claimPaymentInformation.push({ claimPaymentInformation: [item] });
                 });
-
             } else if (obj.claimPaymentInformation && obj.claimPaymentInformation.length == 1) {
                 obj.claimPaymentInformation.map(item => {
                     claimPaymentInformation.push({ claimPaymentInformation: [item] });
                 });
-
             }
         });
 
-        if(claimPaymentInformation && claimPaymentInformation.length){
+        if (claimPaymentInformation && claimPaymentInformation.length) {
             claimLists = claimPaymentInformation;
         }
 
@@ -249,7 +242,6 @@ module.exports = {
                             adjustment: adjustmentAmount || 0.00,
                             cas_total_amt: _.sum(amountArray) || 0.00,
                             bill_fee: parseFloat(val.billFee) || 0.00,
-                            original_reference: value.payerClaimContorlNumber || null,
                             claim_status_code: value.claimStatusCode || 0,
                             cas_details: cas_obj,
                             charge_id: charge_id,
@@ -267,6 +259,17 @@ module.exports = {
                             is_group_denied: isGroupDeniedStatus,
                             has_cas_patient_responsibility: hasCASPatientResponsibility
                         });
+
+                        let originalRef = _.get(value, "payerClaimContorlNumber");
+
+                        if (originalRef) {
+                            claimComments.push({
+                                claim_number: value.claimNumber,
+                                note: `Original Ref is ${originalRef}`,
+                                type: 'auto',
+                                claim_index: claim_index
+                            });
+                        }
                     });
 
                     if (value && value.claimStatusCode) {
@@ -310,7 +313,6 @@ module.exports = {
                     }
 
                     if (value.outpatientAdjudicationInformation && Object.keys(value.outpatientAdjudicationInformation).length) {
-
                         _.each(Object.keys(value.outpatientAdjudicationInformation), function (key) {
                             let note = _.find(remarkCodes, (desc, k) => { if (k === value.outpatientAdjudicationInformation[key]) { return desc; } });
 
@@ -325,7 +327,6 @@ module.exports = {
                     }
                 }
             });
-
         });
 
         let auditDetails = {
@@ -375,7 +376,6 @@ module.exports = {
             } else {
                 groupedLineItems = groupedLineItems.concat(items);
             }
-
         }
 
         return {

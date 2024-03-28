@@ -67,7 +67,6 @@ module.exports = {
             sortField,
             sortOrder,
             company_id,
-            billingRegion,
             provider_type
         } = params;
 
