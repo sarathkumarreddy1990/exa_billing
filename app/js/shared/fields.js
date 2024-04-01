@@ -1864,37 +1864,9 @@ define([ 'backbone', 'immutable', 'moment', 'shared/utils' ], function ( Backbon
                         }
                     },
                     formatter: function(cellvalue) {
-                        var regSlash = /\\/g;
-                        var authorizations = typeof cellvalue === 'string' && cellvalue.length > 0 ?
-                            JSON.parse(cellvalue.replace('{""}', '{}').replace(regSlash, '\\')) :
-                            cellvalue && typeof cellvalue === 'object' ?
-                                cellvalue : '';
-
-                        if ( authorizations && authorizations.length ) {
-                            /**
-                             * This is just a stopgap. EXA-32377 and whatever other changes made in Exa Web need to be ported
-                             * over here to Billing so that the behavior matches.  I don't have full understanding about how
-                             * this is supposed to work and it's out of scope for this ticket [EXA-35917] but it'll get QA Failed
-                             * if I don't patch this up a little.
-                             */
-                            var priority = [
-                                "needauthorization",
-                                "reauthorization",
-                                "pending",
-                                "denied",
-                                "authorized",
-                                "partial",
-                                "noauthorization",
-                                "none"
-                            ];
-                            var statuses = authorizations.map(function (item) {
-                                return item.status;
-                            });
-                            var auth_status = _.intersection(priority, statuses);  // priority array needs to be the first parameter for this to work
-
-                            return commonjs.geti18NString("setup.studyFilters." + (auth_status[0] || "none"));
-                        }
-                        return "";
+                        return cellvalue !== "none"
+                            ? commonjs.geti18NString("setup.studyFilters." + cellvalue)
+                            : "";
                     }
                 },
                 "field_code": "as_authorization"

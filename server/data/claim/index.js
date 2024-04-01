@@ -625,17 +625,25 @@ module.exports = {
                             , pi.subscriber_zipcode
                             , pi.subscriber_zipcode_plus
                             , pi.assign_benefits_to_patient
-                            , f.facility_info -> 'npino' as npi_no
-                            , f.facility_info -> 'federal_tax_id' as federal_tax_id
-                            , f.facility_info -> 'enable_insurance_eligibility' as enable_insurance_eligibility
-                            , (pi.valid_to_date >= (${params.claim_date})::DATE OR pi.valid_to_date IS NULL) AS is_active
+                            , (pi.valid_to_date >= CURRENT_DATE OR pi.valid_to_date IS NULL) AS is_active
+                            , f.npi_no
+                            , f.federal_tax_id
+                            , f.enable_insurance_eligibility
                             , ipd.billing_method
                         FROM public.patient_insurances pi
                         INNER JOIN public.insurance_providers ip ON ip.id= pi.insurance_provider_id
                         LEFT JOIN billing.insurance_provider_details ipd on ipd.insurance_provider_id = ip.id
-                        LEFT JOIN public.patients p ON p.id= pi.patient_id
-                        LEFT JOIN public.patient_facilities pf ON pf.patient_id = pi.patient_id
-                        LEFT JOIN public.facilities f ON f.id = pf.facility_id AND pf.is_default
+                        JOIN LATERAL (
+                            SELECT
+                                f.facility_info -> 'npino' AS npi_no,
+                                f.facility_info -> 'federal_tax_id' AS federal_tax_id,
+                                f.facility_info -> 'enable_insurance_eligibility' AS enable_insurance_eligibility
+                            FROM public.patient_facilities AS pf
+                            LEFT JOIN public.facilities AS f ON f.id = pf.facility_id
+                            WHERE
+                                pf.patient_id = ${params.patient_id}
+                            AND pf.is_default
+                        ) AS f ON TRUE
                         WHERE
                             pi.patient_id = ${params.patient_id}
                             AND ip.inactivated_dt IS NULL
@@ -1076,7 +1084,7 @@ module.exports = {
                               pi.id
                             , ip.id AS insurance_provider_id
                             , pi.policy_number
-                            , (pi.valid_to_date >= c.claim_dt OR pi.valid_to_date IS NULL) AS is_active
+                            , (pi.valid_to_date >= CURRENT_DATE OR pi.valid_to_date IS NULL) AS is_active
                             , ip.insurance_name
                             , ip.insurance_code
                             , ip.insurance_info->'partner_id' AS ins_partner_id

@@ -46,36 +46,29 @@ const commentsDetails = [
 ];
 
 module.exports = {
-
     getFormatedLineItemsAndClaims: async function (claimLists, params) {
-
         let claimComments = [];
         let lineItems = [];
         let claimPaymentInformation = [];
-
         let payer_details = params.payer_details ? JSON.parse(params.payer_details) : {};
-
         let cas_details = await data.getcasReasonGroupCodes(payer_details);
 
         cas_details = cas_details.rows && cas_details.rows.length ? cas_details.rows[0] : {};
 
         // split and merge multiple claims in ~LX segments
         _.each(claimLists, function (obj) {
-
             if (obj.claimPaymentInformation && obj.claimPaymentInformation.length > 1) {
                 obj.claimPaymentInformation.map(item => {
                     claimPaymentInformation.push({ claimPaymentInformation: [item] });
                 });
-
             } else if (obj.claimPaymentInformation && obj.claimPaymentInformation.length == 1) {
                 obj.claimPaymentInformation.map(item => {
                     claimPaymentInformation.push({ claimPaymentInformation: [item] });
                 });
-
             }
         });
 
-        if(claimPaymentInformation && claimPaymentInformation.length){
+        if (claimPaymentInformation && claimPaymentInformation.length) {
             claimLists = claimPaymentInformation;
         }
 
@@ -83,39 +76,14 @@ module.exports = {
             let claimPaymentInformation = claim.claimPaymentInformation && claim.claimPaymentInformation.length ? claim.claimPaymentInformation : {};
 
             _.each(claimPaymentInformation, function (value) {
-                let co_pay = 0;
-                let co_insurance = 0;
-                let deductible = 0;
+                let PatientResponsibility = {
+                    1: 0,
+                    2: 0,
+                    3: 0
+                };
 
                 if (value.claimNumber && !isNaN(value.claimNumber)) {
-
                     _.each(value.servicePaymentInformation, function (val) {
-
-                        /**
-                        *  Functionality  : To get co_pay, co_insurance and deductible
-                        *  DESC : SUM of CAS groups code (Ex:'PR')
-                        */
-                        let PatientResponsibility = _.filter(val.serviceAdjustment, { groupCode: 'PR' });
-
-                        if (PatientResponsibility && PatientResponsibility.length) {
-                            PatientResponsibility = PatientResponsibility[0] ? PatientResponsibility[0] : '{}';
-                        }
-
-                        for (let m = 1; m <= 7; m++) {
-
-                            if (PatientResponsibility && PatientResponsibility['reasonCode' + m] && PatientResponsibility['reasonCode' + m] == '1') {
-                                deductible += PatientResponsibility['monetaryAmount' + m] ? parseFloat(PatientResponsibility['monetaryAmount' + m]) : 0;
-                            }
-
-                            if (PatientResponsibility && PatientResponsibility['reasonCode' + m] && PatientResponsibility['reasonCode' + m] == '2') {
-                                co_insurance += PatientResponsibility['monetaryAmount' + m] ? parseFloat(PatientResponsibility['monetaryAmount' + m]) : 0;
-                            }
-
-                            if (PatientResponsibility && PatientResponsibility['reasonCode' + m] && PatientResponsibility['reasonCode' + m] == '3') {
-                                co_pay += PatientResponsibility['monetaryAmount' + m] ? parseFloat(PatientResponsibility['monetaryAmount' + m]) : 0;
-                            }
-                        }
-
                         /**
                         *  Condition : Check valid CAS group and reason codes
                         *  DESC : CAS group and reason codes not matched means shouldn't apply adjustment (Ex: adjustment = 0)
@@ -138,10 +106,16 @@ module.exports = {
                                     && cas_details.cas_group_codes.some(val => val.code === casGroupCode)
                                 ) {
                                     const casObj = {};
+                                    const monetaryAmount = obj['monetaryAmount' + j];
+
                                     casObj['groupCode'] = casGroupCode;
                                     casObj['reasonCode' + j] = casReasonCode;
-                                    casObj['monetaryAmount' + j] = obj['monetaryAmount' + j];
+                                    casObj['monetaryAmount' + j] = monetaryAmount;
                                     validCAS.push(casObj);
+
+                                    if (casGroupCode === 'PR') {
+                                        PatientResponsibility[casReasonCode] += parseFloat(monetaryAmount);
+                                    }
                                 }
                             }
                         });
@@ -268,7 +242,6 @@ module.exports = {
                             adjustment: adjustmentAmount || 0.00,
                             cas_total_amt: _.sum(amountArray) || 0.00,
                             bill_fee: parseFloat(val.billFee) || 0.00,
-                            original_reference: value.payerClaimContorlNumber || null,
                             claim_status_code: value.claimStatusCode || 0,
                             cas_details: cas_obj,
                             charge_id: charge_id,
@@ -286,6 +259,17 @@ module.exports = {
                             is_group_denied: isGroupDeniedStatus,
                             has_cas_patient_responsibility: hasCASPatientResponsibility
                         });
+
+                        let originalRef = _.get(value, "payerClaimContorlNumber");
+
+                        if (originalRef) {
+                            claimComments.push({
+                                claim_number: value.claimNumber,
+                                note: `Original Ref is ${originalRef}`,
+                                type: 'auto',
+                                claim_index: claim_index
+                            });
+                        }
                     });
 
                     if (value && value.claimStatusCode) {
@@ -302,35 +286,33 @@ module.exports = {
                         }
                     }
 
-                    if (co_pay != '') {
+                    let getMonetaryAmountComment = function(patientResponsibilityReasonCode, monetaryTotalAmount) {
+                        let claimComment = {
+                            1: {
+                                note: `Deductible of ${monetaryTotalAmount} is due`,
+                                type: 'deductible'
+                            },
+                            2: {
+                                note: `Co-Insurance of ${monetaryTotalAmount} is due`,
+                                type: 'co_insurance'
+                            },
+                            3: {
+                                note: `Co-Pay of ${monetaryTotalAmount} is due`,
+                                type: 'co_pay'
+                            }
+                        };
+                        return claimComment[patientResponsibilityReasonCode];
+                    };
 
-                        claimComments.push({
-                            claim_number: value.claimNumber,
-                            note: 'Co-Pay of ' + shared.roundFee(co_pay) + ' is due',
-                            type: 'co_pay'
-                        });
-                    }
-
-                    if (co_insurance != '') {
-
-                        claimComments.push({
-                            claim_number: value.claimNumber,
-                            note: 'Co-Insurance of ' + shared.roundFee(co_insurance) + ' is due',
-                            type: 'co_insurance'
-                        });
-                    }
-
-                    if (deductible != '') {
-
-                        claimComments.push({
-                            claim_number: value.claimNumber,
-                            note: 'Deductible of ' + shared.roundFee(deductible) + ' is due',
-                            type: 'deductible'
-                        });
+                    for (let i = 1; i <= 3; i++) {
+                        if (PatientResponsibility[i] != 0)  {
+                            let monetaryAmountComment = getMonetaryAmountComment(i, shared.roundFee(PatientResponsibility[i]));
+                            monetaryAmountComment.claim_number = value.claimNumber;
+                            claimComments.push(monetaryAmountComment);
+                        }
                     }
 
                     if (value.outpatientAdjudicationInformation && Object.keys(value.outpatientAdjudicationInformation).length) {
-
                         _.each(Object.keys(value.outpatientAdjudicationInformation), function (key) {
                             let note = _.find(remarkCodes, (desc, k) => { if (k === value.outpatientAdjudicationInformation[key]) { return desc; } });
 
@@ -345,7 +327,6 @@ module.exports = {
                     }
                 }
             });
-
         });
 
         let auditDetails = {
@@ -395,7 +376,6 @@ module.exports = {
             } else {
                 groupedLineItems = groupedLineItems.concat(items);
             }
-
         }
 
         return {

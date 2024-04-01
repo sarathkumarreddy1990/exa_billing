@@ -667,9 +667,12 @@ define([
                                 return "style='text-align: center;text-decoration: underline;'";
                             },
                             customAction: function (rowID) {
-                                var gridData = $('#tblInvoiceGrid').jqGrid('getRowData', rowID);
-                                var is_invoice_inquiry = true
-                                self.printInvoice(gridData.claim_ids, is_invoice_inquiry);
+                                var invoiceData = $('#tblInvoiceGrid').jqGrid('getRowData', rowID);
+                                $("#gs_invoice_date").attr('disabled', 'disabled');
+                                $("#siteModalNested").on('hidden.bs.modal', function () {
+                                    $("#gs_invoice_date").removeAttr('disabled');
+                                });
+                                self.printInvoice(invoiceData);
                             }
                         }
 
@@ -727,7 +730,7 @@ define([
                             $('#tdPtAge60').text(data[0].to60 || '$0.00')
                             $('#tdPtAge90').text(data[0].to90 || '$0.00')
                             $('#tdPtAge120').text(data[0].to120 || '$0.00')
-                            $('#tdPtAgeTotal').text(data[0].sum || '$0.00')
+                            $('#tdPtAgeTotal').text(data[0].total_balance || '$0.00')
                         }
                     },
                     error: function (err, response) {
@@ -750,9 +753,13 @@ define([
 
             },
 
-            printInvoice: function(claimids, is_invoice_inquiry) {
-                claimids =  claimids && claimids.split(',')
-                paperClaim.print( 'direct_invoice', claimids, is_invoice_inquiry);
+            printInvoice: function(invoiceData) {
+                var claimids =  invoiceData.claim_ids.split(',');
+                var options = {
+                    invoice_no: invoiceData.invoice_no
+                }
+
+                paperClaim.print( 'direct_invoice', claimids, true, options);
             },
 
             showPatientClaimsLogGrid: function (claimID, patientId) {

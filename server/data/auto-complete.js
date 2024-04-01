@@ -58,6 +58,7 @@ module.exports = {
 
         return await query(insur_sql);
     },
+
     getProviders: async function (params) {
         let {
             q,
@@ -66,46 +67,37 @@ module.exports = {
             sortField,
             sortOrder,
             company_id,
-            billingRegion,
             provider_type
         } = params;
 
-        let provider_search = ` AND (p.full_name ILIKE '%${q}%' OR p.provider_code ILIKE '%${q}%' ) `;
-
         const sql_provider = SQL`
             SELECT
-                  pc.id AS id
-                , p.first_name
-                , p.id AS provider_id
-                , p.is_active AS is_active /* public.providers.is_active */
-                , pc.id AS provider_contact_id
-                , p.last_name
-                , p.full_name
-                , p.provider_code
-                , p.specialities
-                , p.provider_info->'NPI' AS npi_no
-                , hstore_to_json(contact_info) AS contact_info
-                , COUNT(1) OVER (range unbounded preceding) AS total_records
+                pc.id AS id,
+                p.first_name,
+                p.id AS provider_id,
+                p.is_active AS is_active,
+                pc.id AS provider_contact_id,
+                p.last_name,
+                p.full_name,
+                p.provider_code,
+                p.specialities,
+                p.provider_info->'NPI' AS npi_no,
+                hstore_to_json(contact_info) AS contact_info,
+                COUNT(1) OVER (range unbounded preceding) AS total_records
             FROM public.providers p
-                INNER JOIN
-                    provider_contacts pc ON pc.provider_id = p.id
+            INNER JOIN provider_contacts pc ON pc.provider_id = p.id
             WHERE
                 p.deleted_dt IS NULL
                 AND pc.is_active
                 AND pc.deleted_dt IS NULL
-                AND pc.is_active
-                AND p.is_active /* public.providers.is_active */
+                AND p.is_active
                 AND p.company_id = ${company_id}
                 AND p.provider_type = ${provider_type}
                 AND NOT p.sys_provider -- we dont want system providers
-        `; // provider_contacts.has_deleted
-
-        if (billingRegion === 'can_AB' && provider_type === 'RF') {
-            sql_provider.append(SQL` AND pc.is_primary`);
-        }
+        `;
 
         if (params.q != '') {
-            sql_provider.append(provider_search);
+            sql_provider.append(` AND (p.full_name ILIKE '%${q}%' OR p.provider_code ILIKE '%${q}%' ) `);
         }
 
         sql_provider.append(SQL` ORDER BY  ${sortField} `)
@@ -115,6 +107,7 @@ module.exports = {
 
         return await query(sql_provider);
     },
+
     getICDcodes: async function (params) {
         let {
             company_id,
@@ -568,11 +561,22 @@ module.exports = {
             company_id,
             sortField,
             sortOrder,
+            facility_id,
             pageSize,
             page,
             q
         } = args;
         let whereQuery = '';
+
+        let facility_query = '';
+        if (facility_id) {
+            facility_query = SQL` AND EXISTS (
+                SELECT 1
+                FROM ordering_facility_facilities
+                WHERE ordering_facility_id = pof.id
+                AND facility_id = ${facility_id}
+            ) `;
+        }
 
         if (q) {
             whereQuery = SQL` AND (
@@ -590,6 +594,7 @@ module.exports = {
                 WHERE pofc.inactivated_dt IS NULL
                     AND pof.inactivated_dt IS NULL
                     AND pof.company_id = ${company_id}`
+            .append(facility_query)
             .append(whereQuery)
             .append(`
             )
@@ -617,6 +622,7 @@ module.exports = {
             WHERE pofc.inactivated_dt IS NULL
                 AND pof.inactivated_dt IS NULL
                 AND pof.company_id = ${company_id}`)
+            .append(facility_query)
             .append(whereQuery);
 
         sql.append(`

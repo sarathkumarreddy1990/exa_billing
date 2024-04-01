@@ -248,7 +248,7 @@ define([
                 var self = this;
                 // grid gets defined somewhere, but not sure where. Just going to ignore eslint error for now.
                 /* eslint-disable no-undef */
-                var filterObj = grid.jqGrid('getGridParam', 'postData');
+                var filterObj = $('#tblAuditLogGrid').jqGrid('getGridParam', 'postData');
                 /* eslint-enable no-undef */
                 self.excelFlag = true;
 

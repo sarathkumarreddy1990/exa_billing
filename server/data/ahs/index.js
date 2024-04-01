@@ -197,6 +197,7 @@ const ahsData = {
                             ELSE TO_CHAR(s.hospital_admission_dt, 'YYYYMMDD')
                         END
                         , 'billing_number', LPAD(pc_app.can_prid, 8, '0')
+                        , 'practitioner_billing_number', p_app.provider_info->'WCBBillingNumber'
                         , 'invoice_type_code', 'MEDCARE'
                         , 'invoice_type_description', ''
                         , 'provider_skill_code', scc.code
@@ -214,6 +215,7 @@ const ahsData = {
                 LEFT JOIN billing.charges_studies bcs ON bcs.charge_id = bch.id
                 LEFT JOIN studies s ON s.id = bcs.study_id
                 LEFT JOIN public.provider_contacts pc_app ON pc_app.id = bc.rendering_provider_contact_id
+                LEFT JOIN public.providers p_app ON p_app.id = pc_app.provider_id
                 LEFT JOIN public.skill_codes scc ON scc.id = bc.can_ahs_skill_code_id
                 LEFT JOIN public.places_of_service pos ON pos.id = bc.place_of_service_id
                 LEFT JOIN LATERAL (
@@ -375,7 +377,8 @@ const ahsData = {
                         'provider_skill_code', scc.code,
                         'contract_id', '000001',
                         'role', 'GP',
-                        'billing_number', LPAD(pc_app.can_prid, 8, '0')
+                        'billing_number', LPAD(pc_app.can_prid, 8, '0'),
+                        'practitioner_billing_number', p_app.provider_info->'WCBBillingNumber'
                     ) AS practitioner_data
                     , bp.address_line1 AS invoice_submitter_address
                     , bp.city AS invoice_submitter_city
@@ -917,6 +920,7 @@ const ahsData = {
                         billing.get_can_ahs_mod10_for_claim_sequence_number(
                             inserted_efc.sequence_number :: INT8
                         )                                            AS check_digit,
+                        p_app.provider_info->'WCBBillingNumber'      AS wcb_billing_number,
 
                         -- currently hard-coded - AHS does not support another code right now
                         'CIP1'                                       AS transaction_type,

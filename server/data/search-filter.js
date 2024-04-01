@@ -596,7 +596,7 @@ const api = {
     },
     getWLQueryJoin: function (columns) {
         let tables = columns instanceof Object && columns || api.getTables(columns);
-        let imp_orders = tables.vehicles || tables.users || tables.providers || tables.auth || tables.eligibility || tables.icd_codes || tables.auth || tables.insurance_providers || tables.pat_order_ins;
+        let imp_orders = tables.vehicles || tables.users || tables.providers || tables.eligibility || tables.icd_codes || tables.insurance_providers || tables.pat_order_ins;
         let imp_provider_contacts = tables.imagedelivery || tables.providers_ref;
         let imp_facilities = tables.tat;
         let r = '';
@@ -650,24 +650,6 @@ const api = {
         if (tables.modalities){ r += ' LEFT JOIN modalities ON studies.modality_id = modalities.id '; }// This should be inner
 
         if (tables.cpt_codes) {r += ' LEFT JOIN cpt_codes ON studies.procedure_id = cpt_codes.id ';}
-
-        if ( tables.auth ) {
-            r += `
-                LEFT JOIN LATERAL (
-                    SELECT
-                        get_authorization(
-                            studies.id,
-                            studies.facility_id,
-                            studies.modality_id,
-                            ARRAY [
-                                pat_order_ins.primary_patient_insurance_id,
-                                pat_order_ins.secondary_patient_insurance_id,
-                                pat_order_ins.tertiary_patient_insurance_id
-                            ]
-                        ) AS as_authorization
-                ) auth ON TRUE
-            `;
-        }
 
         if (tables.flags) {
             r += `
@@ -1021,12 +1003,10 @@ const api = {
                                 ) AS attorney_name
                             `,
             'approving_provider_ref.full_name AS approving_provider',
-            `imagedelivery.image_delivery
-                AS image_delivery`,
-            `auth.as_authorization AS as_authorization`,
+            `imagedelivery.image_delivery AS image_delivery`,
+            `get_authorization_status_by_study(studies.id)::text AS as_authorization`,
             'report_delivery.report_queue_status',
-            `has_empty_notes(studies.id, patients.id, orders.id)
-                AS empty_notes_flag`,
+            `has_empty_notes(studies.id, patients.id, orders.id) AS empty_notes_flag`,
             `study_cpt.study_cpt_id`,
             `studies.stat_level AS stat_level`,
             `order_info->'patientRoom' AS patient_room`,

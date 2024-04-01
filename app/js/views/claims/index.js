@@ -575,7 +575,10 @@ define(['jquery',
                 self.hct.date();
                 self.priDOB = commonjs.bindDateTimePicker('divPriDOB', { format: 'L' });
                 self.priDOB.date();
-                commonjs.bindDateTimePicker('divDOF', { format: 'L' });
+
+                if (app.billingRegionCode === 'can_AB') { 
+                    commonjs.bindDateTimePicker('divDOF', { format: 'L' });
+                }
 
                 if (app.country_alpha_3_code !== 'can') {
                     self.secDOB = commonjs.bindDateTimePicker('divSecDOB', { format: 'L' });
@@ -924,9 +927,7 @@ define(['jquery',
                             self.federalTaxId = claimDetails.federal_tax_id || '';
 
                             $.each(existing_insurance, function (index, value) {
-                                var isDisplayInsurance = !value.valid_to_date || moment(claimDetails.claim_dt).isSameOrBefore(value.valid_to_date);
-
-                                if (isDisplayInsurance) {
+                                if (value.is_active) {
                                     switch (value.coverage_level) {
                                         case 'primary':
                                             existingPrimaryInsurance.push(value);
@@ -3614,10 +3615,7 @@ define(['jquery',
                             self.tradingPartnerId = existing_insurance.length && existing_insurance[0].ins_partner_id ? existing_insurance[0].ins_partner_id : '';
 
                             $.each(existing_insurance, function (index, value) {
-                                var isDisplayInsurance = !value.valid_to_date || moment(self.cur_study_date).isSameOrBefore(value.valid_to_date);
-
-                                if (isDisplayInsurance) {
-
+                                if (value.is_active) {
                                     switch (value.coverage_level) {
                                         case 'primary':
                                             self.existingPrimaryInsurance.push(value);
@@ -3679,6 +3677,13 @@ define(['jquery',
                 var ddlClaimResponsible = $('#ddlClaimResponsible');
 
                 if (currentBillingType === 'facility') {
+                    if (!ddlClaimResponsible.find('option[value="POF"]').length) {
+                        this.updateResponsibleList({
+                            payer_type: 'POF',
+                            payer_id: this.ordering_facility_id,
+                            payer_name: this.ordering_facility_name + self.claimResponsible
+                        }, null);
+                    }
                     ddlClaimResponsible.val("POF").change();
                 } else {
                     var defaultResponsible = ddlClaimResponsible.find('option[value="PIP_P"]').length
@@ -3704,6 +3709,7 @@ define(['jquery',
                                 sortField: "location",
                                 sortOrder: "ASC",
                                 groupType: 'OF',
+                                facility_id: $('#ddlFacility').val(),
                                 company_id: app.companyID
                             };
                         },
@@ -4669,7 +4675,7 @@ define(['jquery',
                     var samePolicy = info.policy_number === policy;
                     var sameCoverageLevel = info.coverage_level === coverage_level;
                     var sameRecord = info.id === ~~id;
-                    return sameProvider && samePolicy && sameCoverageLevel && !sameRecord && info.is_active;
+                    return sameProvider && samePolicy && sameCoverageLevel && !sameRecord;
                 });
             },
 
@@ -6627,6 +6633,7 @@ define(['jquery',
                             } else {
                                 window.patientChartWindow = window.open("about:blank");
                                 window.patientChartWindow.location.href = url;
+                                commonjs.bindWindowUnload(window.patientChartWindow, commonjs.closePatientChartWindow);
                             }
                         }));
 

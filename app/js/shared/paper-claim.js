@@ -94,7 +94,10 @@ define([
                             }
 
                             self.updateClaimStatus(processedIDs, templateType, is_invoice_inquiry, options, function (err, response) {
-                                claimData[0].invoiceNo = response && response.invoice_no || '';
+                                claimData[0].invoiceNo = is_invoice_inquiry
+                                    ? options.invoice_no
+                                    : response && response.invoice_no || '';
+
                                 return self.preparePdfWorker(templateType, template, claimData);
                             });
 

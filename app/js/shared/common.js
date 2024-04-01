@@ -4368,6 +4368,24 @@ var commonjs = {
         });
     },
 
+    /**
+     * Binds the unload object that clears out the window reference
+     *
+     * @param {object}   windowObj
+     * @param {function} fnOnClose
+     */
+    bindWindowUnload: function (windowObj, fnOnClose) {
+        // Start checking for early window close
+        var earlyCloseTimer = setInterval(function () {
+            if (windowObj.closed) {
+                clearInterval(earlyCloseTimer);
+                fnOnClose();
+            }
+        }, 500);
+
+        return this;
+    },
+
     detectChromeExtension: function (callback) {
         var self = this;
         var extensionId = "mlkplhocljobcbmokjlehlminmnfaddn";

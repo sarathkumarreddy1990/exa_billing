@@ -754,7 +754,7 @@ module.exports = {
             pageNo,
             pageSize,
             patientId,
-            billProvId
+            billProvId = 0
         } = params;
 
         let billProvWhereQuery = billProvId && billProvId != 0 && billProvId != '' ? `AND claims.billing_provider_id = ${billProvId}` : '';
@@ -837,12 +837,17 @@ module.exports = {
 
         switch (payerType) {
             case 'ordering_facility':
-                selectDetails = ' bc.ordering_facility_contact_id, bc.payer_type';
+                selectDetails = ' pof.id AS ordering_facility_id, bc.payer_type';
 
-                joinCondition = `LEFT JOIN public.ordering_facility_contacts pofc ON pofc.id = bc.ordering_facility_contact_id
-                    LEFT JOIN public.ordering_facilities pof ON pof.id = pofc.ordering_facility_id`;
+                joinCondition = `
+                    LEFT JOIN public.ordering_facility_contacts pofc ON pofc.id = bc.ordering_facility_contact_id
+                    LEFT JOIN public.ordering_facilities pof ON pof.id = pofc.ordering_facility_id
+                `;
 
-                joinQuery = 'INNER JOIN get_payer_details gpd ON gpd.ordering_facility_contact_id = bc.ordering_facility_contact_id AND gpd.payer_type = bc.payer_type';
+                joinQuery = `
+                    INNER JOIN public.ordering_facility_contacts ofc ON ofc.id = bc.ordering_facility_contact_id
+                    INNER JOIN get_payer_details gpd ON gpd.ordering_facility_id = ofc.ordering_facility_id AND gpd.payer_type = bc.payer_type
+                `;
                 break;
             case 'primary_insurance':
                 selectDetails = ' ppi.insurance_provider_id AS insurance_provider_id, bc.payer_type ';
@@ -941,7 +946,6 @@ module.exports = {
             havingQuery += ` AND SUM(payment) = (${params.invoice_payment})::MONEY`;
         }
 
-
         return {
             joinCondition,
             selectDetails,
@@ -960,8 +964,8 @@ module.exports = {
             pageNo,
             pageSize,
             payerType,
-            claimID } = params;
-
+            claimID
+        } = params;
 
         let {
             joinCondition,
@@ -971,94 +975,110 @@ module.exports = {
             havingQuery
         } = await this.getInvoiceDetails(payerType, params);
 
-        const sql = `WITH  get_payer_details AS(
-                    SELECT
-                        ${selectDetails}
-                    FROM billing.claims bc
-                    ${joinCondition}
-                    WHERE bc.invoice_no IS NOT NULL
-                    AND bc.payer_type = '${payerType}'
-                    AND bc.id = ${claimID}
-                ),
-                invoice_payment_details AS(
+        const sql = `
+            WITH get_payer_details AS(
                 SELECT
-                    bc.invoice_no
-                    , bc.submitted_dt::DATE AS date
-                    , claim_totals.charges_bill_fee_total AS bill_fee
-                    , claim_totals.payments_applied_total AS payment
-                    , claim_totals.adjustments_applied_total AS adjustment
-                    , claim_totals.claim_balance_total AS balance
-                    , bc.id AS claim_id
-                    , bc.facility_id
+                    ${selectDetails}
+                FROM billing.claims bc
+                ${joinCondition}
+                WHERE bc.invoice_no IS NOT NULL
+                AND bc.payer_type = '${payerType}'
+                AND bc.id = ${claimID}
+            ),
+
+            invoice_payment_details AS(
+                SELECT
+                    bc.invoice_no,
+                    bc.submitted_dt::DATE AS date,
+                    claim_totals.charges_bill_fee_total AS bill_fee,
+                    claim_totals.payments_applied_total AS payment,
+                    claim_totals.adjustments_applied_total AS adjustment,
+                    claim_totals.claim_balance_total AS balance,
+                    bc.id AS claim_id,
+                    bc.facility_id
                 FROM billing.claims bc
                 ${joinQuery}
                 INNER JOIN LATERAL (SELECT * FROM billing.get_claim_totals(bc.id)) claim_totals ON true
                 WHERE bc.invoice_no IS NOT NULL
                 AND bc.billing_method = 'direct_billing'
-                ${whereQuery})
-                SELECT
-                    ROW_NUMBER () OVER (ORDER BY invoice_no) AS id
-                    , invoice_no::INT AS invoice_no
-                    , timezone(public.get_facility_tz(facility_id::INT), MAX(date)::TIMESTAMP) AS invoice_date
-                    , SUM(bill_fee) AS invoice_bill_fee
-                    , SUM(payment) AS invoice_payment
-                    , SUM(adjustment) AS invoice_adjustment
-                    , SUM(balance) AS invoice_balance
-                    , COUNT(1) OVER (range unbounded preceding) AS total_records
-                    , ARRAY_AGG(claim_id) AS claim_ids
-                    , facility_id
-                FROM invoice_payment_details
-                GROUP BY invoice_no,facility_id
-                ${havingQuery}
-                ORDER BY ${sortField}  ${sortOrder}   LIMIT ${pageSize}
-                OFFSET ${((pageNo * pageSize) - pageSize)}`;
+                ${whereQuery}
+            )
+
+            SELECT
+                ROW_NUMBER () OVER (ORDER BY invoice_no) AS id,
+                invoice_no::INT AS invoice_no,
+                MAX(to_char(date, 'MM/DD/YYYY')) AS invoice_date,
+                SUM(bill_fee) AS invoice_bill_fee,
+                SUM(payment) AS invoice_payment,
+                SUM(adjustment) AS invoice_adjustment,
+                SUM(balance) AS invoice_balance,
+                COUNT(1) OVER (range unbounded preceding) AS total_records,
+                ARRAY_AGG(claim_id) AS claim_ids
+            FROM invoice_payment_details
+            GROUP BY
+                invoice_no
+            ${havingQuery}
+            ORDER BY ${sortField}  ${sortOrder}
+            LIMIT ${pageSize}
+            OFFSET ${((pageNo * pageSize) - pageSize)}
+        `;
 
         return await query(sql);
-
     },
 
     getInvoicePaymentsAge: async function (params) {
-
-        let { payerType, claimID } = params;
+        let {
+            payerType,
+            claimID
+        } = params;
 
         let {
             joinCondition,
             selectDetails,
             joinQuery,
-            whereQuery,
-            havingQuery
+            whereQuery
         } = await this.getInvoiceDetails(payerType, params);
 
-        return await query(`WITH  get_payer_details AS(
-                                SELECT
-                                    ${selectDetails}
-                                FROM billing.claims bc
-                                ${joinCondition}
-                                WHERE bc.invoice_no is not null
-                                AND bc.payer_type = '${payerType}'
-                                AND bc.id = ${claimID}
-                            ),
-                            invoice_payment_details AS(
-                            SELECT
-                                COALESCE(max(date_part('day', (now() - bc.submitted_dt))),0) AS age
-                                , claim_totals.claim_balance_total AS balance
-                            FROM billing.claims bc
-                            ${joinQuery}
-                            INNER JOIN LATERAL (SELECT * FROM billing.get_claim_totals(bc.id)) claim_totals ON true
-                            WHERE
-                                bc.invoice_no is not null
-                            ${whereQuery}
-                            group by submitted_dt,claim_totals.claim_balance_total)
-                            SELECT
-                                COALESCE(sum(balance) FILTER(WHERE ipd.age <= 0 ) , 0::money) AS current_balance,
-                                COALESCE(sum(balance) FILTER(WHERE ipd.age > 0 and ipd.age <= 30 ) , 0::money) AS to30,
-                                COALESCE(sum(balance) FILTER(WHERE ipd.age > 30 and ipd.age <= 60) , 0::money) AS to60,
-                                COALESCE(sum(balance) FILTER(WHERE ipd.age > 60 and ipd.age <= 90 ) , 0::money) AS to90,
-                                COALESCE(sum(balance) FILTER(WHERE ipd.age > 90 and ipd.age <= 120 ) , 0::money) AS to120,
-                                sum(balance)
-                            FROM invoice_payment_details ipd
-                            ${havingQuery}`);
+        const sql = `
+            WITH get_payer_details AS (
+                SELECT
+                    ${selectDetails}
+                FROM billing.claims bc
+                ${joinCondition}
+                WHERE bc.invoice_no is not null
+                AND bc.payer_type = '${payerType}'
+                AND bc.id = ${claimID}
+            ),
 
+            invoice_payment_details AS (
+                SELECT
+                    bc.invoice_no,
+                    bc.submitted_dt::DATE AS submitted_dt,
+                    claim_totals.charges_bill_fee_total AS bill_fee,
+                    claim_totals.payments_applied_total AS payment,
+                    claim_totals.adjustments_applied_total AS adjustment,
+                    claim_totals.claim_balance_total AS balance,
+                    bc.id AS claim_id,
+                    bc.facility_id
+                FROM billing.claims bc
+                ${joinQuery}
+                INNER JOIN LATERAL (SELECT * FROM billing.get_claim_totals(bc.id)) claim_totals ON true
+                WHERE bc.invoice_no IS NOT NULL
+                AND bc.billing_method = 'direct_billing'
+                ${whereQuery}
+            )
+
+            SELECT
+                coalesce(sum(balance) FILTER (WHERE submitted_dt BETWEEN current_date - 29 AND current_date), 0::money) AS current_balance,
+                coalesce(sum(balance) FILTER (WHERE submitted_dt BETWEEN current_date - 59 AND current_date - 30), 0::money) AS to30,
+                coalesce(sum(balance) FILTER (WHERE submitted_dt BETWEEN current_date - 89 AND current_date - 60), 0::money) AS to60,
+                coalesce(sum(balance) FILTER (WHERE submitted_dt BETWEEN current_date - 119 AND current_date - 90), 0::money) AS to90,
+                coalesce(sum(balance) FILTER (WHERE submitted_dt <= current_date - 120), 0::money) AS to120,
+                coalesce(sum(balance), 0::money) AS total_balance
+            FROM invoice_payment_details
+        `;
+
+        return await query(sql);
     },
 
     getclaimPatientLog: async function (params) {
