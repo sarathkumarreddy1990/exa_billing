@@ -1,0 +1,34 @@
+[
+	{
+		"groupCode": "PR",
+		"reasonCode": "1"
+	},
+	{
+		"groupCode": "PR",
+		"reasonCode": "2"
+	},
+	{
+		"groupCode": "PR",
+		"reasonCode": "3"
+	},
+    {
+		"groupCode": "PR",
+		"reasonCode": "94"
+	},
+	{
+		"groupCode": "CO",
+		"reasonCode": "45"
+	},
+	{
+		"groupCode": "CO",
+		"reasonCode": "94"
+	},
+	{
+		"groupCode": "CO",
+		"reasonCode": "253"
+	},
+	{
+		"groupCode": "OA",
+		"reasonCode": "94"
+	}
+]
