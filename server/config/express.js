@@ -56,7 +56,17 @@ module.exports = function (app, express, companyId) {
                 "'unsafe-inline'",
                 "'unsafe-eval'",
                 //(req, res) => `nonce-${res.locals.cspNonce}'`
-            ]
+            ],
+            styleSrc: [
+                "'self'",
+                "'unsafe-inline'",
+                "https://exalocal.viztek.net:33355",
+                "https://fonts.googleapis.com",
+            ],
+            scriptSrcAttr: [
+                "'self'",
+                "'unsafe-inline'",
+            ],
         }
     }));
 
