@@ -1,6 +1,7 @@
 const data = require('../../data/era/index');
 const shared = require('../../shared');
 const remarkCodes = require('../../resx/edi/era-remark-codes');
+const excludedDenialCodes = require('../../resx/edi/excluded-denial-codes.json');
 const _ = require('lodash');
 const commentsDetails = [
     {
@@ -171,22 +172,22 @@ module.exports = {
                         let hasCASPatientResponsibility = false;
 
                         _.each(validCAS, function (cas) {
-
-                            let groupcode = _.filter(cas_details.cas_group_codes, { code: cas.groupCode });
+                            let casGroupCode = cas.groupCode;
+                            let groupcode = _.filter(cas_details.cas_group_codes, { code: casGroupCode});
 
                             for (let j = 1; j <= 7; j++) {
+                                let casReasonCode = cas['reasonCode' + j];
+                                if (casReasonCode) {
 
-                                if (cas['reasonCode' + j]) {
-                                    let reasoncode = _.filter(cas_details.cas_reason_codes, { code: cas['reasonCode' + j] });
-
-                                    if (cas.groupCode === 'PR' && cas['reasonCode' + j] === '96') {
-                                        isGroupDeniedStatus = true;
+                                    if (!isGroupDeniedStatus) {
+                                        isGroupDeniedStatus = _.findIndex(excludedDenialCodes, {"groupCode": casGroupCode, "reasonCode": casReasonCode}) === -1;
                                     }
 
-                                    if (cas.groupCode === 'PR' && cas['reasonCode' + j] !== '96') {
+                                    if (casGroupCode === 'PR' && casReasonCode !== '96') {
                                         hasCASPatientResponsibility = true;
                                     }
 
+                                    let reasoncode = _.filter(cas_details.cas_reason_codes, { code: casReasonCode });
                                     cas_obj.push({
                                         group_code_id: groupcode && groupcode.length ? groupcode[0].id : null,
                                         reason_code_id: reasoncode && reasoncode.length ? reasoncode[0].id : null,
