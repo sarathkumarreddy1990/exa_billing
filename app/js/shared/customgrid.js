@@ -184,10 +184,10 @@ function customGrid ( datastore, gridID ) {
                     var rowObj = $(tr);
 
                     rowObj.removeClass('customRowSelect');
-                    var $chkSendStudy = $tblGrid.find('#chkSendStudy_' + rowid);
+                    var $chkSendStudy = $tblGrid.find('#chktblClaimGridAll_Claims_' + rowid);
                     if ( $chkSendStudy.length > 0 && (e.target || e.srcElement).type !== 'checkbox' ) {
                         if ( !$chkSendStudy.prop('checked') ) {
-                            $tblGrid.find('input').filter('[type=checkbox]').removeAttr('checked');
+                            $tblGrid.find('input').filter('[type=checkbox]').prop('checked', false);
                             $tblGrid.find('.customRowSelect').removeClass('customRowSelect');
                         }
                     }
