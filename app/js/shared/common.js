@@ -2150,6 +2150,7 @@ var commonjs = {
         //$(".maskMonthYear").inputmask("dd/MM/yyyy hh:mm:ss",{ "placeholder": "dd/MM/yyyy hh:mm:ss" });
         $(".maskHourmin").inputmask("h:s", { "placeholder": "HH/MM" });
         $(".maskYear").inputmask("9999", { "placeholder": "YYYY" });
+        $(".maskWCB").inputmask({ "mask": "*", "repeat": 7, "greedy": false });
         $('.maskUnits').inputmask("numeric", {
             radixPoint: ".",
             groupSeparator: "",
