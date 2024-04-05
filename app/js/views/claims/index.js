@@ -4768,6 +4768,11 @@ define(['jquery',
                     return false;
                 }
 
+                if($('#txtOriginalRef').val() && $('#txtOriginalRef').val().length !== 7){
+                    commonjs.showWarning("messages.warning.shared.invalidWcbNumber");
+                    return false;
+                }
+
                 if ((!$('#txtEncounterNo').val() || $('#txtEncounterNo').val() == 0) && app.billingRegionCode === 'can_AB') {
                     return commonjs.showWarning("messages.warning.shared.pleaseEnterEncounterNumber");
                 }
